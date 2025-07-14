@@ -5,9 +5,9 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Textarea } from './ui/textarea';
+import Image from 'next/image';
 
 interface ProfileFormProps {
   userId: string;
@@ -26,19 +26,105 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(avatarUrl);
   const [currentBio, setCurrentBio] = useState<string | null>(bio);
   const [currentLink, setCurrentLink] = useState<string | null>(link);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(avatarUrl);
 
   useEffect(() => {
     setCurrentUsername(username);
     setCurrentFullName(fullName);
-    setCurrentAvatarUrl(avatarUrl);
     setCurrentBio(bio);
     setCurrentLink(link);
-    setLoading(false); // Set loading to false once initial data is set
+    setCurrentAvatarUrl(avatarUrl);
+    setAvatarPreviewUrl(avatarUrl);
+    setLoading(false);
   }, [username, fullName, avatarUrl, bio, link]);
+
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number, quality: number): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            }
+          }, file.type, quality);
+        };
+      };
+    });
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      setAvatarFile(file);
+      setAvatarPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`; // Store in a user-specific folder
+
+    // Resize image before upload
+    const resizedBlob = await resizeImage(file, 300, 300, 0.7); // Max 300x300, 70% quality
+    const resizedFile = new File([resizedBlob], fileName, { type: file.type });
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, resizedFile, {
+        cacheControl: '3600',
+        upsert: true, // Overwrite existing file
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  };
 
   const updateProfile = useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
+
+    let newAvatarUrl = currentAvatarUrl;
+    if (avatarFile) {
+      try {
+        newAvatarUrl = await uploadAvatar(avatarFile);
+      } catch (error: any) {
+        alert(`Error uploading avatar: ${error.message}`);
+        setLoading(false);
+        return;
+      }
+    }
 
     const { error } = await supabase
       .from('profiles')
@@ -46,7 +132,7 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
         id: userId,
         username: currentUsername,
         full_name: currentFullName,
-        avatar_url: currentAvatarUrl,
+        avatar_url: newAvatarUrl,
         bio: currentBio,
         link: currentLink,
         updated_at: new Date().toISOString(),
@@ -56,11 +142,11 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
       alert(error.message);
     } else {
       alert('Profile updated successfully!');
-      // Optionally revalidate path or redirect
-      // For now, just alert and let the user see the updated state
+      setCurrentAvatarUrl(newAvatarUrl); // Update state with new URL
+      setAvatarFile(null); // Clear file input
     }
     setLoading(false);
-  }, [userId, currentUsername, currentFullName, currentAvatarUrl, currentBio, currentLink, supabase]);
+  }, [userId, currentUsername, currentFullName, currentBio, currentLink, avatarFile, currentAvatarUrl, supabase]);
 
   return (
     <Card className="w-full max-w-md">
@@ -93,13 +179,24 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
             />
           </div>
           <div>
-            <Label htmlFor="avatarUrl">Avatar URL</Label>
-            <Input
-              id="avatarUrl"
-              type="text"
-              value={currentAvatarUrl || ''}
-              onChange={(e) => setCurrentAvatarUrl(e.target.value)}
-            />
+            <Label htmlFor="avatar">Avatar</Label>
+            <div className="flex items-center gap-4">
+              {avatarPreviewUrl && (
+                <Image
+                  src={avatarPreviewUrl}
+                  alt="Avatar"
+                  className="rounded-full object-cover"
+                  width={96}
+                  height={96}
+                />
+              )}
+              <Input
+                id="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+              />
+            </div>
           </div>
           <div>
             <Label htmlFor="bio">Bio</Label>

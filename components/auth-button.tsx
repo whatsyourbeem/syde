@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
+import Image from "next/image";
 
-export async function AuthButton() {
+export async function AuthButton({ avatarUrl }: { avatarUrl: string | null }) {
   const supabase = await createClient();
 
   const {
@@ -12,8 +13,18 @@ export async function AuthButton() {
 
   return user ? (
     <div className="flex items-center gap-4">
-      <Link href="/profile" className="hover:underline">
-        Hey, {user.email}!
+      <Link href="/profile">
+        {avatarUrl ? (
+          <Image
+            src={avatarUrl}
+            alt="User Avatar"
+            width={32}
+            height={32}
+            className="rounded-full object-cover"
+          />
+        ) : (
+          <span className="hover:underline">Hey, {user.email}!</span>
+        )}
       </Link>
       <LogoutButton />
     </div>

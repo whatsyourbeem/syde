@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { AuthButton } from "@/components/auth-button";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -21,11 +22,30 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let avatarUrl = null;
+  if (user) {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('avatar_url, updated_at')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('Error fetching profile for layout:', profileError);
+    } else if (profile) {
+      avatarUrl = profile.avatar_url ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}` : null;
+    }
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
@@ -41,7 +61,7 @@ export default function RootLayout({
                 <div className="flex gap-5 items-center font-semibold">
                   <Link href={"/"}>SYDE</Link>
                 </div>
-                <AuthButton />
+                <AuthButton avatarUrl={avatarUrl} />
               </div>
             </nav>
             {children}
