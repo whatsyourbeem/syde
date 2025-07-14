@@ -14,10 +14,12 @@ export default async function ProfilePage() {
   let username = null;
   let fullName = null;
   let avatarUrl = null;
+  let bio = null;
+  let link = null;
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('username, full_name, avatar_url')
+    .select('username, full_name, avatar_url, bio, link')
     .eq('id', user.id)
     .single();
 
@@ -27,6 +29,8 @@ export default async function ProfilePage() {
     username = profile.username;
     fullName = profile.full_name;
     avatarUrl = profile.avatar_url;
+    bio = profile.bio;
+    link = profile.link;
   }
 
   return (
@@ -38,6 +42,8 @@ export default async function ProfilePage() {
           username={username}
           fullName={fullName}
           avatarUrl={avatarUrl}
+          bio={bio}
+          link={link}
         />
       </div>
     </div>
