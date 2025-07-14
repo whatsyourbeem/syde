@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
-import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -44,7 +41,7 @@ export default function RootLayout({
                 <div className="flex gap-5 items-center font-semibold">
                   <Link href={"/"}>SYDE</Link>
                 </div>
-                {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
+                <AuthButton />
               </div>
             </nav>
             {children}
