@@ -9,8 +9,9 @@ interface UserProfilePageProps {
 }
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
+  const resolvedParams = await Promise.resolve(params);
+  const { username } = resolvedParams;
   const supabase = await createClient();
-  const { username } = params;
 
   // Fetch the profile data for the given username
   const { data: profile, error: profileError } = await supabase
