@@ -4,7 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { HeartIcon } from 'lucide-react'; // Assuming lucide-react is installed
+import { HeartIcon, MessageCircle } from 'lucide-react'; // Added MessageCircle
+import { CommentForm } from './comment-form'; // Will create this
+import { CommentList } from './comment-list'; // Will create this
 
 interface LogCardProps {
   log: {
@@ -23,18 +25,22 @@ interface LogCardProps {
   currentUserId: string | null;
   initialLikesCount: number;
   initialHasLiked: boolean;
+  initialCommentsCount: number; // Added initialCommentsCount
 }
 
-export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked }: LogCardProps) {
+export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked, initialCommentsCount }: LogCardProps) {
   const supabase = createClient();
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
+  const [commentsCount, setCommentsCount] = useState(initialCommentsCount); // Added commentsCount state
   const [loading, setLoading] = useState(false);
+  const [showComments, setShowComments] = useState(false); // State to toggle comments
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
     setHasLiked(initialHasLiked);
-  }, [initialLikesCount, initialHasLiked]);
+    setCommentsCount(initialCommentsCount); // Update commentsCount on prop change
+  }, [initialLikesCount, initialHasLiked, initialCommentsCount]);
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
     ? `${log.profiles.avatar_url}?t=${new Date(log.profiles.updated_at).getTime()}`
@@ -74,6 +80,11 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
       }
     }
     setLoading(false);
+  };
+
+  const handleCommentAdded = () => {
+    setCommentsCount((prev) => prev + 1);
+    setShowComments(true); // Show comments after adding one
   };
 
   return (
@@ -119,8 +130,17 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
           />
           <span>{likesCount} Likes</span>
         </div>
-        <span>0 Comments</span>
+        <div className="flex items-center gap-1 cursor-pointer" onClick={() => setShowComments(!showComments)}>
+          <MessageCircle size={18} />
+          <span>{commentsCount} Comments</span>
+        </div>
       </div>
+      {showComments && (
+        <div className="mt-4 border-t pt-4">
+          <CommentForm logId={log.id} currentUserId={currentUserId} onCommentAdded={handleCommentAdded} />
+          <CommentList logId={log.id} currentUserId={currentUserId} />
+        </div>
+      )}
     </div>
   );
 }
