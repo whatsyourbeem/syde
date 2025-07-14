@@ -4,16 +4,18 @@ import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 import Image from "next/image";
 
-export async function AuthButton({ avatarUrl }: { avatarUrl: string | null }) {
+export async function AuthButton({ avatarUrl, username }: { avatarUrl: string | null; username: string | null }) {
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const profileLink = username ? `/${username}` : "/profile";
+
   return user ? (
     <div className="flex items-center gap-4">
-      <Link href="/profile">
+      <Link href={profileLink}>
         {avatarUrl ? (
           <Image
             src={avatarUrl}

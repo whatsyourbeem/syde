@@ -32,10 +32,11 @@ export default async function RootLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   let avatarUrl = null;
+  let usernameForAuthButton = null;
   if (user) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('avatar_url, updated_at')
+      .select('avatar_url, updated_at, username')
       .eq('id', user.id)
       .single();
 
@@ -43,6 +44,7 @@ export default async function RootLayout({
       console.error('Error fetching profile for layout:', profileError);
     } else if (profile) {
       avatarUrl = profile.avatar_url ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}` : null;
+      usernameForAuthButton = profile.username;
     }
   }
 
@@ -61,7 +63,7 @@ export default async function RootLayout({
                 <div className="flex gap-5 items-center font-semibold">
                   <Link href={"/"}>SYDE</Link>
                 </div>
-                <AuthButton avatarUrl={avatarUrl} />
+                <AuthButton avatarUrl={avatarUrl} username={usernameForAuthButton} />
               </div>
             </nav>
             {children}
