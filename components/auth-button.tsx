@@ -12,7 +12,7 @@ export async function AuthButton() {
 
   return user ? (
     <div className="flex items-center gap-4">
-      <Link href="/protected/profile" className="hover:underline">
+      <Link href="/profile" className="hover:underline">
         Hey, {user.email}!
       </Link>
       <LogoutButton />
