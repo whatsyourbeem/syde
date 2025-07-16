@@ -56,21 +56,21 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 2. Create a Next.js app using the Supabase Starter template npx command
 
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   npx create-next-app --example with-supabase syde
    ```
 
    ```bash
-   yarn create next-app --example with-supabase with-supabase-app
+   yarn create next-app --example with-supabase syde
    ```
 
    ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
+   pnpm create next-app --example with-supabase syde
    ```
 
 3. Use `cd` to change into the app's directory
 
    ```bash
-   cd with-supabase-app
+   cd syde
    ```
 
 4. Rename `.env.example` to `.env.local` and update the following:

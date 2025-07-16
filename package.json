@@ -1,4 +1,5 @@
 {
+  "name": "syde",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
