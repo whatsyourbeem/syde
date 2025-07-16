@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -27,6 +27,7 @@ export function LogForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -138,6 +139,9 @@ export function LogForm({
         setContent("");
         setImageFile(null);
         setImagePreviewUrl(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Clear the file input
+        }
       } catch (error: any) {
         alert(`Error logging: ${error.message}`); // Changed alert message
       } finally {
@@ -194,6 +198,7 @@ export function LogForm({
               onChange={handleImageChange}
               className="w-auto"
               disabled={loading}
+              ref={fileInputRef} // Attach ref to the Input component
             />
             <Button type="submit" disabled={loading || content.trim() === ""}>
               {loading ? "로그 기록 중..." : "로그 기록하기"}{" "}
