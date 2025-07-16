@@ -12,14 +12,15 @@ export function LogList() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-    fetchUser();
-
     const fetchLogs = async () => {
       setLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const userId = user?.id || null;
+      setCurrentUserId(userId);
+
       const { data: logsData, error: logsError } = await supabase
         .from('logs')
         .select(
@@ -30,7 +31,7 @@ export function LogList() {
           created_at,
           user_id,
           profiles (username, full_name, avatar_url, updated_at),
-          log_likes(id)
+          log_likes(user_id)
         `
         )
         .order('created_at', { ascending: false });
@@ -39,10 +40,12 @@ export function LogList() {
         console.error('Error fetching logs:', logsError);
         setError(logsError.message);
       } else {
-        const logsWithLikes = logsData?.map(log => ({
+        const logsWithLikes = logsData?.map((log) => ({
           ...log,
           likesCount: log.log_likes.length,
-          hasLiked: currentUserId ? log.log_likes.some((like: any) => like.user_id === currentUserId) : false,
+          hasLiked: userId
+            ? log.log_likes.some((like: any) => like.user_id === userId)
+            : false,
         }));
         setLogs(logsWithLikes || []);
       }
@@ -51,7 +54,6 @@ export function LogList() {
 
     fetchLogs();
 
-    // Realtime subscription for new logs and likes
     const channel = supabase
       .channel('logs_and_likes_changes')
       .on(
@@ -80,7 +82,7 @@ export function LogList() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentUserId]); // Added currentUserId to dependency array
+  }, [supabase]);
 
   if (loading) {
     return <div className="text-center">Loading logs...</div>;
