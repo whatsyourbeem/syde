@@ -38,8 +38,8 @@ export function ClientAuthButton({ user, avatarUrl, username }: ClientAuthButton
         </div>
       ) : (
         <div className="flex gap-2">
-          <Button asChild size="sm" variant={"outline"} onClick={openLoginModal}> 
-            <button>Sign in</button>
+          <Button size="sm" variant={"outline"} onClick={openLoginModal}> 
+            Sign in
           </Button>
           <Button asChild size="sm" variant={"default"}>
             <Link href="/auth/sign-up">Sign up</Link>

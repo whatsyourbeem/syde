@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "./comment-card";
 import { Button } from './ui/button'; // Import Button component
@@ -14,47 +15,51 @@ interface CommentListProps {
 
 export function CommentList({ logId, currentUserId }: CommentListProps) {
   const supabase = createClient();
-  const [comments, setComments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1); // Current page state
-  const [totalCommentsCount, setTotalCommentsCount] = useState(0); // Total comments count state
 
-  const fetchComments = async () => {
-    setLoading(true);
-    const from = (currentPage - 1) * COMMENTS_PER_PAGE;
-    const to = from + COMMENTS_PER_PAGE - 1;
+  const queryKey = ['comments', { logId, currentPage }];
 
-    const { data, error, count } = await supabase
-      .from("log_comments")
-      .select(
-        `
-        id,
-        content,
-        created_at,
-        user_id,
-        log_id,
-        profiles (username, full_name, avatar_url, updated_at)
-      `,
-        { count: 'exact' }
-      )
-      .eq("log_id", logId)
-      .order("created_at", { ascending: true })
-      .range(from, to);
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: queryKey,
+    queryFn: async () => {
+      const from = (currentPage - 1) * COMMENTS_PER_PAGE;
+      const to = from + COMMENTS_PER_PAGE - 1;
 
-    if (error) {
-      console.error("Error fetching comments:", error);
-      setError(error.message);
-    } else {
-      setComments(data || []);
-      setTotalCommentsCount(count || 0);
-    }
-    setLoading(false);
-  };
+      const { data, error, count } = await supabase
+        .from("log_comments")
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          user_id,
+          log_id,
+          profiles (username, full_name, avatar_url, updated_at)
+        `,
+          { count: 'exact' }
+        )
+        .eq("log_id", logId)
+        .order("created_at", { ascending: true })
+        .range(from, to);
+
+      if (error) {
+        throw error;
+      }
+
+      const commentsWithProcessedProfiles = data?.map(comment => ({
+        ...comment,
+        profiles: comment.profiles, // Supabase returns single object for profiles
+      }));
+
+      return { comments: commentsWithProcessedProfiles || [], count: count || 0 };
+    },
+  });
+
+  const comments = data?.comments || [];
+  const totalCommentsCount = data?.count || 0;
 
   useEffect(() => {
-    fetchComments();
-
     const channel = supabase
       .channel(`comments-for-log-${logId}`)
       .on(
@@ -65,24 +70,8 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           table: "log_comments",
           filter: `log_id=eq.${logId}`,
         },
-        async (payload) => {
-          const newComment = payload.new;
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("username, full_name, avatar_url, updated_at")
-            .eq("id", newComment.user_id)
-            .single();
-
-          if (profileError) {
-            console.error("Error fetching profile for new comment:", profileError);
-            fetchComments(); // Fallback to refetching all
-          } else {
-            const formattedComment = {
-              ...newComment,
-              profiles: profileData,
-            };
-            setComments((currentComments) => [...currentComments, formattedComment]);
-          }
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] });
         }
       )
       .on(
@@ -92,10 +81,8 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           schema: "public",
           table: "log_comments",
         },
-        (payload) => {
-          // Assuming the channel `comments-for-log-${logId}` only receives DELETE events
-          // for comments belonging to this logId. payload.old.log_id is not available.
-          fetchComments(); // Re-fetch all comments on delete
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] });
         }
       )
       .on(
@@ -106,12 +93,8 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           table: "log_comments",
           filter: `log_id=eq.${logId}`,
         },
-        (payload) => {
-          setComments((currentComments) =>
-            currentComments.map((comment) =>
-              comment.id === payload.new.id ? { ...comment, content: payload.new.content } : comment
-            )
-          );
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] });
         }
       )
       .subscribe();
@@ -119,9 +102,9 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, logId, currentPage]); // Added currentPage to dependency array
+  }, [supabase, logId, queryClient]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="text-center text-sm text-muted-foreground">
         Loading comments...
@@ -129,15 +112,15 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
-      <div className="text-center text-sm text-red-500">Error: {error}</div>
+      <div className="text-center text-sm text-red-500">Error: {error?.message}</div>
     );
   }
 
   return (
     <div className="mt-4 space-y-2">
-      {comments.length === 0 && !loading ? (
+      {comments.length === 0 && !isLoading ? (
         <p className="text-center text-sm text-muted-foreground">아직 댓글이 없습니다.</p>
       ) : (
         comments.map((comment) => (
@@ -154,7 +137,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
             key={i + 1}
             onClick={() => setCurrentPage(i + 1)}
             variant={currentPage === i + 1 ? "default" : "outline"}
-            disabled={loading}
+            disabled={isLoading}
           >
             {i + 1}
           </Button>

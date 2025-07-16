@@ -22,6 +22,8 @@ interface LogCardProps {
       avatar_url: string | null;
       updated_at: string;
     } | null;
+    log_likes: { user_id: string }[]; // Added log_likes
+    log_comments: { id: string }[]; // Added log_comments
   };
   currentUserId: string | null;
   initialLikesCount: number;

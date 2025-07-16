@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { AuthButton } from "@/components/auth-button";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
+import { Providers } from "@/components/providers"; // Import Providers
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -52,13 +52,8 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-        <LoginModalProvider> {/* Wrap with LoginModalProvider */}
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+        <Providers> {/* Wrap with Providers */}
+          <LoginModalProvider> {/* Wrap with LoginModalProvider */}
             <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
               <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                 <div className="flex gap-5 items-center font-semibold">
@@ -68,8 +63,8 @@ export default async function RootLayout({
               </div>
             </nav>
             {children}
-          </ThemeProvider>
-        </LoginModalProvider>
+          </LoginModalProvider>
+        </Providers>
       </body>
     </html>
   );

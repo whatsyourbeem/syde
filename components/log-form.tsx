@@ -14,7 +14,8 @@ interface LogFormProps {
   userEmail?: string | null; // Made optional for editing
   avatarUrl?: string | null; // Made optional for editing
   username?: string | null; // Made optional for editing
-  initialLogData?: { // New prop for editing
+  initialLogData?: {
+    // New prop for editing
     id: string;
     content: string;
     image_url: string | null;
@@ -36,7 +37,9 @@ export function LogForm({
   const router = useRouter();
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(initialLogData?.image_url || null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
+    initialLogData?.image_url || null
+  );
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
   const { openLoginModal } = useLoginModal(); // Use the hook
@@ -185,7 +188,16 @@ export function LogForm({
         setLoading(false);
       }
     },
-    [userId, content, imageFile, router, supabase, initialLogData, onLogUpdated, imagePreviewUrl]
+    [
+      userId,
+      content,
+      imageFile,
+      router,
+      supabase,
+      initialLogData,
+      onLogUpdated,
+      imagePreviewUrl,
+    ]
   );
 
   return (
@@ -213,7 +225,9 @@ export function LogForm({
           onChange={(e) => setContent(e.target.value)}
           rows={3}
           disabled={loading} // Removed || !userId
-          onClick={() => { if (!userId) openLoginModal(); }} // Open modal on click if not logged in
+          onClick={() => {
+            if (!userId) openLoginModal();
+          }} // Open modal on click if not logged in
         />
         {imagePreviewUrl && (
           <div className="relative w-full h-48 rounded-md overflow-hidden">
@@ -234,7 +248,9 @@ export function LogForm({
             className="w-auto"
             disabled={loading} // Removed || !userId
             ref={fileInputRef} // Attach ref to the Input component
-            onClick={() => { if (!userId) openLoginModal(); }} // Open modal on click if not logged in
+            onClick={() => {
+              if (!userId) openLoginModal();
+            }} // Open modal on click if not logged in
           />
           <div className="flex gap-2">
             {onCancel && (
@@ -247,7 +263,12 @@ export function LogForm({
                 취소
               </Button>
             )}
-            <Button type="submit" disabled={loading || content.trim() === "" || !userId}> {/* Disable if not logged in */}
+            <Button
+              type="submit"
+              disabled={loading || content.trim() === "" || !userId}
+            >
+              {" "}
+              {/* Disable if not logged in */}
               {loading
                 ? initialLogData
                   ? "로그 수정 중..."
@@ -261,3 +282,4 @@ export function LogForm({
       </form>
     </div>
   );
+}

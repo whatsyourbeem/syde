@@ -51,7 +51,7 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
       {children}
       <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
         <DialogContent
-          className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] sm:max-w-[425px] motion-safe:animate-none"
+          className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] sm:max-w-[425px]"
           aria-describedby={undefined}
         >
           <DialogHeader>

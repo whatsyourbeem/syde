@@ -1,16 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea'; // Use Textarea for comments
-import { useRouter } from 'next/navigation';
+import { useState, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea"; // Use Textarea for comments
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
 
 interface CommentFormProps {
   logId: string;
   currentUserId: string | null;
   onCommentAdded?: () => void; // Made optional for editing
-  initialCommentData?: { // New prop for editing
+  initialCommentData?: {
+    // New prop for editing
     id: string;
     content: string;
   };
@@ -28,56 +31,69 @@ export function CommentForm({
 }: CommentFormProps) {
   const supabase = createClient();
   const router = useRouter();
-  const [content, setContent] = useState(initialCommentData?.content || '');
+  const queryClient = useQueryClient(); // Initialize query client
+  const [content, setContent] = useState(initialCommentData?.content || "");
   const [loading, setLoading] = useState(false);
+  const { openLoginModal } = useLoginModal(); // Use the hook
 
-  const handleSubmit = useCallback(async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!currentUserId) {
-      router.push('/auth/login');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      if (initialCommentData) {
-        // Update existing comment
-        const { error } = await supabase
-          .from('log_comments')
-          .update({ content: content })
-          .eq('id', initialCommentData.id);
-
-        if (error) {
-          throw error;
-        }
-        if (onCommentUpdated) onCommentUpdated();
-      } else {
-        // Insert new comment
-        const { error } = await supabase.from('log_comments').insert({
-          log_id: logId,
-          user_id: currentUserId,
-          content: content,
-        });
-
-        if (error) {
-          throw error;
-        }
-        if (onCommentAdded) onCommentAdded(); // Notify parent component that a comment was added
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      if (!currentUserId) {
+        openLoginModal(); // Open login modal
+        return;
       }
 
-      setContent('');
-    } catch (error: any) {
-      alert(`Error ${initialCommentData ? 'updating' : 'adding'} comment: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [logId, currentUserId, content, router, supabase, onCommentAdded, initialCommentData, onCommentUpdated]);
+      setLoading(true);
+
+      try {
+        if (initialCommentData) {
+          // Update existing comment
+          const { error } = await supabase
+            .from("log_comments")
+            .update({ content: content })
+            .eq("id", initialCommentData.id);
+
+          if (error) {
+            throw error;
+          }
+          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] }); // Invalidate comments query
+          if (onCommentUpdated) onCommentUpdated();
+        } else {
+          // Insert new comment
+          const { error } = await supabase.from("log_comments").insert({
+            log_id: logId,
+            user_id: currentUserId,
+            content: content,
+          });
+
+          if (error) {
+            throw error;
+          }
+          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] }); // Invalidate comments query
+          if (onCommentAdded) onCommentAdded(); // Notify parent component that a comment was added
+        }
+
+        setContent("");
+      } catch (error: any) {
+        alert(
+          `Error ${initialCommentData ? "updating" : "adding"} comment: ${
+            error.message
+          }`
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [logId, currentUserId, content, router, supabase, onCommentAdded, initialCommentData, onCommentUpdated, queryClient]
+  );
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
       <Textarea
-        placeholder={initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."}
+        placeholder={
+          initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
+        }
         value={content}
         onChange={(e) => setContent(e.target.value)}
         disabled={loading || !currentUserId}
@@ -96,15 +112,19 @@ export function CommentForm({
             취소
           </Button>
         )}
-        <Button type="submit" disabled={loading || content.trim() === '' || !currentUserId}>
+        <Button
+          type="submit"
+          disabled={loading || content.trim() === "" || !currentUserId}
+        >
           {loading
             ? initialCommentData
-              ? '수정 중...'
-              : '작성 중...'
+              ? "수정 중..."
+              : "작성 중..."
             : initialCommentData
-            ? '수정'
-            : '작성'}
+            ? "수정"
+            : "작성"}
         </Button>
       </div>
     </form>
   );
+}

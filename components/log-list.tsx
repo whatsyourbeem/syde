@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { LogCard } from './log-card';
 import { Button } from './ui/button'; // Import Button component
@@ -9,14 +10,14 @@ const LOGS_PER_PAGE = 20; // Define logs per page
 
 export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId, filterByLikedUserId }: { currentUserId: string | null; filterByUserId?: string; filterByCommentedUserId?: string; filterByLikedUserId?: string }) {
   const supabase = createClient();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient(); // Initialize query client
   const [currentPage, setCurrentPage] = useState(1); // Current page state
-  const [totalLogsCount, setTotalLogsCount] = useState(0); // Total logs count state
 
-  useEffect(() => {
-    const fetchLogs = async () => {
+  const queryKey = ['logs', { currentPage, filterByUserId, filterByCommentedUserId, filterByLikedUserId }];
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: queryKey,
+    queryFn: async () => {
       const from = (currentPage - 1) * LOGS_PER_PAGE;
       const to = from + LOGS_PER_PAGE - 1;
 
@@ -45,17 +46,12 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
           .eq('user_id', filterByCommentedUserId);
 
         if (commentedLogIdsError) {
-          console.error("Error fetching commented log IDs:", commentedLogIdsError);
-          setError(commentedLogIdsError.message);
-          return; // Stop execution if error
+          throw commentedLogIdsError;
         }
 
         const logIds = commentedLogIds.map(item => item.log_id);
         if (logIds.length === 0) {
-          setLogs([]);
-          setTotalLogsCount(0);
-          setLoading(false);
-          return; // No logs to fetch
+          return { logs: [], count: 0 };
         }
         query = query.in('id', logIds);
       } else if (filterByLikedUserId) {
@@ -65,17 +61,12 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
           .eq('user_id', filterByLikedUserId);
 
         if (likedLogIdsError) {
-          console.error("Error fetching liked log IDs:", likedLogIdsError);
-          setError(likedLogIdsError.message);
-          return; // Stop execution if error
+          throw likedLogIdsError;
         }
 
         const logIds = likedLogIds.map(item => item.log_id);
         if (logIds.length === 0) {
-          setLogs([]);
-          setTotalLogsCount(0);
-          setLoading(false);
-          return; // No logs to fetch
+          return { logs: [], count: 0 };
         }
         query = query.in('id', logIds);
       }
@@ -85,43 +76,45 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
         .range(from, to);
 
       if (logsError) {
-        console.error('Error fetching logs:', logsError);
-        setError(logsError.message);
-      } else {
-        const logsWithLikes = logsData?.map(log => ({
-          ...log,
-          likesCount: log.log_likes.length,
-          hasLiked: currentUserId ? log.log_likes.some((like: any) => like.user_id === currentUserId) : false,
-        }));
-        setLogs(logsWithLikes || []);
-        setTotalLogsCount(count || 0);
+        throw logsError;
       }
-    };
 
-    setLoading(true);
-    fetchLogs().finally(() => setLoading(false));
+      const logsWithProcessedData = logsData?.map(log => ({
+        ...log,
+        profiles: log.profiles, // Supabase가 단일 객체로 반환하므로 직접 할당
+        likesCount: log.log_likes.length,
+        hasLiked: currentUserId ? log.log_likes.some((like: any) => like.user_id === currentUserId) : false,
+      }));
 
+      return { logs: logsWithProcessedData || [], count: count || 0 };
+    },
+  });
+
+  const logs = data?.logs || [];
+  const totalLogsCount = data?.count || 0;
+
+  useEffect(() => {
     const channel = supabase
       .channel('syde-log-feed')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'logs' },
         () => {
-          fetchLogs();
+          queryClient.invalidateQueries({ queryKey: ['logs'] });
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'log_likes' },
         () => {
-          fetchLogs();
+          queryClient.invalidateQueries({ queryKey: ['logs'] });
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'log_comments' },
         () => {
-          fetchLogs();
+          queryClient.invalidateQueries({ queryKey: ['logs'] });
         }
       )
       .subscribe();
@@ -129,19 +122,19 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentPage, currentUserId, filterByUserId, filterByCommentedUserId, filterByLikedUserId]); // Added filterByLikedUserId to dependency array
+  }, [supabase, queryClient]);
 
-  if (loading) {
+  if (isLoading) {
     return <div className="text-center">Loading logs...</div>;
   }
 
-  if (error) {
-    return <div className="text-center text-red-500">Error: {error}</div>;
+  if (isError) {
+    return <div className="text-center text-red-500">Error: {error?.message}</div>;
   }
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
-      {logs.length === 0 && !loading ? (
+      {logs.length === 0 && !isLoading ? (
         <p className="text-center text-muted-foreground">아직 기록된 글이 없습니다. 첫 글을 작성해보세요!</p>
       ) : (
         logs.map((log) => (
@@ -161,7 +154,7 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
             key={i + 1}
             onClick={() => setCurrentPage(i + 1)}
             variant={currentPage === i + 1 ? "default" : "outline"}
-            disabled={loading}
+            disabled={isLoading}
           >
             {i + 1}
           </Button>
@@ -170,4 +163,3 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
     </div>
   );
 }
-

@@ -94,7 +94,7 @@ export default async function UserProfilePage({
         </div>
         <Tabs defaultValue="logs" className="w-full">
           <TabsList className="flex w-full justify-center space-x-2">
-            <TabsTrigger value="logs">작성한 로그</TabsTrigger>
+            <TabsTrigger value="logs" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">작성한 로그</TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger
                 value="comments"

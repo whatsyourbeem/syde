@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Trash2, Edit } from "lucide-react"; // Added Edit
 import { useState } from "react";
 import { CommentForm } from "./comment-form"; // Import CommentForm
+import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 
 interface CommentCardProps {
   comment: {
@@ -24,6 +25,7 @@ interface CommentCardProps {
 
 export function CommentCard({ comment, currentUserId }: CommentCardProps) {
   const supabase = createClient();
+  const queryClient = useQueryClient(); // Initialize query client
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
 
@@ -51,6 +53,7 @@ export function CommentCard({ comment, currentUserId }: CommentCardProps) {
       if (error) {
         throw error;
       }
+      queryClient.invalidateQueries({ queryKey: ['comments', { logId: comment.log_id }] }); // Invalidate comments query
     } catch (error: any) {
       console.error("Error deleting comment:", error);
       alert(`댓글 삭제 중 오류가 발생했습니다: ${error.message}`);
