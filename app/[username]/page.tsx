@@ -96,12 +96,14 @@ export default async function UserProfilePage({
         <Tabs defaultValue="logs" className="w-full">
           <TabsList className="flex w-full justify-center space-x-2">
             <TabsTrigger value="logs">작성한 로그</TabsTrigger>
-            <TabsTrigger
-              value="comments"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              좋아요/댓글
-            </TabsTrigger>
+            {isOwnProfile && (
+              <TabsTrigger
+                value="comments"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                좋아요/댓글
+              </TabsTrigger>
+            )}
           </TabsList>
           <TabsContent value="logs">
             <LogList
@@ -109,12 +111,14 @@ export default async function UserProfilePage({
               filterByUserId={profile.id}
             />
           </TabsContent>
-          <TabsContent value="comments">
-            <UserActivityLogList
-              currentUserId={currentUserId}
-              userId={profile.id}
-            />
-          </TabsContent>
+          {isOwnProfile && (
+            <TabsContent value="comments">
+              <UserActivityLogList
+                currentUserId={currentUserId}
+                userId={profile.id}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
