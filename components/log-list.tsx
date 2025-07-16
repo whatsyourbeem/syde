@@ -7,7 +7,7 @@ import { Button } from './ui/button'; // Import Button component
 
 const LOGS_PER_PAGE = 20; // Define logs per page
 
-export function LogList({ currentUserId }: { currentUserId: string | null }) {
+export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId }: { currentUserId: string | null; filterByUserId?: string; filterByCommentedUserId?: string }) {
   const supabase = createClient();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export function LogList({ currentUserId }: { currentUserId: string | null }) {
       const from = (currentPage - 1) * LOGS_PER_PAGE;
       const to = from + LOGS_PER_PAGE - 1;
 
-      const { data: logsData, error: logsError, count } = await supabase
+      let query = supabase
         .from('logs')
         .select(
           `
@@ -34,7 +34,33 @@ export function LogList({ currentUserId }: { currentUserId: string | null }) {
           log_comments(id)
         `,
           { count: 'exact' }
-        )
+        );
+
+      if (filterByUserId) {
+        query = query.eq('user_id', filterByUserId);
+      } else if (filterByCommentedUserId) {
+        const { data: commentedLogIds, error: commentedLogIdsError } = await supabase
+          .from('log_comments')
+          .select('log_id')
+          .eq('user_id', filterByCommentedUserId);
+
+        if (commentedLogIdsError) {
+          console.error("Error fetching commented log IDs:", commentedLogIdsError);
+          setError(commentedLogIdsError.message);
+          return; // Stop execution if error
+        }
+
+        const logIds = commentedLogIds.map(item => item.log_id);
+        if (logIds.length === 0) {
+          setLogs([]);
+          setTotalLogsCount(0);
+          setLoading(false);
+          return; // No logs to fetch
+        }
+        query = query.in('id', logIds);
+      }
+
+      const { data: logsData, error: logsError, count } = await query
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -83,7 +109,7 @@ export function LogList({ currentUserId }: { currentUserId: string | null }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentPage, currentUserId]); // Added currentUserId to dependency array
+  }, [supabase, currentPage, currentUserId, filterByUserId, filterByCommentedUserId]); // Added filterByCommentedUserId to dependency array
 
   if (loading) {
     return <div className="text-center">Loading logs...</div>;

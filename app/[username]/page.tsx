@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { LogList } from "@/components/log-list"; // Import LogList
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
 
 interface UserProfilePageProps {
   params: { username: string };
@@ -27,6 +29,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   // Check if the current user is viewing their own profile
   const { data: { user } } = await supabase.auth.getUser();
+  const currentUserId = user?.id || null; // Get current user ID
   const isOwnProfile = user && user.id === profile.id;
 
   const avatarUrlWithCacheBuster = profile.avatar_url 
@@ -79,6 +82,19 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
             )}
           </div>
         </div>
+        <Tabs defaultValue="logs" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="logs">작성한 로그</TabsTrigger>
+            <TabsTrigger value="comments">댓글 단 로그</TabsTrigger>
+          </TabsList>
+          <TabsContent value="logs">
+            <LogList currentUserId={currentUserId} filterByUserId={profile.id} />
+          </TabsContent>
+          <TabsContent value="comments">
+            <LogList currentUserId={currentUserId} filterByCommentedUserId={profile.id} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
+}
