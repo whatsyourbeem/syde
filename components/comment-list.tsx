@@ -25,6 +25,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         content,
         created_at,
         user_id,
+        log_id,
         profiles (username, full_name, avatar_url, updated_at)
       `
       )
@@ -85,6 +86,22 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           // for comments belonging to this logId. payload.old.log_id is not available.
           setComments((currentComments) =>
             currentComments.filter((comment) => comment.id !== payload.old.id)
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE", // Listen for UPDATE events
+          schema: "public",
+          table: "log_comments",
+          filter: `log_id=eq.${logId}`,
+        },
+        (payload) => {
+          setComments((currentComments) =>
+            currentComments.map((comment) =>
+              comment.id === payload.new.id ? { ...comment, content: payload.new.content } : comment
+            )
           );
         }
       )
