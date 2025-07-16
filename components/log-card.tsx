@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { HeartIcon, MessageCircle } from 'lucide-react'; // Added MessageCircle
+import { HeartIcon, MessageCircle, Trash2 } from 'lucide-react'; // Added MessageCircle and Trash2
 import { CommentForm } from './comment-form'; // Will create this
 import { CommentList } from './comment-list'; // Will create this
 
@@ -87,6 +87,50 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
     setShowComments(true); // Show comments after adding one
   };
 
+  const handleDelete = async () => {
+    if (currentUserId !== log.user_id) return;
+
+    const isConfirmed = window.confirm(
+      "정말로 이 로그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    );
+    if (!isConfirmed) return;
+
+    setLoading(true);
+    try {
+      // Delete image from storage if it exists
+      if (log.image_url) {
+        const url = new URL(log.image_url);
+        const path = url.pathname.split("/logimages/")[1];
+        if (path) {
+          const { error: storageError } = await supabase.storage
+            .from("logimages")
+            .remove([path]);
+          if (storageError) {
+            console.error("Error deleting image from storage:", storageError);
+            // Continue with log deletion even if image deletion fails
+          }
+        }
+      }
+
+      // Delete the log itself
+      const { error: dbError } = await supabase
+        .from("logs")
+        .delete()
+        .eq("id", log.id);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      // No need to update state, realtime will handle it
+    } catch (error: any) {
+      console.error("Error deleting log:", error);
+      alert(`로그 삭제 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="border rounded-lg p-4 mb-4 bg-card shadow-sm">
       <div className="flex items-center mb-3">
@@ -109,7 +153,19 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
           </Link>
           <p className="text-sm text-muted-foreground">@{log.profiles?.username || log.user_id}</p>
         </div>
-        <p className="text-xs text-muted-foreground ml-auto">{logDate}</p>
+        <div className="ml-auto flex items-center gap-2">
+          <p className="text-xs text-muted-foreground">{logDate}</p>
+          {currentUserId === log.user_id && (
+            <button
+              onClick={handleDelete}
+              disabled={loading}
+              className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
+              aria-label="Delete log"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
       </div>
       <p className="mb-3 text-base">{log.content}</p>
       {log.image_url && (
