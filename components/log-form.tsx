@@ -186,8 +186,9 @@ export function LogForm({
               <Image
                 src={imagePreviewUrl}
                 alt="Image preview"
-                layout="fill"
-                objectFit="cover"
+                fill
+                style={{ objectFit: "cover" }}
+                sizes="(max-width: 768px) 100vw, 672px"
               />
             </div>
           )}

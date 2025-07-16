@@ -173,8 +173,9 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
           <Image
             src={log.image_url}
             alt="Log image"
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{ objectFit: "cover" }}
+            sizes="(max-width: 768px) 100vw, 672px" // Added sizes prop
           />
         </div>
       )}
