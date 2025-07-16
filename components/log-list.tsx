@@ -65,6 +65,13 @@ export function LogList() {
           fetchLogs();
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'log_comments' },
+        () => {
+          fetchLogs();
+        }
+      )
       .subscribe();
 
     return () => {
