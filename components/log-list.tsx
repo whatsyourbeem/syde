@@ -7,21 +7,16 @@ import { Button } from './ui/button'; // Import Button component
 
 const LOGS_PER_PAGE = 20; // Define logs per page
 
-export function LogList() {
+export function LogList({ currentUserId }: { currentUserId: string | null }) {
   const supabase = createClient();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1); // Current page state
   const [totalLogsCount, setTotalLogsCount] = useState(0); // Total logs count state
 
   useEffect(() => {
     const fetchLogs = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const userId = user?.id || null;
-      setCurrentUserId(userId);
-
       const from = (currentPage - 1) * LOGS_PER_PAGE;
       const to = from + LOGS_PER_PAGE - 1;
 
@@ -50,7 +45,7 @@ export function LogList() {
         const logsWithLikes = logsData?.map(log => ({
           ...log,
           likesCount: log.log_likes.length,
-          hasLiked: userId ? log.log_likes.some((like: any) => like.user_id === userId) : false,
+          hasLiked: currentUserId ? log.log_likes.some((like: any) => like.user_id === currentUserId) : false,
         }));
         setLogs(logsWithLikes || []);
         setTotalLogsCount(count || 0);
@@ -88,7 +83,7 @@ export function LogList() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentPage]); // Added currentPage to dependency array
+  }, [supabase, currentPage, currentUserId]); // Added currentUserId to dependency array
 
   if (loading) {
     return <div className="text-center">Loading logs...</div>;

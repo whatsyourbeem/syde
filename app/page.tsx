@@ -33,7 +33,7 @@ export default async function Home() {
           username={username}
         />
       </div>
-      <LogList />
+      <LogList currentUserId={user?.id || null} />
     </main>
   );
 }
