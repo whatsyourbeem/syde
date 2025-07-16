@@ -35,42 +35,50 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   return (
     <div className="flex-1 w-full flex flex-col items-center p-5">
-      <div className="flex flex-col items-center gap-6 max-w-4xl w-full">
-        {avatarUrlWithCacheBuster && (
-          <Image
-            src={avatarUrlWithCacheBuster}
-            alt={`${profile.username || 'User'}'s avatar`}
-            width={128}
-            height={128}
-            className="rounded-full object-cover border-2 border-primary"
-          />
-        )}
-        <h1 className="text-3xl font-bold">{profile.full_name || profile.username}</h1>
-        {profile.username && profile.full_name && (
-          <p className="text-lg text-muted-foreground">@{profile.username}</p>
-        )}
-        {profile.bio && (
-          <p className="text-center max-w-prose text-gray-700 dark:text-gray-300">{profile.bio}</p>
-        )}
-        {profile.link && (
-          <Link
-            href={profile.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
-          >
-            {profile.link}
-          </Link>
-        )}
-
-        {isOwnProfile && (
-          <div className="mt-8">
-            <Button asChild>
-              <Link href="/profile">프로필 편집</Link>
-            </Button>
+      <div className="w-full max-w-2xl mx-auto space-y-8">
+        <div className="flex items-center gap-6 p-4 border rounded-lg shadow-sm bg-card">
+          <div className="relative w-24 h-24 flex-shrink-0">
+            {avatarUrlWithCacheBuster ? (
+              <Image
+                src={avatarUrlWithCacheBuster}
+                alt="Avatar"
+                fill
+                sizes="96px"
+                className="rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground text-4xl font-bold">
+                {profile.full_name ? profile.full_name[0].toUpperCase() : profile.username ? profile.username[0].toUpperCase() : 'U'}
+              </div>
+            )}
           </div>
-        )}
+          <div className="flex-grow">
+            <h1 className="text-2xl font-bold leading-tight">
+              {profile.full_name || profile.username || 'Anonymous'}
+            </h1>
+            {profile.username && (
+              <p className="text-muted-foreground text-sm mt-1">@{profile.username}</p>
+            )}
+            {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
+            {profile.link && (
+              <Link
+                href={profile.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline text-sm mt-2 block"
+              >
+                {profile.link}
+              </Link>
+            )}
+            {isOwnProfile && (
+              <div className="mt-4">
+                <Button asChild size="sm">
+                  <Link href="/profile">프로필 편집</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
