@@ -27,7 +27,8 @@ export function LogList() {
           created_at,
           user_id,
           profiles (username, full_name, avatar_url, updated_at),
-          log_likes(user_id)
+          log_likes(user_id),
+          log_comments(id)
         `
         )
         .order('created_at', { ascending: false });
@@ -91,6 +92,7 @@ export function LogList() {
             currentUserId={currentUserId}
             initialLikesCount={log.likesCount}
             initialHasLiked={log.hasLiked}
+            initialCommentsCount={log.log_comments.length}
           />
         ))
       )}
