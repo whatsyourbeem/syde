@@ -83,7 +83,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           </div>
         </div>
         <Tabs defaultValue="logs" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="flex w-full justify-center space-x-2">
             <TabsTrigger value="logs">작성한 로그</TabsTrigger>
             <TabsTrigger value="comments">댓글 단 로그</TabsTrigger>
           </TabsList>
