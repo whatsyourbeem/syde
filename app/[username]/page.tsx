@@ -28,16 +28,15 @@ export default async function UserProfilePage({
   if (profileError || !profile) {
     // If profile not found, redirect to home or a 404 page
     redirect("/"); // Or /404
+    return; // Add return here
   }
 
   // Check if the current user is viewing their own profile
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   const currentUserId = user?.id || null; // Get current user ID
   const isOwnProfile = user && user.id === profile.id;
 
-  const avatarUrlWithCacheBuster = profile.avatar_url
+  const avatarUrlWithCacheBuster = profile!.avatar_url
     ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
     : null;
 
