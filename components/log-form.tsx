@@ -10,9 +10,16 @@ import Image from "next/image";
 
 interface LogFormProps {
   userId: string | null;
-  userEmail: string | null;
-  avatarUrl: string | null;
-  username: string | null;
+  userEmail?: string | null; // Made optional for editing
+  avatarUrl?: string | null; // Made optional for editing
+  username?: string | null; // Made optional for editing
+  initialLogData?: { // New prop for editing
+    id: string;
+    content: string;
+    image_url: string | null;
+  };
+  onLogUpdated?: () => void; // Callback for successful update
+  onCancel?: () => void; // Callback for cancel button in edit mode
 }
 
 export function LogForm({
@@ -20,12 +27,15 @@ export function LogForm({
   userEmail,
   avatarUrl,
   username,
+  initialLogData,
+  onLogUpdated,
+  onCancel,
 }: LogFormProps) {
   const supabase = createClient();
   const router = useRouter();
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(initialLogData?.content || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(initialLogData?.image_url || null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
 
@@ -118,22 +128,47 @@ export function LogForm({
       }
 
       setLoading(true);
-      let imageUrl: string | null = null;
+      let imageUrl: string | null = initialLogData?.image_url || null;
 
       try {
+        // Handle image upload/removal only if a new file is selected or existing image is cleared
         if (imageFile) {
           imageUrl = await uploadImage(imageFile, userId);
+        } else if (initialLogData?.image_url && !imagePreviewUrl) {
+          // If image was cleared in edit mode
+          const url = new URL(initialLogData.image_url);
+          const path = url.pathname.split("/logimages/")[1];
+          if (path) {
+            await supabase.storage.from("logimages").remove([path]);
+          }
+          imageUrl = null;
         }
 
-        const { error } = await supabase.from("logs").insert({
-          // Changed to logs
-          user_id: userId,
-          content: content,
-          image_url: imageUrl,
-        });
+        if (initialLogData) {
+          // Update existing log
+          const { error } = await supabase
+            .from("logs")
+            .update({
+              content: content,
+              image_url: imageUrl,
+            })
+            .eq("id", initialLogData.id);
 
-        if (error) {
-          throw error;
+          if (error) {
+            throw error;
+          }
+          if (onLogUpdated) onLogUpdated();
+        } else {
+          // Insert new log
+          const { error } = await supabase.from("logs").insert({
+            user_id: userId,
+            content: content,
+            image_url: imageUrl,
+          });
+
+          if (error) {
+            throw error;
+          }
         }
 
         setContent("");
@@ -148,7 +183,7 @@ export function LogForm({
         setLoading(false);
       }
     },
-    [userId, content, imageFile, router, supabase]
+    [userId, content, imageFile, router, supabase, initialLogData, onLogUpdated, imagePreviewUrl]
   );
 
   return (
@@ -160,20 +195,22 @@ export function LogForm({
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center gap-4">
-            {avatarUrl && (
-              <Image
-                src={avatarUrl}
-                alt="User Avatar"
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
-            )}
-            <div>
-              <p className="font-semibold">{username || userEmail}</p>
+          {!initialLogData && (
+            <div className="flex items-center gap-4">
+              {avatarUrl && (
+                <Image
+                  src={avatarUrl}
+                  alt="User Avatar"
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                />
+              )}
+              <div>
+                <p className="font-semibold">{username || userEmail}</p>
+              </div>
             </div>
-          </div>
+          )}
           <Textarea
             placeholder="무슨 생각을 하고 계신가요?"
             value={content}
@@ -201,10 +238,27 @@ export function LogForm({
               disabled={loading}
               ref={fileInputRef} // Attach ref to the Input component
             />
-            <Button type="submit" disabled={loading || content.trim() === ""}>
-              {loading ? "로그 기록 중..." : "로그 기록하기"}{" "}
-              {/* Changed button text */}
-            </Button>
+            <div className="flex gap-2">
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={loading}
+                >
+                  취소
+                </Button>
+              )}
+              <Button type="submit" disabled={loading || content.trim() === ""}>
+                {loading
+                  ? initialLogData
+                    ? "로그 수정 중..."
+                    : "로그 기록 중..."
+                  : initialLogData
+                  ? "로그 수정하기"
+                  : "로그 기록하기"}{" "}
+              </Button>
+            </div>
           </div>
         </form>
       )}

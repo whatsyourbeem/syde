@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { HeartIcon, MessageCircle, Trash2 } from 'lucide-react'; // Added MessageCircle and Trash2
+import { HeartIcon, MessageCircle, Trash2, Edit } from 'lucide-react'; // Added MessageCircle and Trash2
+import { LogForm } from './log-form'; // Import LogForm
 import { CommentForm } from './comment-form'; // Will create this
 import { CommentList } from './comment-list'; // Will create this
 
@@ -35,6 +36,7 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount); // Added commentsCount state
   const [loading, setLoading] = useState(false);
   const [showComments, setShowComments] = useState(false); // State to toggle comments
+  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -156,28 +158,49 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
         <div className="ml-auto flex items-center gap-2">
           <p className="text-xs text-muted-foreground">{logDate}</p>
           {currentUserId === log.user_id && (
-            <button
-              onClick={handleDelete}
-              disabled={loading}
-              className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
-              aria-label="Delete log"
-            >
-              <Trash2 size={16} />
-            </button>
+            <>
+              <button
+                onClick={() => setIsEditing(true)}
+                disabled={loading}
+                className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
+                aria-label="Edit log"
+              >
+                <Edit size={16} />
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={loading}
+                className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
+                aria-label="Delete log"
+              >
+                <Trash2 size={16} />
+              </button>
+            </>
           )}
         </div>
       </div>
-      <p className="mb-3 text-base">{log.content}</p>
-      {log.image_url && (
-        <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden">
-          <Image
-            src={log.image_url}
-            alt="Log image"
-            fill
-            style={{ objectFit: "cover" }}
-            sizes="(max-width: 768px) 100vw, 672px" // Added sizes prop
-          />
-        </div>
+      {isEditing ? (
+        <LogForm
+          userId={currentUserId}
+          initialLogData={log}
+          onLogUpdated={() => setIsEditing(false)}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : (
+        <>
+          <p className="mb-3 text-base">{log.content}</p>
+          {log.image_url && (
+            <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden">
+              <Image
+                src={log.image_url}
+                alt="Log image"
+                fill
+                style={{ objectFit: "cover" }}
+                sizes="(max-width: 768px) 100vw, 672px" // Added sizes prop
+              />
+            </div>
+          )}
+        </>
       )}
       <div className="flex justify-between items-center text-sm text-muted-foreground mt-4">
         <div className="flex items-center gap-1 cursor-pointer" onClick={handleLike}>
