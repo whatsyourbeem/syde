@@ -1,16 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { LoginForm } from '@/components/login-form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Import shadcn Dialog components
-import { useRouter } from 'next/navigation';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
+import { LoginForm } from "@/components/login-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"; // Import shadcn Dialog components
+import { useRouter } from "next/navigation";
 
 interface LoginModalContextType {
   openLoginModal: () => void;
   closeLoginModal: () => void;
 }
 
-const LoginModalContext = createContext<LoginModalContextType | undefined>(undefined);
+const LoginModalContext = createContext<LoginModalContextType | undefined>(
+  undefined
+);
 
 interface LoginModalProviderProps {
   children: ReactNode;
@@ -37,11 +50,17 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
     <LoginModalContext.Provider value={{ openLoginModal, closeLoginModal }}>
       {children}
       <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-        <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
+        <DialogContent
+          className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] sm:max-w-[425px] motion-safe:animate-none"
+          aria-describedby={undefined}
+        >
           <DialogHeader>
             <DialogTitle>Login</DialogTitle>
           </DialogHeader>
-          <LoginForm onSignUpClick={handleSignUpClick} onLoginSuccess={closeLoginModal} />
+          <LoginForm
+            onSignUpClick={handleSignUpClick}
+            onLoginSuccess={closeLoginModal}
+          />
         </DialogContent>
       </Dialog>
     </LoginModalContext.Provider>
@@ -51,7 +70,7 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
 export function useLoginModal() {
   const context = useContext(LoginModalContext);
   if (context === undefined) {
-    throw new Error('useLoginModal must be used within a LoginModalProvider');
+    throw new Error("useLoginModal must be used within a LoginModalProvider");
   }
   return context;
 }
