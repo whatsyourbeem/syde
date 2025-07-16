@@ -7,6 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
 
 interface LogFormProps {
   userId: string | null;
@@ -38,6 +39,7 @@ export function LogForm({
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(initialLogData?.image_url || null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
+  const { openLoginModal } = useLoginModal(); // Use the hook
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -123,7 +125,7 @@ export function LogForm({
     async (event: React.FormEvent) => {
       event.preventDefault();
       if (!userId) {
-        router.push("/auth/login");
+        openLoginModal(); // Open login modal
         return;
       }
 
@@ -188,80 +190,74 @@ export function LogForm({
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4 border rounded-lg shadow-sm bg-card">
-      {!userId ? (
-        <div className="text-center">
-          <p className="mb-4">로그인하여 새로운 글을 작성하세요.</p>
-          <Button onClick={() => router.push("/auth/login")}>로그인</Button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!initialLogData && (
-            <div className="flex items-center gap-4">
-              {avatarUrl && (
-                <Image
-                  src={avatarUrl}
-                  alt="User Avatar"
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover"
-                />
-              )}
-              <div>
-                <p className="font-semibold">{username || userEmail}</p>
-              </div>
-            </div>
-          )}
-          <Textarea
-            placeholder="무슨 생각을 하고 계신가요?"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={3}
-            disabled={loading}
-          />
-          {imagePreviewUrl && (
-            <div className="relative w-full h-48 rounded-md overflow-hidden">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {!initialLogData && (
+          <div className="flex items-center gap-4">
+            {avatarUrl && (
               <Image
-                src={imagePreviewUrl}
-                alt="Image preview"
-                fill
-                style={{ objectFit: "cover" }}
-                sizes="(max-width: 768px) 100vw, 672px"
+                src={avatarUrl}
+                alt="User Avatar"
+                width={40}
+                height={40}
+                className="rounded-full object-cover"
               />
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-auto"
-              disabled={loading}
-              ref={fileInputRef} // Attach ref to the Input component
-            />
-            <div className="flex gap-2">
-              {onCancel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onCancel}
-                  disabled={loading}
-                >
-                  취소
-                </Button>
-              )}
-              <Button type="submit" disabled={loading || content.trim() === ""}>
-                {loading
-                  ? initialLogData
-                    ? "로그 수정 중..."
-                    : "로그 기록 중..."
-                  : initialLogData
-                  ? "로그 수정하기"
-                  : "로그 기록하기"}{" "}
-              </Button>
+            )}
+            <div>
+              <p className="font-semibold">{username || userEmail}</p>
             </div>
           </div>
-        </form>
-      )}
+        )}
+        <Textarea
+          placeholder="무슨 생각을 하고 계신가요?"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={3}
+          disabled={loading} // Removed || !userId
+          onClick={() => { if (!userId) openLoginModal(); }} // Open modal on click if not logged in
+        />
+        {imagePreviewUrl && (
+          <div className="relative w-full h-48 rounded-md overflow-hidden">
+            <Image
+              src={imagePreviewUrl}
+              alt="Image preview"
+              fill
+              style={{ objectFit: "cover" }}
+              sizes="(max-width: 768px) 100vw, 672px"
+            />
+          </div>
+        )}
+        <div className="flex justify-between items-center">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-auto"
+            disabled={loading} // Removed || !userId
+            ref={fileInputRef} // Attach ref to the Input component
+            onClick={() => { if (!userId) openLoginModal(); }} // Open modal on click if not logged in
+          />
+          <div className="flex gap-2">
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={loading}
+              >
+                취소
+              </Button>
+            )}
+            <Button type="submit" disabled={loading || content.trim() === "" || !userId}> {/* Disable if not logged in */}
+              {loading
+                ? initialLogData
+                  ? "로그 수정 중..."
+                  : "로그 기록 중..."
+                : initialLogData
+                ? "로그 수정하기"
+                : "로그 기록하기"}{" "}
+            </Button>
+          </div>
+        </div>
+      </form>
     </div>
   );
-}

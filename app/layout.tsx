@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthButton } from "@/components/auth-button";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -51,13 +52,13 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="min-h-screen flex flex-col items-center">
+        <LoginModalProvider> {/* Wrap with LoginModalProvider */}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
               <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                 <div className="flex gap-5 items-center font-semibold">
@@ -67,8 +68,8 @@ export default async function RootLayout({
               </div>
             </nav>
             {children}
-          </div>
-        </ThemeProvider>
+          </ThemeProvider>
+        </LoginModalProvider>
       </body>
     </html>
   );

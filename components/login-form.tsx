@@ -18,8 +18,10 @@ import { useState } from "react";
 
 export function LoginForm({
   className,
+  onSignUpClick, // New prop
+  onLoginSuccess, // New prop
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { onSignUpClick?: () => void; onLoginSuccess?: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
+      if (onLoginSuccess) onLoginSuccess(); // Call onLoginSuccess on successful login
       // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/");
       router.refresh();
@@ -96,12 +99,22 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
-                Sign up
-              </Link>
+              {onSignUpClick ? (
+                <button
+                  type="button"
+                  onClick={onSignUpClick}
+                  className="underline underline-offset-4"
+                >
+                  Sign up
+                </button>
+              ) : (
+                <Link
+                  href="/auth/sign-up"
+                  className="underline underline-offset-4"
+                >
+                  Sign up
+                </Link>
+              )}
             </div>
           </form>
         </CardContent>

@@ -1,0 +1,51 @@
+"use client";
+
+import Link from "next/link";
+import { Button } from "./ui/button";
+import { LogoutButton } from "./logout-button";
+import Image from "next/image";
+import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
+
+interface ClientAuthButtonProps {
+  user: any; // Supabase user object
+  avatarUrl: string | null;
+  username: string | null;
+}
+
+export function ClientAuthButton({ user, avatarUrl, username }: ClientAuthButtonProps) {
+  const { openLoginModal } = useLoginModal(); // Use the hook
+
+  const profileLink = username ? `/${username}` : "/profile";
+
+  return (
+    <>
+      {user ? (
+        <div className="flex items-center gap-4">
+          <Link href={profileLink}>
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt="User Avatar"
+                width={32}
+                height={32}
+                className="rounded-full object-cover"
+              />
+            ) : (
+              <span className="hover:underline">Hey, {user.email}!</span>
+            )}
+          </Link>
+          <LogoutButton />
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <Button asChild size="sm" variant={"outline"} onClick={openLoginModal}> 
+            <button>Sign in</button>
+          </Button>
+          <Button asChild size="sm" variant={"default"}>
+            <Link href="/auth/sign-up">Sign up</Link>
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
