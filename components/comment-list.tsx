@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "./comment-card";
+import { Button } from './ui/button'; // Import Button component
+
+const COMMENTS_PER_PAGE = 10; // Define comments per page
 
 interface CommentListProps {
   logId: string;
@@ -14,10 +17,15 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1); // Current page state
+  const [totalCommentsCount, setTotalCommentsCount] = useState(0); // Total comments count state
 
   const fetchComments = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const from = (currentPage - 1) * COMMENTS_PER_PAGE;
+    const to = from + COMMENTS_PER_PAGE - 1;
+
+    const { data, error, count } = await supabase
       .from("log_comments")
       .select(
         `
@@ -27,16 +35,19 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         user_id,
         log_id,
         profiles (username, full_name, avatar_url, updated_at)
-      `
+      `,
+        { count: 'exact' }
       )
       .eq("log_id", logId)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })
+      .range(from, to);
 
     if (error) {
       console.error("Error fetching comments:", error);
       setError(error.message);
     } else {
       setComments(data || []);
+      setTotalCommentsCount(count || 0);
     }
     setLoading(false);
   };
@@ -84,9 +95,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         (payload) => {
           // Assuming the channel `comments-for-log-${logId}` only receives DELETE events
           // for comments belonging to this logId. payload.old.log_id is not available.
-          setComments((currentComments) =>
-            currentComments.filter((comment) => comment.id !== payload.old.id)
-          );
+          fetchComments(); // Re-fetch all comments on delete
         }
       )
       .on(
@@ -110,7 +119,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, logId]);
+  }, [supabase, logId, currentPage]); // Added currentPage to dependency array
 
   if (loading) {
     return (
@@ -128,10 +137,8 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
 
   return (
     <div className="mt-4 space-y-2">
-      {comments.length === 0 ? (
-        <p className="text-center text-sm text-muted-foreground">
-          아직 댓글이 없습니다.
-        </p>
+      {comments.length === 0 && !loading ? (
+        <p className="text-center text-sm text-muted-foreground">아직 댓글이 없습니다.</p>
       ) : (
         comments.map((comment) => (
           <CommentCard
@@ -141,6 +148,18 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           />
         ))
       )}
+      <div className="flex justify-center space-x-2 mt-4">
+        {Array.from({ length: Math.ceil(totalCommentsCount / COMMENTS_PER_PAGE) }, (_, i) => (
+          <Button
+            key={i + 1}
+            onClick={() => setCurrentPage(i + 1)}
+            variant={currentPage === i + 1 ? "default" : "outline"}
+            disabled={loading}
+          >
+            {i + 1}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }
