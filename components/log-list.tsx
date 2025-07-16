@@ -7,7 +7,7 @@ import { Button } from './ui/button'; // Import Button component
 
 const LOGS_PER_PAGE = 20; // Define logs per page
 
-export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId }: { currentUserId: string | null; filterByUserId?: string; filterByCommentedUserId?: string }) {
+export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId, filterByLikedUserId }: { currentUserId: string | null; filterByUserId?: string; filterByCommentedUserId?: string; filterByLikedUserId?: string }) {
   const supabase = createClient();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +51,26 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
         }
 
         const logIds = commentedLogIds.map(item => item.log_id);
+        if (logIds.length === 0) {
+          setLogs([]);
+          setTotalLogsCount(0);
+          setLoading(false);
+          return; // No logs to fetch
+        }
+        query = query.in('id', logIds);
+      } else if (filterByLikedUserId) {
+        const { data: likedLogIds, error: likedLogIdsError } = await supabase
+          .from('log_likes')
+          .select('log_id')
+          .eq('user_id', filterByLikedUserId);
+
+        if (likedLogIdsError) {
+          console.error("Error fetching liked log IDs:", likedLogIdsError);
+          setError(likedLogIdsError.message);
+          return; // Stop execution if error
+        }
+
+        const logIds = likedLogIds.map(item => item.log_id);
         if (logIds.length === 0) {
           setLogs([]);
           setTotalLogsCount(0);
@@ -109,7 +129,7 @@ export function LogList({ currentUserId, filterByUserId, filterByCommentedUserId
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentPage, currentUserId, filterByUserId, filterByCommentedUserId]); // Added filterByCommentedUserId to dependency array
+  }, [supabase, currentPage, currentUserId, filterByUserId, filterByCommentedUserId, filterByLikedUserId]); // Added filterByLikedUserId to dependency array
 
   if (loading) {
     return <div className="text-center">Loading logs...</div>;

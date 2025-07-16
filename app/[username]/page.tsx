@@ -5,35 +5,40 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LogList } from "@/components/log-list"; // Import LogList
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
+import { UserActivityLogList } from "@/components/user-activity-log-list"; // Import UserActivityLogList
 
 interface UserProfilePageProps {
   params: { username: string };
 }
 
-export default async function UserProfilePage({ params }: UserProfilePageProps) {
+export default async function UserProfilePage({
+  params,
+}: UserProfilePageProps) {
   const resolvedParams = await Promise.resolve(params);
   const { username } = resolvedParams;
   const supabase = await createClient();
 
   // Fetch the profile data for the given username
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, username, full_name, avatar_url, bio, link, updated_at')
-    .eq('username', username)
+    .from("profiles")
+    .select("id, username, full_name, avatar_url, bio, link, updated_at")
+    .eq("username", username)
     .single();
 
   if (profileError || !profile) {
     // If profile not found, redirect to home or a 404 page
-    redirect('/'); // Or /404
+    redirect("/"); // Or /404
   }
 
   // Check if the current user is viewing their own profile
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const currentUserId = user?.id || null; // Get current user ID
   const isOwnProfile = user && user.id === profile.id;
 
-  const avatarUrlWithCacheBuster = profile.avatar_url 
-    ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}` 
+  const avatarUrlWithCacheBuster = profile.avatar_url
+    ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
     : null;
 
   return (
@@ -51,16 +56,22 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
               />
             ) : (
               <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground text-4xl font-bold">
-                {profile.full_name ? profile.full_name[0].toUpperCase() : profile.username ? profile.username[0].toUpperCase() : 'U'}
+                {profile.full_name
+                  ? profile.full_name[0].toUpperCase()
+                  : profile.username
+                  ? profile.username[0].toUpperCase()
+                  : "U"}
               </div>
             )}
           </div>
           <div className="flex-grow">
             <h1 className="text-2xl font-bold leading-tight">
-              {profile.full_name || profile.username || 'Anonymous'}
+              {profile.full_name || profile.username || "Anonymous"}
             </h1>
             {profile.username && (
-              <p className="text-muted-foreground text-sm mt-1">@{profile.username}</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                @{profile.username}
+              </p>
             )}
             {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
             {profile.link && (
@@ -85,13 +96,24 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         <Tabs defaultValue="logs" className="w-full">
           <TabsList className="flex w-full justify-center space-x-2">
             <TabsTrigger value="logs">작성한 로그</TabsTrigger>
-            <TabsTrigger value="comments">댓글 단 로그</TabsTrigger>
+            <TabsTrigger
+              value="comments"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              좋아요/댓글
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="logs">
-            <LogList currentUserId={currentUserId} filterByUserId={profile.id} />
+            <LogList
+              currentUserId={currentUserId}
+              filterByUserId={profile.id}
+            />
           </TabsContent>
           <TabsContent value="comments">
-            <LogList currentUserId={currentUserId} filterByCommentedUserId={profile.id} />
+            <UserActivityLogList
+              currentUserId={currentUserId}
+              userId={profile.id}
+            />
           </TabsContent>
         </Tabs>
       </div>
