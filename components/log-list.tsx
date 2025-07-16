@@ -13,11 +13,7 @@ export function LogList() {
 
   useEffect(() => {
     const fetchLogs = async () => {
-      setLoading(true);
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id || null;
       setCurrentUserId(userId);
 
@@ -40,40 +36,31 @@ export function LogList() {
         console.error('Error fetching logs:', logsError);
         setError(logsError.message);
       } else {
-        const logsWithLikes = logsData?.map((log) => ({
+        const logsWithLikes = logsData?.map(log => ({
           ...log,
           likesCount: log.log_likes.length,
-          hasLiked: userId
-            ? log.log_likes.some((like: any) => like.user_id === userId)
-            : false,
+          hasLiked: userId ? log.log_likes.some((like: any) => like.user_id === userId) : false,
         }));
         setLogs(logsWithLikes || []);
       }
-      setLoading(false);
     };
 
-    fetchLogs();
+    setLoading(true);
+    fetchLogs().finally(() => setLoading(false));
 
     const channel = supabase
-      .channel('logs_and_likes_changes')
+      .channel('syde-log-feed')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'logs' },
-        (payload) => {
+        { event: '*', schema: 'public', table: 'logs' },
+        () => {
           fetchLogs();
         }
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'log_likes' },
-        (payload) => {
-          fetchLogs();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'log_likes' },
-        (payload) => {
+        { event: '*', schema: 'public', table: 'log_likes' },
+        () => {
           fetchLogs();
         }
       )

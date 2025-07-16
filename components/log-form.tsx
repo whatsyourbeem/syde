@@ -138,7 +138,6 @@ export function LogForm({
         setContent("");
         setImageFile(null);
         setImagePreviewUrl(null);
-        router.refresh(); // Refresh the page to show new log
       } catch (error: any) {
         alert(`Error logging: ${error.message}`); // Changed alert message
       } finally {
