@@ -28,6 +28,7 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
   const [currentLink, setCurrentLink] = useState<string | null>(link);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(avatarUrl);
+  const [isLinkValid, setIsLinkValid] = useState(true); // New state for link validation
 
   useEffect(() => {
     setCurrentUsername(username);
@@ -37,7 +38,30 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
     setCurrentAvatarUrl(avatarUrl);
     setAvatarPreviewUrl(avatarUrl);
     setLoading(false);
+    // Validate initial link
+    if (link) {
+      setIsLinkValid(isValidUrl(link));
+    }
   }, [username, fullName, avatarUrl, bio, link]);
+
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCurrentLink(value);
+    if (value === '') {
+      setIsLinkValid(true); // Allow empty string
+    } else {
+      setIsLinkValid(isValidUrl(value));
+    }
+  };
 
   const resizeImage = (file: File, maxWidth: number, maxHeight: number, quality: number): Promise<Blob> => {
     return new Promise((resolve) => {
@@ -134,7 +158,7 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
         full_name: currentFullName,
         avatar_url: newAvatarUrl,
         bio: currentBio,
-        link: currentLink,
+        link: currentLink === '' ? null : currentLink, // Store empty string as null
         updated_at: new Date().toISOString(),
       });
 
@@ -156,10 +180,6 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
       </CardHeader>
       <CardContent>
         <form onSubmit={updateProfile} className="space-y-4">
-          <div>
-            <Label htmlFor="email">User ID</Label>
-            <Input id="email" type="text" value={userId} disabled />
-          </div>
           <div>
             <Label htmlFor="username">Username</Label>
             <Input
@@ -213,10 +233,14 @@ export default function ProfileForm({ userId, username, fullName, avatarUrl, bio
               id="link"
               type="text"
               value={currentLink || ''}
-              onChange={(e) => setCurrentLink(e.target.value)}
+              onChange={handleLinkChange} // Use new handler
+              className={!isLinkValid ? 'border-red-500' : ''} // Add error styling
             />
+            {!isLinkValid && (
+              <p className="text-red-500 text-sm mt-1">유효한 URL을 입력해주세요.</p>
+            )}
           </div>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !isLinkValid}>
             {loading ? 'Updating...' : 'Update Profile'}
           </Button>
         </form>
