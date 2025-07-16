@@ -53,7 +53,9 @@ export function CommentCard({ comment, currentUserId }: CommentCardProps) {
       if (error) {
         throw error;
       }
-      queryClient.invalidateQueries({ queryKey: ['comments', { logId: comment.log_id }] }); // Invalidate comments query
+      queryClient.invalidateQueries({
+        queryKey: ["comments", { logId: comment.log_id }],
+      }); // Invalidate comments query
     } catch (error: any) {
       console.error("Error deleting comment:", error);
       alert(`댓글 삭제 중 오류가 발생했습니다: ${error.message}`);

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "./comment-card";
-import { Button } from './ui/button'; // Import Button component
+import { Button } from "./ui/button"; // Import Button component
 
 const COMMENTS_PER_PAGE = 10; // Define comments per page
 
@@ -18,7 +18,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1); // Current page state
 
-  const queryKey = ['comments', { logId, currentPage }];
+  const queryKey = ["comments", { logId, currentPage }];
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
@@ -37,7 +37,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           log_id,
           profiles (username, full_name, avatar_url, updated_at)
         `,
-          { count: 'exact' }
+          { count: "exact" }
         )
         .eq("log_id", logId)
         .order("created_at", { ascending: true })
@@ -47,12 +47,29 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         throw error;
       }
 
-      const commentsWithProcessedProfiles = data?.map(comment => ({
+      const commentsWithProcessedProfiles = data?.map((comment) => ({
         ...comment,
-        profiles: comment.profiles, // Supabase returns single object for profiles
-      }));
+        profiles: Array.isArray(comment.profiles)
+          ? comment.profiles[0]
+          : comment.profiles,
+      })) as Array<{
+        id: string;
+        content: string;
+        created_at: string;
+        user_id: string;
+        log_id: string;
+        profiles: {
+          username: string | null;
+          full_name: string | null;
+          avatar_url: string | null;
+          updated_at: string;
+        } | null;
+      }>;
 
-      return { comments: commentsWithProcessedProfiles || [], count: count || 0 };
+      return {
+        comments: commentsWithProcessedProfiles || [],
+        count: count || 0,
+      };
     },
   });
 
@@ -71,7 +88,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           filter: `log_id=eq.${logId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] });
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
         }
       )
       .on(
@@ -82,7 +99,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           table: "log_comments",
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] });
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
         }
       )
       .on(
@@ -94,7 +111,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           filter: `log_id=eq.${logId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] });
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
         }
       )
       .subscribe();
@@ -114,14 +131,18 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
 
   if (isError) {
     return (
-      <div className="text-center text-sm text-red-500">Error: {error?.message}</div>
+      <div className="text-center text-sm text-red-500">
+        Error: {error?.message}
+      </div>
     );
   }
 
   return (
     <div className="mt-4 space-y-2">
       {comments.length === 0 && !isLoading ? (
-        <p className="text-center text-sm text-muted-foreground">아직 댓글이 없습니다.</p>
+        <p className="text-center text-sm text-muted-foreground">
+          아직 댓글이 없습니다.
+        </p>
       ) : (
         comments.map((comment) => (
           <CommentCard
@@ -132,16 +153,19 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         ))
       )}
       <div className="flex justify-center space-x-2 mt-4">
-        {Array.from({ length: Math.ceil(totalCommentsCount / COMMENTS_PER_PAGE) }, (_, i) => (
-          <Button
-            key={i + 1}
-            onClick={() => setCurrentPage(i + 1)}
-            variant={currentPage === i + 1 ? "default" : "outline"}
-            disabled={isLoading}
-          >
-            {i + 1}
-          </Button>
-        ))}
+        {Array.from(
+          { length: Math.ceil(totalCommentsCount / COMMENTS_PER_PAGE) },
+          (_, i) => (
+            <Button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              variant={currentPage === i + 1 ? "default" : "outline"}
+              disabled={isLoading}
+            >
+              {i + 1}
+            </Button>
+          )
+        )}
       </div>
     </div>
   );
