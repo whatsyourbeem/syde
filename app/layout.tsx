@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import localFont from 'next/font/local';
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { AuthButton } from "@/components/auth-button";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
@@ -17,10 +18,20 @@ export const metadata: Metadata = {
   description: "The fastest way to build apps with Next.js and Supabase",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  display: "swap",
-  subsets: ["latin"],
+const pretendard = localFont({
+  src: [
+    { path: '../fonts/Pretendard-Thin.ttf', weight: '100' },
+    { path: '../fonts/Pretendard-ExtraLight.ttf', weight: '200' },
+    { path: '../fonts/Pretendard-Light.ttf', weight: '300' },
+    { path: '../fonts/Pretendard-Regular.ttf', weight: '400' },
+    { path: '../fonts/Pretendard-Medium.ttf', weight: '500' },
+    { path: '../fonts/Pretendard-SemiBold.ttf', weight: '600' },
+    { path: '../fonts/Pretendard-Bold.ttf', weight: '700' },
+    { path: '../fonts/Pretendard-ExtraBold.ttf', weight: '800' },
+    { path: '../fonts/Pretendard-Black.ttf', weight: '900' },
+  ],
+  variable: '--font-pretendard',
+  display: 'swap',
 });
 
 export default async function RootLayout({
@@ -51,7 +62,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      <body className={`${pretendard.className} antialiased`}>
         <LoginModalProvider> {/* Wrap with LoginModalProvider */}
           <ThemeProvider
             attribute="class"
@@ -62,7 +73,16 @@ export default async function RootLayout({
             <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
               <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                 <div className="flex gap-5 items-center font-semibold">
-                  <Link href={"/"}>SYDE</Link>
+                  <Link href={"/"} className="flex items-center gap-2">
+                    <Image
+                      src="/logo_no_bg.png"
+                      alt="SYDE"
+                      width={50}
+                      height={50}
+                      priority
+                    />
+                    <span className="text-4xl font-black">SYDE</span>
+                  </Link>
                 </div>
                 <AuthButton avatarUrl={avatarUrl} username={usernameForAuthButton} />
               </div>
