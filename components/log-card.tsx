@@ -156,11 +156,9 @@ export function LogCard({
   };
 
   return (
-    <div 
-      className="border rounded-lg p-4 mb-4 bg-card shadow-sm cursor-pointer"
-      onClick={handleCardClick}
-    >
-      <div className="flex items-center mb-3" onClick={(e) => e.stopPropagation()}>
+    <div className="border rounded-lg p-4 mb-4 bg-card shadow-sm flex flex-col">
+      {/* Section 1: Profile Header (Not clickable as a block) */}
+      <div className="flex items-center">
         {avatarUrlWithCacheBuster && (
           <Link href={`/${log.profiles?.username || log.user_id}`}>
             <Image
@@ -172,7 +170,7 @@ export function LogCard({
             />
           </Link>
         )}
-        <div>
+        <div className="flex-grow">
           <Link href={`/${log.profiles?.username || log.user_id}`}>
             <p className="font-semibold hover:underline">
               {log.profiles?.full_name || log.profiles?.username || "Anonymous"}
@@ -182,7 +180,7 @@ export function LogCard({
             @{log.profiles?.username || log.user_id}
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <p className="text-xs text-muted-foreground">{logDate}</p>
           {currentUserId === log.user_id && (
             <>
@@ -206,6 +204,8 @@ export function LogCard({
           )}
         </div>
       </div>
+
+      {/* Section 2: Content (Clickable block) */}
       {isEditing ? (
         <LogForm
           userId={currentUserId}
@@ -214,34 +214,29 @@ export function LogCard({
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <>
-          <div
-            className="block rounded-md p-2 -m-2"
-          >
-            <p className="mb-3 text-base whitespace-pre-wrap">
-              {linkifyMentions(log.content, mentionedProfiles)}
-            </p>
-            {log.image_url && (
-              <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden">
-                <Image
-                  src={log.image_url}
-                  alt="Log image"
-                  fill
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 100vw, 672px"
-                />
-              </div>
-            )}
-          </div>
-        </>
+        <div onClick={handleCardClick} className="cursor-pointer py-4">
+          <p className="mb-3 text-base whitespace-pre-wrap">
+            {linkifyMentions(log.content, mentionedProfiles)}
+          </p>
+          {log.image_url && (
+            <div className="relative w-full h-64 mt-3 rounded-md overflow-hidden">
+              <Image
+                src={log.image_url}
+                alt="Log image"
+                fill
+                style={{ objectFit: "cover" }}
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
+          )}
+        </div>
       )}
-      <div className="flex justify-between items-center text-sm text-muted-foreground mt-4">
-        <div
-          className="flex items-center gap-1 cursor-pointer rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleLike();
-          }}
+
+      {/* Section 3: Actions (Independent buttons) */}
+      <div className="flex justify-between items-center text-sm text-muted-foreground">
+        <button
+          onClick={handleLike}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <HeartIcon
             className={
@@ -250,18 +245,19 @@ export function LogCard({
             size={18}
           />
           <span>{likesCount} Likes</span>
-        </div>
-        <div
-          className="flex items-center gap-1 cursor-pointer rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={(e) => {
-            e.stopPropagation();
+        </button>
+        <button
+          onClick={() => {
             setShowComments(!showComments);
           }}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <MessageCircle size={18} />
           <span>{commentsCount} Comments</span>
-        </div>
+        </button>
       </div>
+
+      {/* Section 4: Comments (Shown conditionally) */}
       {showComments && (
         <div className="mt-4 border-t pt-4">
           <CommentForm
