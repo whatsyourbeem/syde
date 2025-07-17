@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { LogForm } from "@/components/log-form";
 import { LogList } from "@/components/log-list";
+import { SearchForm } from "@/components/search-form"; // Import SearchForm
 
-export default async function Home() {
+// Add searchParams to the component's props
+export default async function Home({ searchParams }: { searchParams: { q?: string } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -23,9 +25,12 @@ export default async function Home() {
     }
   }
 
+  const searchQuery = searchParams.q || ''; // Get search query
+
   return (
     <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5">
       <div className="w-full max-w-2xl mx-auto mb-8">
+        <SearchForm /> 
         <LogForm
           userId={user?.id || null}
           userEmail={user?.email || null}
@@ -33,7 +38,8 @@ export default async function Home() {
           username={username}
         />
       </div>
-      <LogList currentUserId={user?.id || null} />
+      {/* Pass searchQuery to LogList */}
+      <LogList currentUserId={user?.id || null} searchQuery={searchQuery} />
     </main>
   );
 }

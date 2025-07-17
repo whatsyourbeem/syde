@@ -13,15 +13,17 @@ export function LogList({
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
+  searchQuery, // Add searchQuery
 }: {
   currentUserId: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
+  searchQuery?: string; // Add searchQuery to props
 }) {
   const supabase = createClient();
-  const queryClient = useQueryClient(); // Initialize query client
-  const [currentPage, setCurrentPage] = useState(1); // Current page state
+  const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const queryKey = [
     "logs",
@@ -30,6 +32,7 @@ export function LogList({
       filterByUserId,
       filterByCommentedUserId,
       filterByLikedUserId,
+      searchQuery, // Add to queryKey
     },
   ];
 
@@ -52,6 +55,10 @@ export function LogList({
         `,
         { count: "exact" }
       );
+
+      if (searchQuery) {
+        query = query.ilike('content', `%${searchQuery}%`);
+      }
 
       if (filterByUserId) {
         query = query.eq("user_id", filterByUserId);
