@@ -190,18 +190,20 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
         />
       ) : (
         <>
-          <p className="mb-3 text-base">{log.content}</p>
-          {log.image_url && (
-            <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden">
-              <Image
-                src={log.image_url}
-                alt="Log image"
-                fill
-                style={{ objectFit: "cover" }}
-                sizes="(max-width: 768px) 100vw, 672px" // Added sizes prop
-              />
-            </div>
-          )}
+          <Link href={`/log/${log.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-md p-2 -m-2">
+            <p className="mb-3 text-base">{log.content}</p>
+            {log.image_url && (
+              <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden">
+                <Image
+                  src={log.image_url}
+                  alt="Log image"
+                  fill
+                  style={{ objectFit: "cover" }}
+                  sizes="(max-width: 768px) 100vw, 672px"
+                />
+              </div>
+            )}
+          </Link>
         </>
       )}
       <div className="flex justify-between items-center text-sm text-muted-foreground mt-4">
