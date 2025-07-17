@@ -7,6 +7,7 @@ import { Textarea } from "./ui/textarea"; // Use Textarea for comments
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
+import { Input } from "./ui/input";
 
 interface CommentFormProps {
   logId: string;
@@ -49,7 +50,10 @@ export function CommentForm({
       setLoading(true);
 
       try {
-        const processedContent = await processMentionsForSave(content, supabase);
+        const processedContent = await processMentionsForSave(
+          content,
+          supabase
+        );
 
         if (initialCommentData) {
           // Update existing comment
@@ -61,7 +65,7 @@ export function CommentForm({
           if (error) {
             throw error;
           }
-          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] }); // Invalidate comments query
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] }); // Invalidate comments query
           if (onCommentUpdated) onCommentUpdated();
         } else {
           // Insert new comment
@@ -74,7 +78,7 @@ export function CommentForm({
           if (error) {
             throw error;
           }
-          queryClient.invalidateQueries({ queryKey: ['comments', { logId }] }); // Invalidate comments query
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] }); // Invalidate comments query
           if (onCommentAdded) onCommentAdded(); // Notify parent component that a comment was added
         }
 
@@ -89,12 +93,22 @@ export function CommentForm({
         setLoading(false);
       }
     },
-    [logId, currentUserId, content, router, supabase, onCommentAdded, initialCommentData, onCommentUpdated, queryClient]
+    [
+      logId,
+      currentUserId,
+      content,
+      router,
+      supabase,
+      onCommentAdded,
+      initialCommentData,
+      onCommentUpdated,
+      queryClient,
+    ]
   );
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
-      <Textarea
+      <Input
         placeholder={
           initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
         }
@@ -102,7 +116,6 @@ export function CommentForm({
         onChange={(e) => setContent(e.target.value)}
         disabled={loading || !currentUserId}
         className="flex-grow"
-        rows={initialCommentData ? 2 : 1} // Adjust rows for edit mode
       />
       <div className="flex flex-col gap-2">
         {onCancel && (
