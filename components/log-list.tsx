@@ -49,7 +49,7 @@ export function LogList({
           image_url,
           created_at,
           user_id,
-          profiles (username, full_name, avatar_url, updated_at),
+          profiles (username, full_name, avatar_url, updated_at, tagline),
           log_likes(user_id),
           log_comments(id)
         `,
