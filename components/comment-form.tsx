@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea'; // Use Textarea for comments
+import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
 
 interface CommentFormProps {
@@ -76,13 +76,12 @@ export function CommentForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
-      <Textarea
+      <Input
         placeholder={initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         disabled={loading || !currentUserId}
         className="flex-grow"
-        rows={initialCommentData ? 2 : 1} // Adjust rows for edit mode
       />
       <div className="flex flex-col gap-2">
         {onCancel && (
