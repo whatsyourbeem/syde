@@ -24,6 +24,8 @@ interface LogFormProps {
   onCancel?: () => void; // Callback for cancel button in edit mode
 }
 
+import { processMentionsForSave } from "@/lib/utils";
+
 export function LogForm({
   userId,
   userEmail,
@@ -149,12 +151,14 @@ export function LogForm({
           imageUrl = null;
         }
 
+        const processedContent = await processMentionsForSave(content, supabase);
+
         if (initialLogData) {
           // Update existing log
           const { error } = await supabase
             .from("logs")
             .update({
-              content: content,
+              content: processedContent,
               image_url: imageUrl,
             })
             .eq("id", initialLogData.id);
@@ -167,7 +171,7 @@ export function LogForm({
           // Insert new log
           const { error } = await supabase.from("logs").insert({
             user_id: userId,
-            content: content,
+            content: processedContent,
             image_url: imageUrl,
           });
 

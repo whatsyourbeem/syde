@@ -47,6 +47,31 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         throw error;
       }
 
+      // --- Start of new logic for fetching mentioned profiles ---
+      const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
+      let mentionedUserIds = new Set<string>();
+      data?.forEach(comment => {
+        const matches = comment.content.matchAll(mentionRegex);
+        for (const match of matches) {
+          mentionedUserIds.add(match[1]);
+        }
+      });
+
+      let mentionedProfiles: any[] = [];
+      if (mentionedUserIds.size > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', Array.from(mentionedUserIds));
+        
+        if (profilesError) {
+          console.error("Error fetching mentioned profiles:", profilesError);
+        } else {
+          mentionedProfiles = profilesData;
+        }
+      }
+      // --- End of new logic ---
+
       const commentsWithProcessedProfiles = data?.map((comment) => ({
         ...comment,
         profiles: Array.isArray(comment.profiles)
@@ -69,12 +94,14 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
       return {
         comments: commentsWithProcessedProfiles || [],
         count: count || 0,
+        mentionedProfiles,
       };
     },
   });
 
   const comments = data?.comments || [];
   const totalCommentsCount = data?.count || 0;
+  const mentionedProfiles = data?.mentionedProfiles || [];
 
   useEffect(() => {
     const channel = supabase
@@ -149,6 +176,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
             key={comment.id}
             comment={comment}
             currentUserId={currentUserId}
+            mentionedProfiles={mentionedProfiles}
           />
         ))
       )}

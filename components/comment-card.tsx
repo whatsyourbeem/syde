@@ -6,13 +6,15 @@ import { useState } from "react";
 import { CommentForm } from "./comment-form"; // Import CommentForm
 import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
 
+import { linkifyMentions } from "@/lib/utils";
+
 interface CommentCardProps {
   comment: {
     id: string;
     content: string;
     created_at: string;
     user_id: string;
-    log_id: string; // Added log_id
+    log_id: string;
     profiles: {
       username: string | null;
       full_name: string | null;
@@ -21,9 +23,10 @@ interface CommentCardProps {
     } | null;
   };
   currentUserId: string | null;
+  mentionedProfiles: any[];
 }
 
-export function CommentCard({ comment, currentUserId }: CommentCardProps) {
+export function CommentCard({ comment, currentUserId, mentionedProfiles }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient(); // Initialize query client
   const [loading, setLoading] = useState(false);
@@ -122,7 +125,7 @@ export function CommentCard({ comment, currentUserId }: CommentCardProps) {
             onCancel={() => setIsEditing(false)}
           />
         ) : (
-          <p className="text-sm mt-1">{comment.content}</p>
+          <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
         )}
       </div>
     </div>

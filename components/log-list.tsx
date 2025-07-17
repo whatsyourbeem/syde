@@ -105,6 +105,31 @@ export function LogList({
         throw logsError;
       }
 
+      // --- Start of new logic for fetching mentioned profiles ---
+      const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
+      let mentionedUserIds = new Set<string>();
+      logsData?.forEach(log => {
+        const matches = log.content.matchAll(mentionRegex);
+        for (const match of matches) {
+          mentionedUserIds.add(match[1]);
+        }
+      });
+
+      let mentionedProfiles: any[] = [];
+      if (mentionedUserIds.size > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', Array.from(mentionedUserIds));
+        
+        if (profilesError) {
+          console.error("Error fetching mentioned profiles:", profilesError);
+        } else {
+          mentionedProfiles = profilesData;
+        }
+      }
+      // --- End of new logic ---
+
       type ProcessedLog = {
         id: string;
         content: string;
@@ -137,12 +162,13 @@ export function LogList({
             : false,
         })) || [];
 
-      return { logs: logsWithProcessedData || [], count: count || 0 };
+      return { logs: logsWithProcessedData || [], count: count || 0, mentionedProfiles }; // Return mentionedProfiles
     },
   });
 
   const logs = data?.logs || [];
   const totalLogsCount = data?.count || 0;
+  const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
 
   useEffect(() => {
     const channel = supabase
@@ -200,6 +226,7 @@ export function LogList({
             initialLikesCount={log.likesCount}
             initialHasLiked={log.hasLiked}
             initialCommentsCount={log.log_comments.length}
+            mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
           />
         ))
       )}

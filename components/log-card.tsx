@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { HeartIcon, MessageCircle, Trash2, Edit } from 'lucide-react'; // Added MessageCircle and Trash2
-import { LogForm } from './log-form'; // Import LogForm
-import { CommentForm } from './comment-form'; // Will create this
-import { CommentList } from './comment-list'; // Will create this
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { HeartIcon, MessageCircle, Trash2, Edit } from "lucide-react"; // Added MessageCircle and Trash2
+import { LogForm } from "./log-form"; // Import LogForm
+import { CommentForm } from "./comment-form"; // Will create this
+import { CommentList } from "./comment-list"; // Will create this
+
+import { useRouter } from "next/navigation";
+import { linkifyMentions } from "@/lib/utils";
 
 interface LogCardProps {
   log: {
@@ -22,17 +25,26 @@ interface LogCardProps {
       avatar_url: string | null;
       updated_at: string;
     } | null;
-    log_likes: { user_id: string }[]; // Added log_likes
-    log_comments: { id: string }[]; // Added log_comments
+    log_likes: { user_id: string }[];
+    log_comments: { id: string }[];
   };
   currentUserId: string | null;
   initialLikesCount: number;
   initialHasLiked: boolean;
-  initialCommentsCount: number; // Added initialCommentsCount
+  initialCommentsCount: number;
+  mentionedProfiles: any[];
 }
 
-export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked, initialCommentsCount }: LogCardProps) {
+export function LogCard({
+  log,
+  currentUserId,
+  initialLikesCount,
+  initialHasLiked,
+  initialCommentsCount,
+  mentionedProfiles,
+}: LogCardProps) {
   const supabase = createClient();
+  const router = useRouter();
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount); // Added commentsCount state
@@ -47,7 +59,9 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
   }, [initialLikesCount, initialHasLiked, initialCommentsCount]);
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
-    ? `${log.profiles.avatar_url}?t=${new Date(log.profiles.updated_at).getTime()}`
+    ? `${log.profiles.avatar_url}?t=${new Date(
+        log.profiles.updated_at
+      ).getTime()}`
     : null;
 
   const logDate = new Date(log.created_at).toLocaleString();
@@ -59,28 +73,28 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
     if (hasLiked) {
       // Unlike
       const { error } = await supabase
-        .from('log_likes')
+        .from("log_likes")
         .delete()
-        .eq('log_id', log.id)
-        .eq('user_id', currentUserId);
+        .eq("log_id", log.id)
+        .eq("user_id", currentUserId);
 
       if (!error) {
         setLikesCount((prev) => prev - 1);
         setHasLiked(false);
       } else {
-        console.error('Error unliking log:', error);
+        console.error("Error unliking log:", error);
       }
     } else {
       // Like
       const { error } = await supabase
-        .from('log_likes')
+        .from("log_likes")
         .insert({ log_id: log.id, user_id: currentUserId });
 
       if (!error) {
         setLikesCount((prev) => prev + 1);
         setHasLiked(true);
       } else {
-        console.error('Error liking log:', error);
+        console.error("Error liking log:", error);
       }
     }
     setLoading(false);
@@ -135,14 +149,23 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
     }
   };
 
+  const handleCardClick = () => {
+    if (!isEditing) {
+      router.push(`/log/${log.id}`);
+    }
+  };
+
   return (
-    <div className="border rounded-lg p-4 mb-4 bg-card shadow-sm">
-      <div className="flex items-center mb-3">
+    <div 
+      className="border rounded-lg p-4 mb-4 bg-card shadow-sm cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <div className="flex items-center mb-3" onClick={(e) => e.stopPropagation()}>
         {avatarUrlWithCacheBuster && (
           <Link href={`/${log.profiles?.username || log.user_id}`}>
             <Image
               src={avatarUrlWithCacheBuster}
-              alt={`${log.profiles?.username || 'User'}'s avatar`}
+              alt={`${log.profiles?.username || "User"}'s avatar`}
               width={40}
               height={40}
               className="rounded-full object-cover mr-3"
@@ -152,10 +175,12 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
         <div>
           <Link href={`/${log.profiles?.username || log.user_id}`}>
             <p className="font-semibold hover:underline">
-              {log.profiles?.full_name || log.profiles?.username || 'Anonymous'}
+              {log.profiles?.full_name || log.profiles?.username || "Anonymous"}
             </p>
           </Link>
-          <p className="text-sm text-muted-foreground">@{log.profiles?.username || log.user_id}</p>
+          <p className="text-sm text-muted-foreground">
+            @{log.profiles?.username || log.user_id}
+          </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <p className="text-xs text-muted-foreground">{logDate}</p>
@@ -190,8 +215,12 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
         />
       ) : (
         <>
-          <Link href={`/log/${log.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-md p-2 -m-2">
-            <p className="mb-3 text-base">{log.content}</p>
+          <div
+            className="block rounded-md p-2 -m-2"
+          >
+            <p className="mb-3 text-base whitespace-pre-wrap">
+              {linkifyMentions(log.content, mentionedProfiles)}
+            </p>
             {log.image_url && (
               <div className="relative w-full h-64 mb-3 rounded-md overflow-hidden">
                 <Image
@@ -203,25 +232,43 @@ export function LogCard({ log, currentUserId, initialLikesCount, initialHasLiked
                 />
               </div>
             )}
-          </Link>
+          </div>
         </>
       )}
       <div className="flex justify-between items-center text-sm text-muted-foreground mt-4">
-        <div className="flex items-center gap-1 cursor-pointer" onClick={handleLike}>
+        <div
+          className="flex items-center gap-1 cursor-pointer rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleLike();
+          }}
+        >
           <HeartIcon
-            className={hasLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}
+            className={
+              hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"
+            }
             size={18}
           />
           <span>{likesCount} Likes</span>
         </div>
-        <div className="flex items-center gap-1 cursor-pointer" onClick={() => setShowComments(!showComments)}>
+        <div
+          className="flex items-center gap-1 cursor-pointer rounded-md p-1 hover:bg-gray-100 dark:hover:bg-gray-800"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowComments(!showComments);
+          }}
+        >
           <MessageCircle size={18} />
           <span>{commentsCount} Comments</span>
         </div>
       </div>
       {showComments && (
         <div className="mt-4 border-t pt-4">
-          <CommentForm logId={log.id} currentUserId={currentUserId} onCommentAdded={handleCommentAdded} />
+          <CommentForm
+            logId={log.id}
+            currentUserId={currentUserId}
+            onCommentAdded={handleCommentAdded}
+          />
           <CommentList logId={log.id} currentUserId={currentUserId} />
         </div>
       )}

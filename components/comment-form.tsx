@@ -21,6 +21,8 @@ interface CommentFormProps {
   onCancel?: () => void; // Callback for cancel button in edit mode
 }
 
+import { processMentionsForSave } from "@/lib/utils";
+
 export function CommentForm({
   logId,
   currentUserId,
@@ -47,11 +49,13 @@ export function CommentForm({
       setLoading(true);
 
       try {
+        const processedContent = await processMentionsForSave(content, supabase);
+
         if (initialCommentData) {
           // Update existing comment
           const { error } = await supabase
             .from("log_comments")
-            .update({ content: content })
+            .update({ content: processedContent })
             .eq("id", initialCommentData.id);
 
           if (error) {
@@ -64,7 +68,7 @@ export function CommentForm({
           const { error } = await supabase.from("log_comments").insert({
             log_id: logId,
             user_id: currentUserId,
-            content: content,
+            content: processedContent,
           });
 
           if (error) {

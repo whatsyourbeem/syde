@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { LogForm } from "@/components/log-form";
-import { LogList } from "@/components/log-list";
+import { LogListWrapper } from "@/components/log-list-wrapper"; // Import LogListWrapper
 import { SearchForm } from "@/components/search-form"; // Import SearchForm
 
-// Add searchParams to the component's props
-export default async function Home({ searchParams }: { searchParams: { q?: string } }) {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -25,8 +26,6 @@ export default async function Home({ searchParams }: { searchParams: { q?: strin
     }
   }
 
-  const searchQuery = searchParams.q || ''; // Get search query
-
   return (
     <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5">
       <div className="w-full max-w-2xl mx-auto mb-8">
@@ -38,8 +37,7 @@ export default async function Home({ searchParams }: { searchParams: { q?: strin
           username={username}
         />
       </div>
-      {/* Pass searchQuery to LogList */}
-      <LogList currentUserId={user?.id || null} searchQuery={searchQuery} />
+      <LogListWrapper currentUserId={user?.id || null} />
     </main>
   );
 }
