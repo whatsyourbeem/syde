@@ -23,6 +23,7 @@ interface ProfileFormProps {
   avatarUrl: string | null;
   bio: string | null;
   link: string | null;
+  tagline: string | null;
 }
 
 export default function ProfileForm({
@@ -32,6 +33,7 @@ export default function ProfileForm({
   avatarUrl,
   bio,
   link,
+  tagline,
 }: ProfileFormProps) {
   const supabase = createClient();
   const queryClient = useQueryClient(); // Initialize query client
@@ -46,6 +48,7 @@ export default function ProfileForm({
   );
   const [currentBio, setCurrentBio] = useState<string | null>(bio);
   const [currentLink, setCurrentLink] = useState<string | null>(link);
+  const [currentTagline, setCurrentTagline] = useState<string | null>(tagline);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(
     avatarUrl
@@ -57,13 +60,14 @@ export default function ProfileForm({
     setCurrentFullName(fullName);
     setCurrentBio(bio);
     setCurrentLink(link);
+    setCurrentTagline(tagline);
     setCurrentAvatarUrl(avatarUrl);
     setAvatarPreviewUrl(avatarUrl);
     // Validate initial link
     if (link) {
       setIsLinkValid(isValidUrl(link));
     }
-  }, [username, fullName, avatarUrl, bio, link]);
+  }, [username, fullName, avatarUrl, bio, link, tagline]);
 
   const isValidUrl = (url: string): boolean => {
     try {
@@ -181,6 +185,7 @@ export default function ProfileForm({
         avatar_url: newAvatarUrl,
         bio: currentBio,
         link: currentLink === "" ? null : currentLink, // Store empty string as null
+        tagline: currentTagline, // Add tagline
         updated_at: new Date().toISOString(),
       });
 
@@ -262,6 +267,16 @@ export default function ProfileForm({
               value={currentBio || ""}
               onChange={(e) => setCurrentBio(e.target.value)}
               rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="tagline">Tagline</Label>
+            <Input
+              id="tagline"
+              type="text"
+              value={currentTagline || ""}
+              onChange={(e) => setCurrentTagline(e.target.value)}
+              maxLength={30} // Enforce 30 character limit
             />
           </div>
           <div>

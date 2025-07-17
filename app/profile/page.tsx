@@ -16,10 +16,11 @@ export default async function ProfilePage() {
   let avatarUrl = null;
   let bio = null;
   let link = null;
+  let tagline = null;
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('username, full_name, avatar_url, bio, link, updated_at')
+    .select('username, full_name, avatar_url, bio, link, tagline, updated_at')
     .eq('id', user.id)
     .single();
 
@@ -30,6 +31,7 @@ export default async function ProfilePage() {
     fullName = profile.full_name;
     bio = profile.bio;
     link = profile.link;
+    tagline = profile.tagline;
     // Add cache-buster to avatarUrl
     avatarUrl = profile.avatar_url ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}` : null;
   }
@@ -45,6 +47,7 @@ export default async function ProfilePage() {
           avatarUrl={avatarUrl}
           bio={bio}
           link={link}
+          tagline={tagline}
         />
       </div>
     </div>

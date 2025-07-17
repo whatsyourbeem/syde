@@ -21,7 +21,7 @@ export default async function UserProfilePage({
   // Fetch the profile data for the given username
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, bio, link, updated_at")
+    .select("id, username, full_name, avatar_url, bio, link, tagline, updated_at")
     .eq("username", username)
     .single();
 
@@ -72,6 +72,7 @@ export default async function UserProfilePage({
                 @{profile.username}
               </p>
             )}
+            {profile.tagline && <p className="mt-2 text-sm text-muted-foreground">{profile.tagline}</p>}
             {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
             {profile.link && (
               <Link
