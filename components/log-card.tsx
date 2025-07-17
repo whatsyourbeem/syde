@@ -24,7 +24,6 @@ interface LogCardProps {
       full_name: string | null;
       avatar_url: string | null;
       updated_at: string;
-      tagline: string | null;
     } | null;
     log_likes: { user_id: string }[];
     log_comments: { id: string }[];
