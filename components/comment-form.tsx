@@ -1,25 +1,23 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea"; // Use Textarea for comments
+import { Textarea } from "./ui/textarea";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
-import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
-import { Input } from "./ui/input";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLoginModal } from "@/context/LoginModalContext";
 
 interface CommentFormProps {
   logId: string;
   currentUserId: string | null;
-  onCommentAdded?: () => void; // Made optional for editing
+  onCommentAdded?: () => void;
   initialCommentData?: {
-    // New prop for editing
     id: string;
     content: string;
   };
-  onCommentUpdated?: () => void; // Callback for successful update
-  onCancel?: () => void; // Callback for cancel button in edit mode
+  onCommentUpdated?: () => void;
+  onCancel?: () => void;
 }
 
 import { processMentionsForSave } from "@/lib/utils";
@@ -34,16 +32,127 @@ export function CommentForm({
 }: CommentFormProps) {
   const supabase = createClient();
   const router = useRouter();
-  const queryClient = useQueryClient(); // Initialize query client
+  const queryClient = useQueryClient();
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [loading, setLoading] = useState(false);
-  const { openLoginModal } = useLoginModal(); // Use the hook
+  const { openLoginModal } = useLoginModal();
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
+
+  // Mention states
+  const [mentionSearchTerm, setMentionSearchTerm] = useState("");
+  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mentionStartIndex, setMentionStartIndex] = useState(-1);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+
+  // Debounce for mention search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (mentionSearchTerm) {
+        fetchMentionSuggestions(mentionSearchTerm);
+      } else {
+        setShowSuggestions(false);
+        setMentionSuggestions([]);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [mentionSearchTerm]);
+
+  const fetchMentionSuggestions = async (term: string) => {
+    if (term.length < 1) {
+      setMentionSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, username, full_name')
+      .ilike('username', `%${term}%`)
+      .limit(5);
+
+    if (error) {
+      console.error("Error fetching mention suggestions:", error);
+      setMentionSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setMentionSuggestions(data || []);
+    setShowSuggestions(true);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+
+    const cursorPosition = e.target.selectionStart;
+    const textBeforeCursor = newContent.substring(0, cursorPosition);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+      const mentionRegex = /^[a-zA-Z0-9._-]*$/;
+      if (mentionRegex.test(textAfterAt)) {
+        setMentionSearchTerm(textAfterAt);
+        setMentionStartIndex(lastAtIndex);
+        setActiveSuggestionIndex(0);
+      } else {
+        setMentionSearchTerm("");
+        setShowSuggestions(false);
+      }
+    } else {
+      setMentionSearchTerm("");
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion: any) => {
+    if (mentionStartIndex === -1) return;
+
+    const newContent = 
+      content.substring(0, mentionStartIndex) +
+      `@${suggestion.username} ` +
+      content.substring(mentionStartIndex + mentionSearchTerm.length + 1);
+
+    setContent(newContent);
+    setMentionSearchTerm("");
+    setShowSuggestions(false);
+    if (textareaRef.current) {
+      const newCursorPosition = mentionStartIndex + suggestion.username.length + 2; // +2 for '@' and space
+      textareaRef.current.selectionStart = newCursorPosition;
+      textareaRef.current.selectionEnd = newCursorPosition;
+      textareaRef.current.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showSuggestions && mentionSuggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveSuggestionIndex((prevIndex) =>
+          (prevIndex + 1) % mentionSuggestions.length
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveSuggestionIndex((prevIndex) =>
+          (prevIndex - 1 + mentionSuggestions.length) % mentionSuggestions.length
+        );
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSelectSuggestion(mentionSuggestions[activeSuggestionIndex]);
+      }
+    }
+  };
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault();
       if (!currentUserId) {
-        openLoginModal(); // Open login modal
+        openLoginModal();
         return;
       }
 
@@ -56,7 +165,6 @@ export function CommentForm({
         );
 
         if (initialCommentData) {
-          // Update existing comment
           const { error } = await supabase
             .from("log_comments")
             .update({ content: processedContent })
@@ -65,10 +173,9 @@ export function CommentForm({
           if (error) {
             throw error;
           }
-          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] }); // Invalidate comments query
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
           if (onCommentUpdated) onCommentUpdated();
         } else {
-          // Insert new comment
           const { error } = await supabase.from("log_comments").insert({
             log_id: logId,
             user_id: currentUserId,
@@ -78,8 +185,8 @@ export function CommentForm({
           if (error) {
             throw error;
           }
-          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] }); // Invalidate comments query
-          if (onCommentAdded) onCommentAdded(); // Notify parent component that a comment was added
+          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
+          if (onCommentAdded) onCommentAdded();
         }
 
         setContent("");
@@ -107,16 +214,37 @@ export function CommentForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
-      <Input
-        placeholder={
-          initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
-        }
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        disabled={loading || !currentUserId}
-        className="flex-grow"
-      />
+    <form onSubmit={handleSubmit} className="flex gap-2 mt-4 relative">
+      <div className="flex-grow relative">
+        <Textarea
+          placeholder={
+            initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
+          }
+          value={content}
+          onChange={handleContentChange}
+          onKeyDown={handleKeyDown}
+          disabled={loading || !currentUserId}
+          className="w-full pr-20" // Adjust padding for buttons
+          ref={textareaRef}
+          rows={3}
+        />
+        {showSuggestions && mentionSuggestions.length > 0 && (
+          <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+            {mentionSuggestions.map((suggestion, index) => (
+              <li
+                key={suggestion.id}
+                className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
+                onClick={() => handleSelectSuggestion(suggestion)}
+              >
+                <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                {suggestion.full_name && suggestion.username && (
+                  <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div className="flex flex-col gap-2">
         {onCancel && (
           <Button
