@@ -1,10 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Trash2, Edit } from "lucide-react"; // Added Edit
-import { useState } from "react";
-import { CommentForm } from "./comment-form"; // Import CommentForm
-import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import { Trash2, Edit, HeartIcon } from "lucide-react"; // Added Edit, HeartIcon
+import { useState, useEffect } from "react";
+import { CommentForm } from "./comment-form";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { linkifyMentions } from "@/lib/utils";
 
@@ -24,13 +26,30 @@ interface CommentCardProps {
   };
   currentUserId: string | null;
   mentionedProfiles: any[];
+  initialLikesCount: number; // New prop
+  initialHasLiked: boolean; // New prop
+  onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void; // New prop
 }
 
-export function CommentCard({ comment, currentUserId, mentionedProfiles }: CommentCardProps) {
+export function CommentCard({
+  comment,
+  currentUserId,
+  mentionedProfiles,
+  initialLikesCount,
+  initialHasLiked,
+  onLikeStatusChange,
+}: CommentCardProps) {
   const supabase = createClient();
-  const queryClient = useQueryClient(); // Initialize query client
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [likesCount, setLikesCount] = useState(initialLikesCount); // New state
+  const [hasLiked, setHasLiked] = useState(initialHasLiked); // New state
+
+  useEffect(() => {
+    setLikesCount(initialLikesCount);
+    setHasLiked(initialHasLiked);
+  }, [initialLikesCount, initialHasLiked]);
 
   const avatarUrlWithCacheBuster = comment.profiles?.avatar_url
     ? `${comment.profiles.avatar_url}?t=${new Date(
@@ -39,6 +58,46 @@ export function CommentCard({ comment, currentUserId, mentionedProfiles }: Comme
     : null;
 
   const commentDate = new Date(comment.created_at).toLocaleString();
+
+  const handleLike = async () => {
+    if (!currentUserId || loading) return;
+
+    setLoading(true);
+    let newLikesCount = likesCount;
+    let newHasLiked = hasLiked;
+
+    if (hasLiked) {
+      // Unlike
+      const { error } = await supabase
+        .from("comment_likes")
+        .delete()
+        .eq("comment_id", comment.id)
+        .eq("user_id", currentUserId);
+
+      if (!error) {
+        newLikesCount = likesCount - 1;
+        newHasLiked = false;
+      } else {
+        console.error("Error unliking comment:", error);
+      }
+    } else {
+      // Like
+      const { error } = await supabase
+        .from("comment_likes")
+        .insert({ comment_id: comment.id, user_id: currentUserId });
+
+      if (!error) {
+        newLikesCount = likesCount + 1;
+        newHasLiked = true;
+      } else {
+        console.error("Error liking comment:", error);
+      }
+    }
+    setLoading(false);
+    setLikesCount(newLikesCount);
+    setHasLiked(newHasLiked);
+    onLikeStatusChange(comment.id, newLikesCount, newHasLiked); // Notify parent
+  };
 
   const handleDelete = async () => {
     if (currentUserId !== comment.user_id) return;
@@ -58,7 +117,7 @@ export function CommentCard({ comment, currentUserId, mentionedProfiles }: Comme
       }
       queryClient.invalidateQueries({
         queryKey: ["comments", { logId: comment.log_id }],
-      }); // Invalidate comments query
+      });
     } catch (error: any) {
       console.error("Error deleting comment:", error);
       alert(`댓글 삭제 중 오류가 발생했습니다: ${error.message}`);
@@ -94,6 +153,19 @@ export function CommentCard({ comment, currentUserId, mentionedProfiles }: Comme
           </p>
           <div className="ml-auto flex items-center gap-2">
             <p className="text-xs text-muted-foreground">{commentDate}</p>
+            {/* Like Button */}
+            <button
+              onClick={handleLike}
+              disabled={loading || isEditing}
+              className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1"
+              aria-label="Like comment"
+            >
+              <HeartIcon
+                className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
+                size={14}
+              />
+              <span className="text-xs">{likesCount}</span>
+            </button>
             {currentUserId === comment.user_id && (
               <>
                 <button
@@ -118,10 +190,10 @@ export function CommentCard({ comment, currentUserId, mentionedProfiles }: Comme
         </div>
         {isEditing ? (
           <CommentForm
-            logId={comment.log_id} // Assuming log_id is available in comment object
+            logId={comment.log_id}
             currentUserId={currentUserId}
             initialCommentData={comment}
-            onCommentUpdated={() => setIsEditing(false)} // Corrected prop for update success
+            onCommentUpdated={() => setIsEditing(false)}
             onCancel={() => setIsEditing(false)}
           />
         ) : (
