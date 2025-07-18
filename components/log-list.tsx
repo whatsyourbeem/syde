@@ -32,7 +32,7 @@ export function LogList({
       filterByUserId,
       filterByCommentedUserId,
       filterByLikedUserId,
-      searchQuery, // Add to queryKey
+      searchQuery,
     },
   ];
 
@@ -57,7 +57,37 @@ export function LogList({
       );
 
       if (searchQuery) {
-        query = query.ilike("content", `%${searchQuery}%`);
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        let finalSearchConditions: string[] = [];
+
+        // 1. Check for matching profiles (username or full_name)
+        const { data: matchingProfiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
+
+        if (profileError) {
+          console.error("Error fetching matching profiles for search:", profileError);
+        } else if (matchingProfiles && matchingProfiles.length > 0) {
+          // If profiles match, search only for their mentions
+          const mentionConditions = matchingProfiles.map(profile => 
+            `content.ilike.%[mention:${profile.id}]%`
+          );
+          finalSearchConditions.push(...mentionConditions);
+        } else if (searchQuery.toLowerCase() === 'mention' || uuidRegex.test(searchQuery)) {
+          // If no profile matches AND search query is 'mention' or a UUID, return no results
+          // By not adding any conditions, the query will effectively return nothing if no other filters apply
+        } else {
+          // Otherwise, perform a general text search
+          finalSearchConditions.push(`content.ilike.%${searchQuery}%`);
+        }
+
+        if (finalSearchConditions.length > 0) {
+          query = query.or(finalSearchConditions.join(','));
+        } else {
+          // If no valid search conditions, ensure no results are returned
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // A non-existent ID
+        }
       }
 
       if (filterByUserId) {
@@ -187,16 +217,33 @@ export function LogList({
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "log_likes" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["logs"] });
+        {
+          event: "*",
+          schema: "public",
+          table: "log_likes",
+          filter: `log_id=in.(${logs.map(log => log.id).join(',')})`,
+        },
+        (payload) => {
+          // Invalidate only if the change is relevant to the current page's logs
+          const changedLogId = (payload.new as any).log_id || (payload.old as any).log_id;
+          if (logs.some(log => log.id === changedLogId)) {
+            queryClient.invalidateQueries({ queryKey: ["logs"] });
+          }
         }
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "log_comments" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["logs"] });
+        {
+          event: "*",
+          schema: "public",
+          table: "log_comments",
+          filter: `log_id=in.(${logs.map(log => log.id).join(',')})`,
+        },
+        (payload) => {
+          const changedLogId = (payload.new as any).log_id || (payload.old as any).log_id;
+          if (logs.some(log => log.id === changedLogId)) {
+            queryClient.invalidateQueries({ queryKey: ["logs"] });
+          }
         }
       )
       .subscribe();
@@ -204,7 +251,7 @@ export function LogList({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient]);
+  }, [supabase, queryClient, logs]); // Add logs to dependencies
 
   if (isLoading) {
     return <div className="text-center">Loading logs...</div>;
