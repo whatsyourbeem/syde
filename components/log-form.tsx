@@ -20,7 +20,7 @@ interface LogFormProps {
     content: string;
     image_url: string | null;
   };
-  onLogUpdated?: () => void; // Callback for successful update
+  onLogUpdated?: (updatedLog: any) => void; // Callback for successful update
   onCancel?: () => void; // Callback for cancel button in edit mode
 }
 
@@ -155,18 +155,19 @@ export function LogForm({
 
         if (initialLogData) {
           // Update existing log
-          const { error } = await supabase
+          const { data, error } = await supabase
             .from("logs")
             .update({
               content: processedContent,
               image_url: imageUrl,
             })
-            .eq("id", initialLogData.id);
+            .eq("id", initialLogData.id)
+            .select(); // Add .select() to return the updated data
 
           if (error) {
             throw error;
           }
-          if (onLogUpdated) onLogUpdated();
+          if (onLogUpdated && data && data.length > 0) onLogUpdated(data[0]);
         } else {
           // Insert new log
           const { error } = await supabase.from("logs").insert({

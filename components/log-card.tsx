@@ -24,6 +24,7 @@ interface LogCardProps {
       full_name: string | null;
       avatar_url: string | null;
       updated_at: string;
+      tagline: string | null;
     } | null;
     log_likes: { user_id: string }[];
     log_comments: { id: string }[];
@@ -174,7 +175,9 @@ export function LogCard({
           <div className="flex items-baseline gap-2">
             <Link href={`/${log.profiles?.username || log.user_id}`}>
               <p className="font-semibold hover:underline">
-                {log.profiles?.full_name || log.profiles?.username || "Anonymous"}
+                {log.profiles?.full_name ||
+                  log.profiles?.username ||
+                  "Anonymous"}
               </p>
             </Link>
             {log.profiles?.username && (
@@ -184,7 +187,9 @@ export function LogCard({
             )}
           </div>
           {log.profiles?.tagline && (
-            <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
+            <p className="text-xs text-muted-foreground">
+              {log.profiles.tagline}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-2">
