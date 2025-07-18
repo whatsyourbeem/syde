@@ -79,7 +79,7 @@ export function LogForm({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, full_name')
+      .select('id, username, full_name, avatar_url') // Added avatar_url
       .ilike('username', `%${term}%`)
       .limit(5);
 
@@ -358,10 +358,21 @@ export function LogForm({
                   className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
                   onClick={() => handleSelectSuggestion(suggestion)}
                 >
-                  <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
-                  {suggestion.full_name && suggestion.username && (
-                    <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
-                  )}
+                  <div className="flex items-center">
+                    {suggestion.avatar_url && (
+                      <Image
+                        src={suggestion.avatar_url}
+                        alt={`${suggestion.username}'s avatar`}
+                        width={24}
+                        height={24}
+                        className="rounded-full object-cover mr-2"
+                      />
+                    )}
+                    <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                    {suggestion.full_name && suggestion.username && (
+                      <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

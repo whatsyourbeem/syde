@@ -7,6 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLoginModal } from "@/context/LoginModalContext";
+import Image from "next/image";
 
 interface CommentFormProps {
   logId: string;
@@ -36,7 +37,7 @@ export function CommentForm({
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [loading, setLoading] = useState(false);
   const { openLoginModal } = useLoginModal();
-  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -70,7 +71,7 @@ export function CommentForm({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, full_name')
+      .select('id, username, full_name, avatar_url') // Added avatar_url
       .ilike('username', `%${term}%`)
       .limit(5);
 
@@ -122,7 +123,7 @@ export function CommentForm({
     setMentionSearchTerm("");
     setShowSuggestions(false);
     if (textareaRef.current) {
-      const newCursorPosition = mentionStartIndex + suggestion.username.length + 2; // +2 for '@' and space
+      const newCursorPosition = mentionStartIndex + suggestion.username.length + 2;
       textareaRef.current.selectionStart = newCursorPosition;
       textareaRef.current.selectionEnd = newCursorPosition;
       textareaRef.current.focus();
@@ -224,7 +225,7 @@ export function CommentForm({
           onChange={handleContentChange}
           onKeyDown={handleKeyDown}
           disabled={loading || !currentUserId}
-          className="w-full pr-20" // Adjust padding for buttons
+          className="w-full pr-20"
           ref={textareaRef}
           rows={3}
         />
@@ -236,10 +237,21 @@ export function CommentForm({
                 className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
                 onClick={() => handleSelectSuggestion(suggestion)}
               >
-                <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
-                {suggestion.full_name && suggestion.username && (
-                  <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
-                )}
+                <div className="flex items-center">
+                  {suggestion.avatar_url && (
+                    <Image
+                      src={suggestion.avatar_url}
+                      alt={`${suggestion.username}'s avatar`}
+                      width={24}
+                      height={24}
+                      className="rounded-full object-cover mr-2"
+                    />
+                  )}
+                  <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                  {suggestion.full_name && suggestion.username && (
+                    <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
