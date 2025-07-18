@@ -1,5 +1,4 @@
 /** @jsxImportSource react */
-/** @jsxImportSource react */
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import React from "react";
@@ -45,18 +44,19 @@ export async function processMentionsForSave(content: string, supabase: any) {
   return processedContent;
 }
 
-export function linkifyMentions(text: string, profiles: any[]) {
+export function linkifyMentions(text: string, profiles: any[], searchQuery?: string) {
+  console.log('linkifyMentions called with:', { text, searchQuery }); // Debug
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const parts = text.split(mentionRegex);
 
-  return parts.map((part, i) => {
+  return parts.flatMap((part, i) => { // Changed to flatMap
     if (i % 2 === 1) {
       const userId = part;
       const profile = profiles.find((p) => p.id === userId);
       const username = profile ? profile.username : "unknown";
       return (
         <Link
-          key={i}
+          key={`mention-${i}`} // Ensure unique key for Link
           href={`/${username}`}
           className="text-blue-500 hover:underline font-semibold"
           onClick={(e) => e.stopPropagation()}
@@ -65,6 +65,45 @@ export function linkifyMentions(text: string, profiles: any[]) {
         </Link>
       );
     }
-    return part;
+    // Apply highlightText only to the string parts
+    const highlightedPart = searchQuery ? highlightText(part, searchQuery) : [part]; // Always return array
+    console.log('linkifyMentions processing part:', { part, highlightedPart }); // Debug
+    // flatMap will flatten the array returned by highlightText
+    return highlightedPart;
   });
+}
+
+export function highlightText(text: string, query: string): React.ReactNode[] {
+  console.log('highlightText called with:', { text, query }); // Debug
+  if (!query || typeof text !== 'string') {
+    console.log('highlightText returning early:', text); // Debug
+    return [text]; // Always return an array, even if just a string
+  }
+  const parts: React.ReactNode[] = []; // Change type to React.ReactNode[]
+  const regex = new RegExp(`(${query})`, 'gi'); // Case-insensitive, global
+  let lastIndex = 0;
+  let match;
+
+  let keyCounter = 0; // Use a counter for unique keys within this function call
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(<React.Fragment key={`str-${keyCounter++}`}>{text.substring(lastIndex, match.index)}</React.Fragment>);
+    }
+    // Add the highlighted match
+    parts.push(
+      <span key={`highlight-${keyCounter++}`} className="font-bold">
+        {match[0]}
+      </span>
+    );
+    lastIndex = regex.lastIndex;
+  }
+
+  // Add any remaining text after the last match
+  if (lastIndex < text.length) {
+    parts.push(<React.Fragment key={`str-${keyCounter++}`}>{text.substring(lastIndex)}</React.Fragment>);
+  }
+  console.log('highlightText returning:', parts); // Debug
+  return parts;
 }

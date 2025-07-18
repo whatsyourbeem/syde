@@ -279,6 +279,7 @@ export function LogList({
             initialHasLiked={log.hasLiked}
             initialCommentsCount={log.log_comments.length}
             mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
+            searchQuery={searchQuery} // Pass searchQuery to LogCard
           />
         ))
       )}

@@ -10,7 +10,7 @@ import { CommentForm } from "./comment-form"; // Will create this
 import { CommentList } from "./comment-list"; // Will create this
 
 import { useRouter } from "next/navigation";
-import { linkifyMentions } from "@/lib/utils";
+import { linkifyMentions } from "@/lib/utils"; // Only linkifyMentions is needed
 
 interface LogCardProps {
   log: {
@@ -34,6 +34,7 @@ interface LogCardProps {
   initialHasLiked: boolean;
   initialCommentsCount: number;
   mentionedProfiles: any[];
+  searchQuery?: string; // New prop
 }
 
 export function LogCard({
@@ -43,6 +44,7 @@ export function LogCard({
   initialHasLiked,
   initialCommentsCount,
   mentionedProfiles,
+  searchQuery, // Destructure searchQuery
 }: LogCardProps) {
   const supabase = createClient();
   const router = useRouter();
@@ -228,7 +230,7 @@ export function LogCard({
       ) : (
         <div onClick={handleCardClick} className="cursor-pointer py-4">
           <p className="mb-3 text-base whitespace-pre-wrap">
-            {linkifyMentions(log.content, mentionedProfiles)}
+            {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
           {log.image_url && (
             <div className="relative w-full h-64 mt-3 rounded-md overflow-hidden">
