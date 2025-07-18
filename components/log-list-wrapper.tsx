@@ -8,6 +8,7 @@ interface LogListWrapperProps {
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
+  searchQuery?: string;
 }
 
 export function LogListWrapper({

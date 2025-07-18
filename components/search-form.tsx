@@ -19,15 +19,15 @@ export function SearchForm() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      router.push(`/?q=${encodeURIComponent(query.trim())}`);
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     } else {
-      router.push('/');
+      router.push('/search');
     }
   };
 
   const clearSearch = () => {
     setQuery('');
-    router.push('/');
+    router.push('/search');
   };
 
   return (

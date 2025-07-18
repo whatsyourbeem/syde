@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { LogForm } from "@/components/log-form";
 import { LogListWrapper } from "@/components/log-list-wrapper"; // Import LogListWrapper
-import { SearchForm } from "@/components/search-form"; // Import SearchForm
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +28,6 @@ export default async function Home() {
   return (
     <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5">
       <div className="w-full max-w-2xl mx-auto mb-8">
-        <SearchForm /> 
         <LogForm
           userId={user?.id || null}
           userEmail={user?.email || null}

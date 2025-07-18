@@ -57,7 +57,7 @@ export function LogList({
       );
 
       if (searchQuery) {
-        query = query.ilike('content', `%${searchQuery}%`);
+        query = query.ilike("content", `%${searchQuery}%`);
       }
 
       if (filterByUserId) {
@@ -108,7 +108,7 @@ export function LogList({
       // --- Start of new logic for fetching mentioned profiles ---
       const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
       let mentionedUserIds = new Set<string>();
-      logsData?.forEach(log => {
+      logsData?.forEach((log) => {
         const matches = log.content.matchAll(mentionRegex);
         for (const match of matches) {
           mentionedUserIds.add(match[1]);
@@ -118,10 +118,10 @@ export function LogList({
       let mentionedProfiles: any[] = [];
       if (mentionedUserIds.size > 0) {
         const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, username')
-          .in('id', Array.from(mentionedUserIds));
-        
+          .from("profiles")
+          .select("id, username")
+          .in("id", Array.from(mentionedUserIds));
+
         if (profilesError) {
           console.error("Error fetching mentioned profiles:", profilesError);
         } else {
@@ -140,6 +140,7 @@ export function LogList({
           username: string | null;
           full_name: string | null;
           avatar_url: string | null;
+          tagline: string | null;
           updated_at: string;
         } | null;
         log_likes: Array<{ user_id: string }>;
@@ -162,7 +163,11 @@ export function LogList({
             : false,
         })) || [];
 
-      return { logs: logsWithProcessedData || [], count: count || 0, mentionedProfiles }; // Return mentionedProfiles
+      return {
+        logs: logsWithProcessedData || [],
+        count: count || 0,
+        mentionedProfiles,
+      }; // Return mentionedProfiles
     },
   });
 

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
 import { Providers } from "@/components/providers"; // Import Providers
+import { Search } from "lucide-react"; // Import Search icon
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -88,10 +89,15 @@ export default async function RootLayout({
                     <span className="text-4xl font-black">SYDE</span>
                   </Link>
                 </div>
-                <AuthButton
-                  avatarUrl={avatarUrl}
-                  username={usernameForAuthButton}
-                />
+                <div className="flex items-center gap-4">
+                  <Link href="/search" className="text-foreground hover:text-primary">
+                    <Search size={20} />
+                  </Link>
+                  <AuthButton
+                    avatarUrl={avatarUrl}
+                    username={usernameForAuthButton}
+                  />
+                </div>
               </div>
             </nav>
             {children}
