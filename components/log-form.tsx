@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -44,7 +44,120 @@ export function LogForm({
   );
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
   const { openLoginModal } = useLoginModal(); // Use the hook
+
+  // Mention states
+  const [mentionSearchTerm, setMentionSearchTerm] = useState("");
+  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mentionStartIndex, setMentionStartIndex] = useState(-1);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+
+  // Debounce for mention search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (mentionSearchTerm) {
+        fetchMentionSuggestions(mentionSearchTerm);
+      } else {
+        setShowSuggestions(false);
+        setMentionSuggestions([]);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [mentionSearchTerm]);
+
+  const fetchMentionSuggestions = async (term: string) => {
+    if (term.length < 1) {
+      setMentionSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, username, full_name')
+      .ilike('username', `%${term}%`)
+      .limit(5);
+
+    if (error) {
+      console.error("Error fetching mention suggestions:", error);
+      setMentionSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setMentionSuggestions(data || []);
+    setShowSuggestions(true);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+
+    const cursorPosition = e.target.selectionStart;
+    const textBeforeCursor = newContent.substring(0, cursorPosition);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+      // Regex to check if the text after @ is a valid username character sequence
+      const mentionRegex = /^[a-zA-Z0-9._-]*$/;
+      if (mentionRegex.test(textAfterAt)) {
+        setMentionSearchTerm(textAfterAt);
+        setMentionStartIndex(lastAtIndex);
+        setActiveSuggestionIndex(0);
+      } else {
+        setMentionSearchTerm("");
+        setShowSuggestions(false);
+      }
+    } else {
+      setMentionSearchTerm("");
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion: any) => {
+    if (mentionStartIndex === -1) return;
+
+    const newContent = 
+      content.substring(0, mentionStartIndex) +
+      `@${suggestion.username} ` +
+      content.substring(mentionStartIndex + mentionSearchTerm.length + 1);
+
+    setContent(newContent);
+    setMentionSearchTerm("");
+    setShowSuggestions(false);
+    // Optionally, set cursor position after the inserted mention
+    if (textareaRef.current) {
+      const newCursorPosition = mentionStartIndex + suggestion.username.length + 2; // +2 for '@' and space
+      textareaRef.current.selectionStart = newCursorPosition;
+      textareaRef.current.selectionEnd = newCursorPosition;
+      textareaRef.current.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showSuggestions && mentionSuggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveSuggestionIndex((prevIndex) =>
+          (prevIndex + 1) % mentionSuggestions.length
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveSuggestionIndex((prevIndex) =>
+          (prevIndex - 1 + mentionSuggestions.length) % mentionSuggestions.length
+        );
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSelectSuggestion(mentionSuggestions[activeSuggestionIndex]);
+      }
+    }
+  };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -224,16 +337,36 @@ export function LogForm({
             </div>
           </div>
         )}
-        <Textarea
-          placeholder="무슨 생각을 하고 계신가요?"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={3}
-          disabled={loading} // Removed || !userId
-          onClick={() => {
-            if (!userId) openLoginModal();
-          }} // Open modal on click if not logged in
-        />
+        <div className="relative">
+          <Textarea
+            placeholder="무슨 생각을 하고 계신가요?"
+            value={content}
+            onChange={handleContentChange}
+            onKeyDown={handleKeyDown}
+            rows={3}
+            disabled={loading} // Removed || !userId
+            onClick={() => {
+              if (!userId) openLoginModal();
+            }} // Open modal on click if not logged in
+            ref={textareaRef} // Attach ref to the Textarea component
+          />
+          {showSuggestions && mentionSuggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+              {mentionSuggestions.map((suggestion, index) => (
+                <li
+                  key={suggestion.id}
+                  className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                >
+                  <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                  {suggestion.full_name && suggestion.username && (
+                    <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         {imagePreviewUrl && (
           <div className="relative w-full h-48 rounded-md overflow-hidden">
             <Image
