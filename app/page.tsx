@@ -20,7 +20,11 @@ export default async function Home() {
     if (profileError && profileError.code !== 'PGRST116') {
       console.error('Error fetching profile for LogForm:', profileError);
     } else if (profile) {
-      avatarUrl = profile.avatar_url ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}` : null;
+      avatarUrl = profile.avatar_url
+        ? `${profile.avatar_url}?t=${
+            profile.updated_at ? new Date(profile.updated_at).getTime() : ''
+          }`
+        : null;
       username = profile.username;
     }
   }

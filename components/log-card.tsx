@@ -8,32 +8,22 @@ import { HeartIcon, MessageCircle, Trash2, Edit } from "lucide-react"; // Added 
 import { LogForm } from "./log-form"; // Import LogForm
 import { CommentForm } from "./comment-form"; // Will create this
 import { CommentList } from "./comment-list"; // Will create this
+import { Database } from "@/types/database.types";
 
 import { useRouter } from "next/navigation";
 import { linkifyMentions } from "@/lib/utils"; // Only linkifyMentions is needed
 
 interface LogCardProps {
-  log: {
-    id: string;
-    content: string;
-    image_url: string | null;
-    created_at: string;
-    user_id: string;
-    profiles: {
-      username: string | null;
-      full_name: string | null;
-      avatar_url: string | null;
-      updated_at: string;
-      tagline: string | null;
-    } | null;
-    log_likes: { user_id: string }[];
-    log_comments: { id: string }[];
+  log: Database['public']['Tables']['logs']['Row'] & {
+    profiles: Database['public']['Tables']['profiles']['Row'] | null;
+    log_likes: Array<{ user_id: string }>;
+    log_comments: Array<{ id: string }>;
   };
   currentUserId: string | null;
   initialLikesCount: number;
   initialHasLiked: boolean;
   initialCommentsCount: number;
-  mentionedProfiles: any[];
+  mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string; // New prop
 }
 
@@ -62,12 +52,10 @@ export function LogCard({
   }, [initialLikesCount, initialHasLiked, initialCommentsCount]);
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
-    ? `${log.profiles.avatar_url}?t=${new Date(
-        log.profiles.updated_at
-      ).getTime()}`
+    ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at ? new Date(log.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const logDate = new Date(log.created_at).toLocaleString();
+  const logDate = log.created_at ? new Date(log.created_at).toLocaleString() : '';
 
   const handleLike = async () => {
     if (!currentUserId || loading) return;

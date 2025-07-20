@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "./comment-card";
 import { Button } from "./ui/button";
+import { Database } from "@/types/database.types";
 
 const COMMENTS_PER_PAGE = 10;
 
@@ -36,7 +37,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           user_id,
           log_id,
           profiles!log_comments_user_id_fkey (username, full_name, avatar_url, updated_at),
-          comment_likes(user_id) // Fetch comment likes
+          comment_likes(user_id)
         `,
           { count: "exact" }
         )
@@ -57,7 +58,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         }
       });
 
-      let mentionedProfiles: any[] = [];
+      let mentionedProfiles: Array<{ id: string; username: string | null }> = [];
       if (mentionedUserIds.size > 0) {
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
@@ -71,7 +72,18 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         }
       }
 
-      const commentsWithProcessedData = data?.map((comment) => {
+      type CommentRow = Database['public']['Tables']['log_comments']['Row'];
+      type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+      type CommentLikeRow = Database['public']['Tables']['comment_likes']['Row'];
+
+      type ProcessedComment = CommentRow & {
+        profiles: ProfileRow | null;
+        comment_likes: Array<{ user_id: string }>;
+        initialLikesCount: number;
+        initialHasLiked: boolean;
+      };
+
+      const commentsWithProcessedData: ProcessedComment[] = data?.map((comment: any) => {
         const initialLikesCount = comment.comment_likes?.length || 0;
         const initialHasLiked = currentUserId
           ? comment.comment_likes?.some(
@@ -87,7 +99,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           initialLikesCount,
           initialHasLiked,
         };
-      }) as Array<any>; // Use any for now, can refine type later
+      }) || [];
 
       return {
         comments: commentsWithProcessedData || [],

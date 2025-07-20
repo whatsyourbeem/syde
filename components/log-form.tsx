@@ -8,19 +8,15 @@ import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
+import { Database } from "@/types/database.types";
 
 interface LogFormProps {
   userId: string | null;
   userEmail?: string | null; // Made optional for editing
   avatarUrl?: string | null; // Made optional for editing
   username?: string | null; // Made optional for editing
-  initialLogData?: {
-    // New prop for editing
-    id: string;
-    content: string;
-    image_url: string | null;
-  };
-  onLogUpdated?: (updatedLog: any) => void; // Callback for successful update
+  initialLogData?: Database['public']['Tables']['logs']['Row']; // New prop for editing
+  onLogUpdated?: (updatedLog: Database['public']['Tables']['logs']['Row']) => void; // Callback for successful update
   onCancel?: () => void; // Callback for cancel button in edit mode
 }
 
@@ -49,7 +45,7 @@ export function LogForm({
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
-  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
+  const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; username: string | null; full_name: string | null; avatar_url: string | null; }>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
@@ -120,7 +116,7 @@ export function LogForm({
     }
   };
 
-  const handleSelectSuggestion = (suggestion: any) => {
+  const handleSelectSuggestion = (suggestion: { id: string; username: string | null; full_name: string | null; avatar_url: string | null; }) => {
     if (mentionStartIndex === -1) return;
 
     const newContent = 
@@ -133,7 +129,7 @@ export function LogForm({
     setShowSuggestions(false);
     // Optionally, set cursor position after the inserted mention
     if (textareaRef.current) {
-      const newCursorPosition = mentionStartIndex + suggestion.username.length + 2; // +2 for '@' and space
+      const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2; // +2 for '@' and space
       textareaRef.current.selectionStart = newCursorPosition;
       textareaRef.current.selectionEnd = newCursorPosition;
       textareaRef.current.focus();

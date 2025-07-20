@@ -33,7 +33,9 @@ export default async function ProfilePage() {
     link = profile.link;
     tagline = profile.tagline;
     // Add cache-buster to avatarUrl
-    avatarUrl = profile.avatar_url ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}` : null;
+    avatarUrl = profile.avatar_url
+      ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ''}`
+      : null;
   }
 
   return (

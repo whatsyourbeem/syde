@@ -5,6 +5,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "./log-card";
 import { Button } from "./ui/button"; // Import Button component
+import { Database } from "@/types/database.types";
+
+type LogRow = Database["public"]["Tables"]["logs"]["Row"];
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type LogLikeRow = Database["public"]["Tables"]["log_likes"]["Row"];
+type LogCommentRow = Database["public"]["Tables"]["log_comments"]["Row"];
+
+type ProcessedLog = LogRow & {
+  profiles: ProfileRow | null;
+  log_likes: Array<{ user_id: string }>;
+  log_comments: Array<{ id: string }>;
+  likesCount: number;
+  hasLiked: boolean;
+};
 
 const LOGS_PER_PAGE = 20; // Define logs per page
 
@@ -49,7 +63,7 @@ export function LogList({
           image_url,
           created_at,
           user_id,
-          profiles (username, full_name, avatar_url, updated_at, tagline),
+          profiles (id, username, full_name, avatar_url, updated_at, tagline, bio, link),
           log_likes(user_id),
           log_comments(id)
         `,
@@ -57,24 +71,33 @@ export function LogList({
       );
 
       if (searchQuery) {
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         let finalSearchConditions: string[] = [];
 
         // 1. Check for matching profiles (username or full_name)
         const { data: matchingProfiles, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, username')
-          .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
+          .from("profiles")
+          .select("id, username")
+          .or(
+            `username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`
+          );
 
         if (profileError) {
-          console.error("Error fetching matching profiles for search:", profileError);
+          console.error(
+            "Error fetching matching profiles for search:",
+            profileError
+          );
         } else if (matchingProfiles && matchingProfiles.length > 0) {
           // If profiles match, search only for their mentions
-          const mentionConditions = matchingProfiles.map(profile => 
-            `content.ilike.%[mention:${profile.id}]%`
+          const mentionConditions = matchingProfiles.map(
+            (profile) => `content.ilike.%[mention:${profile.id}]%`
           );
           finalSearchConditions.push(...mentionConditions);
-        } else if (searchQuery.toLowerCase() === 'mention' || uuidRegex.test(searchQuery)) {
+        } else if (
+          searchQuery.toLowerCase() === "mention" ||
+          uuidRegex.test(searchQuery)
+        ) {
           // If no profile matches AND search query is 'mention' or a UUID, return no results
           // By not adding any conditions, the query will effectively return nothing if no other filters apply
         } else {
@@ -83,10 +106,10 @@ export function LogList({
         }
 
         if (finalSearchConditions.length > 0) {
-          query = query.or(finalSearchConditions.join(','));
+          query = query.or(finalSearchConditions.join(","));
         } else {
           // If no valid search conditions, ensure no results are returned
-          query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // A non-existent ID
+          query = query.eq("id", "00000000-0000-0000-0000-000000000000"); // A non-existent ID
         }
       }
 
@@ -107,7 +130,11 @@ export function LogList({
         if (logIds.length === 0) {
           return { logs: [], count: 0 };
         }
-        query = query.in("id", logIds);
+        // null 값을 필터링하여 제거
+        const validLogIds = logIds.filter((id): id is string => id !== null);
+
+        // 이제 validLogIds는 string[] 타입이므로 안전하게 사용 가능
+        query = query.in("id", validLogIds);
       } else if (filterByLikedUserId) {
         const { data: likedLogIds, error: likedLogIdsError } = await supabase
           .from("log_likes")
@@ -122,14 +149,30 @@ export function LogList({
         if (logIds.length === 0) {
           return { logs: [], count: 0 };
         }
-        query = query.in("id", logIds);
+        // null 값을 필터링하여 제거
+        const validLogIds = logIds.filter((id): id is string => id !== null);
+
+        // 이제 validLogIds는 string[] 타입이므로 안전하게 사용 가능
+        query = query.in("id", validLogIds);
       }
+
+      type LogQueryResult = (LogRow & {
+        profiles: ProfileRow | null;
+        log_likes: Array<{ user_id: string }>;
+        log_comments: Array<{ id: string }>;
+      })[];
 
       const {
         data: logsData,
         error: logsError,
         count,
-      } = await query.order("created_at", { ascending: false }).range(from, to);
+      } = (await query
+        .order("created_at", { ascending: false })
+        .range(from, to)) as {
+        data: LogQueryResult | null;
+        error: any;
+        count: number | null;
+      };
 
       if (logsError) {
         throw logsError;
@@ -145,7 +188,8 @@ export function LogList({
         }
       });
 
-      let mentionedProfiles: any[] = [];
+      let mentionedProfiles: Array<{ id: string; username: string | null }> =
+        [];
       if (mentionedUserIds.size > 0) {
         const { data: profilesData, error: profilesError } = await supabase
           .from("profiles")
@@ -159,25 +203,6 @@ export function LogList({
         }
       }
       // --- End of new logic ---
-
-      type ProcessedLog = {
-        id: string;
-        content: string;
-        image_url: string | null;
-        created_at: string;
-        user_id: string;
-        profiles: {
-          username: string | null;
-          full_name: string | null;
-          avatar_url: string | null;
-          tagline: string | null;
-          updated_at: string;
-        } | null;
-        log_likes: Array<{ user_id: string }>;
-        log_comments: Array<{ id: string }>;
-        likesCount: number;
-        hasLiked: boolean;
-      };
 
       const logsWithProcessedData: ProcessedLog[] =
         logsData?.map((log: any) => ({
@@ -201,11 +226,15 @@ export function LogList({
     },
   });
 
-  const logs = data?.logs || [];
+  const logs: ProcessedLog[] = data?.logs || [];
   const totalLogsCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
 
   useEffect(() => {
+    const logIdsForFilter: string[] = logs
+      .map((log) => log.id)
+      .filter((id): id is string => id !== null);
+
     const channel = supabase
       .channel("syde-log-feed")
       .on(
@@ -221,12 +250,13 @@ export function LogList({
           event: "*",
           schema: "public",
           table: "log_likes",
-          filter: `log_id=in.(${logs.map(log => log.id).join(',')})`,
+          filter: `log_id=in.(${logIdsForFilter.join(",")})`,
         },
         (payload) => {
           // Invalidate only if the change is relevant to the current page's logs
-          const changedLogId = (payload.new as any).log_id || (payload.old as any).log_id;
-          if (logs.some(log => log.id === changedLogId)) {
+          const changedLogId =
+            (payload.new as any).log_id || (payload.old as any).log_id;
+          if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
         }
@@ -237,11 +267,12 @@ export function LogList({
           event: "*",
           schema: "public",
           table: "log_comments",
-          filter: `log_id=in.(${logs.map(log => log.id).join(',')})`,
+          filter: `log_id=in.(${logIdsForFilter.join(",")})`,
         },
         (payload) => {
-          const changedLogId = (payload.new as any).log_id || (payload.old as any).log_id;
-          if (logs.some(log => log.id === changedLogId)) {
+          const changedLogId =
+            (payload.new as any).log_id || (payload.old as any).log_id;
+          if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
         }

@@ -2,8 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { LogDetail } from "./log-detail";
 
-export const dynamic = 'force-dynamic';
-
 type LogDetailPageProps = {
   params: {
     log_id: string;

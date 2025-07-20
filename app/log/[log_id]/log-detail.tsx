@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -10,9 +10,16 @@ import { LogForm } from '@/components/log-form';
 import { LogActions } from './log-actions';
 import { CommentForm } from "@/components/comment-form";
 import { CommentList } from "@/components/comment-list";
+import { Database } from "@/types/database.types";
+
+type LogWithRelations = Database['public']['Tables']['logs']['Row'] & {
+  profiles: Database['public']['Tables']['profiles']['Row'] | null;
+  log_likes: Array<{ user_id: string }>;
+  log_comments: Array<{ id: string }>;
+};
 
 interface LogDetailProps {
-  log: any; // Consider defining a more specific type
+  log: LogWithRelations;
   user: User | null;
 }
 
@@ -92,10 +99,10 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   };
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
-    ? `${log.profiles.avatar_url}?t=${new Date(log.profiles.updated_at).getTime()}`
+    ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at ? new Date(log.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const logDate = new Date(log.created_at).toLocaleString();
+  const logDate = log.created_at ? new Date(log.created_at).toLocaleString() : '';
 
   return (
     <div className="rounded-lg p-4 bg-card shadow-sm flex flex-col">

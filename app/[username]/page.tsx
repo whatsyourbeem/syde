@@ -14,30 +14,34 @@ interface UserProfilePageProps {
 export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
-  const resolvedParams = await Promise.resolve(params);
-  const { username } = resolvedParams;
+  const { username } = await params;
   const supabase = await createClient();
 
   // Fetch the profile data for the given username
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, bio, link, tagline, updated_at")
+    .select(
+      "id, username, full_name, avatar_url, bio, link, tagline, updated_at"
+    )
     .eq("username", username)
     .single();
 
   if (profileError || !profile) {
     // If profile not found, redirect to home or a 404 page
     redirect("/"); // Or /404
-    return; // Add return here
   }
 
   // Check if the current user is viewing their own profile
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const currentUserId = user?.id || null; // Get current user ID
   const isOwnProfile = user && user.id === profile.id;
 
-  const avatarUrlWithCacheBuster = profile!.avatar_url
-    ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
+  const avatarUrlWithCacheBuster = profile.avatar_url
+    ? `${profile.avatar_url}?t=${
+        profile.updated_at ? new Date(profile.updated_at).getTime() : ""
+      }`
     : null;
 
   return (
@@ -72,7 +76,11 @@ export default async function UserProfilePage({
                 @{profile.username}
               </p>
             )}
-            {profile.tagline && <p className="mt-2 text-sm text-muted-foreground">{profile.tagline}</p>}
+            {profile.tagline && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {profile.tagline}
+              </p>
+            )}
             {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
             {profile.link && (
               <Link
@@ -95,7 +103,12 @@ export default async function UserProfilePage({
         </div>
         <Tabs defaultValue="logs" className="w-full">
           <TabsList className="flex w-full justify-center space-x-2">
-            <TabsTrigger value="logs" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">작성한 로그</TabsTrigger>
+            <TabsTrigger
+              value="logs"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              작성한 로그
+            </TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger
                 value="comments"

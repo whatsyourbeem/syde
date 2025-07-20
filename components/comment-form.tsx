@@ -8,15 +8,13 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLoginModal } from "@/context/LoginModalContext";
 import Image from "next/image";
+import { Database } from "@/types/database.types";
 
 interface CommentFormProps {
   logId: string;
   currentUserId: string | null;
   onCommentAdded?: () => void;
-  initialCommentData?: {
-    id: string;
-    content: string;
-  };
+  initialCommentData?: Database['public']['Tables']['log_comments']['Row'];
   onCommentUpdated?: () => void;
   onCancel?: () => void;
 }
@@ -41,7 +39,7 @@ export function CommentForm({
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
-  const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
+  const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; username: string | null; full_name: string | null; avatar_url: string | null; }>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
@@ -111,7 +109,7 @@ export function CommentForm({
     }
   };
 
-  const handleSelectSuggestion = (suggestion: any) => {
+  const handleSelectSuggestion = (suggestion: { id: string; username: string | null; full_name: string | null; avatar_url: string | null; }) => {
     if (mentionStartIndex === -1) return;
 
     const newContent = 
@@ -123,7 +121,7 @@ export function CommentForm({
     setMentionSearchTerm("");
     setShowSuggestions(false);
     if (textareaRef.current) {
-      const newCursorPosition = mentionStartIndex + suggestion.username.length + 2;
+      const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2;
       textareaRef.current.selectionStart = newCursorPosition;
       textareaRef.current.selectionEnd = newCursorPosition;
       textareaRef.current.focus();

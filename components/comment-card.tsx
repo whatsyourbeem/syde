@@ -10,22 +10,14 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { linkifyMentions } from "@/lib/utils";
 
+import { Database } from "@/types/database.types";
+
 interface CommentCardProps {
-  comment: {
-    id: string;
-    content: string;
-    created_at: string;
-    user_id: string;
-    log_id: string;
-    profiles: {
-      username: string | null;
-      full_name: string | null;
-      avatar_url: string | null;
-      updated_at: string;
-    } | null;
+  comment: Database['public']['Tables']['log_comments']['Row'] & {
+    profiles: Database['public']['Tables']['profiles']['Row'] | null;
   };
   currentUserId: string | null;
-  mentionedProfiles: any[];
+  mentionedProfiles: Array<{ id: string; username: string | null }>;
   initialLikesCount: number; // New prop
   initialHasLiked: boolean; // New prop
   onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void; // New prop
@@ -52,12 +44,10 @@ export function CommentCard({
   }, [initialLikesCount, initialHasLiked]);
 
   const avatarUrlWithCacheBuster = comment.profiles?.avatar_url
-    ? `${comment.profiles.avatar_url}?t=${new Date(
-        comment.profiles.updated_at
-      ).getTime()}`
+    ? `${comment.profiles.avatar_url}?t=${comment.profiles.updated_at ? new Date(comment.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const commentDate = new Date(comment.created_at).toLocaleString();
+  const commentDate = comment.created_at ? new Date(comment.created_at).toLocaleString() : '';
 
   const handleLike = async () => {
     if (!currentUserId || loading) return;

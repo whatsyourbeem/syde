@@ -1,16 +1,13 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { HeartIcon, Trash2, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Database } from "@/types/database.types";
 
 interface LogActionsProps {
-  log: {
-    id: string;
-    image_url: string | null;
-    user_id: string;
-  };
+  log: Database['public']['Tables']['logs']['Row'];
   currentUserId: string | null;
   likesCount: number; // Changed from initialLikesCount
   hasLiked: boolean;   // Changed from initialHasLiked
