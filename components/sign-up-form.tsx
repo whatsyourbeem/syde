@@ -16,6 +16,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
+
 export function SignUpForm({
   className,
   ...props
@@ -26,6 +28,7 @@ export function SignUpForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { openLoginModal } = useLoginModal(); // Use the hook
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,9 +111,14 @@ export function SignUpForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Button
+                type="button"
+                variant="link"
+                onClick={openLoginModal}
+                className="p-0 h-auto leading-none align-baseline underline underline-offset-4"
+              >
                 Login
-              </Link>
+              </Button>
             </div>
           </form>
         </CardContent>
