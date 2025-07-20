@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { LogDetail } from "./log-detail";
 
 type LogDetailPageProps = {
-  params: {
+  params: Promise<{
     log_id: string;
-  };
+  }>;
 };
 
 export default async function LogDetailPage({ params }: LogDetailPageProps) {

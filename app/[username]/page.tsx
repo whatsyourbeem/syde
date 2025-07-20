@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserActivityLogList } from "@/components/user-activity-log-list"; // Import UserActivityLogList
 
 interface UserProfilePageProps {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }
 
 export default async function UserProfilePage({

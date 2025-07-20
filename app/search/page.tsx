@@ -5,7 +5,7 @@ import { LogListWrapper } from "@/components/log-list-wrapper";
 export const dynamic = "force-dynamic";
 
 interface SearchPageProps {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
