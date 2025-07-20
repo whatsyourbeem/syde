@@ -66,15 +66,15 @@ export function linkifyMentions(text: string, profiles: any[], searchQuery?: str
       );
     }
     // Apply highlightText only to the string parts
-    const highlightedPart = searchQuery ? highlightText(part, searchQuery) : [part]; // Always return array
+    const highlightedPart = searchQuery ? highlightText(part, searchQuery, `part-${i}`) : [part]; // Always return array
     console.log('linkifyMentions processing part:', { part, highlightedPart }); // Debug
     // flatMap will flatten the array returned by highlightText
     return highlightedPart;
   });
 }
 
-export function highlightText(text: string, query: string): React.ReactNode[] {
-  console.log('highlightText called with:', { text, query }); // Debug
+export function highlightText(text: string, query: string, baseKey: string = ''): React.ReactNode[] {
+  console.log('highlightText called with:', { text, query, baseKey }); // Debug
   if (!query || typeof text !== 'string') {
     console.log('highlightText returning early:', text); // Debug
     return [text]; // Always return an array, even if just a string
@@ -89,11 +89,11 @@ export function highlightText(text: string, query: string): React.ReactNode[] {
   while ((match = regex.exec(text)) !== null) {
     // Add text before the match
     if (match.index > lastIndex) {
-      parts.push(<React.Fragment key={`str-${keyCounter++}`}>{text.substring(lastIndex, match.index)}</React.Fragment>);
+      parts.push(<React.Fragment key={`${baseKey}-str-${keyCounter++}`}>{text.substring(lastIndex, match.index)}</React.Fragment>);
     }
     // Add the highlighted match
     parts.push(
-      <span key={`highlight-${keyCounter++}`} className="font-bold">
+      <span key={`${baseKey}-highlight-${keyCounter++}`} className="font-bold">
         {match[0]}
       </span>
     );
@@ -102,7 +102,7 @@ export function highlightText(text: string, query: string): React.ReactNode[] {
 
   // Add any remaining text after the last match
   if (lastIndex < text.length) {
-    parts.push(<React.Fragment key={`str-${keyCounter++}`}>{text.substring(lastIndex)}</React.Fragment>);
+    parts.push(<React.Fragment key={`${baseKey}-str-${keyCounter++}`}>{text.substring(lastIndex)}</React.Fragment>);
   }
   console.log('highlightText returning:', parts); // Debug
   return parts;
