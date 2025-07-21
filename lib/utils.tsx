@@ -18,7 +18,7 @@ export async function processMentionsForSave(content: string, supabase: any) {
 
   const uniqueUsernames = [...new Set(usernames)];
 
-  console.log("Searching for usernames:", uniqueUsernames); // Debug log
+  
 
   const { data: profiles, error } = await supabase
     .from('profiles')
@@ -30,7 +30,7 @@ export async function processMentionsForSave(content: string, supabase: any) {
     return content; // Gracefully fail by returning original content
   }
 
-  console.log("Found profiles:", profiles); // Debug log
+  
 
   let processedContent = content;
   for (const profile of profiles) {
@@ -45,7 +45,7 @@ export async function processMentionsForSave(content: string, supabase: any) {
 }
 
 export function linkifyMentions(text: string, profiles: any[], searchQuery?: string) {
-  console.log('linkifyMentions called with:', { text, searchQuery }); // Debug
+  
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const parts = text.split(mentionRegex);
 
@@ -67,16 +67,16 @@ export function linkifyMentions(text: string, profiles: any[], searchQuery?: str
     }
     // Apply highlightText only to the string parts
     const highlightedPart = searchQuery ? highlightText(part, searchQuery, `part-${i}`) : [part]; // Always return array
-    console.log('linkifyMentions processing part:', { part, highlightedPart }); // Debug
+    
     // flatMap will flatten the array returned by highlightText
     return highlightedPart;
   });
 }
 
 export function highlightText(text: string, query: string, baseKey: string = ''): React.ReactNode[] {
-  console.log('highlightText called with:', { text, query, baseKey }); // Debug
+  
   if (!query || typeof text !== 'string') {
-    console.log('highlightText returning early:', text); // Debug
+    
     return [text]; // Always return an array, even if just a string
   }
   const parts: React.ReactNode[] = []; // Change type to React.ReactNode[]
@@ -104,6 +104,6 @@ export function highlightText(text: string, query: string, baseKey: string = '')
   if (lastIndex < text.length) {
     parts.push(<React.Fragment key={`${baseKey}-str-${keyCounter++}`}>{text.substring(lastIndex)}</React.Fragment>);
   }
-  console.log('highlightText returning:', parts); // Debug
+  
   return parts;
 }
