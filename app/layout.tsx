@@ -8,6 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
 import { Providers } from "@/components/providers"; // Import Providers
 import { Search } from "lucide-react"; // Import Search icon
+import NotificationBell from "@/components/notification/notification-bell";
+import { Suspense } from "react";
 
 import { Toaster } from "sonner"; // Import Toaster from sonner
 
@@ -50,7 +52,15 @@ export default async function RootLayout({
 
   let avatarUrl = null;
   let usernameForAuthButton = null;
+  let unreadNotifCount = 0;
   if (user) {
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_user_id', user.id)
+      .eq('is_read', false);
+    unreadNotifCount = count ?? 0;
+
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("avatar_url, updated_at, username")
@@ -95,6 +105,9 @@ export default async function RootLayout({
                   <Link href="/search" className="text-foreground hover:text-primary">
                     <Search size={20} />
                   </Link>
+                  <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
+                    <NotificationBell initialUnreadCount={unreadNotifCount} userId={user?.id ?? null} />
+                  </Suspense>
                   <AuthButton
                     avatarUrl={avatarUrl}
                     username={usernameForAuthButton}

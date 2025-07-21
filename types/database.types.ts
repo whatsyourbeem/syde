@@ -165,6 +165,68 @@ export type Database = {
           }
         ];
       };
+      notifications: {
+        Row: {
+          comment_id: string | null;
+          created_at: string;
+          id: string;
+          is_read: boolean;
+          log_id: string;
+          recipient_user_id: string;
+          trigger_user_id: string;
+          type: string;
+        };
+        Insert: {
+          comment_id?: string | null;
+          created_at?: string;
+          id?: string;
+          is_read?: boolean;
+          log_id: string;
+          recipient_user_id: string;
+          trigger_user_id: string;
+          type: string;
+        };
+        Update: {
+          comment_id?: string | null;
+          created_at?: string;
+          id?: string;
+          is_read?: boolean;
+          log_id?: string;
+          recipient_user_id?: string;
+          trigger_user_id?: string;
+          type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_comment_id_fkey";
+            columns: ["comment_id"];
+            isOneToOne: false;
+            referencedRelation: "log_comments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_log_id_fkey";
+            columns: ["log_id"];
+            isOneToOne: false;
+            referencedRelation: "logs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_recipient_user_id_fkey";
+            columns: ["recipient_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_trigger_user_id_fkey";
+            columns: ["trigger_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
