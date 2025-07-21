@@ -9,6 +9,8 @@ import { LoginModalProvider } from "@/context/LoginModalContext"; // Import Logi
 import { Providers } from "@/components/providers"; // Import Providers
 import { Search } from "lucide-react"; // Import Search icon
 
+import { Toaster } from "sonner"; // Import Toaster from sonner
+
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
@@ -101,6 +103,7 @@ export default async function RootLayout({
               </div>
             </nav>
             {children}
+            <Toaster />
           </LoginModalProvider>
         </Providers>
       </body>

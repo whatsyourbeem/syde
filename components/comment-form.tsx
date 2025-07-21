@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input"; // Import Input instead of Textarea
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLoginModal } from "@/context/LoginModalContext";
@@ -35,7 +35,7 @@ export function CommentForm({
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [loading, setLoading] = useState(false);
   const { openLoginModal } = useLoginModal();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null); // Change to HTMLInputElement
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -84,7 +84,7 @@ export function CommentForm({
     setShowSuggestions(true);
   };
 
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => { // Change to HTMLInputElement
     const newContent = e.target.value;
     setContent(newContent);
 
@@ -120,15 +120,15 @@ export function CommentForm({
     setContent(newContent);
     setMentionSearchTerm("");
     setShowSuggestions(false);
-    if (textareaRef.current) {
+    if (inputRef.current) { // Change to inputRef
       const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2;
-      textareaRef.current.selectionStart = newCursorPosition;
-      textareaRef.current.selectionEnd = newCursorPosition;
-      textareaRef.current.focus();
+      inputRef.current.selectionStart = newCursorPosition; // Change to inputRef
+      inputRef.current.selectionEnd = newCursorPosition; // Change to inputRef
+      inputRef.current.focus(); // Change to inputRef
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => { // Change to HTMLInputElement
     if (showSuggestions && mentionSuggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -215,17 +215,19 @@ export function CommentForm({
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 mt-4 relative">
       <div className="flex-grow relative">
-        <Textarea
+        <Input // Change to Input
           placeholder={
             initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
           }
           value={content}
           onChange={handleContentChange}
           onKeyDown={handleKeyDown}
-          disabled={loading || !currentUserId}
+          disabled={loading} // Removed || !currentUserId
+          onClick={() => {
+            if (!currentUserId) openLoginModal();
+          }} // Open modal on click if not logged in
           className="w-full pr-20"
-          ref={textareaRef}
-          rows={3}
+          ref={inputRef} // Change to inputRef
         />
         {showSuggestions && mentionSuggestions.length > 0 && (
           <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
