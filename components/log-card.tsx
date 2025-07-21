@@ -150,15 +150,17 @@ export function LogCard({
     <div className="border rounded-lg p-4 mb-4 bg-card shadow-sm flex flex-col">
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center">
-        <Link href={`/${log.profiles?.username || log.user_id}`}>
-          <Image
-            src={avatarUrlWithCacheBuster || '/Logo.png'}
-            alt={`${log.profiles?.username || "User"}'s avatar`}
-            width={40}
-            height={40}
-            className="rounded-full object-cover mr-3"
-          />
-        </Link>
+        {avatarUrlWithCacheBuster && (
+          <Link href={`/${log.profiles?.username || log.user_id}`}>
+            <Image
+              src={avatarUrlWithCacheBuster}
+              alt={`${log.profiles?.username || "User"}'s avatar`}
+              width={40}
+              height={40}
+              className="rounded-full object-cover mr-3"
+            />
+          </Link>
+        )}
         <div className="flex-grow">
           <div className="flex items-baseline gap-2">
             <Link href={`/${log.profiles?.username || log.user_id}`}>
