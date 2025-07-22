@@ -24,6 +24,7 @@ interface ProfileFormProps {
   bio: string | null;
   link: string | null;
   tagline: string | null;
+  className?: string; // Add className prop
 }
 
 export default function ProfileForm({
@@ -34,6 +35,7 @@ export default function ProfileForm({
   bio,
   link,
   tagline,
+  className,
 }: ProfileFormProps) {
   const supabase = createClient();
   const queryClient = useQueryClient(); // Initialize query client
@@ -215,93 +217,99 @@ export default function ProfileForm({
   );
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription>Update your public profile details.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              value={currentUsername || ""}
-              onChange={(e) => setCurrentUsername(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={currentFullName || ""}
-              onChange={(e) => setCurrentFullName(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="avatar">Avatar</Label>
-            <div className="flex items-center gap-4">
-              {avatarPreviewUrl && (
-                <Image
-                  src={avatarPreviewUrl}
-                  alt="Avatar"
-                  className="rounded-full object-cover"
-                  width={96}
-                  height={96}
-                />
-              )}
+    <Card className={`w-full border-0 shadow-none ${className || ''}`}>
+      <form onSubmit={handleSubmit} className="space-y-8 pt-4">
+        <div className="space-y-2">
+          <Label htmlFor="fullName" className="font-semibold">닉네임</Label>
+          <Input
+            id="fullName"
+            type="text"
+            value={currentFullName || ""}
+            onChange={(e) => setCurrentFullName(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="username" className="font-semibold">프로필 네임</Label>
+          <Input
+            id="username"
+            type="text"
+            value={currentUsername || ""}
+            onChange={(e) => setCurrentUsername(e.target.value)}
+          />
+          <p className="text-sm text-muted-foreground">프로필 네임은 프로필 페이지 링크와 연동돼요.</p>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-4">
+            {avatarPreviewUrl && (
+              <Image
+                src={avatarPreviewUrl}
+                alt="Avatar"
+                className="rounded-full object-cover"
+                width={96}
+                height={96}
+              />
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="avatar" className="font-semibold">프로필 사진</Label>
               <Input
                 id="avatar"
                 type="file"
                 accept="image/*"
                 onChange={handleAvatarChange}
+                className="opacity-0 max-w-0 max-h-0 my-0 py-0"
               />
+              <Button
+                type="button"
+                onClick={() => document.getElementById('avatar')?.click()}
+              >
+                파일 선택
+              </Button>
             </div>
           </div>
-          <div>
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              value={currentBio || ""}
-              onChange={(e) => setCurrentBio(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <div>
-            <Label htmlFor="tagline">Tagline</Label>
-            <Input
-              id="tagline"
-              type="text"
-              value={currentTagline || ""}
-              onChange={(e) => setCurrentTagline(e.target.value)}
-              maxLength={30} // Enforce 30 character limit
-            />
-          </div>
-          <div>
-            <Label htmlFor="link">Link</Label>
-            <Input
-              id="link"
-              type="text"
-              value={currentLink || ""}
-              onChange={handleLinkChange} // Use new handler
-              className={!isLinkValid ? "border-red-500" : ""} // Add error styling
-            />
-            {!isLinkValid && (
-              <p className="text-red-500 text-sm mt-1">
-                유효한 URL을 입력해주세요.
-              </p>
-            )}
-          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="tagline" className="font-semibold">한 줄 소개</Label>
+          <Input
+            id="tagline"
+            type="text"
+            value={currentTagline || ""}
+            onChange={(e) => setCurrentTagline(e.target.value)}
+            maxLength={30} // Enforce 30 character limit
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bio" className="font-semibold">자유 소개</Label>
+          <Textarea
+            id="bio"
+            value={currentBio || ""}
+            onChange={(e) => setCurrentBio(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="link" className="font-semibold">Link</Label>
+          <Input
+            id="link"
+            type="text"
+            value={currentLink || ""}
+            onChange={handleLinkChange} // Use new handler
+            className={!isLinkValid ? "border-red-500" : ""} // Add error styling
+          />
+          {!isLinkValid && (
+            <p className="text-red-500 text-sm mt-1">
+              유효한 URL을 입력해주세요.
+            </p>
+          )}
+        </div>
+        <div className="pt-4">
           <Button
             type="submit"
             disabled={updateProfileMutation.isPending || !isLinkValid}
           >
-            {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+            {updateProfileMutation.isPending ? "Updating..." : "수정하기"}
           </Button>
-        </form>
-      </CardContent>
+        </div>
+      </form>
     </Card>
   );
 }

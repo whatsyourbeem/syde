@@ -39,10 +39,16 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="flex-1 w-full flex flex-col gap-20 items-center">
-      <div className="flex-1 flex flex-col gap-20 max-w-4xl px-3">
-        <h2 className="text-2xl font-bold mb-8">Your Profile</h2>
+    <div className="flex-1 w-full flex flex-col items-center justify-center p-5">
+      <div className="w-full max-w-2xl">
+        <h2 className="text-2xl font-bold mb-4 mt-8">프로필 관리</h2>
+        <p className="text-muted-foreground mb-4">
+          프로필로 당신의 SYDE를 표현해주세요.
+        </p>
+        <div className="border-b py-2 mb-4"></div>
+        <div className="h-[17px]"></div>
         <ProfileForm
+          className="my-4"
           userId={user.id}
           username={username}
           fullName={fullName}

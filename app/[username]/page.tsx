@@ -68,14 +68,16 @@ export default async function UserProfilePage({
             )}
           </div>
           <div className="flex-grow">
-            <h1 className="text-2xl font-bold leading-tight">
-              {profile.full_name || profile.username || "Anonymous"}
-            </h1>
-            {profile.username && (
-              <p className="text-muted-foreground text-sm mt-1">
-                @{profile.username}
-              </p>
-            )}
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-2xl font-bold leading-tight">
+                {profile.full_name || profile.username || "Anonymous"}
+              </h1>
+              {profile.username && (
+                <p className="text-muted-foreground text-sm">
+                  @{profile.username}
+                </p>
+              )}
+            </div>
             {profile.tagline && (
               <p className="mt-2 text-sm text-muted-foreground">
                 {profile.tagline}
