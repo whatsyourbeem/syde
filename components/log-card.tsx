@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { HeartIcon, MessageCircle, Trash2, Edit } from "lucide-react"; // Added MessageCircle and Trash2
+import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
 import { LogForm } from "./log-form"; // Import LogForm
 import { CommentForm } from "./comment-form"; // Will create this
 import { CommentList } from "./comment-list"; // Will create this
@@ -147,7 +147,7 @@ export function LogCard({
   };
 
   return (
-    <div className="border rounded-lg p-4 mb-4 bg-card shadow-sm flex flex-col">
+    <div className="p-4 flex flex-col">
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center">
         {avatarUrlWithCacheBuster && (
@@ -170,20 +170,15 @@ export function LogCard({
                   "Anonymous"}
               </p>
             </Link>
-            {log.profiles?.username && (
-              <p className="text-sm text-muted-foreground">
-                @{log.profiles?.username}
-              </p>
+            
+            {log.profiles?.tagline && (
+              <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
             )}
+            <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{logDate}</p>
           </div>
-          {log.profiles?.tagline && (
-            <p className="text-xs text-muted-foreground">
-              {log.profiles.tagline}
-            </p>
-          )}
+          
         </div>
-        <div className="flex items-center gap-2">
-          <p className="text-xs text-muted-foreground">{logDate}</p>
+        <div className="flex items-center gap-2 ml-auto">
           {currentUserId === log.user_id && (
             <>
               <button
@@ -216,7 +211,7 @@ export function LogCard({
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div onClick={handleCardClick} className="cursor-pointer py-4">
+        <div onClick={handleCardClick} className="cursor-pointer py-4 pl-10">
           <p className="mb-3 text-base whitespace-pre-wrap">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
@@ -238,24 +233,36 @@ export function LogCard({
       <div className="flex justify-between items-center text-sm text-muted-foreground">
         <button
           onClick={handleLike}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
         >
           <HeartIcon
             className={
-              hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"
+              hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500 hover:fill-red-500"
             }
             size={18}
           />
-          <span>{likesCount} Likes</span>
+          <span>{likesCount}</span>
         </button>
         <button
           onClick={() => {
             setShowComments(!showComments);
           }}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
         >
           <MessageCircle size={18} />
-          <span>{commentsCount} Comments</span>
+          <span>{commentsCount}</span>
+        </button>
+        <button
+          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
+        >
+          <Share2 size={18} />
+        </button>
+        <button
+          onClick={() => console.log("Save button clicked!")}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+        >
+          <Bookmark size={18} />
         </button>
       </div>
 
@@ -270,6 +277,7 @@ export function LogCard({
           <CommentList logId={log.id} currentUserId={currentUserId} />
         </div>
       )}
+      <div className="border-b py-2 mt-4"></div>
     </div>
   );
 }
