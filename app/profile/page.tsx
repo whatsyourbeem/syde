@@ -46,7 +46,7 @@ export default async function ProfilePage() {
           프로필로 당신의 SYDE를 표현해주세요.
         </p>
         <div className="border-b py-2 mb-4"></div>
-        <div className="h-[17px]"></div>
+        {/* <div className="h-[17px]"></div> */}
         <ProfileForm
           className="my-4"
           userId={user.id}

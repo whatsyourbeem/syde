@@ -297,7 +297,7 @@ export function LogForm({
           fileInputRef.current.value = ""; // Clear the file input
         }
       } catch (error: any) {
-        alert(`Error logging: ${error.message}`); // Changed alert message
+        alert(`로그 기록 중 오류가 발생했습니다: ${error.message}`); // Changed alert message
       } finally {
         setLoading(false);
       }

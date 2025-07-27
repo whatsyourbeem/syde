@@ -197,14 +197,14 @@ export default function ProfileForm({
       return newAvatarUrl;
     },
     onSuccess: (newAvatarUrl) => {
-      alert("Profile updated successfully!");
+      alert("프로필이 성공적으로 업데이트되었습니다!");
       setCurrentAvatarUrl(newAvatarUrl); // Update state with new URL
       setAvatarFile(null); // Clear file input
       queryClient.invalidateQueries({ queryKey: ["profile", userId] }); // Invalidate profile query
       queryClient.invalidateQueries({ queryKey: ["logs"] }); // Invalidate logs query (for avatar/username changes)
     },
     onError: (error: any) => {
-      alert(`Error updating profile: ${error.message}`);
+      alert(`프로필 업데이트 중 오류가 발생했습니다: ${error.message}`);
     },
   });
 
@@ -306,7 +306,7 @@ export default function ProfileForm({
             type="submit"
             disabled={updateProfileMutation.isPending || !isLinkValid}
           >
-            {updateProfileMutation.isPending ? "Updating..." : "수정하기"}
+            {updateProfileMutation.isPending ? "수정 중..." : "수정하기"}
           </Button>
         </div>
       </form>

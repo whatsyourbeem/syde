@@ -191,7 +191,7 @@ export function CommentForm({
         setContent("");
       } catch (error: any) {
         alert(
-          `Error ${initialCommentData ? "updating" : "adding"} comment: ${
+          `댓글 ${initialCommentData ? "수정" : "추가"} 중 오류가 발생했습니다: ${
             error.message
           }`
         );

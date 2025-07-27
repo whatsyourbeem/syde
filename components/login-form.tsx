@@ -42,7 +42,7 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      toast.success("Successfully logged in.");
+      toast.success("성공적으로 로그인되었습니다.");
       if (onLoginSuccess) onLoginSuccess(); // Call onLoginSuccess on successful login
       // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/");
