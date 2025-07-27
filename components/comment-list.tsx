@@ -220,7 +220,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
   if (isLoading) {
     return (
       <div className="text-center text-sm text-muted-foreground">
-        Loading comments...
+        댓글을 불러오는 중...
       </div>
     );
   }

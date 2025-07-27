@@ -285,7 +285,7 @@ export function LogList({
   }, [supabase, queryClient, logs]); // Add logs to dependencies
 
   if (isLoading) {
-    return <div className="text-center">Loading logs...</div>;
+    return <div className="text-center mt-8">로그를 불러오는 중...</div>;
   }
 
   if (isError) {

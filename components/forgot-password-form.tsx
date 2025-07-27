@@ -84,7 +84,7 @@ export function ForgotPasswordForm({
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
+                  {isLoading ? "전송 중..." : "비밀번호 재설정 이메일 전송"}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">

@@ -103,23 +103,38 @@ export default async function UserProfilePage({
             )}
           </div>
         </div>
-        <Tabs defaultValue="logs" className="w-full">
+        <Tabs defaultValue="bio" className="w-full">
           <TabsList className="flex w-full justify-center space-x-2">
             <TabsTrigger
+              value="bio"
+              className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
+            >
+              자유 소개
+            </TabsTrigger>
+            <TabsTrigger
               value="logs"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
             >
               작성한 로그
             </TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger
                 value="comments"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
               >
                 좋아요/댓글
               </TabsTrigger>
             )}
           </TabsList>
+          <TabsContent value="bio">
+            <div className="mt-4 p-4 border rounded-lg bg-card">
+              {profile.bio ? (
+                <p className="text-muted-foreground whitespace-pre-wrap">{profile.bio}</p>
+              ) : (
+                <p className="text-muted-foreground text-center">작성된 자유 소개가 없습니다.</p>
+              )}
+            </div>
+          </TabsContent>
           <TabsContent value="logs">
             <LogList
               currentUserId={currentUserId}

@@ -106,7 +106,7 @@ export function SignUpForm({
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
+                {isLoading ? "계정 생성 중..." : "회원가입"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
