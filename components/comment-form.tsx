@@ -89,6 +89,7 @@ export function CommentForm({
     setContent(newContent);
 
     const cursorPosition = e.target.selectionStart;
+    if (cursorPosition === null) return;
     const textBeforeCursor = newContent.substring(0, cursorPosition);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
