@@ -47,7 +47,7 @@ export default async function UserProfilePage({
   return (
     <div className="flex-1 w-full flex flex-col items-center p-5">
       <div className="w-full max-w-2xl mx-auto space-y-8">
-        <div className="flex items-center gap-6 p-4 border rounded-lg shadow-sm bg-card">
+        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card">
           <div className="relative w-24 h-24 flex-shrink-0">
             {avatarUrlWithCacheBuster ? (
               <Image
@@ -83,7 +83,7 @@ export default async function UserProfilePage({
                 {profile.tagline}
               </p>
             )}
-            {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
+            
             {profile.link && (
               <Link
                 href={profile.link}
