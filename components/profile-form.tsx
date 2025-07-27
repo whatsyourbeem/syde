@@ -16,6 +16,7 @@ import { Textarea } from "./ui/textarea";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query"; // Import useQueryClient and useMutation
+import { useRouter } from "next/navigation";
 
 interface ProfileFormProps {
   userId: string;
@@ -40,6 +41,7 @@ export default function ProfileForm({
 }: ProfileFormProps) {
   const supabase = createClient();
   const queryClient = useQueryClient(); // Initialize query client
+  const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState<string | null>(
     username
   );
@@ -213,6 +215,7 @@ export default function ProfileForm({
       setAvatarFile(null); // Clear file input
       queryClient.invalidateQueries({ queryKey: ["profile", userId] }); // Invalidate profile query
       queryClient.invalidateQueries({ queryKey: ["logs"] }); // Invalidate logs query (for avatar/username changes)
+      router.push(`/${currentUsername}`); // Redirect to username page
     },
     onError: (error: any) => {
       alert(`프로필 업데이트 중 오류가 발생했습니다: ${error.message}`);
