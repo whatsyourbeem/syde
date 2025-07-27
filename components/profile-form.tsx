@@ -14,6 +14,7 @@ import {
 } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 import Image from "next/image";
+import { Plus } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query"; // Import useQueryClient and useMutation
 
 interface ProfileFormProps {
@@ -55,7 +56,17 @@ export default function ProfileForm({
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(
     avatarUrl
   );
+  const [isHovered, setIsHovered] = useState(false);
   const [isLinkValid, setIsLinkValid] = useState(true); // New state for link validation
+
+  const handleMouseEnter = () => {
+    console.log("Mouse entered");
+    setIsHovered(true);
+  };
+  const handleMouseLeave = () => {
+    console.log("Mouse left");
+    setIsHovered(false);
+  };
 
   useEffect(() => {
     setCurrentUsername(username);
@@ -240,17 +251,27 @@ export default function ProfileForm({
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            {avatarPreviewUrl && (
-              <Image
-                src={avatarPreviewUrl}
-                alt="Avatar"
-                className="rounded-full object-cover"
-                width={96}
-                height={96}
-              />
-            )}
+            <div
+              className="relative w-24 h-24 rounded-full overflow-hidden cursor-pointer"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => document.getElementById('avatar')?.click()}
+            >
+              {avatarPreviewUrl && (
+                <Image
+                  src={avatarPreviewUrl}
+                  alt="Avatar"
+                  className={`rounded-full object-cover w-full h-full transition-opacity duration-300 ${isHovered ? "opacity-50" : "opacity-100"}`}
+                  width={96}
+                  height={96}
+                />
+              )}
+              <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${isHovered ? "opacity-30" : "opacity-0"}`}>
+                <Plus className="w-12 h-12" color="white"/>
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="avatar" className="font-semibold">프로필 사진</Label>
+              <Label className="font-semibold pl-1">프로필 사진</Label>
               <Input
                 id="avatar"
                 type="file"
