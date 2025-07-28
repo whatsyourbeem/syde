@@ -11,7 +11,7 @@ import { CommentList } from "./comment-list"; // Will create this
 import { Database } from "@/types/database.types";
 
 import { useRouter } from "next/navigation";
-import { linkifyMentions } from "@/lib/utils"; // Only linkifyMentions is needed
+import { linkifyMentions, formatRelativeTime } from "@/lib/utils"; // Only linkifyMentions is needed
 
 interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -55,7 +55,7 @@ export function LogCard({
     ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at ? new Date(log.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const logDate = log.created_at ? new Date(log.created_at).toLocaleString() : '';
+  const formattedLogDate = log.created_at ? formatRelativeTime(log.created_at) : '';
 
   const handleLike = async () => {
     if (!currentUserId || loading) return;
@@ -147,7 +147,7 @@ export function LogCard({
   };
 
   return (
-    <div className="p-4 flex flex-col">
+    <div className="border rounded-lg p-4 mb-4 bg-card flex flex-col">
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center">
         {avatarUrlWithCacheBuster && (
@@ -174,7 +174,7 @@ export function LogCard({
             {log.profiles?.tagline && (
               <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
             )}
-            <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{logDate}</p>
+            <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{formattedLogDate}</p>
           </div>
           
         </div>
@@ -211,7 +211,7 @@ export function LogCard({
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div onClick={handleCardClick} className="cursor-pointer py-4 pl-10">
+        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-11">
           <p className="mb-3 text-base whitespace-pre-wrap">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
@@ -230,7 +230,7 @@ export function LogCard({
       )}
 
       {/* Section 3: Actions (Independent buttons) */}
-      <div className="flex justify-between items-center text-sm text-muted-foreground">
+      <div className="flex justify-between items-center text-sm text-muted-foreground px-12 pt-2">
         <button
           onClick={handleLike}
           className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
@@ -277,7 +277,6 @@ export function LogCard({
           <CommentList logId={log.id} currentUserId={currentUserId} />
         </div>
       )}
-      <div className="border-b py-2 mt-4"></div>
     </div>
   );
 }

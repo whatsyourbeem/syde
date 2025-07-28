@@ -107,3 +107,35 @@ export function highlightText(text: string, query: string, baseKey: string = '')
   
   return parts;
 }
+
+export function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  const minute = 60;
+  const hour = minute * 60;
+  const day = hour * 24;
+  const week = day * 7;
+
+  if (diffSeconds < minute) {
+    return "방금";
+  } else if (diffSeconds < hour) {
+    return `${Math.floor(diffSeconds / minute)}분 전`;
+  } else if (diffSeconds < day) {
+    return `${Math.floor(diffSeconds / hour)}시간 전`;
+  } else if (diffSeconds < week) {
+    return `${Math.floor(diffSeconds / day)}일 전`;
+  } else {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const dayOfMonth = date.getDate().toString().padStart(2, '0');
+    const currentYear = now.getFullYear();
+
+    if (year === currentYear) {
+      return `${parseInt(month)}월 ${parseInt(dayOfMonth)}일`;
+    } else {
+      return `${year}.${month}.${dayOfMonth}`;
+    }
+  }
+}
