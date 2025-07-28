@@ -4,7 +4,14 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { User } from '@supabase/supabase-js';
-import { linkifyMentions } from '@/lib/utils';
+import { linkifyMentions, formatRelativeTime } from '@/lib/utils'; // Import formatRelativeTime
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 import { createClient } from '@/lib/supabase/client';
 import { LogForm } from '@/components/log-form';
 import { LogActions } from './log-actions';
@@ -102,13 +109,12 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
     ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at ? new Date(log.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const logDate = log.created_at ? new Date(log.created_at).toLocaleString() : '';
+  const formattedLogDate = log.created_at ? formatRelativeTime(log.created_at) : '';
 
   return (
-    <div className="rounded-lg p-4 bg-card shadow-sm flex flex-col">
-      {/* Profile Header and Date */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
+    <div className="border rounded-lg p-4 mb-4 bg-card flex flex-col">
+      {/* Section 1: Profile Header (Not clickable as a block) */}
+      <div className="flex items-center justify-between">
           {avatarUrlWithCacheBuster && (
             <Link href={`/${log.profiles?.username || log.user_id}`}>
               <Image
@@ -127,18 +133,52 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
                   {log.profiles?.full_name || log.profiles?.username || 'Anonymous'}
                 </p>
               </Link>
-              {log.profiles?.username && (
-                <p className="text-sm text-muted-foreground">@{log.profiles.username}</p>
-              )}
-            </div>
             {log.profiles?.tagline && (
               <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
             )}
+            <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{formattedLogDate}</p>
+            </div>
           </div>
+          {user?.id === log.user_id && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 text-muted-foreground hover:text-blue-500">
+                  <MoreVertical size={18} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  수정
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  const isConfirmed = window.confirm(
+                    "정말로 이 로그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+                  );
+                  if (!isConfirmed) return;
+                  // Implement delete logic here, similar to LogCard
+                  // For now, just console log
+                  console.log("Delete log with ID:", log.id);
+                  // You'll need to add actual delete logic here, including storage and DB
+                  // and then redirect or update UI
+                  const { error: dbError } = await supabase
+                    .from("logs")
+                    .delete()
+                    .eq("id", log.id);
+                  if (!dbError) {
+                    // Redirect to home or previous page after deletion
+                    window.location.href = "/"; // Simple redirect for now
+                  } else {
+                    console.error("Error deleting log:", dbError);
+                    alert(`로그 삭제 중 오류가 발생했습니다: ${dbError.message}`);
+                  }
+                }}>
+                  삭제
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">{logDate}</p>
-      </div>
-
+ 
       {/* Log Content or Edit Form */}
       {isEditing ? (
         <LogForm
@@ -148,7 +188,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div className="py-4 my-4">
+        <div className="cursor-pointer py-1 pl-11">
           <p className="mb-3 text-base whitespace-pre-wrap leading-relaxed">
             {linkifyMentions(log.content, mentionedProfiles)}
           </p>
