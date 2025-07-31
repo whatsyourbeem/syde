@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
 import { LogForm } from "./log-form"; // Import LogForm
@@ -44,6 +44,21 @@ export function LogCard({
   const [loading, setLoading] = useState(false);
   const [showComments, setShowComments] = useState(false); // State to toggle comments
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  const [showReadMore, setShowReadMore] = useState(false); // State for "Read More" button
+  const contentRef = useRef<HTMLParagraphElement>(null); // Ref for content paragraph
+
+  useEffect(() => {
+    if (contentRef.current) {
+      // Approximate line height for 12 lines (e.g., 1.5rem * 12 = 18rem = 288px)
+      // Adjust max-height based on your actual line height and font size
+      const maxHeight = 12 * 24; // Assuming ~24px per line (text-base is usually 16px, plus line-height)
+      if (contentRef.current.scrollHeight > maxHeight) {
+        setShowReadMore(true);
+      } else {
+        setShowReadMore(false);
+      }
+    }
+  }, [log.content]);
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -211,10 +226,23 @@ export function LogCard({
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px]">
-          <p className="mb-3 text-base whitespace-pre-wrap">
+        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px] relative">
+          <p ref={contentRef} className="mb-3 text-base whitespace-pre-wrap overflow-hidden max-h-72">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
+          {showReadMore && (
+            <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-11 pt-5 pb-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card click
+                  router.push(`/log/${log.id}`);
+                }}
+                className="text-blue-500 hover:underline text-sm font-semibold"
+              >
+                ... 더보기
+              </button>
+            </div>
+          )}
           {log.image_url && (
             <div className="relative w-full h-64 mt-3 rounded-md overflow-hidden">
               <Image
@@ -268,7 +296,7 @@ export function LogCard({
 
       {/* Section 4: Comments (Shown conditionally) */}
       {showComments && (
-        <div className="mt-4 border-t pt-4">
+        <div className="mt-4 border-t">
           <CommentList logId={log.id} currentUserId={currentUserId} />
           <CommentForm
             logId={log.id}
