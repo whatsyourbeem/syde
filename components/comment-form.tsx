@@ -214,74 +214,78 @@ export function CommentForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 mt-4 relative">
-      <div className="flex-grow relative">
-        <Input // Change to Input
-          placeholder={
-            initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
-          }
-          value={content}
-          onChange={handleContentChange}
-          onKeyDown={handleKeyDown}
-          disabled={loading} // Removed || !currentUserId
-          onClick={() => {
-            if (!currentUserId) openLoginModal();
-          }} // Open modal on click if not logged in
-          className="w-full pr-20"
-          ref={inputRef} // Change to inputRef
-        />
-        {showSuggestions && mentionSuggestions.length > 0 && (
-          <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-            {mentionSuggestions.map((suggestion, index) => (
-              <li
-                key={suggestion.id}
-                className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
-                onClick={() => handleSelectSuggestion(suggestion)}
-              >
-                <div className="flex items-center">
-                  {suggestion.avatar_url && (
-                    <Image
-                      src={suggestion.avatar_url}
-                      alt={`${suggestion.username}'s avatar`}
-                      width={24}
-                      height={24}
-                      className="rounded-full object-cover mr-2"
-                    />
-                  )}
-                  <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
-                  {suggestion.full_name && suggestion.username && (
-                    <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className="flex flex-col gap-2">
-        {onCancel && (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 m-4 relative">
+      <label className="font-semibold">댓글</label>
+      <div className="flex gap-2">
+        <div className="flex-grow relative">
+          <Input // Change to Input
+            placeholder={
+              initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
+            }
+            value={content}
+            onChange={handleContentChange}
+            onKeyDown={handleKeyDown}
+            disabled={loading} // Removed || !currentUserId
+            onClick={() => {
+              if (!currentUserId) openLoginModal();
+            }} // Open modal on click if not logged in
+            className="w-full pr-20"
+            ref={inputRef} // Change to inputRef
+          />
+          {showSuggestions && mentionSuggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+              {mentionSuggestions.map((suggestion, index) => (
+                <li
+                  key={suggestion.id}
+                  className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                >
+                  <div className="flex items-center">
+                    {suggestion.avatar_url && (
+                      <Image
+                        src={suggestion.avatar_url}
+                        alt={`${suggestion.username}'s avatar`}
+                        width={24}
+                        height={24}
+                        className="rounded-full object-cover mr-2"
+                      />
+                    )}
+                    <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                    {suggestion.full_name && suggestion.username && (
+                      <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+              className="w-full"
+            >
+              취소
+            </Button>
+          )}
           <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={loading}
-            className="w-full"
+            type="submit"
+            disabled={loading || content.trim() === "" || !currentUserId}
+            className={!initialCommentData ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" : ""}
           >
-            취소
+            {loading
+              ? initialCommentData
+                ? "수정 중..."
+                : "작성 중..."
+              : initialCommentData
+              ? "수정"
+              : "작성"}
           </Button>
-        )}
-        <Button
-          type="submit"
-          disabled={loading || content.trim() === "" || !currentUserId}
-        >
-          {loading
-            ? initialCommentData
-              ? "수정 중..."
-              : "작성 중..."
-            : initialCommentData
-            ? "수정"
-            : "작성"}
-        </Button>
+        </div>
       </div>
     </form>
   );

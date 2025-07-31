@@ -211,7 +211,7 @@ export function LogCard({
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-11">
+        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px]">
           <p className="mb-3 text-base whitespace-pre-wrap">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
@@ -230,7 +230,7 @@ export function LogCard({
       )}
 
       {/* Section 3: Actions (Independent buttons) */}
-      <div className="flex justify-between items-center text-sm text-muted-foreground px-12 pt-2">
+      <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
         <button
           onClick={handleLike}
           className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
@@ -269,12 +269,12 @@ export function LogCard({
       {/* Section 4: Comments (Shown conditionally) */}
       {showComments && (
         <div className="mt-4 border-t pt-4">
+          <CommentList logId={log.id} currentUserId={currentUserId} />
           <CommentForm
             logId={log.id}
             currentUserId={currentUserId}
             onCommentAdded={handleCommentAdded}
           />
-          <CommentList logId={log.id} currentUserId={currentUserId} />
         </div>
       )}
     </div>

@@ -321,7 +321,8 @@ export function LogList({
             <Button
               key={i + 1}
               onClick={() => setCurrentPage(i + 1)}
-              variant={currentPage === i + 1 ? "default" : "outline"}
+              variant="ghost"
+              className={currentPage === i + 1 ? "bg-secondary" : ""}
               disabled={isLoading}
             >
               {i + 1}

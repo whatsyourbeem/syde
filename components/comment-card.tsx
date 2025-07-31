@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { CommentForm } from "./comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { linkifyMentions } from "@/lib/utils";
+import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
 
@@ -47,7 +47,7 @@ export function CommentCard({
     ? `${comment.profiles.avatar_url}?t=${comment.profiles.updated_at ? new Date(comment.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const commentDate = comment.created_at ? new Date(comment.created_at).toLocaleString() : '';
+  const commentDate = comment.created_at ? formatRelativeTime(comment.created_at) : '';
 
   const handleLike = async () => {
     if (!currentUserId || loading) return;
@@ -117,78 +117,83 @@ export function CommentCard({
   };
 
   return (
-    <div className="flex items-start gap-3 p-2 border-b last:border-b-0">
-      {avatarUrlWithCacheBuster && (
-        <Link href={`/${comment.profiles?.username || comment.user_id}`}>
-          <Image
-            src={avatarUrlWithCacheBuster}
-            alt={`${comment.profiles?.username || "User"}'s avatar`}
-            width={32}
-            height={32}
-            className="rounded-full object-cover flex-shrink-0"
-          />
-        </Link>
-      )}
-      <div className="flex-grow">
-        <div className="flex items-center gap-2">
+    <div className="flex items-start justify-between gap-3 p-2">
+      <div className="flex items-start gap-3">
+        {avatarUrlWithCacheBuster && (
           <Link href={`/${comment.profiles?.username || comment.user_id}`}>
-            <p className="font-semibold text-sm hover:underline">
-              {comment.profiles?.full_name ||
-                comment.profiles?.username ||
-                "Anonymous"}
-            </p>
+            <Image
+              src={avatarUrlWithCacheBuster}
+              alt={`${comment.profiles?.username || "User"}'s avatar`}
+              width={32}
+              height={32}
+              className="rounded-full object-cover flex-shrink-0"
+            />
           </Link>
-          <p className="text-xs text-muted-foreground">
-            @{comment.profiles?.username || comment.user_id}
-          </p>
-          <div className="ml-auto flex items-center gap-2">
-            <p className="text-xs text-muted-foreground">{commentDate}</p>
-            {/* Like Button */}
-            <button
-              onClick={handleLike}
-              disabled={loading || isEditing}
-              className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1"
-              aria-label="Like comment"
-            >
-              <HeartIcon
-                className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
-                size={14}
-              />
-              <span className="text-xs">{likesCount}</span>
-            </button>
-            {currentUserId === comment.user_id && (
-              <>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  disabled={loading}
-                  className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
-                  aria-label="Edit comment"
-                >
-                  <Edit size={14} />
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
-                  aria-label="Delete comment"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-        {isEditing ? (
-          <CommentForm
-            logId={comment.log_id}
-            currentUserId={currentUserId}
-            initialCommentData={comment}
-            onCommentUpdated={() => setIsEditing(false)}
-            onCancel={() => setIsEditing(false)}
-          />
-        ) : (
-          <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
         )}
+        <div className="flex-grow">
+          <div className="flex items-center gap-2">
+            <Link href={`/${comment.profiles?.username || comment.user_id}`}>
+              <p className="font-semibold text-sm hover:underline">
+                {comment.profiles?.full_name ||
+                  comment.profiles?.username ||
+                  "Anonymous"}
+              </p>
+            </Link>
+            <p className="text-xs text-muted-foreground">
+              @{comment.profiles?.username || comment.user_id}
+            </p>
+          </div>
+          {isEditing ? (
+            <CommentForm
+              logId={comment.log_id}
+              currentUserId={currentUserId}
+              initialCommentData={comment}
+              onCommentUpdated={() => setIsEditing(false)}
+              onCancel={() => setIsEditing(false)}
+            />
+          ) : (
+            <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-end gap-2 text-xs text-muted-foreground flex-shrink-0">
+        <p>{commentDate}</p>
+        <div className="flex items-center gap-2">
+          {/* Like Button */}
+          <button
+            onClick={handleLike}
+            disabled={loading || isEditing}
+            className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1"
+            aria-label="Like comment"
+          >
+            <HeartIcon
+              className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
+              size={14}
+            />
+            <span className="text-xs">{likesCount}</span>
+          </button>
+          {currentUserId === comment.user_id && (
+            <>
+              <button
+                onClick={() => setIsEditing(true)}
+                disabled={loading}
+                className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
+                aria-label="Edit comment"
+              >
+                <Edit size={14} />
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={loading}
+                className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
+                aria-label="Delete comment"
+              >
+                <Trash2 size={14} />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

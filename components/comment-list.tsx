@@ -4,28 +4,35 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "./comment-card";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Database } from "@/types/database.types";
-
-const COMMENTS_PER_PAGE = 10;
 
 interface CommentListProps {
   logId: string;
   currentUserId: string | null;
+  pageSize?: number;
+  showPaginationButtons?: boolean;
 }
 
-export function CommentList({ logId, currentUserId }: CommentListProps) {
+export function CommentList({
+  logId,
+  currentUserId,
+  pageSize = 5,
+  showPaginationButtons = false
+}: CommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
 
-  const queryKey = ["comments", { logId, currentPage }];
+  const queryKey = ["comments", { logId, currentPage, pageSize }];
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
     queryFn: async () => {
-      const from = (currentPage - 1) * COMMENTS_PER_PAGE;
-      const to = from + COMMENTS_PER_PAGE - 1;
+      const from = (currentPage - 1) * pageSize;
+      const to = from + pageSize - 1;
 
       const { data, error, count } = await supabase
         .from("log_comments")
@@ -126,10 +133,9 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           filter: `comment_id=in.(${comments.map(c => c.id).join(',')})`,
         },
         (payload) => {
-          // Invalidate only if the change is relevant to the current page's comments
           const changedCommentId = (payload.new as any).comment_id;
           if (comments.some(c => c.id === changedCommentId)) {
-            queryClient.invalidateQueries({ queryKey: ["comments", { logId, currentPage }] });
+            queryClient.invalidateQueries({ queryKey: ["comments", { logId, currentPage, pageSize }] });
           }
         }
       )
@@ -144,7 +150,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
         (payload) => {
           const changedCommentId = (payload.old as any).comment_id;
           if (comments.some(c => c.id === changedCommentId)) {
-            queryClient.invalidateQueries({ queryKey: ["comments", { logId, currentPage }] });
+            queryClient.invalidateQueries({ queryKey: ["comments", { logId, currentPage, pageSize }] });
           }
         }
       )
@@ -153,9 +159,8 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, logId, queryClient, comments]); // Add comments to dependencies
+  }, [supabase, logId, queryClient, comments, currentPage, pageSize]);
 
-  // Handle like status change from CommentCard
   const handleLikeStatusChange = useCallback(
     (commentId: string, newLikesCount: number, newHasLiked: boolean) => {
       queryClient.setQueryData(queryKey, (oldData: any) => {
@@ -234,7 +239,7 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
   }
 
   return (
-    <div className="mt-4 space-y-2">
+    <div className="mt-4 space-y-2 px-4">
       {comments.length === 0 && !isLoading ? (
         <p className="text-center text-sm text-muted-foreground">
           아직 댓글이 없습니다.
@@ -252,21 +257,37 @@ export function CommentList({ logId, currentUserId }: CommentListProps) {
           />
         ))
       )}
-      <div className="flex justify-center space-x-2 mt-4">
-        {Array.from(
-          { length: Math.ceil(totalCommentsCount / COMMENTS_PER_PAGE) },
-          (_, i) => (
-            <Button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              variant={currentPage === i + 1 ? "default" : "outline"}
-              disabled={isLoading}
-            >
-              {i + 1}
-            </Button>
-          )
-        )}
-      </div>
+      
+      {!showPaginationButtons && totalCommentsCount > pageSize && (
+        <div className="text-center mt-2">
+          <Button
+            variant="ghost"
+            className="text-sm text-muted-foreground hover:underline"
+            onClick={() => router.push(`/log/${logId}`)}
+          >
+            다음 댓글 보기
+          </Button>
+        </div>
+      )}
+
+      {showPaginationButtons && totalCommentsCount > pageSize && (
+        <div className="flex justify-center space-x-2 mt-4">
+          {Array.from(
+            { length: Math.ceil(totalCommentsCount / pageSize) },
+            (_, i) => (
+              <Button
+                key={i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+                variant="ghost"
+                className={currentPage === i + 1 ? "bg-secondary" : ""}
+                disabled={isLoading}
+              >
+                {i + 1}
+              </Button>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 }
