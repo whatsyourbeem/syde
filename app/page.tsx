@@ -10,10 +10,11 @@ export default async function Home() {
 
   let avatarUrl = null;
   let username = null;
+  let full_name = null;
   if (user) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('avatar_url, username, updated_at')
+      .select('avatar_url, username, full_name, updated_at')
       .eq('id', user.id)
       .single();
 
@@ -26,6 +27,7 @@ export default async function Home() {
           }`
         : null;
       username = profile.username;
+      full_name = profile.full_name; // Add this line
     }
   }
 
@@ -37,6 +39,7 @@ export default async function Home() {
           userEmail={user?.email || null}
           avatarUrl={avatarUrl}
           username={username}
+          full_name={full_name} // Add this line
         />
       </div>
       <LogListWrapper currentUserId={user?.id || null} />
