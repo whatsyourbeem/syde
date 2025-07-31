@@ -175,9 +175,10 @@ export function CommentList({
         currentUserId={currentUserId}
         mentionedProfiles={mentionedProfiles}
         initialLikesCount={comment.initialLikesCount}
-        initialHasLiked={comment.hasLiked}
+        initialHasLiked={comment.initialHasLiked}
         onLikeStatusChange={handleLikeStatusChange}
         logId={logId}
+        level={level} // Pass the current level
       />
       {comment.replies && comment.replies.length > 0 && (
         <div className="border-l pl-4"> {/* Visual line for replies */}

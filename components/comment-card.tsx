@@ -23,6 +23,7 @@ interface CommentCardProps {
   initialHasLiked: boolean; // New prop
   onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void; // New prop
   logId: string; // Add logId prop
+  level: number; // Add level prop
 }
 
 export function CommentCard({
@@ -33,6 +34,7 @@ export function CommentCard({
   initialHasLiked,
   onLikeStatusChange,
   logId, // Destructure logId
+  level, // Destructure level
 }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -171,14 +173,16 @@ export function CommentCard({
                   />
                   <span className="text-xs">{likesCount}</span>
                 </button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowReplyForm(!showReplyForm)}
-                  className="text-xs text-muted-foreground hover:text-blue-500"
-                >
-                  답글 달기
-                </Button>
+                {level < 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowReplyForm(!showReplyForm)}
+                    className="text-xs text-muted-foreground hover:text-blue-500"
+                  >
+                    답글 달기
+                  </Button>
+                )}
                 {currentUserId === comment.user_id && (
                   <>
                     <Button
