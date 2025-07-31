@@ -67,6 +67,7 @@ export function LogForm({
   }, [mentionSearchTerm]);
 
   const fetchMentionSuggestions = async (term: string) => {
+    console.log("Fetching mention suggestions for term:", term); // Debug log
     if (term.length < 1) {
       setMentionSuggestions([]);
       setShowSuggestions(false);
@@ -76,7 +77,7 @@ export function LogForm({
     const { data, error } = await supabase
       .from('profiles')
       .select('id, username, full_name, avatar_url') // Added avatar_url
-      .ilike('username', `%${term}%`)
+      .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
       .limit(5);
 
     if (error) {
@@ -101,9 +102,10 @@ export function LogForm({
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
       // Regex to check if the text after @ is a valid username character sequence
-      const mentionRegex = /^[a-zA-Z0-9._-]*$/;
+      const mentionRegex = /^[a-zA-Z0-9._\uAC00-\uD7A3-]*$/u; // Allow Hangul characters and literal hyphen
       if (mentionRegex.test(textAfterAt)) {
         setMentionSearchTerm(textAfterAt);
+        console.log("Mention search term (handleContentChange):", textAfterAt); // Debug log
         setMentionStartIndex(lastAtIndex);
         setActiveSuggestionIndex(0);
       } else {
