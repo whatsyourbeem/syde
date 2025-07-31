@@ -219,7 +219,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
         </button>
         <button
           onClick={() => {
-            setShowComments(!showComments);
+            // setShowComments(!showComments);
           }}
           className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
         >

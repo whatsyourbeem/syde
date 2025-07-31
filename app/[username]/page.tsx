@@ -134,7 +134,7 @@ export default async function UserProfilePage({
               profileId={profile.id}
             />
           </TabsContent>
-          <TabsContent value="logs">
+          <TabsContent value="logs" className="pt-4">
             <LogList
               currentUserId={currentUserId}
               filterByUserId={profile.id}
