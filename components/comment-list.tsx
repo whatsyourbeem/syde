@@ -178,13 +178,8 @@ export function CommentList({
         initialHasLiked={comment.initialHasLiked}
         onLikeStatusChange={handleLikeStatusChange}
         logId={logId}
-        level={level} // Pass the current level
+        level={level}
       />
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="border-l pl-4"> {/* Visual line for replies */}
-          {comment.replies.map((reply: any) => renderComment(reply, level + 1))}
-        </div>
-      )}
     </div>
   );
 

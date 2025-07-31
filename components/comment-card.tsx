@@ -13,10 +13,15 @@ import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
 
+type ProcessedComment = Database['public']['Tables']['log_comments']['Row'] & {
+  profiles: Database['public']['Tables']['profiles']['Row'] | null;
+  initialLikesCount: number;
+  initialHasLiked: boolean;
+  replies?: ProcessedComment[]; // Add replies property
+};
+
 interface CommentCardProps {
-  comment: Database['public']['Tables']['log_comments']['Row'] & {
-    profiles: Database['public']['Tables']['profiles']['Row'] | null;
-  };
+  comment: ProcessedComment;
   currentUserId: string | null;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   initialLikesCount: number; // New prop
@@ -43,6 +48,7 @@ export function CommentCard({
   const [likesCount, setLikesCount] = useState(initialLikesCount); // New state
   const [hasLiked, setHasLiked] = useState(initialHasLiked); // New state
   const [showReplyForm, setShowReplyForm] = useState(false); // New state for reply form
+  const [showReplies, setShowReplies] = useState(level === 0 ? false : true); // New state for showing replies
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -215,6 +221,35 @@ export function CommentCard({
                     onCommentAdded={() => setShowReplyForm(false)}
                     onCancel={() => setShowReplyForm(false)}
                   />
+                </div>
+              )}
+              {comment.replies && comment.replies.length > 0 && level === 0 && (
+                <div className="mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowReplies(!showReplies)}
+                    className="text-xs text-muted-foreground"
+                  >
+                    {showReplies ? "답글 숨기기" : `답글 ${comment.replies.length}개 보기`}
+                  </Button>
+                </div>
+              )}
+              {showReplies && comment.replies && comment.replies.length > 0 && (
+                <div className="mt-2 space-y-2 border-l pl-4">
+                  {comment.replies.map((reply) => (
+                    <CommentCard
+                      key={reply.id}
+                      comment={reply}
+                      currentUserId={currentUserId}
+                      mentionedProfiles={mentionedProfiles}
+                      initialLikesCount={reply.initialLikesCount}
+                      initialHasLiked={reply.initialHasLiked}
+                      onLikeStatusChange={onLikeStatusChange}
+                      logId={logId}
+                      level={level + 1}
+                    />
+                  ))}
                 </div>
               )}
             </>
