@@ -23,7 +23,6 @@ interface ProfileFormProps {
   username: string | null;
   fullName: string | null;
   avatarUrl: string | null;
-  bio: string | null;
   link: string | null;
   tagline: string | null;
   className?: string; // Add className prop
@@ -34,7 +33,6 @@ export default function ProfileForm({
   username,
   fullName,
   avatarUrl,
-  bio,
   link,
   tagline,
   className,
@@ -51,7 +49,6 @@ export default function ProfileForm({
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(
     avatarUrl
   );
-  const [currentBio, setCurrentBio] = useState<string | null>(bio);
   const [currentLink, setCurrentLink] = useState<string | null>(link);
   const [currentTagline, setCurrentTagline] = useState<string | null>(tagline);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -73,7 +70,6 @@ export default function ProfileForm({
   useEffect(() => {
     setCurrentUsername(username);
     setCurrentFullName(fullName);
-    setCurrentBio(bio);
     setCurrentLink(link);
     setCurrentTagline(tagline);
     setCurrentAvatarUrl(avatarUrl);
@@ -82,7 +78,7 @@ export default function ProfileForm({
     if (link) {
       setIsLinkValid(isValidUrl(link));
     }
-  }, [username, fullName, avatarUrl, bio, link, tagline]);
+  }, [username, fullName, avatarUrl, link, tagline]);
 
   const isValidUrl = (url: string): boolean => {
     try {
@@ -198,7 +194,6 @@ export default function ProfileForm({
         username: currentUsername,
         full_name: currentFullName,
         avatar_url: newAvatarUrl,
-        bio: currentBio,
         link: currentLink === "" ? null : currentLink, // Store empty string as null
         tagline: currentTagline, // Add tagline
         updated_at: new Date().toISOString(),
@@ -299,15 +294,6 @@ export default function ProfileForm({
             value={currentTagline || ""}
             onChange={(e) => setCurrentTagline(e.target.value)}
             maxLength={30} // Enforce 30 character limit
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="bio" className="font-semibold">자유 소개</Label>
-          <Textarea
-            id="bio"
-            value={currentBio || ""}
-            onChange={(e) => setCurrentBio(e.target.value)}
-            rows={3}
           />
         </div>
         <div className="space-y-2">
