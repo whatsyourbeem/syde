@@ -39,6 +39,36 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const [mentionedProfiles, setMentionedProfiles] = useState<any[]>([]);
   const [commentsCount, setCommentsCount] = useState(initialLog.log_comments.length); // Added commentsCount state
 
+  useEffect(() => {
+    const fetchMentionedProfiles = async () => {
+      const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
+      const mentionedUserIds = new Set<string>();
+      const matches = log.content.matchAll(mentionRegex);
+      for (const match of matches) {
+        mentionedUserIds.add(match[1]);
+      }
+
+      if (mentionedUserIds.size > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', Array.from(mentionedUserIds));
+        
+        if (profilesError) {
+          console.error("Error fetching mentioned profiles:", profilesError);
+        } else {
+          setMentionedProfiles(profilesData || []);
+        }
+      } else {
+        setMentionedProfiles([]);
+      }
+    };
+
+    fetchMentionedProfiles();
+  }, [log.content, supabase]); // Re-run when log content changes
+
+    const [showComments, setShowComments] = useState(false); // New state for showing/hiding comments
+
   // New states for likes
   const [currentLikesCount, setCurrentLikesCount] = useState(initialLog.log_likes.length);
   const [currentHasLiked, setCurrentHasLiked] = useState(
