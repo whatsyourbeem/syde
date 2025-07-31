@@ -19,6 +19,15 @@ interface BioEditorProps {
 const TiptapEditor = ({ editor }: { editor: any }) => {
   const [isBoldActive, setIsBoldActive] = useState(false);
   const [isItalicActive, setIsItalicActive] = useState(false);
+  const [isStrikeActive, setIsStrikeActive] = useState(false);
+  const [isCodeActive, setIsCodeActive] = useState(false);
+  const [isCodeBlockActive, setIsCodeBlockActive] = useState(false);
+  const [isBlockquoteActive, setIsBlockquoteActive] = useState(false);
+  const [isBulletListActive, setIsBulletListActive] = useState(false);
+  const [isOrderedListActive, setIsOrderedListActive] = useState(false);
+  const [isHeading1Active, setIsHeading1Active] = useState(false);
+  const [isHeading2Active, setIsHeading2Active] = useState(false);
+  const [isHeading3Active, setIsHeading3Active] = useState(false);
 
   useEffect(() => {
     if (!editor) return;
@@ -26,6 +35,15 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
     const updateActiveStates = () => {
       setIsBoldActive(editor.isActive("bold"));
       setIsItalicActive(editor.isActive("italic"));
+      setIsStrikeActive(editor.isActive("strike"));
+      setIsCodeActive(editor.isActive("code"));
+      setIsCodeBlockActive(editor.isActive("codeBlock"));
+      setIsBlockquoteActive(editor.isActive("blockquote"));
+      setIsBulletListActive(editor.isActive("bulletList"));
+      setIsOrderedListActive(editor.isActive("orderedList"));
+      setIsHeading1Active(editor.isActive("heading", { level: 1 }));
+      setIsHeading2Active(editor.isActive("heading", { level: 2 }));
+      setIsHeading3Active(editor.isActive("heading", { level: 3 }));
     };
 
     // Initial update
@@ -45,7 +63,7 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
   return (
     <div className="prose max-w-none">
       {editor && (
-        <div className="flex space-x-1 mb-2">
+        <div className="flex flex-wrap gap-1 mb-2">
           <Button
             onClick={() => editor.chain().focus().toggleBold().run()}
             disabled={!editor.can().chain().focus().toggleBold().run()}
@@ -61,6 +79,102 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
             size="sm"
           >
             Italic
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            disabled={!editor.can().chain().focus().toggleStrike().run()}
+            variant={isStrikeActive ? "default" : "outline"}
+            size="sm"
+          >
+            Strike
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            disabled={!editor.can().chain().focus().toggleCode().run()}
+            variant={isCodeActive ? "default" : "outline"}
+            size="sm"
+          >
+            Code
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
+            variant={isCodeBlockActive ? "default" : "outline"}
+            size="sm"
+          >
+            Code Block
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            disabled={!editor.can().chain().focus().toggleBlockquote().run()}
+            variant={isBlockquoteActive ? "default" : "outline"}
+            size="sm"
+          >
+            Blockquote
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            disabled={!editor.can().chain().focus().toggleBulletList().run()}
+            variant={isBulletListActive ? "default" : "outline"}
+            size="sm"
+          >
+            Bullet List
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            disabled={!editor.can().chain().focus().toggleOrderedList().run()}
+            variant={isOrderedListActive ? "default" : "outline"}
+            size="sm"
+          >
+            Ordered List
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            disabled={!editor.can().chain().focus().toggleHeading({ level: 1 }).run()}
+            variant={isHeading1Active ? "default" : "outline"}
+            size="sm"
+          >
+            H1
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            disabled={!editor.can().chain().focus().toggleHeading({ level: 2 }).run()}
+            variant={isHeading2Active ? "default" : "outline"}
+            size="sm"
+          >
+            H2
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            disabled={!editor.can().chain().focus().toggleHeading({ level: 3 }).run()}
+            variant={isHeading3Active ? "default" : "outline"}
+            size="sm"
+          >
+            H3
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            disabled={!editor.can().chain().focus().setHorizontalRule().run()}
+            variant="outline"
+            size="sm"
+          >
+            HR
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            variant="outline"
+            size="sm"
+          >
+            Undo
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            variant="outline"
+            size="sm"
+          >
+            Redo
           </Button>
         </div>
       )}
