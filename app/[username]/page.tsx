@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { LogList } from "@/components/log-list"; // Import LogList
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
 import { UserActivityLogList } from "@/components/user-activity-log-list"; // Import UserActivityLogList
+import BioEditor from "@/components/bio-editor"; // Import BioEditor
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -36,7 +37,7 @@ export default async function UserProfilePage({
     data: { user },
   } = await supabase.auth.getUser();
   const currentUserId = user?.id || null; // Get current user ID
-  const isOwnProfile = user && user.id === profile.id;
+  const isOwnProfile = !!(user && user.id === profile.id);
 
   const avatarUrlWithCacheBuster = profile.avatar_url
     ? `${profile.avatar_url}?t=${
@@ -127,13 +128,11 @@ export default async function UserProfilePage({
             )}
           </TabsList>
           <TabsContent value="bio">
-            <div className="mt-4 p-4 border rounded-lg bg-card">
-              {profile.bio ? (
-                <p className="text-muted-foreground whitespace-pre-wrap">{profile.bio}</p>
-              ) : (
-                <p className="text-muted-foreground text-center">작성된 자유 소개가 없습니다.</p>
-              )}
-            </div>
+            <BioEditor
+              initialBio={profile.bio}
+              isOwnProfile={isOwnProfile}
+              profileId={profile.id}
+            />
           </TabsContent>
           <TabsContent value="logs">
             <LogList
