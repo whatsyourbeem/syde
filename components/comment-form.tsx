@@ -17,6 +17,7 @@ interface CommentFormProps {
   initialCommentData?: Database['public']['Tables']['log_comments']['Row'];
   onCommentUpdated?: () => void;
   onCancel?: () => void;
+  parentCommentId?: string | null; // New prop for replies
 }
 
 import { processMentionsForSave } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function CommentForm({
   initialCommentData,
   onCommentUpdated,
   onCancel,
+  parentCommentId, // Destructure new prop
 }: CommentFormProps) {
   const supabase = createClient();
   const router = useRouter();
@@ -180,6 +182,7 @@ export function CommentForm({
             log_id: logId,
             user_id: currentUserId,
             content: processedContent,
+            ...(parentCommentId && { parent_comment_id: parentCommentId }), // Add parent_comment_id if present
           });
 
           if (error) {

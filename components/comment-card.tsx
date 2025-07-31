@@ -7,6 +7,7 @@ import { Trash2, Edit, HeartIcon } from "lucide-react"; // Added Edit, HeartIcon
 import { useState, useEffect } from "react";
 import { CommentForm } from "./comment-form";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button"; // Import Button
 
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ interface CommentCardProps {
   initialLikesCount: number; // New prop
   initialHasLiked: boolean; // New prop
   onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void; // New prop
+  logId: string; // Add logId prop
 }
 
 export function CommentCard({
@@ -30,6 +32,7 @@ export function CommentCard({
   initialLikesCount,
   initialHasLiked,
   onLikeStatusChange,
+  logId, // Destructure logId
 }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -37,6 +40,7 @@ export function CommentCard({
   const [isEditing, setIsEditing] = useState(false);
   const [likesCount, setLikesCount] = useState(initialLikesCount); // New state
   const [hasLiked, setHasLiked] = useState(initialHasLiked); // New state
+  const [showReplyForm, setShowReplyForm] = useState(false); // New state for reply form
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -152,45 +156,63 @@ export function CommentCard({
               onCancel={() => setIsEditing(false)}
             />
           ) : (
-            <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-col items-end gap-2 text-xs text-muted-foreground flex-shrink-0">
-        <p>{commentDate}</p>
-        <div className="flex items-center gap-2">
-          {/* Like Button */}
-          <button
-            onClick={handleLike}
-            disabled={loading || isEditing}
-            className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1"
-            aria-label="Like comment"
-          >
-            <HeartIcon
-              className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
-              size={14}
-            />
-            <span className="text-xs">{likesCount}</span>
-          </button>
-          {currentUserId === comment.user_id && (
             <>
-              <button
-                onClick={() => setIsEditing(true)}
-                disabled={loading}
-                className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
-                aria-label="Edit comment"
-              >
-                <Edit size={14} />
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
-                aria-label="Delete comment"
-              >
-                <Trash2 size={14} />
-              </button>
+              <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={handleLike}
+                  disabled={loading || isEditing}
+                  className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1"
+                  aria-label="Like comment"
+                >
+                  <HeartIcon
+                    className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
+                    size={14}
+                  />
+                  <span className="text-xs">{likesCount}</span>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReplyForm(!showReplyForm)}
+                  className="text-xs text-muted-foreground hover:text-blue-500"
+                >
+                  답글 달기
+                </Button>
+                {currentUserId === comment.user_id && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      disabled={loading}
+                      className="text-xs text-muted-foreground hover:text-blue-500"
+                    >
+                      수정
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDelete}
+                      disabled={loading}
+                      className="text-xs text-muted-foreground hover:text-red-500"
+                    >
+                      삭제
+                    </Button>
+                  </>
+                )}
+              </div>
+              {showReplyForm && (
+                <div className="mt-2 ml-4">
+                  <CommentForm
+                    logId={logId}
+                    currentUserId={currentUserId}
+                    parentCommentId={comment.id}
+                    onCommentAdded={() => setShowReplyForm(false)}
+                    onCancel={() => setShowReplyForm(false)}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>

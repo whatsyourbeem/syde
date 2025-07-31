@@ -43,22 +43,56 @@ export function CommentList({
           created_at,
           user_id,
           log_id,
+          parent_comment_id,
           profiles!log_comments_user_id_fkey (username, full_name, avatar_url, updated_at),
           comment_likes(user_id)
         `,
           { count: "exact" }
         )
         .eq("log_id", logId)
-        .order("created_at", { ascending: true })
-        .range(from, to);
+        .order("created_at", { ascending: true }); // Remove range for now to fetch all comments for structuring
 
       if (error) {
         throw error;
       }
 
+      // Function to build a tree structure from a flat list of comments
+      const buildCommentTree = (comments: any[]) => {
+        const commentMap: { [key: string]: any } = {};
+        const rootComments: any[] = [];
+
+        comments.forEach(comment => {
+          commentMap[comment.id] = { ...comment, replies: [] };
+        });
+
+        comments.forEach(comment => {
+          if (comment.parent_comment_id && commentMap[comment.parent_comment_id]) {
+            commentMap[comment.parent_comment_id].replies.push(commentMap[comment.id]);
+          } else {
+            rootComments.push(commentMap[comment.id]);
+          }
+        });
+
+        // Sort replies by created_at
+        Object.values(commentMap).forEach((comment: any) => {
+          comment.replies.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        });
+
+        // Sort root comments by created_at
+        rootComments.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+        return rootComments;
+      };
+
+      const allComments = data || [];
+      const commentTree = buildCommentTree(allComments);
+
+      // Apply pagination after building the tree
+      const paginatedComments = commentTree.slice(from, to + 1);
+
       const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
       let mentionedUserIds = new Set<string>();
-      data?.forEach(comment => {
+      allComments?.forEach(comment => {
         const matches = comment.content.matchAll(mentionRegex);
         for (const match of matches) {
           mentionedUserIds.add(match[1]);
@@ -88,9 +122,10 @@ export function CommentList({
         comment_likes: Array<{ user_id: string }>;
         initialLikesCount: number;
         initialHasLiked: boolean;
+        replies?: ProcessedComment[]; // Add replies property
       };
 
-      const commentsWithProcessedData: ProcessedComment[] = data?.map((comment: any) => {
+      const commentsWithProcessedData: ProcessedComment[] = paginatedComments.map((comment: any) => {
         const initialLikesCount = comment.comment_likes?.length || 0;
         const initialHasLiked = currentUserId
           ? comment.comment_likes?.some(
@@ -105,6 +140,18 @@ export function CommentList({
             : comment.profiles,
           initialLikesCount,
           initialHasLiked,
+          replies: comment.replies ? comment.replies.map((reply: any) => ({ // Recursively process replies
+            ...reply,
+            profiles: Array.isArray(reply.profiles)
+              ? reply.profiles[0]
+              : reply.profiles,
+            initialLikesCount: reply.comment_likes?.length || 0,
+            initialHasLiked: currentUserId
+              ? reply.comment_likes?.some(
+                  (like: { user_id: string }) => like.user_id === currentUserId
+                )
+              : false,
+          })) : [],
         };
       }) || [];
 
@@ -119,6 +166,26 @@ export function CommentList({
   const comments = data?.comments || [];
   const totalCommentsCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || [];
+
+  // Helper component for recursive rendering of comments
+  const renderComment = (comment: any, level: number = 0) => (
+    <div key={comment.id} className={level > 0 ? "ml-8 mt-2" : ""}> {/* Indent replies */}
+      <CommentCard
+        comment={comment}
+        currentUserId={currentUserId}
+        mentionedProfiles={mentionedProfiles}
+        initialLikesCount={comment.initialLikesCount}
+        initialHasLiked={comment.hasLiked}
+        onLikeStatusChange={handleLikeStatusChange}
+        logId={logId}
+      />
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="border-l pl-4"> {/* Visual line for replies */}
+          {comment.replies.map((reply: any) => renderComment(reply, level + 1))}
+        </div>
+      )}
+    </div>
+  );
 
   // Handle real-time updates for comment likes
   useEffect(() => {
@@ -245,17 +312,7 @@ export function CommentList({
           아직 댓글이 없습니다.
         </p>
       ) : (
-        comments.map((comment) => (
-          <CommentCard
-            key={comment.id}
-            comment={comment}
-            currentUserId={currentUserId}
-            mentionedProfiles={mentionedProfiles}
-            initialLikesCount={comment.initialLikesCount}
-            initialHasLiked={comment.initialHasLiked}
-            onLikeStatusChange={handleLikeStatusChange}
-          />
-        ))
+        comments.map((comment) => renderComment(comment))
       )}
       
       {!showPaginationButtons && totalCommentsCount > pageSize && (
