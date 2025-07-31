@@ -11,13 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, HeartIcon, MessageCircle, Share2, Bookmark, ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { createClient } from '@/lib/supabase/client';
 import { LogForm } from '@/components/log-form';
-import { LogActions } from './log-actions';
 import { CommentForm } from "@/components/comment-form";
 import { CommentList } from "@/components/comment-list";
 import { Database } from "@/types/database.types";
+
 
 type LogWithRelations = Database['public']['Tables']['logs']['Row'] & {
   profiles: Database['public']['Tables']['profiles']['Row'] | null;
@@ -32,9 +33,11 @@ interface LogDetailProps {
 
 export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const supabase = createClient();
+  const router = useRouter(); // Add this line
   const [log, setLog] = useState(initialLog);
   const [isEditing, setIsEditing] = useState(false);
   const [mentionedProfiles, setMentionedProfiles] = useState<any[]>([]);
+  const [commentsCount, setCommentsCount] = useState(initialLog.log_comments.length); // Added commentsCount state
 
   // New states for likes
   const [currentLikesCount, setCurrentLikesCount] = useState(initialLog.log_likes.length);
@@ -42,53 +45,43 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
     user ? initialLog.log_likes.some((like: { user_id: string }) => like.user_id === user.id) : false
   );
 
-  useEffect(() => {
-    const fetchMentionedProfiles = async () => {
-      const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
-      const mentionedUserIds = new Set<string>();
-      const matches = log.content.matchAll(mentionRegex);
-      for (const match of matches) {
-        mentionedUserIds.add(match[1]);
+  const handleLike = async () => {
+    if (!user?.id) return; // User must be logged in to like
+
+    // setLoading(true); // Consider adding a loading state if needed
+    if (currentHasLiked) {
+      // Unlike
+      const { error } = await supabase
+        .from("log_likes")
+        .delete()
+        .eq("log_id", log.id)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        setCurrentLikesCount((prev) => prev - 1);
+        setCurrentHasLiked(false);
+      } else {
+        console.error("Error unliking log:", error);
       }
+    } else {
+      // Like
+      const { error } = await supabase
+        .from("log_likes")
+        .insert({ log_id: log.id, user_id: user.id });
 
-      if (mentionedUserIds.size > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, username')
-          .in('id', Array.from(mentionedUserIds));
-
-        if (profilesError) {
-          console.error('Error fetching mentioned profiles:', profilesError);
-        } else {
-          setMentionedProfiles(profilesData);
-        }
+      if (!error) {
+        setCurrentLikesCount((prev) => prev + 1);
+        setCurrentHasLiked(true);
+      } else {
+        console.error("Error liking log:", error);
       }
-    };
+    }
+    // setLoading(false);
+  };
 
-    fetchMentionedProfiles();
-
-    // New: Fetch latest likes data when component mounts or log.id changes
-    const fetchLatestLikes = async () => {
-      const { data: likesData, error: likesError } = await supabase
-        .from('log_likes')
-        .select('user_id')
-        .eq('log_id', log.id);
-
-      if (likesError) {
-        console.error('Error fetching latest likes:', likesError);
-        return;
-      }
-
-      const latestLikesCount = likesData?.length || 0;
-      const latestHasLiked = user ? likesData?.some((like: { user_id: string }) => like.user_id === user.id) : false;
-
-      setCurrentLikesCount(latestLikesCount);
-      setCurrentHasLiked(latestHasLiked);
-    };
-
-    fetchLatestLikes();
-
-  }, [log.content, log.id, user?.id, supabase]); // Add log.id and user.id to dependencies
+  const handleCommentAdded = () => {
+    setCommentsCount((prev) => prev + 1);
+  };
 
   const handleLogUpdate = (updatedLog: any) => {
     setLog((prevLog: any) => ({
@@ -99,12 +92,6 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
     setIsEditing(false);
   };
 
-  // New: Handler for when like status changes in LogActions
-  const handleLikeStatusChange = (newLikesCount: number, newHasLiked: boolean) => {
-    setCurrentLikesCount(newLikesCount);
-    setCurrentHasLiked(newHasLiked);
-  };
-
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
     ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at ? new Date(log.profiles.updated_at).getTime() : ''}`
     : null;
@@ -112,7 +99,17 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const formattedLogDate = log.created_at ? formatRelativeTime(log.created_at) : '';
 
   return (
-    <div className="border rounded-lg p-4 mb-4 bg-card flex flex-col">
+    <div className="border rounded-lg pt-2 px-4 pb-4 mb-4 bg-card flex flex-col">
+      {/* Back Button Bar */}
+      <div className="flex items-center mb-4">
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
+          aria-label="Go back" 
+        >
+          <ChevronLeft size={24} />
+        </button>
+      </div>
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center justify-between">
           {avatarUrlWithCacheBuster && (
@@ -188,7 +185,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <div className="cursor-pointer py-1 pl-11">
+        <div className="py-1 pl-11">
           <p className="mb-3 text-base whitespace-pre-wrap leading-relaxed">
             {linkifyMentions(log.content, mentionedProfiles)}
           </p>
@@ -206,23 +203,52 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
         </div>
       )}
 
-      {/* Actions (Likes, Edit/Delete) */}
-      <LogActions
-        log={log}
-        currentUserId={user?.id || null}
-        likesCount={currentLikesCount}
-        hasLiked={currentHasLiked}
-        initialCommentsCount={log.log_comments.length}
-        isEditing={isEditing}
-        onEditClick={() => setIsEditing(true)}
-        onLikeStatusChange={handleLikeStatusChange}
-      />
+      {/* Actions (Likes, Comments, Share, Save) */}
+      <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
+        <button
+          onClick={handleLike}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
+        >
+          <HeartIcon
+            className={
+              currentHasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500 hover:fill-red-500"
+            }
+            size={18}
+          />
+          <span>{currentLikesCount}</span>
+        </button>
+        <button
+          onClick={() => {
+            setShowComments(!showComments);
+          }}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+        >
+          <MessageCircle size={18} />
+          <span>{commentsCount}</span>
+        </button>
+        <button
+          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
+        >
+          <Share2 size={18} />
+        </button>
+        <button
+          onClick={() => console.log("Save button clicked!")}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+        >
+          <Bookmark size={18} />
+        </button>
+      </div>
 
       {/* Comments Section */}
       <div className="mt-8 pt-4">
-        <h2 className="text-xl font-semibold mb-4">Comments</h2>
-        <CommentForm logId={log.id} currentUserId={user?.id || null} />
-        <CommentList logId={log.id} currentUserId={user?.id || null} />
+        <CommentList 
+          logId={log.id} 
+          currentUserId={user?.id || null} 
+          pageSize={10} 
+          showPaginationButtons={true} 
+        />
+        <CommentForm logId={log.id} currentUserId={user?.id || null} onCommentAdded={handleCommentAdded} />
       </div>
     </div>
   );
