@@ -84,10 +84,10 @@ export default async function MeetupPage() {
       <h1 className="text-3xl font-bold mb-6">모임 목록</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {meetups.map((meetup) => (
-          <div
-            key={meetup.id}
-            className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden"
-          >
+          <Link href={`/meetup/${meetup.id}`} key={meetup.id} className="block">
+            <div
+              className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden"
+            >
             <div className="relative">
               <img
                 src={
@@ -146,6 +146,7 @@ export default async function MeetupPage() {
             </div>
             </div>
           </div>
+          </Link>
         ))}
       </div>
     </div>
