@@ -143,11 +143,15 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           >
             <SquareMinus size={16} />
           </Button>
-          <div className="border-l h-6 mx-2"></div> {/* Separator */}          
+          <div className="border-l h-6 mx-2"></div> {/* Separator */}
           <Button
             type="button"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            disabled={!editor.can().chain().focus().toggleHeading({ level: 1 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            disabled={
+              !editor.can().chain().focus().toggleHeading({ level: 1 }).run()
+            }
             variant={isHeading1Active ? "default" : "outline"}
             size="sm"
           >
@@ -155,8 +159,12 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           </Button>
           <Button
             type="button"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            disabled={!editor.can().chain().focus().toggleHeading({ level: 2 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            disabled={
+              !editor.can().chain().focus().toggleHeading({ level: 2 }).run()
+            }
             variant={isHeading2Active ? "default" : "outline"}
             size="sm"
           >
@@ -164,8 +172,12 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           </Button>
           <Button
             type="button"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            disabled={!editor.can().chain().focus().toggleHeading({ level: 3 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+            disabled={
+              !editor.can().chain().focus().toggleHeading({ level: 3 }).run()
+            }
             variant={isHeading3Active ? "default" : "outline"}
             size="sm"
           >
@@ -173,11 +185,10 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           </Button>
         </div>
       )}
-      <div className="max-h-[80vh] overflow-y-auto">
+      <div className="max-h-[60vh] overflow-y-auto">
         <EditorContent editor={editor} />
       </div>
     </div>
-    
   );
 };
 
