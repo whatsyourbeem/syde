@@ -12,11 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { updateMeetup } from "@/app/meetup/actions";
+import { updateMeetup, uploadMeetupThumbnail } from "@/app/meetup/actions";
 import { toast } from "sonner";
 import { Database, Tables, Enums } from "@/types/database.types";
+import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
 
-type Meetup = Tables<'meetups'>;
+type Meetup = Tables<"meetups">;
 
 interface MeetupEditFormProps {
   meetup: Meetup;
@@ -28,22 +29,70 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
   const [title, setTitle] = useState(meetup.title);
   const [description, setDescription] = useState(meetup.description || "");
   const [thumbnailUrl, setThumbnailUrl] = useState(meetup.thumbnail_url || "");
-  const [category, setCategory] = useState<Enums<'meetup_category_enum'>>(meetup.category);
-  const [locationType, setLocationType] = useState<Enums<'meetup_location_type_enum'>>(meetup.location_type);
-  const [status, setStatus] = useState<Enums<'meetup_status_enum'>>(meetup.status);
-  const [startDatetime, setStartDatetime] = useState(meetup.start_datetime ? new Date(meetup.start_datetime).toISOString().slice(0, 16) : "");
-  const [endDatetime, setEndDatetime] = useState(meetup.end_datetime ? new Date(meetup.end_datetime).toISOString().slice(0, 16) : "");
-  const [locationDescription, setLocationDescription] = useState(meetup.location_description || "");
-  const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup.max_participants || "");
+  const [category, setCategory] = useState<Enums<"meetup_category_enum">>(
+    meetup.category
+  );
+  const [locationType, setLocationType] = useState<
+    Enums<"meetup_location_type_enum">
+  >(meetup.location_type);
+  const [status, setStatus] = useState<Enums<"meetup_status_enum">>(
+    meetup.status
+  );
+  const [startDatetime, setStartDatetime] = useState(
+    meetup.start_datetime
+      ? new Date(meetup.start_datetime).toISOString().slice(0, 16)
+      : ""
+  );
+  const [endDatetime, setEndDatetime] = useState(
+    meetup.end_datetime
+      ? new Date(meetup.end_datetime).toISOString().slice(0, 16)
+      : ""
+  );
+  const [locationDescription, setLocationDescription] = useState(
+    meetup.location_description || ""
+  );
+  const [maxParticipants, setMaxParticipants] = useState<number | string>(
+    meetup.max_participants || ""
+  );
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+    meetup.thumbnail_url
+  );
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setThumbnailFile(file);
+      setThumbnailPreview(URL.createObjectURL(file));
+    } else {
+      setThumbnailFile(null);
+      setThumbnailPreview(meetup.thumbnail_url);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    let finalThumbnailUrl = thumbnailUrl;
+    if (thumbnailFile) {
+      const formData = new FormData();
+      formData.append("file", thumbnailFile);
+      formData.append("meetupId", meetup.id);
+
+      const uploadResult = await uploadMeetupThumbnail(formData);
+      if (uploadResult?.error) {
+        toast.error("썸네일 이미지 업로드 실패: " + uploadResult.error);
+        return;
+      }
+      finalThumbnailUrl = uploadResult.publicUrl as string;
+    } else {
+    }
 
     const formData = new FormData();
     formData.append("id", meetup.id);
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("thumbnailUrl", thumbnailUrl);
+    formData.append("thumbnailUrl", finalThumbnailUrl);
     formData.append("category", category);
     formData.append("locationType", locationType);
     formData.append("status", status);
@@ -64,7 +113,12 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">모임 제목</label>
+        <label
+          htmlFor="title"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          모임 제목
+        </label>
         <Input
           id="title"
           value={title}
@@ -74,28 +128,54 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">모임 상세 설명</label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={5}
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          모임 상세 설명
+        </label>
+        <MeetupDescriptionEditor
+          initialDescription={meetup.description}
+          onDescriptionChange={setDescription}
         />
       </div>
 
       <div>
-        <label htmlFor="thumbnailUrl" className="block text-sm font-medium text-gray-700 mb-1">썸네일 이미지 URL</label>
+        <label
+          htmlFor="thumbnailFile"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          썸네일 이미지
+        </label>
+        {thumbnailPreview && (
+          <img
+            src={thumbnailPreview}
+            alt="썸네일 미리보기"
+            className="w-48 h-32 object-cover rounded-md mb-2"
+          />
+        )}
         <Input
-          id="thumbnailUrl"
-          value={thumbnailUrl}
-          onChange={(e) => setThumbnailUrl(e.target.value)}
+          id="thumbnailFile"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-          <Select value={category} onValueChange={(value: Enums<'meetup_category_enum'>) => setCategory(value)}>
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            카테고리
+          </label>
+          <Select
+            value={category}
+            onValueChange={(value: Enums<"meetup_category_enum">) =>
+              setCategory(value)
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="카테고리 선택" />
             </SelectTrigger>
@@ -109,8 +189,18 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
         </div>
 
         <div>
-          <label htmlFor="locationType" className="block text-sm font-medium text-gray-700 mb-1">진행 방식</label>
-          <Select value={locationType} onValueChange={(value: Enums<'meetup_location_type_enum'>) => setLocationType(value)}>
+          <label
+            htmlFor="locationType"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            진행 방식
+          </label>
+          <Select
+            value={locationType}
+            onValueChange={(value: Enums<"meetup_location_type_enum">) =>
+              setLocationType(value)
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder="진행 방식 선택" />
             </SelectTrigger>
@@ -123,8 +213,18 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
       </div>
 
       <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">상태</label>
-        <Select value={status} onValueChange={(value: Enums<'meetup_status_enum'>) => setStatus(value)}>
+        <label
+          htmlFor="status"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          상태
+        </label>
+        <Select
+          value={status}
+          onValueChange={(value: Enums<"meetup_status_enum">) =>
+            setStatus(value)
+          }
+        >
           <SelectTrigger>
             <SelectValue placeholder="상태 선택" />
           </SelectTrigger>
@@ -139,7 +239,12 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="startDatetime" className="block text-sm font-medium text-gray-700 mb-1">시작 일시</label>
+          <label
+            htmlFor="startDatetime"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            시작 일시
+          </label>
           <Input
             id="startDatetime"
             type="datetime-local"
@@ -148,7 +253,12 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
           />
         </div>
         <div>
-          <label htmlFor="endDatetime" className="block text-sm font-medium text-gray-700 mb-1">종료 일시</label>
+          <label
+            htmlFor="endDatetime"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            종료 일시
+          </label>
           <Input
             id="endDatetime"
             type="datetime-local"
@@ -159,7 +269,12 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
       </div>
 
       <div>
-        <label htmlFor="locationDescription" className="block text-sm font-medium text-gray-700 mb-1">장소 상세 설명</label>
+        <label
+          htmlFor="locationDescription"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          장소 상세 설명
+        </label>
         <Input
           id="locationDescription"
           value={locationDescription}
@@ -168,7 +283,12 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
       </div>
 
       <div>
-        <label htmlFor="maxParticipants" className="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
+        <label
+          htmlFor="maxParticipants"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          최대 인원
+        </label>
         <Input
           id="maxParticipants"
           type="number"
@@ -179,12 +299,14 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={() => router.push(`/meetup/${meetup.id}`)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push(`/meetup/${meetup.id}`)}
+        >
           취소
         </Button>
-        <Button type="submit">
-          저장
-        </Button>
+        <Button type="submit">저장</Button>
       </div>
     </form>
   );

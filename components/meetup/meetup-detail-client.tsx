@@ -159,15 +159,20 @@ export default function MeetupDetailClient({
       />
 
       {/* 모임 상세 설명 */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6">
         <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
-        <p className="text-gray-700 whitespace-pre-wrap">
-          {meetup.description}
-        </p>
+        {meetup.description && meetup.description !== "<p></p>" ? (
+          <div
+            className="prose max-w-none text-gray-700 whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: meetup.description }}
+          />
+        ) : (
+          <p className="text-gray-500">작성된 모임 상세 설명이 없습니다.</p>
+        )}
       </div>
 
       {/* 참가자 목록 */}
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <div className="bg-white rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-3">
           참가자 ({meetup.meetup_participants.length}명)
         </h2>

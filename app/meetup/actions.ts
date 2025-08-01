@@ -51,3 +51,43 @@ export async function updateMeetup(formData: FormData) {
   revalidatePath("/meetup");
   redirect(`/meetup/${id}`);
 }
+
+export async function uploadMeetupThumbnail(formData: FormData) {
+  const file = formData.get("file") as File;
+  const meetupId = formData.get("meetupId") as string;
+
+  if (!file) {
+    return { error: "파일이 없습니다." };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "인증되지 않은 사용자입니다." };
+  }
+
+  const fileName = `${meetupId}/${Date.now()}_${file.name}`;
+
+  const { data, error } = await supabase.storage
+    .from("meetup-thumbnails")
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("Error uploading thumbnail:", error);
+    return { error: error.message };
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("meetup-thumbnails")
+    .getPublicUrl(fileName);
+
+  if (!publicUrlData || !publicUrlData.publicUrl) {
+    return { error: "공개 URL을 가져올 수 없습니다." };
+  }
+
+  return { publicUrl: publicUrlData.publicUrl };
+}
