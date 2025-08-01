@@ -14,21 +14,9 @@ import {
 import { useRouter } from "next/navigation";
 import { updateMeetup } from "@/app/meetup/actions";
 import { toast } from "sonner";
+import { Database, Tables, Enums } from "@/types/database.types";
 
-// 임시 타입 정의 (나중에 database.types.ts에서 가져올 것)
-interface Meetup {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  category: "스터디" | "챌린지" | "네트워킹" | "기타";
-  location_type: "온라인" | "오프라인";
-  status: "오픈예정" | "신청가능" | "신청마감" | "종료";
-  start_datetime: string | null;
-  end_datetime: string | null;
-  location_description: string | null;
-  max_participants: number | null;
-}
+type Meetup = Tables<'meetups'>;
 
 interface MeetupEditFormProps {
   meetup: Meetup;
@@ -40,13 +28,13 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
   const [title, setTitle] = useState(meetup.title);
   const [description, setDescription] = useState(meetup.description || "");
   const [thumbnailUrl, setThumbnailUrl] = useState(meetup.thumbnail_url || "");
-  const [category, setCategory] = useState(meetup.category);
-  const [locationType, setLocationType] = useState(meetup.location_type);
-  const [status, setStatus] = useState(meetup.status);
+  const [category, setCategory] = useState<Enums<'meetup_category_enum'>>(meetup.category);
+  const [locationType, setLocationType] = useState<Enums<'meetup_location_type_enum'>>(meetup.location_type);
+  const [status, setStatus] = useState<Enums<'meetup_status_enum'>>(meetup.status);
   const [startDatetime, setStartDatetime] = useState(meetup.start_datetime ? new Date(meetup.start_datetime).toISOString().slice(0, 16) : "");
   const [endDatetime, setEndDatetime] = useState(meetup.end_datetime ? new Date(meetup.end_datetime).toISOString().slice(0, 16) : "");
   const [locationDescription, setLocationDescription] = useState(meetup.location_description || "");
-  const [maxParticipants, setMaxParticipants] = useState(meetup.max_participants || "");
+  const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup.max_participants || "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +95,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-          <Select value={category} onValueChange={(value: "스터디" | "챌린지" | "네트워킹" | "기타") => setCategory(value)}>
+          <Select value={category} onValueChange={(value: Enums<'meetup_category_enum'>) => setCategory(value)}>
             <SelectTrigger>
               <SelectValue placeholder="카테고리 선택" />
             </SelectTrigger>
@@ -122,7 +110,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
 
         <div>
           <label htmlFor="locationType" className="block text-sm font-medium text-gray-700 mb-1">진행 방식</label>
-          <Select value={locationType} onValueChange={(value: "온라인" | "오프라인") => setLocationType(value)}>
+          <Select value={locationType} onValueChange={(value: Enums<'meetup_location_type_enum'>) => setLocationType(value)}>
             <SelectTrigger>
               <SelectValue placeholder="진행 방식 선택" />
             </SelectTrigger>
@@ -136,7 +124,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
 
       <div>
         <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">상태</label>
-        <Select value={status} onValueChange={(value: "오픈예정" | "신청가능" | "신청마감" | "종료") => setStatus(value)}>
+        <Select value={status} onValueChange={(value: Enums<'meetup_status_enum'>) => setStatus(value)}>
           <SelectTrigger>
             <SelectValue placeholder="상태 선택" />
           </SelectTrigger>
