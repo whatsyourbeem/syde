@@ -211,9 +211,12 @@ export type Database = {
           category: Database["public"]["Enums"]["meetup_category_enum"];
           created_at: string;
           description: string | null;
+          end_datetime: string | null;
           id: string;
+          location_description: string | null;
           location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id: string;
+          start_datetime: string | null;
           status: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url: string | null;
           title: string;
@@ -222,9 +225,12 @@ export type Database = {
           category?: Database["public"]["Enums"]["meetup_category_enum"];
           created_at?: string;
           description?: string | null;
+          end_datetime?: string | null;
           id?: string;
+          location_description?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id: string;
+          start_datetime?: string | null;
           status?: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url?: string | null;
           title: string;
@@ -233,9 +239,12 @@ export type Database = {
           category?: Database["public"]["Enums"]["meetup_category_enum"];
           created_at?: string;
           description?: string | null;
+          end_datetime?: string | null;
           id?: string;
+          location_description?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id?: string;
+          start_datetime?: string | null;
           status?: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url?: string | null;
           title?: string;

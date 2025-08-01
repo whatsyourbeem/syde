@@ -2,6 +2,22 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Clock, MapPin } from "lucide-react";
+
+// 날짜 포맷 헬퍼 함수 추가
+function formatDate(dateString: string, includeYear: boolean = true) {
+  const date = new Date(dateString);
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
+
+  if (includeYear) {
+    return `${year}.${month}.${day}(${weekday})`;
+  } else {
+    return `${month}.${day}(${weekday})`;
+  }
+}
 
 function getCategoryBadgeClass(category: string) {
   switch (category) {
@@ -50,7 +66,7 @@ export default async function MeetupPage() {
   const { data: meetups, error } = await supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status"
+      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description"
     )
     .order("created_at", { ascending: false });
 
@@ -103,7 +119,7 @@ export default async function MeetupPage() {
                   </AvatarFallback>
                 </Avatar>
                 <p>
-                  <span className="font-semibold">
+                  <span className="font-semibold text-black">
                     {meetup.organizer_profile?.full_name ||
                       meetup.organizer_profile?.username ||
                       "알 수 없음"}
@@ -111,6 +127,23 @@ export default async function MeetupPage() {
                   <span className="ml-1">모임장</span>
                 </p>
               </div>
+            <div className="text-sm text-gray-500 mt-2">
+              {meetup.start_datetime && (
+                <p className="tracking-wide flex items-center gap-1 mb-1">
+                  <Clock className="size-4" />
+                  {formatDate(meetup.start_datetime)}
+                  {meetup.end_datetime &&
+                  formatDate(meetup.start_datetime) !== formatDate(meetup.end_datetime) &&
+                    ` - ${formatDate(meetup.end_datetime, false)}`}
+                </p>
+              )}
+              {meetup.location_description && (
+                <p className="flex items-center gap-1">
+                  <MapPin className="size-4" />
+                  {meetup.location_description}
+                </p>
+              )}
+            </div>
             </div>
           </div>
         ))}
