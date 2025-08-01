@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -159,6 +167,74 @@ export type Database = {
           {
             foreignKeyName: "logs_user_id_fkey";
             columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      meetup_participants: {
+        Row: {
+          joined_at: string;
+          meetup_id: string;
+          user_id: string;
+        };
+        Insert: {
+          joined_at?: string;
+          meetup_id: string;
+          user_id: string;
+        };
+        Update: {
+          joined_at?: string;
+          meetup_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "meetup_participants_meetup_id_fkey";
+            columns: ["meetup_id"];
+            isOneToOne: false;
+            referencedRelation: "meetups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "meetup_participants_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      meetups: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          organizer_id: string;
+          thumbnail_url: string | null;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          organizer_id: string;
+          thumbnail_url?: string | null;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          organizer_id?: string;
+          thumbnail_url?: string | null;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "meetups_organizer_id_fkey";
+            columns: ["organizer_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
