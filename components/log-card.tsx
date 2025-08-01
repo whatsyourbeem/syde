@@ -170,8 +170,8 @@ export function LogCard({
             <Image
               src={avatarUrlWithCacheBuster}
               alt={`${log.profiles?.username || "User"}'s avatar`}
-              width={40}
-              height={40}
+              width={36}
+              height={36}
               className="rounded-full object-cover mr-3"
             />
           </Link>
@@ -179,7 +179,7 @@ export function LogCard({
         <div className="flex-grow">
           <div className="flex items-baseline gap-2">
             <Link href={`/${log.profiles?.username || log.user_id}`}>
-              <p className="font-semibold hover:underline">
+              <p className="font-semibold hover:underline text-log-content">
                 {log.profiles?.full_name ||
                   log.profiles?.username ||
                   "Anonymous"}
@@ -227,7 +227,7 @@ export function LogCard({
         />
       ) : (
         <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px] relative">
-          <p ref={contentRef} className="mb-3 text-base whitespace-pre-wrap overflow-hidden max-h-72">
+          <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
           {showReadMore && (

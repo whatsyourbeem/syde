@@ -50,10 +50,7 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
     <LoginModalContext.Provider value={{ openLoginModal, closeLoginModal }}>
       {children}
       <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-        <DialogContent
-          className="fixed left-[50%] top-[50%] w-[500px] translate-x-[-50%] translate-y-[-50%]"
-          aria-describedby={undefined}
-        >
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Login</DialogTitle>
           </DialogHeader>

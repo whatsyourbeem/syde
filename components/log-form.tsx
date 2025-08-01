@@ -394,7 +394,7 @@ export function LogForm({
             type="file"
             accept="image/*"
             onChange={handleImageChange}
-            className="w-auto"
+            className="w-full max-w-xs text-xs"
             disabled={loading} // Removed || !userId
             ref={fileInputRef} // Attach ref to the Input component
             onClick={() => {
