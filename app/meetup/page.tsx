@@ -22,41 +22,41 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 function getCategoryBadgeClass(category: string) {
   switch (category) {
     case "스터디":
-      return "border border-orange-500 bg-orange-50 text-orange-700";
+      return "border border-orange-500 bg-orange-50 text-orange-700 hover:bg-orange-50 hover:text-orange-700";
     case "챌린지":
-      return "border border-red-500 bg-red-50 text-red-700";
+      return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
     case "네트워킹":
-      return "border border-purple-500 bg-purple-50 text-purple-700";
+      return "border border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-50 hover:text-purple-700";
     case "기타":
-      return "border border-gray-500 bg-gray-50 text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700"; // 기본값
+      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
   }
 }
 
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
     case "온라인":
-      return "border border-blue-500 bg-blue-50 text-blue-700";
+      return "border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-50 hover:text-blue-700";
     case "오프라인":
-      return "border border-green-500 bg-green-50 text-green-700";
+      return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700"; // 기본값
+      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
   }
 }
 
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case "오픈예정":
-      return "border border-gray-400 bg-gray-100 text-gray-700";
+      return "border border-gray-400 bg-gray-100 text-gray-700 hover:bg-gray-100 hover:text-gray-700";
     case "신청가능":
-      return "border border-green-500 bg-green-50 text-green-700";
+      return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
     case "신청마감":
-      return "border border-red-500 bg-red-50 text-red-700";
+      return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
     case "종료":
-      return "border border-gray-500 bg-gray-50 text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
   }
 }
 
@@ -81,12 +81,12 @@ export default async function MeetupPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">모임 목록</h1>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {meetups.map((meetup) => (
           <Link href={`/meetup/${meetup.id}`} key={meetup.id} className="block">
             <div
-              className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden"
+              className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full"
             >
             <div className="relative">
               <img
@@ -95,14 +95,16 @@ export default async function MeetupPage() {
                   "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-thumbnails//default_thumbnail.png"
                 }
                 alt={meetup.title}
-                className="w-full h-48 object-cover rounded-t-lg"
+                className={`w-full h-48 object-cover rounded-t-lg ${meetup.status === '종료' ? 'grayscale opacity-50' : ''}`}
               />
               <div className="absolute top-3 left-3 flex gap-1">
                 <Badge className={getStatusBadgeClass(meetup.status)}>{meetup.status}</Badge>
               </div>
             </div>
             <div className="px-6 pt-4 pb-6">
-              <h2 className="text-base font-semibold mb-2">{meetup.title}</h2>
+              <h2 className="text-base font-semibold mb-2 line-clamp-3">
+                {meetup.title}
+              </h2>
               <div className="flex gap-1 mb-4">
                 <Badge className={getCategoryBadgeClass(meetup.category)}>{meetup.category}</Badge>
                 <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>{meetup.location_type}</Badge>
