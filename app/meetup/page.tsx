@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users } from "lucide-react";
+import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -60,15 +61,24 @@ function getStatusBadgeClass(status: string) {
   }
 }
 
-export default async function MeetupPage() {
+export default async function MeetupPage({ searchParams }: { searchParams: { status?: string } }) {
   const supabase = await createClient();
 
-  const { data: meetups, error } = await supabase
+  const awaitedSearchParams = await searchParams;
+  const selectedStatus = awaitedSearchParams.status;
+
+  let query = supabase
     .from("meetups")
     .select(
       "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .order("created_at", { ascending: false });
+
+  if (selectedStatus && selectedStatus !== "전체") {
+    query = query.eq("status", selectedStatus);
+  }
+
+  const { data: meetups, error } = await query;
 
   if (error) {
     console.error("Error fetching meetups:", error);
@@ -81,8 +91,13 @@ export default async function MeetupPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4">
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <MeetupStatusFilter searchParams={awaitedSearchParams} />
+      {meetups.length === 0 ? (
+        <div className="text-center text-gray-500 mt-10">
+          <p>해당 모임이 없습니다.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {meetups.map((meetup) => (
           <Link href={`/meetup/${meetup.id}`} key={meetup.id} className="block">
             <div
@@ -156,7 +171,8 @@ export default async function MeetupPage() {
           </div>
           </Link>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
