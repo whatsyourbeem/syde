@@ -4,17 +4,22 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import Image from "@tiptap/extension-image"; // Import Image extension
 import { Button } from "@/components/ui/button";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react"; // Import useRef
 import { cn } from "@/lib/utils";
-import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
+import { List, ListOrdered, Quote, Code, SquareMinus, ImageIcon } from "lucide-react"; // Import ImageIcon
+import { uploadMeetupDescriptionImage } from "@/app/meetup/actions"; // Import server action
+import { toast } from "sonner"; // Import toast for notifications
 
 interface MeetupDescriptionEditorProps {
   initialDescription: string | null;
   onDescriptionChange: (html: string) => void;
+  meetupId: string; // Add meetupId prop
 }
 
-const TiptapEditor = ({ editor }: { editor: any }) => {
+const TiptapEditor = ({ editor, meetupId }: { editor: any; meetupId: string }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isBoldActive, setIsBoldActive] = useState(false);
   const [isItalicActive, setIsItalicActive] = useState(false);
   const [isStrikeActive, setIsStrikeActive] = useState(false);
@@ -44,24 +49,53 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
       setIsHeading3Active(editor.isActive("heading", { level: 3 }));
     };
 
-    // Initial update
     updateActiveStates();
-
-    // Subscribe to selection updates
     editor.on("selectionUpdate", updateActiveStates);
-    editor.on("update", updateActiveStates); // Also listen to general updates
+    editor.on("update", updateActiveStates);
 
-    // Cleanup subscription
     return () => {
       editor.off("selectionUpdate", updateActiveStates);
       editor.off("update", updateActiveStates);
     };
   }, [editor]);
 
+  const handleImageUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file || !meetupId) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("meetupId", meetupId);
+
+      const promise = uploadMeetupDescriptionImage(formData);
+
+      toast.promise(promise, {
+        loading: "이미지를 업로드하는 중입니다...",
+        success: (data) => {
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          if (data.publicUrl) {
+            editor.chain().focus().setImage({ src: data.publicUrl }).run();
+          }
+          return "이미지가 성공적으로 삽입되었습니다.";
+        },
+        error: (err) => `이미지 업로드 실패: ${err.message}`,
+      });
+       // Reset file input
+       if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    [editor, meetupId]
+  );
+
   return (
     <div className="prose max-w-none">
       {editor && (
         <div className="flex flex-wrap gap-1 mb-2 items-center">
+          {/* Existing buttons */}
           <Button
             type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -92,7 +126,24 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           >
             S
           </Button>
-          <div className="border-l h-6 mx-2"></div> {/* Separator */}
+          <div className="border-l h-6 mx-2"></div>
+          {/* Image Upload Button */}
+          <Button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            variant="outline"
+            size="sm"
+          >
+            <ImageIcon size={16} />
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            className="hidden"
+            accept="image/*"
+          />
+          <div className="border-l h-6 mx-2"></div>
           <Button
             type="button"
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
@@ -143,7 +194,7 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           >
             <SquareMinus size={16} />
           </Button>
-          <div className="border-l h-6 mx-2"></div> {/* Separator */}
+          <div className="border-l h-6 mx-2"></div>
           <Button
             type="button"
             onClick={() =>
@@ -195,6 +246,7 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
 export default function MeetupDescriptionEditor({
   initialDescription,
   onDescriptionChange,
+  meetupId, // Receive meetupId
 }: MeetupDescriptionEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -206,6 +258,10 @@ export default function MeetupDescriptionEditor({
       }),
       Placeholder.configure({
         placeholder: "모임 상세 설명을 작성해주세요.",
+      }),
+      Image.configure({ // Configure Image extension
+        inline: false,
+        allowBase64: true,
       }),
     ],
     content: initialDescription === "<p></p>" ? "" : initialDescription || "",
@@ -226,7 +282,7 @@ export default function MeetupDescriptionEditor({
 
   return (
     <div className="my-4 p-4 border rounded-lg bg-card">
-      <TiptapEditor editor={editor} />
+      <TiptapEditor editor={editor} meetupId={meetupId} />
     </div>
   );
 }

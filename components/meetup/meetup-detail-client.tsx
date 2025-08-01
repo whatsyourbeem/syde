@@ -152,7 +152,7 @@ export default function MeetupDetailClient({
       <img
         src={
           meetup.thumbnail_url ||
-          "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-thumbnails//default_thumbnail.png"
+          "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
         }
         alt={meetup.title}
         className="w-full h-64 object-cover rounded-lg mb-6"

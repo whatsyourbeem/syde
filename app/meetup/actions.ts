@@ -70,7 +70,7 @@ export async function uploadMeetupThumbnail(formData: FormData) {
   const fileName = `${meetupId}/${Date.now()}_${file.name}`;
 
   const { data, error } = await supabase.storage
-    .from("meetup-thumbnails")
+    .from("meetup-images")
     .upload(fileName, file, {
       cacheControl: "3600",
       upsert: false,
@@ -82,7 +82,48 @@ export async function uploadMeetupThumbnail(formData: FormData) {
   }
 
   const { data: publicUrlData } = supabase.storage
-    .from("meetup-thumbnails")
+    .from("meetup-images")
+    .getPublicUrl(fileName);
+
+  if (!publicUrlData || !publicUrlData.publicUrl) {
+    return { error: "공개 URL을 가져올 수 없습니다." };
+  }
+
+  return { publicUrl: publicUrlData.publicUrl };
+}
+
+export async function uploadMeetupDescriptionImage(formData: FormData) {
+  const file = formData.get("file") as File;
+  const meetupId = formData.get("meetupId") as string; // Keep meetupId for organization
+
+  if (!file) {
+    return { error: "파일이 없습니다." };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "인증되지 않은 사용자입니다." };
+  }
+
+  // Use a more generic path for description images, organized by meetup
+  const fileName = `${meetupId}/${Date.now()}_${file.name}`;
+
+  const { data, error } = await supabase.storage
+    .from("meetup-images") // A new bucket for description images
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("Error uploading description image:", error);
+    return { error: error.message };
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("meetup-images")
     .getPublicUrl(fileName);
 
   if (!publicUrlData || !publicUrlData.publicUrl) {

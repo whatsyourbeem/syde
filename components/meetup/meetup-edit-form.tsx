@@ -134,10 +134,11 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
         >
           모임 상세 설명
         </label>
-        <MeetupDescriptionEditor
+        '''        <MeetupDescriptionEditor
           initialDescription={meetup.description}
           onDescriptionChange={setDescription}
-        />
+          meetupId={meetup.id}
+        />'''
       </div>
 
       <div>
