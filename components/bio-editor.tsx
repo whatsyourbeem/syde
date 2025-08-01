@@ -9,6 +9,7 @@ import { useState, useCallback, useEffect } from "react";
 import { updateBio } from "@/app/[username]/actions"; // will create this server action
 import { toast } from "sonner";
 import { cn } from "@/lib/utils"; // Import cn utility
+import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
 
 interface BioEditorProps {
   initialBio: string | null;
@@ -63,71 +64,81 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
   return (
     <div className="prose max-w-none">
       {editor && (
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1 mb-2 items-center">
           <Button
             onClick={() => editor.chain().focus().toggleBold().run()}
             disabled={!editor.can().chain().focus().toggleBold().run()}
             variant={isBoldActive ? "default" : "outline"}
             size="sm"
+            className="font-bold text-base"
           >
-            Bold
+            B
           </Button>
           <Button
             onClick={() => editor.chain().focus().toggleItalic().run()}
             disabled={!editor.can().chain().focus().toggleItalic().run()}
             variant={isItalicActive ? "default" : "outline"}
             size="sm"
+            className="italic text-base font-serif"
           >
-            Italic
+            I
           </Button>
           <Button
             onClick={() => editor.chain().focus().toggleStrike().run()}
             disabled={!editor.can().chain().focus().toggleStrike().run()}
             variant={isStrikeActive ? "default" : "outline"}
             size="sm"
+            className="line-through text-base"
           >
-            Strike
+            S
           </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleCode().run()}
-            disabled={!editor.can().chain().focus().toggleCode().run()}
-            variant={isCodeActive ? "default" : "outline"}
-            size="sm"
-          >
-            Code
-          </Button>
+          <div className="border-l h-6 mx-2"></div> {/* Separator */}
           <Button
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
             variant={isCodeBlockActive ? "default" : "outline"}
             size="sm"
+            className="flex items-center justify-center"
           >
-            Code Block
+            <Code size={16} />
           </Button>
           <Button
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             disabled={!editor.can().chain().focus().toggleBlockquote().run()}
             variant={isBlockquoteActive ? "default" : "outline"}
             size="sm"
+            className="flex items-center justify-center"
           >
-            Blockquote
+            <Quote size={10} />
           </Button>
           <Button
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             disabled={!editor.can().chain().focus().toggleBulletList().run()}
             variant={isBulletListActive ? "default" : "outline"}
             size="sm"
+            className="flex items-center justify-center"
           >
-            Bullet List
+            <List size={16} />
           </Button>
           <Button
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             disabled={!editor.can().chain().focus().toggleOrderedList().run()}
             variant={isOrderedListActive ? "default" : "outline"}
             size="sm"
+            className="flex items-center justify-center"
           >
-            Ordered List
+            <ListOrdered size={16} />
           </Button>
+          <Button
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            disabled={!editor.can().chain().focus().setHorizontalRule().run()}
+            variant="outline"
+            size="sm"
+            className="flex items-center justify-center"
+          >
+            <SquareMinus size={16} />
+          </Button>
+          <div className="border-l h-6 mx-2"></div> {/* Separator */}          
           <Button
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             disabled={!editor.can().chain().focus().toggleHeading({ level: 1 }).run()}
@@ -152,34 +163,11 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           >
             H3
           </Button>
-          <Button
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            disabled={!editor.can().chain().focus().setHorizontalRule().run()}
-            variant="outline"
-            size="sm"
-          >
-            HR
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().undo().run()}
-            disabled={!editor.can().undo()}
-            variant="outline"
-            size="sm"
-          >
-            Undo
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().redo().run()}
-            disabled={!editor.can().redo()}
-            variant="outline"
-            size="sm"
-          >
-            Redo
-          </Button>
         </div>
       )}
       <EditorContent editor={editor} />
     </div>
+    
   );
 };
 
@@ -188,7 +176,7 @@ export default function BioEditor({
   isOwnProfile,
   profileId,
 }: BioEditorProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // Re-add this state
   const [isLoading, setIsLoading] = useState(false);
 
   const editor = useEditor({
@@ -196,14 +184,14 @@ export default function BioEditor({
     extensions: [
       StarterKit,
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         autolink: true,
       }),
       Placeholder.configure({
-        placeholder: "자유 소개를 작성해주세요...",
+        placeholder: "당신의 SYDE를 자유롭게 표현해보세요.",
       }),
     ],
-    content: initialBio || "",
+    content: initialBio === "<p></p>" ? "" : initialBio || "",
     editable: isEditing,
     onUpdate: ({ editor }) => {
       // No longer updating selectionKey here
@@ -235,7 +223,7 @@ export default function BioEditor({
       });
     } else {
       toast.success("자유 소개 저장 완료");
-      setIsEditing(false);
+      setIsEditing(false); // Revert to setIsEditing(false)
     }
     setIsLoading(false);
   }, [editor, profileId]);
@@ -244,7 +232,7 @@ export default function BioEditor({
     if (editor) {
       editor.commands.setContent(initialBio || ""); // Revert to initial content
     }
-    setIsEditing(false);
+    setIsEditing(false); // Revert to setIsEditing(false)
   }, [editor, initialBio]);
 
   if (!editor) {
@@ -252,44 +240,51 @@ export default function BioEditor({
   }
 
   return (
-    <div className="mt-4 p-4 border rounded-lg bg-card">
+    <div>
       {isEditing ? (
         <>
-          <TiptapEditor editor={editor} />
-          <div className="mt-4 flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              취소
-            </Button>
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "저장 중..." : "저장"}
-            </Button>
+          <div className="my-4 p-4 border rounded-lg bg-card">
+            <>
+              <TiptapEditor editor={editor} />
+            </>
           </div>
-        </>
+          <div className="mt-4 flex justify-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
+                취소
+              </Button>
+              <Button onClick={handleSave} disabled={isLoading}>
+                {isLoading ? "저장 중..." : "저장"}
+              </Button>
+          </div>
+        </>        
       ) : (
         <div className="flex flex-col">
           {initialBio && initialBio !== "<p></p>" ? (
             <div
-              className="prose max-w-none text-muted-foreground whitespace-pre-wrap"
+              className="p-4 prose max-w-none text-muted-foreground whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: initialBio }}
             />
           ) : (
-            <p className="text-muted-foreground text-center">
+            <p className="m-4 p-4 text-muted-foreground text-center">
               {isOwnProfile
                 ? "자유 소개를 작성해주세요."
                 : "작성된 자유 소개가 없습니다."}
             </p>
           )}
           {isOwnProfile && (
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex justify-center">
               <Button onClick={() => setIsEditing(true)}>수정</Button>
             </div>
           )}
         </div>
-      )}
+      )
+      }
+      
     </div>
+    
   );
 }

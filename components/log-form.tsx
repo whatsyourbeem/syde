@@ -15,6 +15,7 @@ interface LogFormProps {
   userEmail?: string | null; // Made optional for editing
   avatarUrl?: string | null; // Made optional for editing
   username?: string | null; // Made optional for editing
+  full_name?: string | null; // Added for full_name display
   initialLogData?: Database['public']['Tables']['logs']['Row']; // New prop for editing
   onLogUpdated?: (updatedLog: Database['public']['Tables']['logs']['Row']) => void; // Callback for successful update
   onCancel?: () => void; // Callback for cancel button in edit mode
@@ -27,6 +28,7 @@ export function LogForm({
   userEmail,
   avatarUrl,
   username,
+  full_name, // Add full_name here
   initialLogData,
   onLogUpdated,
   onCancel,
@@ -331,7 +333,7 @@ export function LogForm({
               />
             )}
             <div>
-              <p className="font-semibold">{username || userEmail}</p>
+              <p className="font-semibold">{full_name || username || userEmail}</p>
             </div>
           </div>
         )}

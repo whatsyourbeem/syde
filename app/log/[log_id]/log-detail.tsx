@@ -129,9 +129,9 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const formattedLogDate = log.created_at ? formatRelativeTime(log.created_at) : '';
 
   return (
-    <div className="border rounded-lg pt-2 px-4 pb-4 mb-4 bg-card flex flex-col">
+    <div className="border rounded-lg p-4 mb-4 bg-card flex flex-col">
       {/* Back Button Bar */}
-      <div className="flex items-center mb-4">
+      <div className="flex items-center mb-2">
         <button
           onClick={() => router.back()}
           className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
@@ -140,6 +140,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           <ChevronLeft size={24} />
         </button>
       </div>
+      <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center justify-between">
           {avatarUrlWithCacheBuster && (
@@ -249,7 +250,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
         </button>
         <button
           onClick={() => {
-            setShowComments(!showComments);
+            // setShowComments(!showComments);
           }}
           className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
         >
@@ -271,7 +272,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
       </div>
 
       {/* Comments Section */}
-      <div className="mt-8 pt-4">
+      <div className="mt-2 pt-4">
         <CommentList 
           logId={log.id} 
           currentUserId={user?.id || null} 

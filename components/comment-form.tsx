@@ -218,7 +218,6 @@ export function CommentForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2 m-4 relative">
-      <label className="font-semibold">댓글</label>
       <div className="flex gap-2">
         <div className="flex-grow relative">
           <Input // Change to Input
