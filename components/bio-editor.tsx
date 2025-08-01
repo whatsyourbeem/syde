@@ -138,26 +138,38 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           >
             <SquareMinus size={16} />
           </Button>
-          <div className="border-l h-6 mx-2"></div> {/* Separator */}          
+          <div className="border-l h-6 mx-2"></div> {/* Separator */}
           <Button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            disabled={!editor.can().chain().focus().toggleHeading({ level: 1 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            disabled={
+              !editor.can().chain().focus().toggleHeading({ level: 1 }).run()
+            }
             variant={isHeading1Active ? "default" : "outline"}
             size="sm"
           >
             H1
           </Button>
           <Button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            disabled={!editor.can().chain().focus().toggleHeading({ level: 2 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            disabled={
+              !editor.can().chain().focus().toggleHeading({ level: 2 }).run()
+            }
             variant={isHeading2Active ? "default" : "outline"}
             size="sm"
           >
             H2
           </Button>
           <Button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            disabled={!editor.can().chain().focus().toggleHeading({ level: 3 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+            disabled={
+              !editor.can().chain().focus().toggleHeading({ level: 3 }).run()
+            }
             variant={isHeading3Active ? "default" : "outline"}
             size="sm"
           >
@@ -165,9 +177,10 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
           </Button>
         </div>
       )}
-      <EditorContent editor={editor} />
+      <div className="max-h-[60vh] overflow-y-auto">
+        <EditorContent editor={editor} />
+      </div>
     </div>
-    
   );
 };
 
@@ -249,18 +262,18 @@ export default function BioEditor({
             </>
           </div>
           <div className="mt-4 flex justify-center space-x-2">
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
-              >
-                취소
-              </Button>
-              <Button onClick={handleSave} disabled={isLoading}>
-                {isLoading ? "저장 중..." : "저장"}
-              </Button>
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isLoading}
+            >
+              취소
+            </Button>
+            <Button onClick={handleSave} disabled={isLoading}>
+              {isLoading ? "저장 중..." : "저장"}
+            </Button>
           </div>
-        </>        
+        </>
       ) : (
         <div className="flex flex-col">
           {initialBio && initialBio !== "<p></p>" ? (
@@ -281,10 +294,7 @@ export default function BioEditor({
             </div>
           )}
         </div>
-      )
-      }
-      
+      )}
     </div>
-    
   );
 }
