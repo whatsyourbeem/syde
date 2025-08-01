@@ -72,7 +72,7 @@ export default async function MeetupDetailPage({ params }: { params: { meetup_id
   const { data: meetup, error } = await supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), meetup_participants(profiles(id, full_name, username, avatar_url)), category, location_type, status, start_datetime, end_datetime, location_description"
+      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), meetup_participants(profiles(id, full_name, username, avatar_url)), category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .eq("id", meetup_id)
     .single();

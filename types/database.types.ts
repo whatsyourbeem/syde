@@ -215,6 +215,7 @@ export type Database = {
           id: string;
           location_description: string | null;
           location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
+          max_participants: number | null;
           organizer_id: string;
           start_datetime: string | null;
           status: Database["public"]["Enums"]["meetup_status_enum"];
@@ -229,6 +230,7 @@ export type Database = {
           id?: string;
           location_description?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
+          max_participants?: number | null;
           organizer_id: string;
           start_datetime?: string | null;
           status?: Database["public"]["Enums"]["meetup_status_enum"];
@@ -243,6 +245,7 @@ export type Database = {
           id?: string;
           location_description?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
+          max_participants?: number | null;
           organizer_id?: string;
           start_datetime?: string | null;
           status?: Database["public"]["Enums"]["meetup_status_enum"];

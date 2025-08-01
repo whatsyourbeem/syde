@@ -27,6 +27,7 @@ interface Meetup {
   start_datetime: string | null;
   end_datetime: string | null;
   location_description: string | null;
+  max_participants: number | null;
 }
 
 interface MeetupEditFormProps {
@@ -45,6 +46,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
   const [startDatetime, setStartDatetime] = useState(meetup.start_datetime ? new Date(meetup.start_datetime).toISOString().slice(0, 16) : "");
   const [endDatetime, setEndDatetime] = useState(meetup.end_datetime ? new Date(meetup.end_datetime).toISOString().slice(0, 16) : "");
   const [locationDescription, setLocationDescription] = useState(meetup.location_description || "");
+  const [maxParticipants, setMaxParticipants] = useState(meetup.max_participants || "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +62,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
     formData.append("startDatetime", startDatetime);
     formData.append("endDatetime", endDatetime);
     formData.append("locationDescription", locationDescription);
+    formData.append("maxParticipants", maxParticipants.toString());
 
     const result = await updateMeetup(formData);
 
@@ -173,6 +176,17 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
           id="locationDescription"
           value={locationDescription}
           onChange={(e) => setLocationDescription(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="maxParticipants" className="block text-sm font-medium text-gray-700 mb-1">최대 인원</label>
+        <Input
+          id="maxParticipants"
+          type="number"
+          value={maxParticipants}
+          onChange={(e) => setMaxParticipants(e.target.value)}
+          min="1"
         />
       </div>
 

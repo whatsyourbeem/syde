@@ -15,6 +15,7 @@ export async function updateMeetup(formData: FormData) {
   const startDatetime = formData.get("startDatetime") as string;
   const endDatetime = formData.get("endDatetime") as string;
   const locationDescription = formData.get("locationDescription") as string;
+  const maxParticipants = formData.get("maxParticipants") as string;
 
   const supabase = await createClient();
 
@@ -36,6 +37,7 @@ export async function updateMeetup(formData: FormData) {
       start_datetime: startDatetime || null,
       end_datetime: endDatetime || null,
       location_description: locationDescription || null,
+      max_participants: maxParticipants ? parseInt(maxParticipants) : null,
     })
     .eq("id", id)
     .eq("organizer_id", user.id); // 모임장만 수정 가능하도록

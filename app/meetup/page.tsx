@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Users } from "lucide-react";
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -66,7 +66,7 @@ export default async function MeetupPage() {
   const { data: meetups, error } = await supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description"
+      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .order("created_at", { ascending: false });
 
@@ -128,6 +128,12 @@ export default async function MeetupPage() {
                 </p>
               </div>
             <div className="text-sm text-gray-500 mt-2">
+              {meetup.max_participants && (
+                <p className="flex items-center gap-1 mb-1">
+                  <Users className="size-4" />
+                  {meetup.max_participants}명
+                </p>
+              )}
               {meetup.start_datetime && (
                 <p className="tracking-wide flex items-center gap-1 mb-1">
                   <Clock className="size-4" />
