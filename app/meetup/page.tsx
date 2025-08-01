@@ -1,6 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+
+function getCategoryBadgeClass(category: string) {
+  switch (category) {
+    case "스터디":
+      return "border border-orange-500 bg-orange-50 text-orange-700";
+    case "챌린지":
+      return "border border-red-500 bg-red-50 text-red-700";
+    case "네트워킹":
+      return "border border-purple-500 bg-purple-50 text-purple-700";
+    case "기타":
+      return "border border-gray-500 bg-gray-50 text-gray-700";
+    default:
+      return "border border-gray-500 bg-gray-50 text-gray-700"; // 기본값
+  }
+}
+
+function getLocationTypeBadgeClass(locationType: string) {
+  switch (locationType) {
+    case "온라인":
+      return "border border-blue-500 bg-blue-50 text-blue-700";
+    case "오프라인":
+      return "border border-green-500 bg-green-50 text-green-700";
+    default:
+      return "border border-gray-500 bg-gray-50 text-gray-700"; // 기본값
+  }
+}
 
 export default async function MeetupPage() {
   const supabase = await createClient();
@@ -8,7 +35,7 @@ export default async function MeetupPage() {
   const { data: meetups, error } = await supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url"
+      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type"
     )
     .order("created_at", { ascending: false });
 
@@ -28,16 +55,22 @@ export default async function MeetupPage() {
         {meetups.map((meetup) => (
           <div
             key={meetup.id}
-            className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200"
+            className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden"
           >
-            <img
-              src={
-                meetup.thumbnail_url ||
-                "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-thumbnails//default_thumbnail.png"
-              }
-              alt={meetup.title}
-              className="w-full h-48 object-cover rounded-t-lg"
-            />
+            <div className="relative">
+              <img
+                src={
+                  meetup.thumbnail_url ||
+                  "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-thumbnails//default_thumbnail.png"
+                }
+                alt={meetup.title}
+                className="w-full h-48 object-cover rounded-t-lg"
+              />
+              <div className="absolute top-3 left-3 flex gap-1">
+                <Badge className={getCategoryBadgeClass(meetup.category)}>{meetup.category}</Badge>
+                <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>{meetup.location_type}</Badge>
+              </div>
+            </div>
             <div className="px-6 pt-4 pb-6">
               <h2 className="text-base font-semibold mb-2">{meetup.title}</h2>
               <div className="text-sm text-gray-500 flex items-center gap-2">

@@ -208,25 +208,31 @@ export type Database = {
       };
       meetups: {
         Row: {
+          category: Database["public"]["Enums"]["meetup_category_enum"];
           created_at: string;
           description: string | null;
           id: string;
+          location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id: string;
           thumbnail_url: string | null;
           title: string;
         };
         Insert: {
+          category?: Database["public"]["Enums"]["meetup_category_enum"];
           created_at?: string;
           description?: string | null;
           id?: string;
+          location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id: string;
           thumbnail_url?: string | null;
           title: string;
         };
         Update: {
+          category?: Database["public"]["Enums"]["meetup_category_enum"];
           created_at?: string;
           description?: string | null;
           id?: string;
+          location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id?: string;
           thumbnail_url?: string | null;
           title?: string;
@@ -344,7 +350,8 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
-      [_ in never]: never;
+      meetup_category_enum: "스터디" | "챌린지" | "네트워킹" | "기타";
+      meetup_location_type_enum: "온라인" | "오프라인";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -474,6 +481,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      meetup_category_enum: ["스터디", "챌린지", "네트워킹", "기타"],
+      meetup_location_type_enum: ["온라인", "오프라인"],
+    },
   },
 } as const;
