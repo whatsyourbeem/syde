@@ -214,6 +214,7 @@ export type Database = {
           id: string;
           location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id: string;
+          status: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url: string | null;
           title: string;
         };
@@ -224,6 +225,7 @@ export type Database = {
           id?: string;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id: string;
+          status?: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url?: string | null;
           title: string;
         };
@@ -234,6 +236,7 @@ export type Database = {
           id?: string;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           organizer_id?: string;
+          status?: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url?: string | null;
           title?: string;
         };
@@ -352,6 +355,7 @@ export type Database = {
     Enums: {
       meetup_category_enum: "스터디" | "챌린지" | "네트워킹" | "기타";
       meetup_location_type_enum: "온라인" | "오프라인";
+      meetup_status_enum: "오픈예정" | "신청가능" | "신청마감" | "종료";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -484,6 +488,7 @@ export const Constants = {
     Enums: {
       meetup_category_enum: ["스터디", "챌린지", "네트워킹", "기타"],
       meetup_location_type_enum: ["온라인", "오프라인"],
+      meetup_status_enum: ["오픈예정", "신청가능", "신청마감", "종료"],
     },
   },
 } as const;

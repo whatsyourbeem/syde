@@ -29,13 +29,28 @@ function getLocationTypeBadgeClass(locationType: string) {
   }
 }
 
+function getStatusBadgeClass(status: string) {
+  switch (status) {
+    case "오픈예정":
+      return "border border-gray-400 bg-gray-100 text-gray-700";
+    case "신청가능":
+      return "border border-green-500 bg-green-50 text-green-700";
+    case "신청마감":
+      return "border border-red-500 bg-red-50 text-red-700";
+    case "종료":
+      return "border border-gray-500 bg-gray-50 text-gray-700";
+    default:
+      return "border border-gray-500 bg-gray-50 text-gray-700";
+  }
+}
+
 export default async function MeetupPage() {
   const supabase = await createClient();
 
   const { data: meetups, error } = await supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type"
+      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status"
     )
     .order("created_at", { ascending: false });
 
@@ -67,12 +82,15 @@ export default async function MeetupPage() {
                 className="w-full h-48 object-cover rounded-t-lg"
               />
               <div className="absolute top-3 left-3 flex gap-1">
-                <Badge className={getCategoryBadgeClass(meetup.category)}>{meetup.category}</Badge>
-                <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>{meetup.location_type}</Badge>
+                <Badge className={getStatusBadgeClass(meetup.status)}>{meetup.status}</Badge>
               </div>
             </div>
             <div className="px-6 pt-4 pb-6">
               <h2 className="text-base font-semibold mb-2">{meetup.title}</h2>
+              <div className="flex gap-1 mb-4">
+                <Badge className={getCategoryBadgeClass(meetup.category)}>{meetup.category}</Badge>
+                <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>{meetup.location_type}</Badge>
+              </div>
               <div className="text-sm text-gray-500 flex items-center gap-2">
                 <Avatar className="size-5">
                   {" "}
