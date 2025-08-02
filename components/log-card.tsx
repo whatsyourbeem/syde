@@ -45,6 +45,7 @@ export function LogCard({
   const [showComments, setShowComments] = useState(false); // State to toggle comments
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
   const [showReadMore, setShowReadMore] = useState(false); // State for "Read More" button
+  const [imageStyle, setImageStyle] = useState<{ aspectRatio: string; objectFit: "cover" | "contain";} | null>(null);
   const contentRef = useRef<HTMLParagraphElement>(null); // Ref for content paragraph
 
   useEffect(() => {
@@ -59,6 +60,8 @@ export function LogCard({
       }
     }
   }, [log.content]);
+
+  
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -244,13 +247,31 @@ export function LogCard({
             </div>
           )}
           {log.image_url && (
-            <div className="relative w-full h-64 mt-3 rounded-md overflow-hidden">
+            <div
+              className="relative w-full max-h-[400px] mt-3 rounded-md overflow-hidden"
+              style={imageStyle ? { aspectRatio: imageStyle.aspectRatio } : {}}
+            >
               <Image
                 src={log.image_url}
                 alt="Log image"
                 fill
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: imageStyle?.objectFit || "contain" }}
                 sizes="(max-width: 768px) 100vw, 672px"
+                onLoad={({ target }) => {
+                  const { naturalWidth, naturalHeight } = target as HTMLImageElement;
+                  const aspectRatio = naturalWidth / naturalHeight;
+                  if (aspectRatio < 3 / 4) {
+                    setImageStyle({
+                      aspectRatio: "3 / 4",
+                      objectFit: "cover",
+                    });
+                  } else {
+                    setImageStyle({
+                      aspectRatio: `${naturalWidth} / ${naturalHeight}`,
+                      objectFit: "contain",
+                    });
+                  }
+                }}
               />
             </div>
           )}

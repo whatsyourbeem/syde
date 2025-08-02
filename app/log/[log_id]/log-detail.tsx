@@ -38,6 +38,10 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [mentionedProfiles, setMentionedProfiles] = useState<any[]>([]);
   const [commentsCount, setCommentsCount] = useState(initialLog.log_comments.length); // Added commentsCount state
+  const [imageStyle, setImageStyle] = useState<{
+    aspectRatio: string;
+    objectFit: "cover" | "contain";
+  } | null>(null);
 
   useEffect(() => {
     const fetchMentionedProfiles = async () => {
@@ -66,6 +70,8 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
 
     fetchMentionedProfiles();
   }, [log.content, supabase]); // Re-run when log content changes
+
+  
 
     const [showComments, setShowComments] = useState(false); // New state for showing/hiding comments
 
@@ -129,7 +135,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const formattedLogDate = log.created_at ? formatRelativeTime(log.created_at) : '';
 
   return (
-    <div className="border rounded-lg p-4 mb-4 bg-card flex flex-col">
+    <div className="p-4 mb-4 bg-card flex flex-col">
       {/* Back Button Bar */}
       <div className="flex items-center mb-2">
         <button
@@ -220,13 +226,16 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           <p className="mb-3 text-base whitespace-pre-wrap leading-relaxed">
             {linkifyMentions(log.content, mentionedProfiles)}
           </p>
-          {log.image_url && (
-            <div className="relative w-full h-72 mt-4 rounded-lg overflow-hidden shadow-md">
+          {log.image_url && imageStyle && (
+            <div
+              className="relative w-full max-h-[400px] mt-4 rounded-lg overflow-hidden shadow-md"
+              style={{ aspectRatio: imageStyle.aspectRatio }}
+            >
               <Image
                 src={log.image_url}
                 alt="Log image"
                 fill
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: imageStyle.objectFit }}
                 sizes="(max-width: 768px) 100vw, 672px"
               />
             </div>
