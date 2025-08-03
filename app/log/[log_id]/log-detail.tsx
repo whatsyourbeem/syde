@@ -44,6 +44,47 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   } | null>(null);
 
   useEffect(() => {
+    if (log.image_url) {
+      const img = new window.Image();
+      img.src = log.image_url;
+      img.onload = () => {
+        if (img.naturalHeight > 0) {
+          const originalAspectRatio = img.naturalWidth / img.naturalHeight;
+          const targetAspectRatio = 3 / 4; // width:height = 3:4
+
+          let finalAspectRatio = originalAspectRatio;
+          let finalObjectFit: "cover" | "contain" = "contain";
+
+          if (originalAspectRatio < targetAspectRatio) {
+            // If original image is taller than 3:4, constrain container to 3:4 and cover
+            finalAspectRatio = targetAspectRatio;
+            finalObjectFit = "cover";
+          } else {
+            // If original image is wider or equal to 3:4, maintain original aspect ratio and contain
+            finalAspectRatio = originalAspectRatio;
+            finalObjectFit = "contain";
+          }
+
+          setImageStyle({
+            aspectRatio: `${finalAspectRatio}`,
+            objectFit: finalObjectFit,
+          });
+
+          setImageStyle({
+            aspectRatio: `${finalAspectRatio}`,
+            objectFit: finalObjectFit,
+          });
+        }
+      };
+      img.onerror = () => {
+        setImageStyle(null);
+      };
+    } else {
+      setImageStyle(null);
+    }
+  }, [log.image_url]);
+
+  useEffect(() => {
     const fetchMentionedProfiles = async () => {
       const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
       const mentionedUserIds = new Set<string>();
@@ -228,7 +269,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           </p>
           {log.image_url && imageStyle && (
             <div
-              className="relative w-full max-h-[400px] mt-4 rounded-lg overflow-hidden shadow-md"
+              className="relative w-full mt-4 rounded-lg overflow-hidden shadow-md"
               style={{ aspectRatio: imageStyle.aspectRatio }}
             >
               <Image

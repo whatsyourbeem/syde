@@ -45,7 +45,12 @@ export function LogCard({
   const [showComments, setShowComments] = useState(false); // State to toggle comments
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
   const [showReadMore, setShowReadMore] = useState(false); // State for "Read More" button
-  const [imageStyle, setImageStyle] = useState<{ aspectRatio: string; objectFit: "cover" | "contain";} | null>(null);
+  const [imageStyle, setImageStyle] = useState<{
+    width?: string;
+    height?: string;
+    aspectRatio?: string;
+    objectFit: "cover" | "contain";
+  } | null>(null);
   const contentRef = useRef<HTMLParagraphElement>(null); // Ref for content paragraph
 
   useEffect(() => {
@@ -61,7 +66,39 @@ export function LogCard({
     }
   }, [log.content]);
 
-  
+  useEffect(() => {
+    if (log.image_url) {
+      const img = new window.Image();
+      img.src = log.image_url;
+      img.onload = () => {
+        if (img.naturalHeight > 0) {
+          const originalAspectRatio = img.naturalWidth / img.naturalHeight;
+          const targetAspectRatio = 3 / 4; // width:height = 3:4
+
+          if (originalAspectRatio < targetAspectRatio) {
+            // If original image is taller than 3:4, fix container to 300px width and 400px height, and cover
+            setImageStyle({
+              width: "300px",
+              height: "400px",
+              objectFit: "cover",
+              margin: "0 auto", // Add this line for center alignment
+            });
+          } else {
+            // If original image is wider or equal to 3:4, maintain original aspect ratio, and contain
+            setImageStyle({
+              aspectRatio: `${originalAspectRatio}`,
+              objectFit: "contain",
+            });
+          }
+        }
+      };
+      img.onerror = () => {
+        setImageStyle(null);
+      };
+    } else {
+      setImageStyle(null);
+    }
+  }, [log.image_url]);
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -248,8 +285,8 @@ export function LogCard({
           )}
           {log.image_url && (
             <div
-              className="relative w-full max-h-[400px] mt-3 rounded-md overflow-hidden"
-              style={imageStyle ? { aspectRatio: imageStyle.aspectRatio } : {}}
+              className="relative w-full mt-3 rounded-md overflow-hidden max-h-[400px]"
+              style={imageStyle ? { ...imageStyle } : {}}
             >
               <Image
                 src={log.image_url}
@@ -257,21 +294,6 @@ export function LogCard({
                 fill
                 style={{ objectFit: imageStyle?.objectFit || "contain" }}
                 sizes="(max-width: 768px) 100vw, 672px"
-                onLoad={({ target }) => {
-                  const { naturalWidth, naturalHeight } = target as HTMLImageElement;
-                  const aspectRatio = naturalWidth / naturalHeight;
-                  if (aspectRatio < 3 / 4) {
-                    setImageStyle({
-                      aspectRatio: "3 / 4",
-                      objectFit: "cover",
-                    });
-                  } else {
-                    setImageStyle({
-                      aspectRatio: `${naturalWidth} / ${naturalHeight}`,
-                      objectFit: "contain",
-                    });
-                  }
-                }}
               />
             </div>
           )}
