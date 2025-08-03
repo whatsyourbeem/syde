@@ -260,7 +260,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
               onClick={() => setShowImageModal(true)} // Add onClick to show modal
             >
               <Image
-                src={log.image_url}
+                src={log.image_url!}
                 alt="Log image"
                 fill
                 style={{ objectFit: imageStyle.objectFit }}
@@ -279,7 +279,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
         >
           <div className="relative max-w-full max-h-full p-4" onClick={(e) => e.stopPropagation()}> {/* Prevent closing when clicking image itself */}
             <Image
-              src={log.image_url}
+              src={log.image_url!}
               alt="Full size log image"
               width={0} // Set width to 0 to allow fill to work
               height={0} // Set height to 0 to allow fill to work
