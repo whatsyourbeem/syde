@@ -50,6 +50,7 @@ export function LogCard({
     height?: string;
     aspectRatio?: string;
     objectFit: "cover" | "contain";
+    margin?: string;
   } | null>(null);
   const contentRef = useRef<HTMLParagraphElement>(null); // Ref for content paragraph
 

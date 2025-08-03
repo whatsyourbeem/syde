@@ -38,6 +38,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [mentionedProfiles, setMentionedProfiles] = useState<any[]>([]);
   const [commentsCount, setCommentsCount] = useState(initialLog.log_comments.length); // Added commentsCount state
+  const [showImageModal, setShowImageModal] = useState(false); // New state for image modal
   const [imageStyle, setImageStyle] = useState<{
     aspectRatio: string;
     objectFit: "cover" | "contain";
@@ -54,21 +55,6 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
 
           let finalAspectRatio = originalAspectRatio;
           let finalObjectFit: "cover" | "contain" = "contain";
-
-          if (originalAspectRatio < targetAspectRatio) {
-            // If original image is taller than 3:4, constrain container to 3:4 and cover
-            finalAspectRatio = targetAspectRatio;
-            finalObjectFit = "cover";
-          } else {
-            // If original image is wider or equal to 3:4, maintain original aspect ratio and contain
-            finalAspectRatio = originalAspectRatio;
-            finalObjectFit = "contain";
-          }
-
-          setImageStyle({
-            aspectRatio: `${finalAspectRatio}`,
-            objectFit: finalObjectFit,
-          });
 
           setImageStyle({
             aspectRatio: `${finalAspectRatio}`,
@@ -269,8 +255,9 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           </p>
           {log.image_url && imageStyle && (
             <div
-              className="relative w-full mt-4 rounded-lg overflow-hidden shadow-md"
+              className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
               style={{ aspectRatio: imageStyle.aspectRatio }}
+              onClick={() => setShowImageModal(true)} // Add onClick to show modal
             >
               <Image
                 src={log.image_url}
@@ -281,6 +268,25 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
               />
             </div>
           )}
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {showImageModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+          onClick={() => setShowImageModal(false)} // Close modal on overlay click
+        >
+          <div className="relative max-w-full max-h-full p-4" onClick={(e) => e.stopPropagation()}> {/* Prevent closing when clicking image itself */}
+            <Image
+              src={log.image_url}
+              alt="Full size log image"
+              width={0} // Set width to 0 to allow fill to work
+              height={0} // Set height to 0 to allow fill to work
+              sizes="100vw"
+              style={{ width: 'auto', height: 'auto', maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain' }}
+            />
+          </div>
         </div>
       )}
 
