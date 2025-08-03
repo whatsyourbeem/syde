@@ -4,6 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ClubList from "@/components/meetup/club-list";
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -64,14 +66,16 @@ function getStatusBadgeClass(status: string) {
 export default async function MeetupPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: { status?: string; tab?: string };
 }) {
   const supabase = await createClient();
 
   const awaitedSearchParams = await searchParams;
   const selectedStatus = awaitedSearchParams.status;
+  const selectedTab = awaitedSearchParams.tab || "meetups";
 
-  let query = supabase
+  // Fetch meetups
+  let meetupQuery = supabase
     .from("meetups")
     .select(
       "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
@@ -79,119 +83,147 @@ export default async function MeetupPage({
     .order("created_at", { ascending: false });
 
   if (selectedStatus && selectedStatus !== "전체") {
-    query = query.eq("status", selectedStatus);
+    meetupQuery = meetupQuery.eq("status", selectedStatus);
   }
 
-  const { data: meetups, error } = await query;
+  const { data: meetups, error: meetupsError } = await meetupQuery;
 
-  if (error) {
-    console.error("Error fetching meetups:", error);
+  // Fetch clubs
+  const { data: clubs, error: clubsError } = await supabase
+    .from("clubs")
+    .select("*, owner_profile:profiles!clubs_owner_id_fkey(full_name, username, avatar_url), member_count:club_members(count)")
+    .order("created_at", { ascending: false });
+
+  if (meetupsError || clubsError) {
+    console.error("Error fetching data:", meetupsError || clubsError);
     return (
       <div className="container mx-auto p-4">
-        모임을 불러오는 데 실패했습니다.
+        데이터를 불러오는 데 실패했습니다.
       </div>
     );
   }
+  
+  const clubsWithMemberCount = clubs?.map(club => ({
+    ...club,
+    member_count: Array.isArray(club.member_count) ? club.member_count[0]?.count || 0 : 0,
+  })) || [];
+
 
   return (
     <div className="max-w-5xl mx-auto p-4">
-      <MeetupStatusFilter searchParams={awaitedSearchParams} />
-      {meetups.length === 0 ? (
-        <div className="text-center text-gray-500 mt-10">
-          <p>해당 모임이 없습니다.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {meetups.map((meetup) => (
-            <Link
-              href={`/meetup/${meetup.id}`}
-              key={meetup.id}
-              className="block"
-            >
-              <div className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full">
-                <div className="relative">
-                  <img
-                    src={
-                      meetup.thumbnail_url ||
-                      "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
-                    }
-                    alt={meetup.title}
-                    className={`w-full h-48 object-cover rounded-t-lg ${
-                      meetup.status === "종료" ? "grayscale opacity-50" : ""
-                    }`}
-                  />
-                  <div className="absolute top-3 left-3 flex gap-1">
-                    <Badge className={getStatusBadgeClass(meetup.status)}>
-                      {meetup.status}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="px-6 pt-4 pb-6">
-                  <h2 className="text-base font-semibold mb-2 line-clamp-3">
-                    {meetup.title}
-                  </h2>
-                  <div className="flex gap-1 mb-4">
-                    <Badge className={getCategoryBadgeClass(meetup.category)}>
-                      {meetup.category}
-                    </Badge>
-                    <Badge
-                      className={getLocationTypeBadgeClass(
-                        meetup.location_type
-                      )}
-                    >
-                      {meetup.location_type}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-gray-500 flex items-center gap-2">
-                    <Avatar className="size-5">
-                      {" "}
-                      {/* 아바타 컴포넌트 추가 */}
-                      <AvatarImage
-                        src={meetup.organizer_profile?.avatar_url || undefined}
+      <Tabs defaultValue={selectedTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="meetups">Meetups</TabsTrigger>
+          <TabsTrigger value="clubs">Clubs</TabsTrigger>
+        </TabsList>
+        <TabsContent value="meetups">
+          <MeetupStatusFilter searchParams={awaitedSearchParams} />
+          {meetups.length === 0 ? (
+            <div className="text-center text-gray-500 mt-10">
+              <p>해당 모임이 없습니다.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {meetups.map((meetup) => (
+                <Link
+                  href={`/meetup/${meetup.id}`}
+                  key={meetup.id}
+                  className="block"
+                >
+                  <div className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full">
+                    <div className="relative">
+                      <img
+                        src={
+                          meetup.thumbnail_url ||
+                          "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
+                        }
+                        alt={meetup.title}
+                        className={`w-full h-48 object-cover rounded-t-lg ${
+                          meetup.status === "종료" ? "grayscale opacity-50" : ""
+                        }`}
                       />
-                      <AvatarFallback>
-                        {meetup.organizer_profile?.username?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p>
-                      <span className="font-semibold text-black">
-                        {meetup.organizer_profile?.full_name ||
-                          meetup.organizer_profile?.username ||
-                          "알 수 없음"}
-                      </span>
-                      <span className="ml-1">모임장</span>
-                    </p>
+                      <div className="absolute top-3 left-3 flex gap-1">
+                        <Badge className={getStatusBadgeClass(meetup.status)}>
+                          {meetup.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="px-6 pt-4 pb-6">
+                      <h2 className="text-base font-semibold mb-2 line-clamp-3">
+                        {meetup.title}
+                      </h2>
+                      <div className="flex gap-1 mb-4">
+                        <Badge
+                          className={getCategoryBadgeClass(meetup.category)}
+                        >
+                          {meetup.category}
+                        </Badge>
+                        <Badge
+                          className={getLocationTypeBadgeClass(
+                            meetup.location_type
+                          )}
+                        >
+                          {meetup.location_type}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-500 flex items-center gap-2">
+                        <Avatar className="size-5">
+                          {" "}
+                          {/* 아바타 컴포넌트 추가 */}
+                          <AvatarImage
+                            src={
+                              meetup.organizer_profile?.avatar_url || undefined
+                            }
+                          />
+                          <AvatarFallback>
+                            {meetup.organizer_profile?.username?.charAt(0) ||
+                              "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p>
+                          <span className="font-semibold text-black">
+                            {meetup.organizer_profile?.full_name ||
+                              meetup.organizer_profile?.username ||
+                              "알 수 없음"}
+                          </span>
+                          <span className="ml-1">모임장</span>
+                        </p>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-2">
+                        {meetup.max_participants && (
+                          <p className="flex items-center gap-1 mb-1">
+                            <Users className="size-4" />
+                            {meetup.max_participants}명
+                          </p>
+                        )}
+                        {meetup.start_datetime && (
+                          <p className="tracking-wide flex items-center gap-1 mb-1">
+                            <Clock className="size-4" />
+                            {formatDate(meetup.start_datetime)}
+                            {meetup.end_datetime &&
+                              formatDate(meetup.start_datetime) !==
+                                formatDate(meetup.end_datetime) &&
+                              ` - ${formatDate(meetup.end_datetime, false)}`}
+                          </p>
+                        )}
+                        {meetup.location_description && (
+                          <p className="flex items-center gap-1">
+                            <MapPin className="size-4" />
+                            {meetup.location_description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 mt-2">
-                    {meetup.max_participants && (
-                      <p className="flex items-center gap-1 mb-1">
-                        <Users className="size-4" />
-                        {meetup.max_participants}명
-                      </p>
-                    )}
-                    {meetup.start_datetime && (
-                      <p className="tracking-wide flex items-center gap-1 mb-1">
-                        <Clock className="size-4" />
-                        {formatDate(meetup.start_datetime)}
-                        {meetup.end_datetime &&
-                          formatDate(meetup.start_datetime) !==
-                            formatDate(meetup.end_datetime) &&
-                          ` - ${formatDate(meetup.end_datetime, false)}`}
-                      </p>
-                    )}
-                    {meetup.location_description && (
-                      <p className="flex items-center gap-1">
-                        <MapPin className="size-4" />
-                        {meetup.location_description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        <TabsContent value="clubs">
+          <ClubList clubs={clubsWithMemberCount} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
