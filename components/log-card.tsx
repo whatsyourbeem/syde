@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogForm } from "./log-form"; // Import LogForm
 import { CommentForm } from "./comment-form"; // Will create this
 import { CommentList } from "./comment-list"; // Will create this
@@ -303,39 +304,69 @@ export function LogCard({
 
       {/* Section 3: Actions (Independent buttons) */}
       <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
-        <button
-          onClick={handleLike}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
-        >
-          <HeartIcon
-            className={
-              hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500 hover:fill-red-500"
-            }
-            size={18}
-          />
-          <span>{likesCount}</span>
-        </button>
-        <button
-          onClick={() => {
-            setShowComments(!showComments);
-          }}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
-        >
-          <MessageCircle size={18} />
-          <span>{commentsCount}</span>
-        </button>
-        <button
-          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
-        >
-          <Share2 size={18} />
-        </button>
-        <button
-          onClick={() => console.log("Save button clicked!")}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
-        >
-          <Bookmark size={18} />
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
+              >
+                <HeartIcon
+                  className={
+                    hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                  }
+                  size={18}
+                />
+                <span className="group-hover:text-red-500">{likesCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>좋아요</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  setShowComments(!showComments);
+                }}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+              >
+                <MessageCircle size={18} />
+                <span>{commentsCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>댓글</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
+              >
+                <Share2 size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>공유</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => console.log("Save button clicked!")}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+              >
+                <Bookmark size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>저장</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Section 4: Comments (Shown conditionally) */}

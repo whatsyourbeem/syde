@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, HeartIcon, MessageCircle, Share2, Bookmark, ChevronLeft } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from '@/lib/supabase/client';
 import { LogForm } from '@/components/log-form';
@@ -176,31 +178,61 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
       <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center justify-between">
-          {avatarUrlWithCacheBuster && (
-            <Link href={`/${log.profiles?.username || log.user_id}`}>
-              <Image
-                src={avatarUrlWithCacheBuster}
-                alt={`${log.profiles?.username || 'User'}'s avatar`}
-                width={40}
-                height={40}
-                className="rounded-full object-cover mr-3"
-              />
-            </Link>
-          )}
-          <div className="flex-grow">
-            <div className="flex items-baseline gap-2">
+        <HoverCard openDelay={350}>
+          <div className="flex items-center">
+            <HoverCardTrigger asChild>
               <Link href={`/${log.profiles?.username || log.user_id}`}>
-                <p className="font-semibold hover:underline">
-                  {log.profiles?.full_name || log.profiles?.username || 'Anonymous'}
-                </p>
+                {avatarUrlWithCacheBuster && (
+                  <Image
+                    src={avatarUrlWithCacheBuster}
+                    alt={`${log.profiles?.username || 'User'}'s avatar`}
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover mr-3"
+                  />
+                )}
               </Link>
-            {log.profiles?.tagline && (
-              <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
-            )}
-            <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{formattedLogDate}</p>
+            </HoverCardTrigger>
+            <div className="flex-grow">
+              <div className="flex items-baseline gap-2">
+                <HoverCardTrigger asChild>
+                  <Link href={`/${log.profiles?.username || log.user_id}`}>
+                    <p className="font-semibold hover:underline">
+                      {log.profiles?.full_name || log.profiles?.username || 'Anonymous'}
+                    </p>
+                  </Link>
+                </HoverCardTrigger>
+              {log.profiles?.tagline && (
+                <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
+              )}
+              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{formattedLogDate}</p>
+              </div>
             </div>
           </div>
-          {user?.id === log.user_id && (
+          <HoverCardContent className="w-80">
+            <div className="flex justify-between space-x-4">
+              {avatarUrlWithCacheBuster && (
+                <Image
+                  src={avatarUrlWithCacheBuster}
+                  alt={`${log.profiles?.username || 'User'}'s avatar`}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                />
+              )}
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold">@{log.profiles?.username || "Anonymous"}</h4>
+                <p className="text-sm">
+                  {log.profiles?.full_name || ""}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {log.profiles?.tagline || ""}
+                </p>
+              </div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
+        {user?.id === log.user_id && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-1 text-muted-foreground hover:text-blue-500">
@@ -292,39 +324,69 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
 
       {/* Actions (Likes, Comments, Share, Save) */}
       <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
-        <button
-          onClick={handleLike}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
-        >
-          <HeartIcon
-            className={
-              currentHasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500 hover:fill-red-500"
-            }
-            size={18}
-          />
-          <span>{currentLikesCount}</span>
-        </button>
-        <button
-          onClick={() => {
-            // setShowComments(!showComments);
-          }}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
-        >
-          <MessageCircle size={18} />
-          <span>{commentsCount}</span>
-        </button>
-        <button
-          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
-        >
-          <Share2 size={18} />
-        </button>
-        <button
-          onClick={() => console.log("Save button clicked!")}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
-        >
-          <Bookmark size={18} />
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
+              >
+                <HeartIcon
+                  className={
+                    currentHasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                  }
+                  size={18}
+                />
+                <span className="group-hover:text-red-500">{currentLikesCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>좋아요</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  // setShowComments(!showComments);
+                }}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+              >
+                <MessageCircle size={18} />
+                <span>{commentsCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>댓글</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
+              >
+                <Share2 size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>공유</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => console.log("Save button clicked!")}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+              >
+                <Bookmark size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>저장</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Comments Section */}
