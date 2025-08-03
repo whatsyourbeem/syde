@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import Image from "@tiptap/extension-image";
+import TiptapImage from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -21,6 +21,35 @@ import {
 } from "lucide-react";
 import { uploadMeetupDescriptionImage } from "@/app/meetup/actions";
 import { toast } from "sonner";
+
+// 1. Extend the Tiptap Image extension to add alignment
+const CustomImage = TiptapImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      align: {
+        default: 'left',
+        renderHTML: attributes => ({
+          'data-align': attributes.align,
+        }),
+      },
+      style: {
+        default: null,
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'img[data-align]',
+        getAttrs: node => ({
+          align: node.getAttribute('data-align'),
+        }),
+      },
+    ];
+  },
+});
 
 interface MeetupDescriptionEditorProps {
   initialDescription: string | null;
@@ -97,12 +126,20 @@ const TiptapEditor = ({
     }
   };
 
+  // 2. Function to set image alignment
+  const setImageAlignment = (align: 'left' | 'center' | 'right') => {
+    if (editor) {
+      editor.chain().focus().updateAttributes('image', { align }).run();
+    }
+  };
+
   if (!editor) return null;
 
   return (
     <div className="prose max-w-none">
       <div className="flex flex-col gap-2 mb-2">
         <div className="flex flex-wrap gap-1 items-center">
+          {/* Text formatting buttons */}
           <Button
             type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -134,6 +171,7 @@ const TiptapEditor = ({
             S
           </Button>
           <div className="border-l h-6 mx-2"></div>
+          {/* Text alignment buttons */}
           <Button
             type="button"
             onClick={() => editor.chain().focus().setTextAlign("left").run()}
@@ -165,6 +203,7 @@ const TiptapEditor = ({
             <AlignRight size={16} />
           </Button>
           <div className="border-l h-6 mx-2"></div>
+          {/* Heading buttons */}
           <Button
             type="button"
             onClick={() =>
@@ -213,6 +252,7 @@ const TiptapEditor = ({
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-between">
           <div className="flex flex-wrap gap-1 items-center">
+            {/* Other buttons */}
             <Button
               type="button"
               onClick={() => editor.chain().focus().toggleCodeBlock().run()}
@@ -283,41 +323,73 @@ const TiptapEditor = ({
 
           <div className="flex flex-wrap gap-1 items-center">
             {isImageSelected && (
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-medium mr-1">이미지 크기:</span>
-                <Button
-                  type="button"
-                  onClick={() => setImageSize("25%")}
-                  variant="outline"
-                  size="sm"
-                >
-                  작게
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setImageSize("50%")}
-                  variant="outline"
-                  size="sm"
-                >
-                  중간
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setImageSize("100%")}
-                  variant="outline"
-                  size="sm"
-                >
-                  크게
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setImageSize(null)}
-                  variant="outline"
-                  size="sm"
-                >
-                  원본
-                </Button>
-              </div>
+              <>
+                {/* Image Size Controls */}
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-medium mr-1">이미지 크기:</span>
+                  <Button
+                    type="button"
+                    onClick={() => setImageSize("25%")}
+                    variant="outline"
+                    size="sm"
+                  >
+                    작게
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setImageSize("50%")}
+                    variant="outline"
+                    size="sm"
+                  >
+                    중간
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setImageSize("100%")}
+                    variant="outline"
+                    size="sm"
+                  >
+                    크게
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setImageSize(null)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    원본
+                  </Button>
+                </div>
+                <div className="border-l h-6 mx-2"></div>
+                {/* 3. Image Alignment Buttons */}
+                <div className="flex items-center gap-1">
+                   <span className="text-sm font-medium mr-1">이미지 정렬:</span>
+                  <Button
+                    type="button"
+                    onClick={() => setImageAlignment('left')}
+                    variant={editor.isActive('image', { align: 'left' }) ? 'default' : 'outline'}
+                    size="sm"
+                  >
+                    <AlignLeft size={16} />
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setImageAlignment('center')}
+                    variant={editor.isActive('image', { align: 'center' }) ? 'default' : 'outline'}
+                    size="sm"
+                  >
+                    <AlignCenter size={16} />
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setImageAlignment('right')}
+                    variant={editor.isActive('image', { align: 'right' }) ? 'default' : 'outline'}
+                    size="sm"
+                  >
+                    <AlignRight size={16} />
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -339,7 +411,7 @@ export default function MeetupDescriptionEditor({
     extensions: [
       StarterKit,
       TextAlign.configure({
-        types: ["heading", "paragraph", "image"],
+        types: ["heading", "paragraph"], // Keep this for text alignment
       }),
       Link.configure({
         openOnClick: true,
@@ -348,18 +420,10 @@ export default function MeetupDescriptionEditor({
       Placeholder.configure({
         placeholder: "모임 상세 설명을 작성해주세요.",
       }),
-      Image.configure({
+      // 4. Use the CustomImage extension
+      CustomImage.configure({
         inline: false,
         allowBase64: true,
-      }).extend({
-        addAttributes() {
-          return {
-            ...this.parent?.(),
-            style: {
-              default: null,
-            },
-          };
-        },
       }),
     ],
     content: initialDescription === "<p></p>" ? "" : initialDescription || "",
