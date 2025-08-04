@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { PostgrestError } from "@supabase/supabase-js";
 import { LogCard } from "./log-card";
 import { Button } from "./ui/button"; // Import Button component
 import { Database } from "@/types/database.types";
 
 type LogRow = Database["public"]["Tables"]["logs"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type LogLikeRow = Database["public"]["Tables"]["log_likes"]["Row"];
-type LogCommentRow = Database["public"]["Tables"]["log_comments"]["Row"];
-
 type ProcessedLog = LogRow & {
   profiles: ProfileRow | null;
   log_likes: Array<{ user_id: string }>;
@@ -73,7 +71,7 @@ export function LogList({
       if (searchQuery) {
         const uuidRegex =
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        let finalSearchConditions: string[] = [];
+        const finalSearchConditions: string[] = [];
 
         // 1. Check for matching profiles (username or full_name)
         const { data: matchingProfiles, error: profileError } = await supabase
@@ -170,7 +168,7 @@ export function LogList({
         .order("created_at", { ascending: false })
         .range(from, to)) as {
         data: LogQueryResult | null;
-        error: any;
+        error: PostgrestError | null;
         count: number | null;
       };
 
@@ -180,7 +178,7 @@ export function LogList({
 
       // --- Start of new logic for fetching mentioned profiles ---
       const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
-      let mentionedUserIds = new Set<string>();
+      const mentionedUserIds = new Set<string>();
       logsData?.forEach((log) => {
         const matches = log.content.matchAll(mentionRegex);
         for (const match of matches) {
@@ -205,7 +203,7 @@ export function LogList({
       // --- End of new logic ---
 
       const logsWithProcessedData: ProcessedLog[] =
-        logsData?.map((log: any) => ({
+        logsData?.map((log: LogRow & { profiles: ProfileRow | null; log_likes: Array<{ user_id: string }>; log_comments: Array<{ id: string }>; }) => ({
           ...log,
           profiles: Array.isArray(log.profiles)
             ? log.profiles[0]
@@ -213,7 +211,7 @@ export function LogList({
           likesCount: log.log_likes?.length || 0,
           hasLiked: currentUserId
             ? log.log_likes?.some(
-                (like: any) => like.user_id === currentUserId
+                (like: { user_id: string }) => like.user_id === currentUserId
               ) || false
             : false,
         })) || [];
@@ -226,7 +224,7 @@ export function LogList({
     },
   });
 
-  const logs: ProcessedLog[] = data?.logs || [];
+  const logs: ProcessedLog[] = useMemo(() => data?.logs || [], [data?.logs]);
   const totalLogsCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
 
@@ -255,7 +253,7 @@ export function LogList({
         (payload) => {
           // Invalidate only if the change is relevant to the current page's logs
           const changedLogId =
-            (payload.new as any).log_id || (payload.old as any).log_id;
+            (payload.new as Database['public']['Tables']['log_likes']['Row']).log_id || (payload.old as Database['public']['Tables']['log_likes']['Row']).log_id;
           if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
@@ -271,7 +269,7 @@ export function LogList({
         },
         (payload) => {
           const changedLogId =
-            (payload.new as any).log_id || (payload.old as any).log_id;
+            (payload.new as Database['public']['Tables']['log_comments']['Row']).log_id || (payload.old as Database['public']['Tables']['log_comments']['Row']).log_id;
           if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }

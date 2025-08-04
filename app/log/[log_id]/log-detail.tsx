@@ -36,7 +36,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
   const router = useRouter(); // Add this line
   const [log, setLog] = useState(initialLog);
   const [isEditing, setIsEditing] = useState(false);
-  const [mentionedProfiles, setMentionedProfiles] = useState<any[]>([]);
+  const [mentionedProfiles, setMentionedProfiles] = useState<Array<{ id: string; username: string | null; }>>([]);
   const [commentsCount, setCommentsCount] = useState(initialLog.log_comments.length); // Added commentsCount state
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
     fetchMentionedProfiles();
   }, [log.content, supabase]); // Re-run when log content changes
 
-    const [showComments, setShowComments] = useState(false); // New state for showing/hiding comments
+    
 
   // New states for likes
   const [currentLikesCount, setCurrentLikesCount] = useState(initialLog.log_likes.length);
@@ -113,8 +113,8 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
     setCommentsCount((prev) => prev + 1);
   };
 
-  const handleLogUpdate = (updatedLog: any) => {
-    setLog((prevLog: any) => ({
+  const handleLogUpdate = (updatedLog: LogWithRelations) => {
+    setLog((prevLog: LogWithRelations) => ({
       ...prevLog,
       content: updatedLog.content,
       image_url: updatedLog.image_url,
@@ -249,9 +249,7 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
           <span>{currentLikesCount}</span>
         </button>
         <button
-          onClick={() => {
-            // setShowComments(!showComments);
-          }}
+          onClick={() => {}}
           className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
         >
           <MessageCircle size={18} />

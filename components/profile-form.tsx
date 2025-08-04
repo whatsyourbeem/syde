@@ -7,12 +7,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "./ui/card";
-import { Textarea } from "./ui/textarea";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query"; // Import useQueryClient and useMutation
@@ -59,11 +54,9 @@ export default function ProfileForm({
   const [isLinkValid, setIsLinkValid] = useState(true); // New state for link validation
 
   const handleMouseEnter = () => {
-    console.log("Mouse entered");
     setIsHovered(true);
   };
   const handleMouseLeave = () => {
-    console.log("Mouse left");
     setIsHovered(false);
   };
 
@@ -84,7 +77,7 @@ export default function ProfileForm({
     try {
       new URL(url);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   };
@@ -212,7 +205,7 @@ export default function ProfileForm({
       queryClient.invalidateQueries({ queryKey: ["logs"] }); // Invalidate logs query (for avatar/username changes)
       router.push(`/${currentUsername}`); // Redirect to username page
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       alert(`프로필 업데이트 중 오류가 발생했습니다: ${error.message}`);
     },
   });

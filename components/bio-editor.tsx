@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect } from "react";
 import { updateBio } from "@/app/[username]/actions"; // will create this server action
 import { toast } from "sonner";
-import { cn } from "@/lib/utils"; // Import cn utility
 import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
 
 interface BioEditorProps {
@@ -17,11 +16,10 @@ interface BioEditorProps {
   profileId: string;
 }
 
-const TiptapEditor = ({ editor }: { editor: any }) => {
+const TiptapEditor = ({ editor }: { editor: Editor }) => {
   const [isBoldActive, setIsBoldActive] = useState(false);
   const [isItalicActive, setIsItalicActive] = useState(false);
   const [isStrikeActive, setIsStrikeActive] = useState(false);
-  const [isCodeActive, setIsCodeActive] = useState(false);
   const [isCodeBlockActive, setIsCodeBlockActive] = useState(false);
   const [isBlockquoteActive, setIsBlockquoteActive] = useState(false);
   const [isBulletListActive, setIsBulletListActive] = useState(false);
@@ -37,7 +35,6 @@ const TiptapEditor = ({ editor }: { editor: any }) => {
       setIsBoldActive(editor.isActive("bold"));
       setIsItalicActive(editor.isActive("italic"));
       setIsStrikeActive(editor.isActive("strike"));
-      setIsCodeActive(editor.isActive("code"));
       setIsCodeBlockActive(editor.isActive("codeBlock"));
       setIsBlockquoteActive(editor.isActive("blockquote"));
       setIsBulletListActive(editor.isActive("bulletList"));
@@ -192,7 +189,7 @@ export default function BioEditor({
   const [isEditing, setIsEditing] = useState(false); // Re-add this state
   const [isLoading, setIsLoading] = useState(false);
 
-  const editor = useEditor({
+    const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit,
@@ -206,9 +203,6 @@ export default function BioEditor({
     ],
     content: initialBio === "<p></p>" ? "" : initialBio || "",
     editable: isEditing,
-    onUpdate: ({ editor }) => {
-      // No longer updating selectionKey here
-    },
   });
 
   useEffect(() => {

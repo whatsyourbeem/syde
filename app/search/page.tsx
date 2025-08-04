@@ -49,7 +49,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </TabsContent>
         <TabsContent value="users">
           {q ? (
-            <UserList currentUserId={user?.id || null} searchQuery={q} />
+            <UserList searchQuery={q} />
           ) : (
             <div className="text-center text-muted-foreground mt-10">
               <h2 className="text-2xl font-bold mb-4">사용자 검색</h2>

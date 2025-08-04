@@ -6,8 +6,10 @@ import { LogoutButton } from "./logout-button";
 import Image from "next/image";
 import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
 
+import { User } from '@supabase/supabase-js';
+
 interface ClientAuthButtonProps {
-  user: any; // Supabase user object
+  user: User | null; // Supabase user object
   avatarUrl: string | null;
   username: string | null;
 }

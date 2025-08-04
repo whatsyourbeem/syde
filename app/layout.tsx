@@ -101,8 +101,8 @@ export default async function RootLayout({
                     <span className="text-4xl font-black">SYDE</span>
                   </Link>
                   {/* 여기에 새로운 Meetup 링크 추가 */}
-                  <Link href="/meetup" className="text-lg hover:text-primary">
-                    Meetup
+                  <Link href="/gathering" className="text-lg hover:text-primary">
+                    Gathering
                   </Link>
                 </div>
                 <div className="flex items-center gap-4">

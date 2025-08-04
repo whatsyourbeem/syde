@@ -28,7 +28,7 @@ const NotificationBell = ({ initialUnreadCount, userId }: NotificationBellProps)
       .on<Tables<"notifications">>(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_user_id=eq.${userId}` },
-        (payload) => {
+        () => {
           setUnreadCount((prevCount) => prevCount + 1);
         }
       )

@@ -147,9 +147,13 @@ export function LogCard({
       }
 
       // No need to update state, realtime will handle it
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting log:", error);
-      alert(`로그 삭제 중 오류가 발생했습니다: ${error.message}`);
+      if (error instanceof Error) {
+        alert(`로그 삭제 중 오류가 발생했습니다: ${error.message}`);
+      } else {
+        alert("알 수 없는 오류가 발생했습니다.");
+      }
     } finally {
       setLoading(false);
     }

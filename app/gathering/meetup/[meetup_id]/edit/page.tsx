@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import MeetupEditForm from "@/components/meetup/meetup-edit-form";
 
-export default async function MeetupEditPage({ params }: { params: { meetup_id: string } }) {
+export default async function MeetupEditPage({ params }: { params: Promise<{ meetup_id: string }> }) {
   const supabase = await createClient();
 
   const { meetup_id } = await params;

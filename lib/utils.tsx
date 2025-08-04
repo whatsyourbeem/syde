@@ -3,12 +3,14 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import React from "react";
 import Link from "next/link";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "@/types/database.types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export async function processMentionsForSave(content: string, supabase: any) {
+export async function processMentionsForSave(content: string, supabase: SupabaseClient<Database>) {
   const mentionRegex = /@([a-zA-Z0-9_.]+)/g;
   const usernames = Array.from(content.matchAll(mentionRegex), (m) => m[1]);
 
@@ -44,7 +46,7 @@ export async function processMentionsForSave(content: string, supabase: any) {
   return processedContent;
 }
 
-export function linkifyMentions(text: string, profiles: any[], searchQuery?: string) {
+export function linkifyMentions(text: string, profiles: Array<{ id: string; username: string | null; }>, searchQuery?: string) {
   
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const parts = text.split(mentionRegex);

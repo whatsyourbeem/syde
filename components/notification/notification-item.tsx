@@ -10,9 +10,9 @@ const NotificationItem = ({ notification }: { notification: NotificationType }) 
 
     switch (notification.type) {
       case 'like':
-        return <p><strong>{triggerUsername}</strong> liked your log: "{logContent}"</p>;
+        return <p><strong>{triggerUsername}</strong> liked your log: &quot;{logContent}&quot;</p>;
       case 'comment':
-        return <p><strong>{triggerUsername}</strong> commented on your log: "{logContent}"</p>;
+        return <p><strong>{triggerUsername}</strong> commented on your log: &quot;{logContent}&quot;</p>;
       default:
         return <p>New notification</p>;
     }

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Database } from "@/types/database.types";
 
 // 날짜 포맷 헬퍼 함수 (page.tsx에서 복사)
@@ -89,7 +90,7 @@ export default function MeetupDetailClient({
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">{meetup.title}</h1>
         {isOrganizer && (
-          <Link href={`/meetup/${meetup.id}/edit`}>
+          <Link href={`/gathering/meetup/${meetup.id}/edit`}>
             <Button>수정</Button>
           </Link>
         )}
@@ -149,12 +150,14 @@ export default function MeetupDetailClient({
       </div>
 
       {/* 썸네일 이미지 */}
-      <img
+      <Image
         src={
           meetup.thumbnail_url ||
           "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
         }
         alt={meetup.title}
+        width={800} // Adjust as needed
+        height={400} // Adjust as needed
         className="w-full h-64 object-cover rounded-lg mb-6"
       />
 

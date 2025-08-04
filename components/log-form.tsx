@@ -5,10 +5,15 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
 import { Database } from "@/types/database.types";
+
+type LogWithRelations = Database['public']['Tables']['logs']['Row'] & {
+  profiles: Database['public']['Tables']['profiles']['Row'] | null;
+  log_likes: Array<{ user_id: string }>;
+  log_comments: Array<{ id: string }>;
+};
 
 interface LogFormProps {
   userId: string | null;
@@ -17,7 +22,7 @@ interface LogFormProps {
   username?: string | null; // Made optional for editing
   full_name?: string | null; // Added for full_name display
   initialLogData?: Database['public']['Tables']['logs']['Row']; // New prop for editing
-  onLogUpdated?: (updatedLog: Database['public']['Tables']['logs']['Row']) => void; // Callback for successful update
+  onLogUpdated?: (updatedLog: LogWithRelations) => void; // Callback for successful update
   onCancel?: () => void; // Callback for cancel button in edit mode
 }
 
@@ -34,7 +39,6 @@ export function LogForm({
   onCancel,
 }: LogFormProps) {
   const supabase = createClient();
-  const router = useRouter();
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
@@ -52,23 +56,7 @@ export function LogForm({
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
 
-  // Debounce for mention search
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (mentionSearchTerm) {
-        fetchMentionSuggestions(mentionSearchTerm);
-      } else {
-        setShowSuggestions(false);
-        setMentionSuggestions([]);
-      }
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [mentionSearchTerm]);
-
-  const fetchMentionSuggestions = async (term: string) => {
+  const fetchMentionSuggestions = useCallback(async (term: string) => {
     console.log("Fetching mention suggestions for term:", term); // Debug log
     if (term.length < 1) {
       setMentionSuggestions([]);
@@ -91,7 +79,23 @@ export function LogForm({
 
     setMentionSuggestions(data || []);
     setShowSuggestions(true);
-  };
+  }, [supabase]);
+
+  // Debounce for mention search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (mentionSearchTerm) {
+        fetchMentionSuggestions(mentionSearchTerm);
+      } else {
+        setShowSuggestions(false);
+        setMentionSuggestions([]);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [mentionSearchTerm, fetchMentionSuggestions]);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
@@ -167,8 +171,8 @@ export function LogForm({
     }
   };
 
-  const resizeImage = (
-    file: File,
+  const resizeImage = useCallback(
+    (file: File,
     maxWidth: number,
     maxHeight: number,
     quality: number
@@ -211,9 +215,9 @@ export function LogForm({
         };
       };
     });
-  };
+  }, []);
 
-  const uploadImage = async (file: File, userId: string) => {
+  const uploadImage = useCallback(async (file: File, userId: string) => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
@@ -237,7 +241,7 @@ export function LogForm({
       .getPublicUrl(filePath);
 
     return publicUrlData.publicUrl;
-  };
+  }, [supabase, resizeImage]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
@@ -280,7 +284,13 @@ export function LogForm({
           if (error) {
             throw error;
           }
-          if (onLogUpdated && data && data.length > 0) onLogUpdated(data[0]);
+          if (onLogUpdated && data && data.length > 0) {
+            const updatedLogWithRelations = {
+              ...initialLogData,
+              ...data[0],
+            } as LogWithRelations;
+            onLogUpdated(updatedLogWithRelations);
+          }
         } else {
           // Insert new log
           const { error } = await supabase.from("logs").insert({
@@ -300,8 +310,12 @@ export function LogForm({
         if (fileInputRef.current) {
           fileInputRef.current.value = ""; // Clear the file input
         }
-      } catch (error: any) {
-        alert(`로그 기록 중 오류가 발생했습니다: ${error.message}`); // Changed alert message
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          alert(`로그 기록 중 오류가 발생했습니다: ${error.message}`); // Changed alert message
+        } else {
+          alert("알 수 없는 오류가 발생했습니다.");
+        }
       } finally {
         setLoading(false);
       }
@@ -310,11 +324,12 @@ export function LogForm({
       userId,
       content,
       imageFile,
-      router,
       supabase,
       initialLogData,
       onLogUpdated,
       imagePreviewUrl,
+      openLoginModal,
+      uploadImage,
     ]
   );
 

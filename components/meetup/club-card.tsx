@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
 import { Database } from '@/types/database.types';
 
@@ -16,20 +16,22 @@ interface ClubCardProps {
 
 export default function ClubCard({ club }: ClubCardProps) {
   return (
-    <Link href={`/club/${club.id}`} className="block">
-      <div className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full">
-        <div className="relative">
-          <img
+    <Link href={`/gathering/club/${club.id}`} className="block">
+      <div className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden w-full flex items-start gap-4 p-4">
+        <div className="flex-shrink-0">
+          <Image
             src={club.thumbnail_url || 'https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png'}
             alt={club.name}
-            className="w-full h-48 object-cover rounded-t-lg"
+            width={192} // w-48 (192px)
+            height={128} // h-32 (128px)
+            className="w-32 h-32 md:w-48 object-cover rounded-md"
           />
         </div>
-        <div className="px-6 pt-4 pb-6">
-          <h2 className="text-base font-semibold mb-2 line-clamp-2">
+        <div className="flex-grow">
+          <h2 className="text-lg font-semibold mb-1 line-clamp-2">
             {club.name}
           </h2>
-          <p className="text-sm text-gray-600 mb-4 line-clamp-3">{club.description}</p>
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{club.description}</p>
           <div className="flex items-center justify-between text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <Avatar className="size-5">

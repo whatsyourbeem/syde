@@ -4,7 +4,6 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input"; // Import Input instead of Textarea
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLoginModal } from "@/context/LoginModalContext";
 import Image from "next/image";
@@ -32,7 +31,6 @@ export function CommentForm({
   parentCommentId, // Destructure new prop
 }: CommentFormProps) {
   const supabase = createClient();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [loading, setLoading] = useState(false);
@@ -46,23 +44,7 @@ export function CommentForm({
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
 
-  // Debounce for mention search
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (mentionSearchTerm) {
-        fetchMentionSuggestions(mentionSearchTerm);
-      } else {
-        setShowSuggestions(false);
-        setMentionSuggestions([]);
-      }
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [mentionSearchTerm]);
-
-  const fetchMentionSuggestions = async (term: string) => {
+  const fetchMentionSuggestions = useCallback(async (term: string) => {
     if (term.length < 1) {
       setMentionSuggestions([]);
       setShowSuggestions(false);
@@ -84,7 +66,23 @@ export function CommentForm({
 
     setMentionSuggestions(data || []);
     setShowSuggestions(true);
-  };
+  }, [supabase]);
+
+  // Debounce for mention search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (mentionSearchTerm) {
+        fetchMentionSuggestions(mentionSearchTerm);
+      } else {
+        setShowSuggestions(false);
+        setMentionSuggestions([]);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [mentionSearchTerm, fetchMentionSuggestions]);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => { // Change to HTMLInputElement
     const newContent = e.target.value;
@@ -193,10 +191,10 @@ export function CommentForm({
         }
 
         setContent("");
-      } catch (error: any) {
+      } catch (error: unknown) {
         alert(
           `댓글 ${initialCommentData ? "수정" : "추가"} 중 오류가 발생했습니다: ${
-            error.message
+            error instanceof Error ? error.message : '알 수 없는 오류'
           }`
         );
       } finally {
@@ -207,12 +205,13 @@ export function CommentForm({
       logId,
       currentUserId,
       content,
-      router,
       supabase,
       onCommentAdded,
       initialCommentData,
       onCommentUpdated,
       queryClient,
+      openLoginModal,
+      parentCommentId,
     ]
   );
 

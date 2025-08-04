@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Trash2, Edit, HeartIcon } from "lucide-react"; // Added Edit, HeartIcon
+import { HeartIcon } from "lucide-react"; // Added Edit, HeartIcon
 import { useState, useEffect } from "react";
 import { CommentForm } from "./comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button"; // Import Button
 
-import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
+import { linkifyMentions } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
 
@@ -59,7 +59,7 @@ export function CommentCard({
     ? `${comment.profiles.avatar_url}?t=${comment.profiles.updated_at ? new Date(comment.profiles.updated_at).getTime() : ''}`
     : null;
 
-  const commentDate = comment.created_at ? formatRelativeTime(comment.created_at) : '';
+  
 
   const handleLike = async () => {
     if (!currentUserId || loading) return;
@@ -120,9 +120,9 @@ export function CommentCard({
       queryClient.invalidateQueries({
         queryKey: ["comments", { logId: comment.log_id }],
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting comment:", error);
-      alert(`댓글 삭제 중 오류가 발생했습니다: ${error.message}`);
+      alert(`댓글 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -19,7 +19,7 @@ import {
   AlignCenter,
   AlignRight,
 } from "lucide-react";
-import { uploadMeetupDescriptionImage } from "@/app/meetup/actions";
+import { uploadMeetupDescriptionImage } from "@/app/gathering/actions";
 import { toast } from "sonner";
 
 // 1. Extend the Tiptap Image extension to add alignment
@@ -61,7 +61,7 @@ const TiptapEditor = ({
   editor,
   meetupId,
 }: {
-  editor: any;
+  editor: Editor;
   meetupId: string;
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);

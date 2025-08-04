@@ -10,7 +10,7 @@ type Meetup = Database['public']['Tables']['meetups']['Row'] & {
   }[];
 };
 
-export default async function MeetupDetailPage({ params }: { params: { meetup_id: string } }) {
+export default async function MeetupDetailPage({ params }: { params: Promise<{ meetup_id: string }> }) {
   const supabase = await createClient();
 
   const { meetup_id } = await params;

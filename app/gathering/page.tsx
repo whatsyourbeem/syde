@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClubList from "@/components/meetup/club-list";
+import { Enums } from "@/types/database.types";
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -66,7 +68,7 @@ function getStatusBadgeClass(status: string) {
 export default async function MeetupPage({
   searchParams,
 }: {
-  searchParams: { status?: string; tab?: string };
+  searchParams: Promise<{ status?: string; tab?: string }>;
 }) {
   const supabase = await createClient();
 
@@ -83,7 +85,10 @@ export default async function MeetupPage({
     .order("created_at", { ascending: false });
 
   if (selectedStatus && selectedStatus !== "전체") {
-    meetupQuery = meetupQuery.eq("status", selectedStatus);
+    const validStatuses: Enums<"meetup_status_enum">[] = ["오픈예정", "신청가능", "신청마감", "종료"];
+    if (validStatuses.includes(selectedStatus as Enums<"meetup_status_enum">)) {
+      meetupQuery = meetupQuery.eq("status", selectedStatus as Enums<"meetup_status_enum">);
+    }
   }
 
   const { data: meetups, error: meetupsError } = await meetupQuery;
@@ -91,7 +96,7 @@ export default async function MeetupPage({
   // Fetch clubs
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
-    .select("*, owner_profile:profiles!clubs_owner_id_fkey(full_name, username, avatar_url), member_count:club_members(count)")
+    .select("*, owner_profile:profiles!clubs_owner_id_fkey(*), member_count:club_members(count)")
     .order("created_at", { ascending: false });
 
   if (meetupsError || clubsError) {
@@ -126,18 +131,20 @@ export default async function MeetupPage({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {meetups.map((meetup) => (
                 <Link
-                  href={`/meetup/${meetup.id}`}
+                  href={`/gathering/meetup/${meetup.id}`}
                   key={meetup.id}
                   className="block"
                 >
                   <div className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full">
                     <div className="relative">
-                      <img
+                      <Image
                         src={
                           meetup.thumbnail_url ||
                           "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
                         }
                         alt={meetup.title}
+                        width={300} // 임의의 너비
+                        height={200} // 임의의 높이
                         className={`w-full h-48 object-cover rounded-t-lg ${
                           meetup.status === "종료" ? "grayscale opacity-50" : ""
                         }`}

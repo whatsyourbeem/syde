@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,9 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { updateMeetup, uploadMeetupThumbnail } from "@/app/meetup/actions";
+import Image from "next/image";
+import { updateMeetup, uploadMeetupThumbnail } from "@/app/gathering/actions";
 import { toast } from "sonner";
-import { Database, Tables, Enums } from "@/types/database.types";
+import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
 
 type Meetup = Tables<"meetups">;
@@ -28,7 +28,6 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
 
   const [title, setTitle] = useState(meetup.title);
   const [description, setDescription] = useState(meetup.description || "");
-  const [thumbnailUrl, setThumbnailUrl] = useState(meetup.thumbnail_url || "");
   const [category, setCategory] = useState<Enums<"meetup_category_enum">>(
     meetup.category
   );
@@ -73,7 +72,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let finalThumbnailUrl = thumbnailUrl;
+    let finalThumbnailUrl = meetup.thumbnail_url;
     if (thumbnailFile) {
       const formData = new FormData();
       formData.append("file", thumbnailFile);
@@ -92,7 +91,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
     formData.append("id", meetup.id);
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("thumbnailUrl", finalThumbnailUrl);
+    formData.append("thumbnailUrl", finalThumbnailUrl || "");
     formData.append("category", category);
     formData.append("locationType", locationType);
     formData.append("status", status);
@@ -134,11 +133,11 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
         >
           모임 상세 설명
         </label>
-        '''        <MeetupDescriptionEditor
+        <MeetupDescriptionEditor
           initialDescription={meetup.description}
           onDescriptionChange={setDescription}
           meetupId={meetup.id}
-        />'''
+        />
       </div>
 
       <div>
@@ -149,9 +148,11 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
           썸네일 이미지
         </label>
         {thumbnailPreview && (
-          <img
+          <Image
             src={thumbnailPreview}
             alt="썸네일 미리보기"
+            width={192} // w-48
+            height={128} // h-32
             className="w-48 h-32 object-cover rounded-md mb-2"
           />
         )}
@@ -303,7 +304,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(`/meetup/${meetup.id}`)}
+          onClick={() => router.push(`/gathering/meetup/${meetup.id}`)}
         >
           취소
         </Button>

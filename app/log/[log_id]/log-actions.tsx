@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { HeartIcon, Trash2, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -95,9 +95,9 @@ export function LogActions({
         throw dbError;
       }
       router.push('/'); // Redirect to home after deletion
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting log:', error);
-      alert(`로그 삭제 중 오류가 발생했습니다: ${error.message}`);
+      alert(`로그 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setLoading(false);
     }

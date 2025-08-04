@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Enums } from "@/types/database.types";
 
 export async function updateMeetup(formData: FormData) {
   const id = formData.get("id") as string;
@@ -31,9 +32,9 @@ export async function updateMeetup(formData: FormData) {
       title,
       description: description || null,
       thumbnail_url: thumbnailUrl || null,
-      category: category as any, // ENUM 타입 캐스팅
-      location_type: locationType as any, // ENUM 타입 캐스팅
-      status: status as any, // ENUM 타입 캐스팅
+      category: category as Enums<'meetup_category_enum'>,
+      location_type: locationType as Enums<'meetup_location_type_enum'>,
+      status: status as Enums<'meetup_status_enum'>,
       start_datetime: startDatetime || null,
       end_datetime: endDatetime || null,
       location_description: locationDescription || null,
@@ -47,9 +48,9 @@ export async function updateMeetup(formData: FormData) {
     return { error: error.message };
   }
 
-  revalidatePath(`/meetup/${id}`);
-  revalidatePath("/meetup");
-  redirect(`/meetup/${id}`);
+  revalidatePath(`/gathering/meetup/${id}`);
+  revalidatePath("/gathering");
+  redirect(`/gathering/meetup/${id}`);
 }
 
 export async function uploadMeetupThumbnail(formData: FormData) {
@@ -69,7 +70,7 @@ export async function uploadMeetupThumbnail(formData: FormData) {
 
   const fileName = `${meetupId}/${Date.now()}_${file.name}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from("meetup-images")
     .upload(fileName, file, {
       cacheControl: "3600",
@@ -110,7 +111,7 @@ export async function uploadMeetupDescriptionImage(formData: FormData) {
   // Use a more generic path for description images, organized by meetup
   const fileName = `${meetupId}/${Date.now()}_${file.name}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from("meetup-images") // A new bucket for description images
     .upload(fileName, file, {
       cacheControl: "3600",

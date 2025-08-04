@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/types/database.types";
@@ -13,11 +13,10 @@ import { Button } from "./ui/button";
 const USERS_PER_PAGE = 10;
 
 interface UserListProps {
-  currentUserId: string | null;
   searchQuery: string;
 }
 
-export function UserList({ currentUserId, searchQuery }: UserListProps) {
+export function UserList({ searchQuery }: UserListProps) {
   const supabase = createClient();
   const [currentPage, setCurrentPage] = useState(1);
 
