@@ -7,6 +7,7 @@ import { LogList } from "@/components/log-list"; // Import LogList
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
 import { UserActivityLogList } from "@/components/user-activity-log-list"; // Import UserActivityLogList
 import BioEditor from "@/components/bio-editor"; // Import BioEditor
+import { LogoutButton } from "@/components/logout-button"; // Import LogoutButton
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -96,10 +97,11 @@ export default async function UserProfilePage({
               </Link>
             )}
             {isOwnProfile && (
-              <div className="mt-4">
+              <div className="mt-4 flex gap-4">
                 <Button asChild size="sm">
                   <Link href="/profile">프로필 편집</Link>
                 </Button>
+                <LogoutButton />
               </div>
             )}
           </div>

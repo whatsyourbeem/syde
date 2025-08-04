@@ -72,10 +72,8 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
       img.onload = () => {
         if (img.naturalHeight > 0) {
           const originalAspectRatio = img.naturalWidth / img.naturalHeight;
-          const targetAspectRatio = 3 / 4; // width:height = 3:4
-
-          let finalAspectRatio = originalAspectRatio;
-          let finalObjectFit: "cover" | "contain" = "contain";
+          const finalAspectRatio = originalAspectRatio;
+          const finalObjectFit: "cover" | "contain" = "contain";
 
           setImageStyle({
             aspectRatio: `${finalAspectRatio}`,
