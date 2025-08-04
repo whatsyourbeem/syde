@@ -39,6 +39,8 @@ const pretendard = localFont({
   display: "swap",
 });
 
+import { HeaderNavigation } from "@/components/header-navigation";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -55,10 +57,10 @@ export default async function RootLayout({
   let unreadNotifCount = 0;
   if (user) {
     const { count } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('recipient_user_id', user.id)
-      .eq('is_read', false);
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("recipient_user_id", user.id)
+      .eq("is_read", false);
     unreadNotifCount = count ?? 0;
 
     const { data: profile, error: profileError } = await supabase
@@ -71,7 +73,9 @@ export default async function RootLayout({
       console.error("Error fetching profile for layout:", profileError);
     } else if (profile) {
       avatarUrl = profile.avatar_url
-        ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ''}`
+        ? `${profile.avatar_url}?t=${
+            profile.updated_at ? new Date(profile.updated_at).getTime() : ""
+          }`
         : null;
       usernameForAuthButton =
         profile.username || user.email?.split("@")[0] || null;
@@ -87,30 +91,38 @@ export default async function RootLayout({
           <LoginModalProvider>
             {" "}
             {/* Wrap with LoginModalProvider */}
-            <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-              <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-                <div className="flex gap-5 items-center font-semibold">
-                  <Link href={"/"} className="flex items-center gap-2">
+            <nav className="w-full flex flex-col items-center border-b border-b-foreground/10">
+              <div className="w-full max-w-5xl flex justify-between items-center px-5 py-4 text-sm">
+                <div className="flex items-center font-semibold">
+                  <Link href={"/"} className="flex items-center gap-1">
                     <Image
                       src="/logo_no_bg.png"
                       alt="SYDE"
-                      width={50}
-                      height={50}
+                      width={36}
+                      height={36}
                       priority
                     />
-                    <span className="text-4xl font-black">SYDE</span>
-                  </Link>
-                  {/* 여기에 새로운 Meetup 링크 추가 */}
-                  <Link href="/gathering" className="text-lg hover:text-primary">
-                    Gathering
+                    <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
+                      SYDE
+                    </span>
                   </Link>
                 </div>
                 <div className="flex items-center gap-4">
-                  <Link href="/search" className="text-foreground hover:text-primary">
+                  <Link
+                    href="/search"
+                    className="text-foreground hover:text-primary"
+                  >
                     <Search size={20} />
                   </Link>
-                  <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
-                    <NotificationBell initialUnreadCount={unreadNotifCount} userId={user?.id ?? null} />
+                  <Suspense
+                    fallback={
+                      <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                    }
+                  >
+                    <NotificationBell
+                      initialUnreadCount={unreadNotifCount}
+                      userId={user?.id ?? null}
+                    />
                   </Suspense>
                   <AuthButton
                     avatarUrl={avatarUrl}
@@ -118,6 +130,7 @@ export default async function RootLayout({
                   />
                 </div>
               </div>
+              <HeaderNavigation />
             </nav>
             {children}
             <Toaster />
