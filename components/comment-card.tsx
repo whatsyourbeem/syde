@@ -170,11 +170,11 @@ export function CommentCard({
                 <button
                   onClick={handleLike}
                   disabled={loading || isEditing}
-                  className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1"
+                  className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1 group"
                   aria-label="Like comment"
                 >
                   <HeartIcon
-                    className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
+                    className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"}
                     size={14}
                   />
                   <span className="text-xs">{likesCount}</span>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogForm } from "./log-form"; // Import LogForm
 import { CommentForm } from "./comment-form"; // Will create this
 import { CommentList } from "./comment-list"; // Will create this
@@ -45,6 +46,13 @@ export function LogCard({
   const [showComments, setShowComments] = useState(false); // State to toggle comments
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
   const [showReadMore, setShowReadMore] = useState(false); // State for "Read More" button
+  const [imageStyle, setImageStyle] = useState<{
+    width?: string;
+    height?: string;
+    aspectRatio?: string;
+    objectFit: "cover" | "contain";
+    margin?: string;
+  } | null>(null);
   const contentRef = useRef<HTMLParagraphElement>(null); // Ref for content paragraph
 
   useEffect(() => {
@@ -59,6 +67,40 @@ export function LogCard({
       }
     }
   }, [log.content]);
+
+  useEffect(() => {
+    if (log.image_url) {
+      const img = new window.Image();
+      img.src = log.image_url;
+      img.onload = () => {
+        if (img.naturalHeight > 0) {
+          const originalAspectRatio = img.naturalWidth / img.naturalHeight;
+          const targetAspectRatio = 3 / 4; // width:height = 3:4
+
+          if (originalAspectRatio < targetAspectRatio) {
+            // If original image is taller than 3:4, fix container to 300px width and 400px height, and cover
+            setImageStyle({
+              width: "300px",
+              height: "400px",
+              objectFit: "cover",
+              margin: "0 auto", // Add this line for center alignment
+            });
+          } else {
+            // If original image is wider or equal to 3:4, maintain original aspect ratio, and contain
+            setImageStyle({
+              aspectRatio: `${originalAspectRatio}`,
+              objectFit: "contain",
+            });
+          }
+        }
+      };
+      img.onerror = () => {
+        setImageStyle(null);
+      };
+    } else {
+      setImageStyle(null);
+    }
+  }, [log.image_url]);
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -174,8 +216,8 @@ export function LogCard({
             <Image
               src={avatarUrlWithCacheBuster}
               alt={`${log.profiles?.username || "User"}'s avatar`}
-              width={40}
-              height={40}
+              width={36}
+              height={36}
               className="rounded-full object-cover mr-3"
             />
           </Link>
@@ -183,7 +225,7 @@ export function LogCard({
         <div className="flex-grow">
           <div className="flex items-baseline gap-2">
             <Link href={`/${log.profiles?.username || log.user_id}`}>
-              <p className="font-semibold hover:underline">
+              <p className="font-semibold hover:underline text-log-content">
                 {log.profiles?.full_name ||
                   log.profiles?.username ||
                   "Anonymous"}
@@ -231,7 +273,7 @@ export function LogCard({
         />
       ) : (
         <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px] relative">
-          <p ref={contentRef} className="mb-3 text-base whitespace-pre-wrap overflow-hidden max-h-72">
+          <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
           {showReadMore && (
@@ -248,12 +290,15 @@ export function LogCard({
             </div>
           )}
           {log.image_url && (
-            <div className="relative w-full h-64 mt-3 rounded-md overflow-hidden">
+            <div
+              className="relative w-full mt-3 rounded-md overflow-hidden max-h-[400px]"
+              style={imageStyle ? { ...imageStyle } : {}}
+            >
               <Image
                 src={log.image_url}
                 alt="Log image"
                 fill
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: imageStyle?.objectFit || "contain" }}
                 sizes="(max-width: 768px) 100vw, 672px"
               />
             </div>
@@ -263,39 +308,69 @@ export function LogCard({
 
       {/* Section 3: Actions (Independent buttons) */}
       <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
-        <button
-          onClick={handleLike}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/20"
-        >
-          <HeartIcon
-            className={
-              hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500 hover:fill-red-500"
-            }
-            size={18}
-          />
-          <span>{likesCount}</span>
-        </button>
-        <button
-          onClick={() => {
-            setShowComments(!showComments);
-          }}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
-        >
-          <MessageCircle size={18} />
-          <span>{commentsCount}</span>
-        </button>
-        <button
-          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
-        >
-          <Share2 size={18} />
-        </button>
-        <button
-          onClick={() => console.log("Save button clicked!")}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
-        >
-          <Bookmark size={18} />
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
+              >
+                <HeartIcon
+                  className={
+                    hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                  }
+                  size={18}
+                />
+                <span className="group-hover:text-red-500">{likesCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>좋아요</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  setShowComments(!showComments);
+                }}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+              >
+                <MessageCircle size={18} />
+                <span>{commentsCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>댓글</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}/log/${log.id}`)}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20"
+              >
+                <Share2 size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>공유</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => console.log("Save button clicked!")}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+              >
+                <Bookmark size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>저장</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Section 4: Comments (Shown conditionally) */}

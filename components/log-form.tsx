@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import Image from "next/image";
+import { ImagePlus } from "lucide-react";
 import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
 import { Database } from "@/types/database.types";
 
@@ -44,10 +45,52 @@ export function LogForm({
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
     initialLogData?.image_url || null
   );
+  const [imageStyle, setImageStyle] = useState<{
+    aspectRatio: string;
+    objectFit: "cover" | "contain";
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
   const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
   const { openLoginModal } = useLoginModal(); // Use the hook
+
+  useEffect(() => {
+    const calculateImageStyle = async () => {
+      if (!imagePreviewUrl) {
+        setImageStyle(null);
+        return;
+      }
+
+      try {
+        const img = new window.Image();
+        img.src = imagePreviewUrl;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+
+        const aspectRatio = img.width / img.height;
+        if (aspectRatio < 3 / 4) {
+          // 세로가 3:4 비율보다 긴 경우
+          setImageStyle({
+            aspectRatio: "3 / 4",
+            objectFit: "cover",
+          });
+        } else {
+          // 3:4 비율보다 넓거나 같은 경우
+          setImageStyle({
+            aspectRatio: `${img.width} / ${img.height}`,
+            objectFit: "contain",
+          });
+        }
+      } catch (error) {
+        console.error("Error loading image for style calculation:", error);
+        setImageStyle(null);
+      }
+    };
+
+    calculateImageStyle();
+  }, [imagePreviewUrl]);
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -393,29 +436,47 @@ export function LogForm({
             </ul>
           )}
         </div>
-        {imagePreviewUrl && (
-          <div className="relative w-full h-48 rounded-md overflow-hidden">
-            <Image
-              src={imagePreviewUrl}
-              alt="Image preview"
-              fill
-              style={{ objectFit: "cover" }}
-              sizes="(max-width: 768px) 100vw, 672px"
-            />
+        {imagePreviewUrl && imageStyle && (
+          <div className="flex justify-center">
+            <div
+              className="relative w-full max-h-[400px] rounded-md overflow-hidden"
+              style={{ aspectRatio: imageStyle.aspectRatio }}
+            >
+              <Image
+                src={imagePreviewUrl}
+                alt="Image preview"
+                fill
+                style={{ objectFit: imageStyle.objectFit }}
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
           </div>
         )}
         <div className="flex justify-between items-center">
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-auto"
-            disabled={loading} // Removed || !userId
-            ref={fileInputRef} // Attach ref to the Input component
-            onClick={() => {
-              if (!userId) openLoginModal();
-            }} // Open modal on click if not logged in
-          />
+          <div>
+            <Input
+              id="log-image-input"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+              disabled={loading}
+              ref={fileInputRef}
+            />
+            <Button
+              type="button"
+              variant="link"
+              size="icon"
+              onClick={() => document.getElementById('log-image-input')?.click()}
+              disabled={loading}
+              className="hover:bg-secondary"
+            >
+              <ImagePlus
+                className="h-4 w-4 text-muted-foreground"
+                // fill="currentColor"
+              />
+            </Button>
+          </div>
           <div className="flex gap-2">
             {onCancel && (
               <Button
