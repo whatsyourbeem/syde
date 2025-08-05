@@ -56,7 +56,6 @@ export function LoginModalProvider({ children }: LoginModalProviderProps) {
           </DialogHeader>
           <LoginForm
             onSignUpClick={handleSignUpClick}
-            onLoginSuccess={closeLoginModal}
           />
         </DialogContent>
       </Dialog>
