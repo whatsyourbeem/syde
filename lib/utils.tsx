@@ -4,13 +4,16 @@ import { twMerge } from "tailwind-merge";
 import React from "react";
 import Link from "next/link";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Database } from "@/types/database.types";
+import { Database, Json } from "@/types/database.types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export async function processMentionsForSave(content: string, supabase: SupabaseClient<Database>) {
+export async function processMentionsForSave(
+  content: string,
+  supabase: SupabaseClient<Database>
+) {
   const mentionRegex = /@([a-zA-Z0-9_.]+)/g;
   const usernames = Array.from(content.matchAll(mentionRegex), (m) => m[1]);
 
@@ -20,23 +23,22 @@ export async function processMentionsForSave(content: string, supabase: Supabase
 
   const uniqueUsernames = [...new Set(usernames)];
 
-  
-
   const { data: profiles, error } = await supabase
-    .from('profiles')
-    .select('id, username')
-    .in('username', uniqueUsernames);
+    .from("profiles")
+    .select("id, username")
+    .in("username", uniqueUsernames);
 
   if (error) {
-    console.error('Error fetching profiles for mentions:', error);
+    console.error("Error fetching profiles for mentions:", error);
     return content; // Gracefully fail by returning original content
   }
 
-  
-
   let processedContent = content;
   for (const profile of profiles) {
-    const userMentionRegex = new RegExp(`@${profile.username}(?![a-zA-Z0-9_.]|$)`, 'g');
+    const userMentionRegex = new RegExp(
+      `@${profile.username}(?![a-zA-Z0-9_.]|$)`,
+      "g"
+    );
     processedContent = processedContent.replace(
       userMentionRegex,
       `[mention:${profile.id}]`
@@ -46,12 +48,16 @@ export async function processMentionsForSave(content: string, supabase: Supabase
   return processedContent;
 }
 
-export function linkifyMentions(text: string, profiles: Array<{ id: string; username: string | null; }>, searchQuery?: string) {
-  
+export function linkifyMentions(
+  text: string,
+  profiles: Array<{ id: string; username: string | null }>,
+  searchQuery?: string
+) {
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const parts = text.split(mentionRegex);
 
-  return parts.flatMap((part, i) => { // Changed to flatMap
+  return parts.flatMap((part, i) => {
+    // Changed to flatMap
     if (i % 2 === 1) {
       const userId = part;
       const profile = profiles.find((p) => p.id === userId);
@@ -68,21 +74,69 @@ export function linkifyMentions(text: string, profiles: Array<{ id: string; user
       );
     }
     // Apply highlightText only to the string parts
-    const highlightedPart = searchQuery ? highlightText(part, searchQuery, `part-${i}`) : [part]; // Always return array
-    
+    const highlightedPart = searchQuery
+      ? highlightText(part, searchQuery, `part-${i}`)
+      : [part]; // Always return array
+
     // flatMap will flatten the array returned by highlightText
     return highlightedPart;
   });
 }
 
-export function highlightText(text: string, query: string, baseKey: string = ''): React.ReactNode[] {
-  
-  if (!query || typeof text !== 'string') {
-    
+export function isTiptapJsonEmpty(jsonContent: Json | null): boolean {
+  if (!jsonContent) {
+    return true;
+  }
+
+  // Fallback: if getPlainTextFromTiptapJson returns an empty string, consider it empty
+  return getPlainTextFromTiptapJson(jsonContent).trim() === "";
+}
+
+export function getPlainTextFromTiptapJson(jsonContent: Json | null): string {
+  if (!jsonContent) {
+    return "";
+  }
+
+  let parsedContent: Json;
+  if (typeof jsonContent === "string") {
+    try {
+      parsedContent = JSON.parse(jsonContent);
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      console.error("Failed to parse Tiptap JSON string:", e);
+      return String(jsonContent); // Return original string if parsing fails
+    }
+  } else {
+    parsedContent = jsonContent;
+  }
+
+  let plainText = "";
+
+  function traverse(node: Json) {
+    if (typeof node === "object" && node !== null) {
+      if ("text" in node && typeof node.text === "string") {
+        plainText += node.text;
+      }
+      if ("content" in node && Array.isArray(node.content)) {
+        node.content.forEach(traverse);
+      }
+    }
+  }
+
+  traverse(parsedContent);
+  return plainText;
+}
+
+export function highlightText(
+  text: string,
+  query: string,
+  baseKey: string = ""
+): React.ReactNode[] {
+  if (!query || typeof text !== "string") {
     return [text]; // Always return an array, even if just a string
   }
   const parts: React.ReactNode[] = []; // Change type to React.ReactNode[]
-  const regex = new RegExp(`(${query})`, 'gi'); // Case-insensitive, global
+  const regex = new RegExp(`(${query})`, "gi"); // Case-insensitive, global
   let lastIndex = 0;
   let match;
 
@@ -91,7 +145,11 @@ export function highlightText(text: string, query: string, baseKey: string = '')
   while ((match = regex.exec(text)) !== null) {
     // Add text before the match
     if (match.index > lastIndex) {
-      parts.push(<React.Fragment key={`${baseKey}-str-${keyCounter++}`}>{text.substring(lastIndex, match.index)}</React.Fragment>);
+      parts.push(
+        <React.Fragment key={`${baseKey}-str-${keyCounter++}`}>
+          {text.substring(lastIndex, match.index)}
+        </React.Fragment>
+      );
     }
     // Add the highlighted match
     parts.push(
@@ -104,9 +162,13 @@ export function highlightText(text: string, query: string, baseKey: string = '')
 
   // Add any remaining text after the last match
   if (lastIndex < text.length) {
-    parts.push(<React.Fragment key={`${baseKey}-str-${keyCounter++}`}>{text.substring(lastIndex)}</React.Fragment>);
+    parts.push(
+      <React.Fragment key={`${baseKey}-str-${keyCounter++}`}>
+        {text.substring(lastIndex)}
+      </React.Fragment>
+    );
   }
-  
+
   return parts;
 }
 
@@ -130,8 +192,8 @@ export function formatRelativeTime(dateString: string): string {
     return `${Math.floor(diffSeconds / day)}일 전`;
   } else {
     const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const dayOfMonth = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const dayOfMonth = date.getDate().toString().padStart(2, "0");
     const currentYear = now.getFullYear();
 
     if (year === currentYear) {

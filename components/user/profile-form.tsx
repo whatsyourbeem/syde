@@ -153,7 +153,9 @@ export default function ProfileForm({
 
       // Resize image before upload
       const resizedBlob = await resizeImage(file, 300, 300, 0.7); // Max 300x300, 70% quality
-      const resizedFile = new File([resizedBlob], fileName, { type: file.type });
+      const resizedFile = new File([resizedBlob], fileName, {
+        type: file.type,
+      });
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
@@ -191,7 +193,11 @@ export default function ProfileForm({
       try {
         newAvatarUrl = await uploadAvatar(avatarFile);
       } catch (error: unknown) {
-        alert(`아바타 업로드 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        alert(
+          `아바타 업로드 중 오류가 발생했습니다: ${
+            error instanceof Error ? error.message : "알 수 없는 오류"
+          }`
+        );
         return;
       }
     }
@@ -203,15 +209,16 @@ export default function ProfileForm({
     formData.append("link", currentLink || "");
     formData.append("username", currentUsername || "");
 
-
     await updateProfile(formData);
   };
 
   return (
-    <Card className={`w-full border-0 shadow-none ${className || ''}`}>
+    <Card className={`w-full border-0 shadow-none ${className || ""}`}>
       <form action={clientAction} className="space-y-8 pt-4">
         <div className="space-y-2">
-          <Label htmlFor="fullName" className="font-semibold">닉네임</Label>
+          <Label htmlFor="fullName" className="font-semibold">
+            닉네임
+          </Label>
           <Input
             id="fullName"
             name="full_name"
@@ -221,7 +228,9 @@ export default function ProfileForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="username" className="font-semibold">프로필 네임</Label>
+          <Label htmlFor="username" className="font-semibold">
+            프로필 네임
+          </Label>
           <Input
             id="username"
             name="username"
@@ -229,7 +238,9 @@ export default function ProfileForm({
             value={currentUsername || ""}
             onChange={(e) => setCurrentUsername(e.target.value)}
           />
-          <p className="text-sm text-muted-foreground">프로필 네임은 프로필 페이지 링크와 연동돼요.</p>
+          <p className="text-sm text-muted-foreground">
+            프로필 네임은 프로필 페이지 링크와 연동돼요.
+          </p>
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-4">
@@ -237,19 +248,25 @@ export default function ProfileForm({
               className="relative w-24 h-24 rounded-full overflow-hidden cursor-pointer"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              onClick={() => document.getElementById('avatar')?.click()}
+              onClick={() => document.getElementById("avatar")?.click()}
             >
               {avatarPreviewUrl && (
                 <Image
                   src={avatarPreviewUrl}
                   alt="Avatar"
-                  className={`rounded-full object-cover w-full h-full transition-opacity duration-300 ${isHovered ? "opacity-50" : "opacity-100"}`}
+                  className={`rounded-full object-cover w-full h-full transition-opacity duration-300 ${
+                    isHovered ? "opacity-50" : "opacity-100"
+                  }`}
                   width={96}
                   height={96}
                 />
               )}
-              <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${isHovered ? "opacity-30" : "opacity-0"}`}>
-                <Plus className="w-12 h-12" color="white"/>
+              <div
+                className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${
+                  isHovered ? "opacity-30" : "opacity-0"
+                }`}
+              >
+                <Plus className="w-12 h-12" color="white" />
               </div>
             </div>
             <div className="space-y-2">
@@ -263,7 +280,7 @@ export default function ProfileForm({
               />
               <Button
                 type="button"
-                onClick={() => document.getElementById('avatar')?.click()}
+                onClick={() => document.getElementById("avatar")?.click()}
               >
                 파일 선택
               </Button>
@@ -271,7 +288,9 @@ export default function ProfileForm({
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="tagline" className="font-semibold">한 줄 소개</Label>
+          <Label htmlFor="tagline" className="font-semibold">
+            한 줄 소개
+          </Label>
           <Input
             id="tagline"
             name="tagline"
@@ -282,7 +301,9 @@ export default function ProfileForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="link" className="font-semibold">Link</Label>
+          <Label htmlFor="link" className="font-semibold">
+            Link
+          </Label>
           <Input
             id="link"
             name="link"

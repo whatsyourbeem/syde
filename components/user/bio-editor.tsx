@@ -9,9 +9,12 @@ import { useState, useCallback, useEffect } from "react";
 import { updateBio } from "@/app/[username]/actions"; // will create this server action
 import { toast } from "sonner";
 import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
+import BioViewer from "./bio-viewer";
+import { Json } from "@/types/database.types";
+import { isTiptapJsonEmpty } from "@/lib/utils";
 
 interface BioEditorProps {
-  initialBio: string | null;
+  initialBio: Json | null;
   isOwnProfile: boolean;
 }
 
@@ -187,7 +190,7 @@ export default function BioEditor({
   const [isEditing, setIsEditing] = useState(false); // Re-add this state
   const [isLoading, setIsLoading] = useState(false);
 
-    const editor = useEditor({
+  const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit,
@@ -199,7 +202,7 @@ export default function BioEditor({
         placeholder: "당신의 SYDE를 자유롭게 표현해보세요.",
       }),
     ],
-    content: initialBio === "<p></p>" ? "" : initialBio || "",
+    content: initialBio as object | undefined,
     editable: isEditing,
   });
 
@@ -210,8 +213,14 @@ export default function BioEditor({
   }, [editor, isEditing]);
 
   useEffect(() => {
-    if (editor && initialBio !== editor.getHTML()) {
-      editor.commands.setContent(initialBio || "");
+    if (editor && initialBio) {
+      if (JSON.stringify(editor.getJSON()) !== JSON.stringify(initialBio)) {
+        editor.commands.setContent(initialBio as object | null);
+      }
+    } else if (editor && initialBio === null) {
+      if (editor.getHTML() !== "") {
+        editor.commands.setContent("");
+      }
     }
   }, [editor, initialBio]);
 
@@ -219,11 +228,13 @@ export default function BioEditor({
     if (!editor) return;
 
     setIsLoading(true);
-    const bioContent = editor.getHTML();
+    const bioContent = JSON.stringify(editor.getJSON());
     const formData = new FormData();
     formData.append("bio", bioContent);
 
-    const result: { error?: string; success?: boolean } = await updateBio(formData); // Call server action
+    const result: { error?: string; success?: boolean } = await updateBio(
+      formData
+    ); // Call server action
 
     if (result?.error) {
       toast.error("자유 소개 저장 실패", {
@@ -238,7 +249,11 @@ export default function BioEditor({
 
   const handleCancel = useCallback(() => {
     if (editor) {
-      editor.commands.setContent(initialBio || ""); // Revert to initial content
+      if (initialBio === null) {
+        editor.commands.setContent(""); // Clear content if initialBio is null
+      } else {
+        editor.commands.setContent(initialBio as object); // Revert to initial content (JSON object)
+      }
     }
     setIsEditing(false); // Revert to setIsEditing(false)
   }, [editor, initialBio]);
@@ -271,17 +286,14 @@ export default function BioEditor({
         </>
       ) : (
         <div className="flex flex-col">
-          {initialBio && initialBio !== "<p></p>" ? (
-            <div
-              className="p-4 prose max-w-none text-muted-foreground whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{ __html: initialBio }}
-            />
-          ) : (
+          {isTiptapJsonEmpty(initialBio) ? (
             <p className="m-4 p-4 text-muted-foreground text-center">
               {isOwnProfile
                 ? "자유 소개를 작성해주세요."
                 : "작성된 자유 소개가 없습니다."}
             </p>
+          ) : (
+            <BioViewer bioContent={initialBio} />
           )}
           {isOwnProfile && (
             <div className="mt-4 flex justify-center">

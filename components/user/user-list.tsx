@@ -110,11 +110,7 @@ export function UserList({ searchQuery }: UserListProps) {
                   {highlightText(userProfile.tagline, searchQuery)}
                 </p>
               )}
-              {userProfile.bio && (
-                <p className="text-sm mt-1">
-                  {highlightText(userProfile.bio, searchQuery)}
-                </p>
-              )}
+              
             </div>
           </div>
         ))

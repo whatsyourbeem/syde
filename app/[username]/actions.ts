@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Json } from "@/types/database.types";
 
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
@@ -52,7 +53,14 @@ export async function updateBio(formData: FormData): Promise<{ error?: string; s
     return { error: "Authentication required." };
   }
 
-  const bio = formData.get("bio") as string;
+  const bioString = formData.get("bio") as string;
+  let bio: Json | null = null;
+  try {
+    bio = JSON.parse(bioString);
+  } catch (e) {
+    console.error("Failed to parse bio JSON string:", e);
+    return { error: "Invalid bio content format." };
+  }
 
   const { error } = await supabase
     .from("profiles")
