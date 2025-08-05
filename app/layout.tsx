@@ -107,6 +107,7 @@ export default async function RootLayout({
                     </span>
                   </Link>
                 </div>
+                <HeaderNavigation />
                 <div className="flex items-center gap-4">
                   <Link
                     href="/search"
@@ -130,7 +131,6 @@ export default async function RootLayout({
                   />
                 </div>
               </div>
-              <HeaderNavigation />
             </nav>
             {children}
             <Toaster />
