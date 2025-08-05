@@ -48,18 +48,15 @@ interface LogDetailProps {
   user: User | null;
 }
 
-export function LogDetail({ log: initialLog, user }: LogDetailProps) {
+export function LogDetail({ log, user }: LogDetailProps) {
   const supabase = createClient();
-  const router = useRouter(); // Add this line
-  const [log, setLog] = useState(initialLog);
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [mentionedProfiles, setMentionedProfiles] = useState<
     Array<{ id: string; username: string | null }>
   >([]);
-  const [commentsCount, setCommentsCount] = useState(
-    initialLog.log_comments.length
-  ); // Added commentsCount state
-  const [showImageModal, setShowImageModal] = useState(false); // New state for image modal
+  const [commentsCount, setCommentsCount] = useState(log.log_comments.length);
+  const [showImageModal, setShowImageModal] = useState(false);
   const [imageStyle, setImageStyle] = useState<{
     aspectRatio: string;
     objectFit: "cover" | "contain";
@@ -119,11 +116,11 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
 
   // New states for likes
   const [currentLikesCount, setCurrentLikesCount] = useState(
-    initialLog.log_likes.length
+    log.log_likes.length
   );
   const [currentHasLiked, setCurrentHasLiked] = useState(
     user
-      ? initialLog.log_likes.some(
+      ? log.log_likes.some(
           (like: { user_id: string }) => like.user_id === user.id
         )
       : false
@@ -165,15 +162,6 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
 
   const handleCommentAdded = () => {
     setCommentsCount((prev) => prev + 1);
-  };
-
-  const handleLogUpdate = (updatedLog: LogWithRelations) => {
-    setLog((prevLog: LogWithRelations) => ({
-      ...prevLog,
-      content: updatedLog.content,
-      image_url: updatedLog.image_url,
-    }));
-    setIsEditing(false);
   };
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
@@ -311,8 +299,8 @@ export function LogDetail({ log: initialLog, user }: LogDetailProps) {
         <LogForm
           userId={user?.id || null}
           initialLogData={log}
-          onLogUpdated={handleLogUpdate}
           onCancel={() => setIsEditing(false)}
+          onSuccess={() => setIsEditing(false)}
         />
       ) : (
         <div className="py-1 pl-11">

@@ -268,7 +268,6 @@ export function LogCard({
         <LogForm
           userId={currentUserId}
           initialLogData={log}
-          onLogUpdated={() => setIsEditing(false)}
           onCancel={() => setIsEditing(false)}
         />
       ) : (

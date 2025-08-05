@@ -6,91 +6,59 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import Image from "next/image";
-import { ImagePlus } from "lucide-react";
-import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
+import { ImagePlus, X } from "lucide-react";
+import { useLoginModal } from "@/context/LoginModalContext";
 import { Database } from "@/types/database.types";
-
-type LogWithRelations = Database['public']['Tables']['logs']['Row'] & {
-  profiles: Database['public']['Tables']['profiles']['Row'] | null;
-  log_likes: Array<{ user_id: string }>;
-  log_comments: Array<{ id: string }>;
-};
+import { createLog, updateLog } from "@/app/log/actions";
+import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 
 interface LogFormProps {
   userId: string | null;
-  userEmail?: string | null; // Made optional for editing
-  avatarUrl?: string | null; // Made optional for editing
-  username?: string | null; // Made optional for editing
-  full_name?: string | null; // Added for full_name display
-  initialLogData?: Database['public']['Tables']['logs']['Row']; // New prop for editing
-  onLogUpdated?: (updatedLog: LogWithRelations) => void; // Callback for successful update
-  onCancel?: () => void; // Callback for cancel button in edit mode
+  userEmail?: string | null;
+  avatarUrl?: string | null;
+  username?: string | null;
+  full_name?: string | null;
+  initialLogData?: Database['public']['Tables']['logs']['Row'];
+  onCancel?: () => void;
+  onSuccess?: () => void; // New prop for success callback
 }
 
-import { processMentionsForSave } from "@/lib/utils";
+function SubmitButton({ initialLogData, content, isSubmitting }: { initialLogData?: Database['public']['Tables']['logs']['Row'], content: string, isSubmitting: boolean }) {
+  const { pending } = useFormStatus();
+  const isDisabled = pending || isSubmitting || content.trim() === "";
+  return (
+    <Button type="submit" disabled={isDisabled}>
+      {pending || isSubmitting
+        ? initialLogData ? "로그 수정 중..." : "로그 기록 중..."
+        : initialLogData ? "로그 수정하기" : "로그 기록하기"}
+    </Button>
+  );
+}
 
 export function LogForm({
   userId,
   userEmail,
   avatarUrl,
   username,
-  full_name, // Add full_name here
+  full_name,
   initialLogData,
-  onLogUpdated,
   onCancel,
+  onSuccess, // Destructure onSuccess prop
 }: LogFormProps) {
   const supabase = createClient();
   const [content, setContent] = useState(initialLogData?.content || "");
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
     initialLogData?.image_url || null
   );
-  const [imageStyle, setImageStyle] = useState<{
-    aspectRatio: string;
-    objectFit: "cover" | "contain";
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null); // Add ref for file input
-  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref for textarea
-  const { openLoginModal } = useLoginModal(); // Use the hook
-
-  useEffect(() => {
-    const calculateImageStyle = async () => {
-      if (!imagePreviewUrl) {
-        setImageStyle(null);
-        return;
-      }
-
-      try {
-        const img = new window.Image();
-        img.src = imagePreviewUrl;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-
-        const aspectRatio = img.width / img.height;
-        if (aspectRatio < 3 / 4) {
-          // 세로가 3:4 비율보다 긴 경우
-          setImageStyle({
-            aspectRatio: "3 / 4",
-            objectFit: "cover",
-          });
-        } else {
-          // 3:4 비율보다 넓거나 같은 경우
-          setImageStyle({
-            aspectRatio: `${img.width} / ${img.height}`,
-            objectFit: "contain",
-          });
-        }
-      } catch (error) {
-        console.error("Error loading image for style calculation:", error);
-        setImageStyle(null);
-      }
-    };
-
-    calculateImageStyle();
-  }, [imagePreviewUrl]);
+  const [imageUrlForForm, setImageUrlForForm] = useState<string | null>(
+    initialLogData?.image_url || null
+  );
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { openLoginModal } = useLoginModal();
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -100,7 +68,6 @@ export function LogForm({
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
 
   const fetchMentionSuggestions = useCallback(async (term: string) => {
-    console.log("Fetching mention suggestions for term:", term); // Debug log
     if (term.length < 1) {
       setMentionSuggestions([]);
       setShowSuggestions(false);
@@ -109,7 +76,7 @@ export function LogForm({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, full_name, avatar_url') // Added avatar_url
+      .select('id, username, full_name, avatar_url')
       .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
       .limit(5);
 
@@ -124,7 +91,6 @@ export function LogForm({
     setShowSuggestions(true);
   }, [supabase]);
 
-  // Debounce for mention search
   useEffect(() => {
     const handler = setTimeout(() => {
       if (mentionSearchTerm) {
@@ -150,11 +116,9 @@ export function LogForm({
 
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-      // Regex to check if the text after @ is a valid username character sequence
-      const mentionRegex = /^[a-zA-Z0-9._\uAC00-\uD7A3-]*$/u; // Allow Hangul characters and literal hyphen
+      const mentionRegex = /^[a-zA-Z0-9._\uAC00-\uD7A3-]*$/u;
       if (mentionRegex.test(textAfterAt)) {
         setMentionSearchTerm(textAfterAt);
-        console.log("Mention search term (handleContentChange):", textAfterAt); // Debug log
         setMentionStartIndex(lastAtIndex);
         setActiveSuggestionIndex(0);
       } else {
@@ -178,9 +142,8 @@ export function LogForm({
     setContent(newContent);
     setMentionSearchTerm("");
     setShowSuggestions(false);
-    // Optionally, set cursor position after the inserted mention
     if (textareaRef.current) {
-      const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2; // +2 for '@' and space
+      const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2;
       textareaRef.current.selectionStart = newCursorPosition;
       textareaRef.current.selectionEnd = newCursorPosition;
       textareaRef.current.focus();
@@ -206,190 +169,94 @@ export function LogForm({
     }
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
-      setImageFile(file);
+      if (!userId) return;
+      setIsUploading(true);
       setImagePreviewUrl(URL.createObjectURL(file));
+      try {
+        const publicUrl = await uploadImage(file, userId);
+        setImageUrlForForm(publicUrl);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const resizeImage = useCallback(
-    (file: File,
-    maxWidth: number,
-    maxHeight: number,
-    quality: number
-  ): Promise<Blob> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new window.Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(blob);
-              }
-            },
-            file.type,
-            quality
-          );
-        };
-      };
-    });
-  }, []);
+  const removeImage = () => {
+    setImagePreviewUrl(null);
+    setImageUrlForForm(null);
+    if(fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   const uploadImage = useCallback(async (file: File, userId: string) => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
 
-    const resizedBlob = await resizeImage(file, 800, 800, 0.8); // Max 800x800, 80% quality
-    const resizedFile = new File([resizedBlob], fileName, { type: file.type });
-
     const { error: uploadError } = await supabase.storage
-      .from("logimages") // Changed to logimages
-      .upload(filePath, resizedFile, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+      .from("logimages")
+      .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-    if (uploadError) {
-      throw uploadError;
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabase.storage.from("logimages").getPublicUrl(filePath);
+    return publicUrlData.publicUrl;
+  }, [supabase]);
+
+  const router = useRouter();
+
+  const clientAction = useCallback(async (formData: FormData) => {
+    if (!userId) {
+      openLoginModal();
+      return;
     }
 
-    const { data: publicUrlData } = supabase.storage
-      .from("logimages")
-      .getPublicUrl(filePath);
+    setIsSubmitting(true);
 
-    return publicUrlData.publicUrl;
-  }, [supabase, resizeImage]);
+    // The server action will process mentions
+    formData.set("content", content);
 
-  const handleSubmit = useCallback(
-    async (event: React.FormEvent) => {
-      event.preventDefault();
-      if (!userId) {
-        openLoginModal(); // Open login modal
-        return;
-      }
+    const action = initialLogData ? updateLog : createLog;
+    const result = await action(formData);
 
-      setLoading(true);
-      let imageUrl: string | null = initialLogData?.image_url || null;
-
-      try {
-        // Handle image upload/removal only if a new file is selected or existing image is cleared
-        if (imageFile) {
-          imageUrl = await uploadImage(imageFile, userId);
-        } else if (initialLogData?.image_url && !imagePreviewUrl) {
-          // If image was cleared in edit mode
-          const url = new URL(initialLogData.image_url);
-          const path = url.pathname.split("/logimages/")[1];
-          if (path) {
-            await supabase.storage.from("logimages").remove([path]);
-          }
-          imageUrl = null;
-        }
-
-        const processedContent = await processMentionsForSave(content, supabase);
-
-        if (initialLogData) {
-          // Update existing log
-          const { data, error } = await supabase
-            .from("logs")
-            .update({
-              content: processedContent,
-              image_url: imageUrl,
-            })
-            .eq("id", initialLogData.id)
-            .select(); // Add .select() to return the updated data
-
-          if (error) {
-            throw error;
-          }
-          if (onLogUpdated && data && data.length > 0) {
-            const updatedLogWithRelations = {
-              ...initialLogData,
-              ...data[0],
-            } as LogWithRelations;
-            onLogUpdated(updatedLogWithRelations);
-          }
-        } else {
-          // Insert new log
-          const { error } = await supabase.from("logs").insert({
-            user_id: userId,
-            content: processedContent,
-            image_url: imageUrl,
-          });
-
-          if (error) {
-            throw error;
-          }
-        }
-
+    if (result?.error) {
+      alert(`Error: ${result.error}`);
+    } else {
+      // Reset form only for new log creation
+      if (!initialLogData) {
         setContent("");
-        setImageFile(null);
         setImagePreviewUrl(null);
+        setImageUrlForForm(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = ""; // Clear the file input
+          fileInputRef.current.value = "";
         }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          alert(`로그 기록 중 오류가 발생했습니다: ${error.message}`); // Changed alert message
-        } else {
-          alert("알 수 없는 오류가 발생했습니다.");
-        }
-      } finally {
-        setLoading(false);
       }
-    },
-    [
-      userId,
-      content,
-      imageFile,
-      supabase,
-      initialLogData,
-      onLogUpdated,
-      imagePreviewUrl,
-      openLoginModal,
-      uploadImage,
-    ]
-  );
+      // Call onSuccess callback if provided and it's an update operation
+      if (initialLogData && onSuccess) {
+        onSuccess();
+      } else if (result?.logId) {
+        router.push(`/log/${result.logId}`);
+      } else {
+        // Fallback for update, if no specific logId is returned
+        router.refresh();
+      }
+    }
+    setIsSubmitting(false);
+  }, [userId, content, initialLogData, openLoginModal, router, onSuccess]);
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4 border rounded-lg shadow-sm bg-card">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form action={clientAction} className="space-y-4">
+        {initialLogData && <input type="hidden" name="logId" value={initialLogData.id} />}
+        <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} />
+
         {!initialLogData && (
           <div className="flex items-center gap-4">
-            {avatarUrl && (
-              <Image
-                src={avatarUrl}
-                alt="User Avatar"
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
-            )}
+            {avatarUrl && <Image src={avatarUrl} alt="User Avatar" width={40} height={40} className="rounded-full object-cover" />}
             <div>
               <p className="font-semibold">{full_name || username || userEmail}</p>
             </div>
@@ -397,16 +264,15 @@ export function LogForm({
         )}
         <div className="relative">
           <Textarea
+            name="content"
             placeholder="무슨 생각을 하고 계신가요?"
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             rows={3}
-            disabled={loading} // Removed || !userId
-            onClick={() => {
-              if (!userId) openLoginModal();
-            }} // Open modal on click if not logged in
-            ref={textareaRef} // Attach ref to the Textarea component
+            disabled={isUploading || !userId || isSubmitting}
+            onClick={() => { if (!userId) openLoginModal(); }}
+            ref={textareaRef}
           />
           {showSuggestions && mentionSuggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
@@ -436,20 +302,12 @@ export function LogForm({
             </ul>
           )}
         </div>
-        {imagePreviewUrl && imageStyle && (
-          <div className="flex justify-center">
-            <div
-              className="relative w-full max-h-[400px] rounded-md overflow-hidden"
-              style={{ aspectRatio: imageStyle.aspectRatio }}
-            >
-              <Image
-                src={imagePreviewUrl}
-                alt="Image preview"
-                fill
-                style={{ objectFit: imageStyle.objectFit }}
-                sizes="(max-width: 768px) 100vw, 672px"
-              />
-            </div>
+        {imagePreviewUrl && (
+          <div className="relative w-full max-w-xs mx-auto">
+            <Image src={imagePreviewUrl} alt="Image preview" width={400} height={400} className="rounded-md object-contain" />
+            <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={removeImage} disabled={isUploading || isSubmitting}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         )}
         <div className="flex justify-between items-center">
@@ -460,7 +318,7 @@ export function LogForm({
               accept="image/*"
               onChange={handleImageChange}
               className="hidden"
-              disabled={loading}
+              disabled={isUploading || isSubmitting}
               ref={fileInputRef}
             />
             <Button
@@ -468,40 +326,19 @@ export function LogForm({
               variant="link"
               size="icon"
               onClick={() => document.getElementById('log-image-input')?.click()}
-              disabled={loading}
+              disabled={isUploading || isSubmitting}
               className="hover:bg-secondary"
             >
-              <ImagePlus
-                className="h-4 w-4 text-muted-foreground"
-                // fill="currentColor"
-              />
+              <ImagePlus className="h-4 w-4 text-muted-foreground" />
             </Button>
           </div>
           <div className="flex gap-2">
             {onCancel && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isUploading || isSubmitting}>
                 취소
               </Button>
             )}
-            <Button
-              type="submit"
-              disabled={loading || content.trim() === "" || !userId}
-            >
-              {" "}
-              {/* Disable if not logged in */}
-              {loading
-                ? initialLogData
-                  ? "로그 수정 중..."
-                  : "로그 기록 중..."
-                : initialLogData
-                ? "로그 수정하기"
-                : "로그 기록하기"}{" "}
-            </Button>
+            <SubmitButton initialLogData={initialLogData} content={content} isSubmitting={isSubmitting} />
           </div>
         </div>
       </form>

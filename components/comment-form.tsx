@@ -1,41 +1,51 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input"; // Import Input instead of Textarea
-import { useQueryClient } from "@tanstack/react-query";
+import { Input } from "./ui/input";
 import { useLoginModal } from "@/context/LoginModalContext";
-import Image from "next/image";
+import { createComment, updateComment } from "@/app/log/actions";
+import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
+import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 
 interface CommentFormProps {
   logId: string;
   currentUserId: string | null;
-  onCommentAdded?: () => void;
+  parentCommentId?: string | null;
   initialCommentData?: Database['public']['Tables']['log_comments']['Row'];
+  onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
-  parentCommentId?: string | null; // New prop for replies
 }
 
-import { processMentionsForSave } from "@/lib/utils";
+function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['log_comments']['Row'], content: string, isSubmitting: boolean }) {
+  const { pending } = useFormStatus();
+  const isDisabled = pending || isSubmitting || content.trim() === "";
+  return (
+    <Button type="submit" disabled={isDisabled}>
+      {pending || isSubmitting
+        ? initialCommentData ? "수정 중..." : "작성 중..."
+        : initialCommentData ? "수정" : "작성"}
+    </Button>
+  );
+}
 
 export function CommentForm({
   logId,
   currentUserId,
-  onCommentAdded,
+  parentCommentId,
   initialCommentData,
+  onCommentAdded,
   onCommentUpdated,
   onCancel,
-  parentCommentId, // Destructure new prop
 }: CommentFormProps) {
   const supabase = createClient();
-  const queryClient = useQueryClient();
-  const [content, setContent] = useState(initialCommentData?.content || "");
-  const [loading, setLoading] = useState(false);
   const { openLoginModal } = useLoginModal();
-  const inputRef = useRef<HTMLInputElement>(null); // Change to HTMLInputElement
+  const formRef = useRef<HTMLFormElement>(null);
+  const [content, setContent] = useState(initialCommentData?.content || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -43,6 +53,7 @@ export function CommentForm({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchMentionSuggestions = useCallback(async (term: string) => {
     if (term.length < 1) {
@@ -53,7 +64,7 @@ export function CommentForm({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, full_name, avatar_url') // Added avatar_url
+      .select('id, username, full_name, avatar_url')
       .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
       .limit(5);
 
@@ -68,7 +79,6 @@ export function CommentForm({
     setShowSuggestions(true);
   }, [supabase]);
 
-  // Debounce for mention search
   useEffect(() => {
     const handler = setTimeout(() => {
       if (mentionSearchTerm) {
@@ -84,7 +94,7 @@ export function CommentForm({
     };
   }, [mentionSearchTerm, fetchMentionSuggestions]);
 
-  const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => { // Change to HTMLInputElement
+  const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
 
@@ -95,7 +105,7 @@ export function CommentForm({
 
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
-      const mentionRegex = /^[a-zA-Z0-9._\uAC00-\uD7A3-]*$/u; // Allow Hangul characters and literal hyphen
+      const mentionRegex = /^[a-zA-Z0-9._\uAC00-\uD7A3-]*$/u;
       if (mentionRegex.test(textAfterAt)) {
         setMentionSearchTerm(textAfterAt);
         setMentionStartIndex(lastAtIndex);
@@ -121,15 +131,15 @@ export function CommentForm({
     setContent(newContent);
     setMentionSearchTerm("");
     setShowSuggestions(false);
-    if (inputRef.current) { // Change to inputRef
+    if (inputRef.current) {
       const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2;
-      inputRef.current.selectionStart = newCursorPosition; // Change to inputRef
-      inputRef.current.selectionEnd = newCursorPosition; // Change to inputRef
-      inputRef.current.focus(); // Change to inputRef
+      inputRef.current.selectionStart = newCursorPosition;
+      inputRef.current.selectionEnd = newCursorPosition;
+      inputRef.current.focus();
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => { // Change to HTMLInputElement
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (showSuggestions && mentionSuggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -148,90 +158,54 @@ export function CommentForm({
     }
   };
 
-  const handleSubmit = useCallback(
-    async (event: React.FormEvent) => {
-      event.preventDefault();
-      if (!currentUserId) {
-        openLoginModal();
-        return;
-      }
+  const clientAction = async (formData: FormData) => {
+    if (!currentUserId) {
+      openLoginModal();
+      return;
+    }
 
-      setLoading(true);
+    setIsSubmitting(true);
 
-      try {
-        const processedContent = await processMentionsForSave(
-          content,
-          supabase
-        );
+    // The server action will process mentions
+    formData.set("content", content);
 
-        if (initialCommentData) {
-          const { error } = await supabase
-            .from("log_comments")
-            .update({ content: processedContent })
-            .eq("id", initialCommentData.id);
+    const action = initialCommentData ? updateComment : createComment;
+    const result = await action(formData);
 
-          if (error) {
-            throw error;
-          }
-          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
-          if (onCommentUpdated) onCommentUpdated();
-        } else {
-          const { error } = await supabase.from("log_comments").insert({
-            log_id: logId,
-            user_id: currentUserId,
-            content: processedContent,
-            ...(parentCommentId && { parent_comment_id: parentCommentId }), // Add parent_comment_id if present
-          });
-
-          if (error) {
-            throw error;
-          }
-          queryClient.invalidateQueries({ queryKey: ["comments", { logId }] });
-          if (onCommentAdded) onCommentAdded();
-        }
-
+    if (result?.error) {
+      alert(`Error: ${result.error}`);
+    } else {
+      if (initialCommentData) {
+        if (onCommentUpdated) onCommentUpdated();
+      } else {
+        formRef.current?.reset();
         setContent("");
-      } catch (error: unknown) {
-        alert(
-          `댓글 ${initialCommentData ? "수정" : "추가"} 중 오류가 발생했습니다: ${
-            error instanceof Error ? error.message : '알 수 없는 오류'
-          }`
-        );
-      } finally {
-        setLoading(false);
+        if (onCommentAdded) onCommentAdded();
       }
-    },
-    [
-      logId,
-      currentUserId,
-      content,
-      supabase,
-      onCommentAdded,
-      initialCommentData,
-      onCommentUpdated,
-      queryClient,
-      openLoginModal,
-      parentCommentId,
-    ]
-  );
+    }
+    setIsSubmitting(false);
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 m-4 relative">
+    <form
+      ref={formRef}
+      action={clientAction}
+      className="flex flex-col gap-2 m-4 relative"
+    >
+      <input type="hidden" name="log_id" value={logId} />
+      {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
+      {parentCommentId && <input type="hidden" name="parent_comment_id" value={parentCommentId} />}
       <div className="flex gap-2">
         <div className="flex-grow relative">
-          <Input // Change to Input
-            placeholder={
-              initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."
-            }
+          <Input
+            name="content"
+            placeholder={initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."}
+            disabled={!currentUserId || isSubmitting}
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
-            disabled={loading} // Removed || !currentUserId
-            onClick={() => {
-              if (!currentUserId) openLoginModal();
-            }} // Open modal on click if not logged in
             className="w-full pr-20"
-            ref={inputRef} // Change to inputRef
+            ref={inputRef}
           />
           {showSuggestions && mentionSuggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
@@ -261,31 +235,9 @@ export function CommentForm({
             </ul>
           )}
         </div>
-        <div className="flex flex-col gap-2">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={loading}
-              className="w-full"
-            >
-              취소
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={loading || content.trim() === "" || !currentUserId}
-            className={!initialCommentData ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" : ""}
-          >
-            {loading
-              ? initialCommentData
-                ? "수정 중..."
-                : "작성 중..."
-              : initialCommentData
-              ? "수정"
-              : "작성"}
-          </Button>
+        <div className="flex items-center gap-2">
+          {onCancel && <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>취소</Button>}
+          <SubmitButton initialCommentData={initialCommentData} content={content} isSubmitting={isSubmitting} />
         </div>
       </div>
     </form>
