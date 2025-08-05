@@ -92,7 +92,7 @@ export default async function RootLayout({
             {" "}
             {/* Wrap with LoginModalProvider */}
             <nav className="w-full flex flex-col items-center border-b border-b-foreground/10">
-              <div className="w-full max-w-5xl flex justify-between items-center px-5 py-4 text-sm">
+              <div className="w-full max-w-5xl flex justify-between items-center px-5 py-3 text-sm">
                 <div className="flex items-center font-semibold">
                   <Link href={"/"} className="flex items-center gap-1">
                     <Image
