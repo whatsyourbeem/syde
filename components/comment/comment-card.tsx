@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { HeartIcon } from "lucide-react"; // Added Edit, HeartIcon
 import { useState, useEffect } from "react";
-import { CommentForm } from "./comment-form";
+import { CommentForm } from "@/components/comment/comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button"; // Import Button
 

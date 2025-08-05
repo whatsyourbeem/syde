@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { LogForm } from "@/components/log-form";
-import { LogListWrapper } from "@/components/log-list-wrapper"; // Import LogListWrapper
+import { LogForm } from "@/components/log/log-form";
+import { LogListWrapper } from "@/components/log/log-list-wrapper";
 
 export const dynamic = 'force-dynamic';
 

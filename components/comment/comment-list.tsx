@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { CommentCard } from "./comment-card";
+import { CommentCard } from "@/components/comment/comment-card";
 import { useRouter } from "next/navigation";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
 
 interface CommentListProps {

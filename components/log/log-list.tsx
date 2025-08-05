@@ -4,8 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
-import { LogCard } from "./log-card";
-import { Button } from "./ui/button"; // Import Button component
+import { LogCard } from "@/components/log/log-card";
+import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
 
 type LogRow = Database["public"]["Tables"]["logs"]["Row"];

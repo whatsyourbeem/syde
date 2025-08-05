@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LogList } from "@/components/log-list";
+import { LogList } from "@/components/log/log-list";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UserActivityLogListProps {

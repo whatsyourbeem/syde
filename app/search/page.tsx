@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { SearchForm } from "@/components/search-form";
-import { LogListWrapper } from "@/components/log-list-wrapper";
+import { SearchForm } from "@/components/search/search-form";
+import { LogListWrapper } from "@/components/log/log-list-wrapper";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserList } from "@/components/user-list"; // New import
+import { UserList } from "@/components/user/user-list";
 
 export const dynamic = "force-dynamic";
 

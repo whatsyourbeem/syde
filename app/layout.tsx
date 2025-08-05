@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { AuthButton } from "@/components/auth-button";
+import { AuthButton } from "@/components/auth/auth-button";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
-import { Providers } from "@/components/providers"; // Import Providers
+import { Providers } from "@/components/layout/providers"; // Import Providers
 import { Search } from "lucide-react"; // Import Search icon
 import NotificationBell from "@/components/notification/notification-bell";
 import { Suspense } from "react";
@@ -39,7 +39,7 @@ const pretendard = localFont({
   display: "swap",
 });
 
-import { HeaderNavigation } from "@/components/header-navigation";
+import { HeaderNavigation } from "@/components/layout/header-navigation";
 
 export default async function RootLayout({
   children,

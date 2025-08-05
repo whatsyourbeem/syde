@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { LogList } from "@/components/log-list"; // Import LogList
+import { LogList } from "@/components/log/log-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
-import { UserActivityLogList } from "@/components/user-activity-log-list"; // Import UserActivityLogList
-import BioEditor from "@/components/bio-editor"; // Import BioEditor
-import { LogoutButton } from "@/components/logout-button"; // Import LogoutButton
+import { UserActivityLogList } from "@/components/user/user-activity-log-list";
+import BioEditor from "@/components/user/bio-editor";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;

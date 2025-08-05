@@ -32,9 +32,9 @@ import {
 } from "@/components/ui/hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LogForm } from "@/components/log-form";
-import { CommentForm } from "@/components/comment-form";
-import { CommentList } from "@/components/comment-list";
+import { LogForm } from "@/components/log/log-form";
+import { CommentForm } from "@/components/comment/comment-form";
+import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 
 type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {

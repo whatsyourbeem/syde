@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useLoginModal } from "@/context/LoginModalContext";
 import { createComment, updateComment } from "@/app/log/actions";
 import { useFormStatus } from "react-dom";

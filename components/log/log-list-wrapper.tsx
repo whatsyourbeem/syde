@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { LogList } from './log-list';
+import { LogList } from "@/components/log/log-list";
 
 interface LogListWrapperProps {
   currentUserId: string | null;

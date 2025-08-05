@@ -6,9 +6,9 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { LogForm } from "./log-form"; // Import LogForm
-import { CommentForm } from "./comment-form"; // Will create this
-import { CommentList } from "./comment-list"; // Will create this
+import { LogForm } from "@/components/log/log-form";
+import { CommentForm } from "@/components/comment/comment-form";
+import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 
 import { useRouter } from "next/navigation";
