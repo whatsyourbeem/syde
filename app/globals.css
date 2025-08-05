@@ -143,11 +143,7 @@
   content: none !important;
 }
 
-/* Suppress default browser selection styles within ProseMirror */
-.ProseMirror ::selection {
-  background: transparent !important;
-  color: inherit !important;
-}
+
 
 .ProseMirror .ProseMirror-selectednode img {
   outline: 2px solid #68cef8 !important; /* Apply outline only to images within a selected node */
