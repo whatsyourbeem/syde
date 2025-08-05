@@ -133,7 +133,6 @@ export default async function UserProfilePage({
             <BioEditor
               initialBio={profile.bio}
               isOwnProfile={isOwnProfile}
-              profileId={profile.id}
             />
           </TabsContent>
           <TabsContent value="logs" className="pt-4">

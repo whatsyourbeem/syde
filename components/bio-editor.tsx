@@ -13,7 +13,6 @@ import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
 interface BioEditorProps {
   initialBio: string | null;
   isOwnProfile: boolean;
-  profileId: string;
 }
 
 const TiptapEditor = ({ editor }: { editor: Editor }) => {
@@ -184,7 +183,6 @@ const TiptapEditor = ({ editor }: { editor: Editor }) => {
 export default function BioEditor({
   initialBio,
   isOwnProfile,
-  profileId,
 }: BioEditorProps) {
   const [isEditing, setIsEditing] = useState(false); // Re-add this state
   const [isLoading, setIsLoading] = useState(false);
@@ -221,19 +219,22 @@ export default function BioEditor({
     if (!editor) return;
 
     setIsLoading(true);
-    const content = editor.getHTML();
-    const { error } = await updateBio(profileId, content); // Call server action
+    const bioContent = editor.getHTML();
+    const formData = new FormData();
+    formData.append("bio", bioContent);
 
-    if (error) {
+    const result: { error?: string; success?: boolean } = await updateBio(formData); // Call server action
+
+    if (result?.error) {
       toast.error("자유 소개 저장 실패", {
-        description: error.message,
+        description: result.error,
       });
     } else {
       toast.success("자유 소개 저장 완료");
       setIsEditing(false); // Revert to setIsEditing(false)
     }
     setIsLoading(false);
-  }, [editor, profileId]);
+  }, [editor]);
 
   const handleCancel = useCallback(() => {
     if (editor) {
