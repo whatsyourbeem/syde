@@ -16,6 +16,7 @@ import { updateMeetup, uploadMeetupThumbnail } from "@/app/gathering/actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
+import { JSONContent } from "@tiptap/react";
 
 type Meetup = Tables<"meetups">;
 
@@ -27,7 +28,9 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
   const router = useRouter();
 
   const [title, setTitle] = useState(meetup.title);
-  const [description, setDescription] = useState(meetup.description || "");
+  const [description, setDescription] = useState<JSONContent | null>(
+    meetup.description ? JSON.parse(meetup.description as string) : { type: 'doc', content: [] }
+  );
   const [category, setCategory] = useState<Enums<"meetup_category_enum">>(
     meetup.category
   );
@@ -90,7 +93,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
     const formData = new FormData();
     formData.append("id", meetup.id);
     formData.append("title", title);
-    formData.append("description", description);
+    formData.append("description", JSON.stringify(description));
     formData.append("thumbnailUrl", finalThumbnailUrl || "");
     formData.append("category", category);
     formData.append("locationType", locationType);
@@ -134,7 +137,7 @@ export default function MeetupEditForm({ meetup }: MeetupEditFormProps) {
           모임 상세 설명
         </label>
         <MeetupDescriptionEditor
-          initialDescription={meetup.description}
+          initialDescription={description}
           onDescriptionChange={setDescription}
           meetupId={meetup.id}
         />

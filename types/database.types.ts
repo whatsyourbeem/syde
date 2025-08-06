@@ -282,7 +282,7 @@ export type Database = {
           category: Database["public"]["Enums"]["meetup_category_enum"];
           club_id: string | null;
           created_at: string;
-          description: string | null;
+          description: Json | null;
           end_datetime: string | null;
           id: string;
           location_description: string | null;
@@ -298,7 +298,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["meetup_category_enum"];
           club_id?: string | null;
           created_at?: string;
-          description?: string | null;
+          description?: Json | null;
           end_datetime?: string | null;
           id?: string;
           location_description?: string | null;
@@ -314,7 +314,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["meetup_category_enum"];
           club_id?: string | null;
           created_at?: string;
-          description?: string | null;
+          description?: Json | null;
           end_datetime?: string | null;
           id?: string;
           location_description?: string | null;

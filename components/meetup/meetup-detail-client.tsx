@@ -7,6 +7,7 @@ import { Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
+import TiptapViewer from "@/components/common/tiptap-viewer";
 
 // 날짜 포맷 헬퍼 함수 (page.tsx에서 복사)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -164,14 +165,7 @@ export default function MeetupDetailClient({
       {/* 모임 상세 설명 */}
       <div className="bg-white rounded-lg p-6 mb-6">
         <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
-        {meetup.description && meetup.description !== "<p></p>" ? (
-          <div
-            className="prose max-w-none text-gray-700 whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: meetup.description }}
-          />
-        ) : (
-          <p className="text-gray-500">작성된 모임 상세 설명이 없습니다.</p>
-        )}
+        <TiptapViewer content={meetup.description} />
       </div>
 
       {/* 참가자 목록 */}

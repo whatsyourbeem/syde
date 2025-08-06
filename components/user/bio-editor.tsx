@@ -9,7 +9,7 @@ import { useState, useCallback, useEffect } from "react";
 import { updateBio } from "@/app/[username]/actions"; // will create this server action
 import { toast } from "sonner";
 import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
-import BioViewer from "./bio-viewer";
+import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Json } from "@/types/database.types";
 import { isTiptapJsonEmpty } from "@/lib/utils";
 
@@ -293,7 +293,7 @@ export default function BioEditor({
                 : "작성된 자유 소개가 없습니다."}
             </p>
           ) : (
-            <BioViewer bioContent={initialBio} />
+            <TiptapViewer content={initialBio} />
           )}
           {isOwnProfile && (
             <div className="mt-4 flex justify-center">

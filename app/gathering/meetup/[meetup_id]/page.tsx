@@ -28,6 +28,17 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ m
     notFound();
   }
 
+  // Ensure description is parsed as JSON if it's a string
+  if (typeof meetup.description === 'string') {
+    try {
+      meetup.description = JSON.parse(meetup.description);
+    } catch (e) {
+      console.error("Failed to parse meetup description JSON:", e);
+      // Fallback to null or handle error as appropriate
+      meetup.description = null;
+    }
+  }
+
   const { data: { user } } = await supabase.auth.getUser();
   const isOrganizer = user?.id === meetup.organizer_id;
 

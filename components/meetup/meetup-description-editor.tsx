@@ -51,9 +51,11 @@ const CustomImage = TiptapImage.extend({
   },
 });
 
+import { JSONContent } from "@tiptap/react";
+
 interface MeetupDescriptionEditorProps {
-  initialDescription: string | null;
-  onDescriptionChange: (html: string) => void;
+  initialDescription: JSONContent | null;
+  onDescriptionChange: (json: JSONContent) => void;
   meetupId: string;
 }
 
@@ -426,15 +428,20 @@ export default function MeetupDescriptionEditor({
         allowBase64: true,
       }),
     ],
-    content: initialDescription === "<p></p>" ? "" : initialDescription || "",
+    content: initialDescription || {},
     onUpdate: ({ editor }) => {
-      onDescriptionChange(editor.getHTML());
+      onDescriptionChange(editor.getJSON());
     },
   });
 
   useEffect(() => {
-    if (editor && initialDescription !== editor.getHTML()) {
-      editor.commands.setContent(initialDescription || "");
+    if (!editor) return;
+
+    const currentContent = editor.getJSON();
+    const isContentSame = JSON.stringify(initialDescription) === JSON.stringify(currentContent);
+
+    if (!isContentSame) {
+      editor.commands.setContent(initialDescription || {});
     }
   }, [editor, initialDescription]);
 

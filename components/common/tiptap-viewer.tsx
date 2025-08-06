@@ -8,11 +8,11 @@ import { useEffect } from "react";
 
 import { Json } from "@/types/database.types";
 
-interface BioViewerProps {
-  bioContent: Json | null;
+interface TiptapViewerProps {
+  content: Json | null;
 }
 
-export default function BioViewer({ bioContent }: BioViewerProps) {
+export default function TiptapViewer({ content }: TiptapViewerProps) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -25,21 +25,21 @@ export default function BioViewer({ bioContent }: BioViewerProps) {
         placeholder: "작성된 자유 소개가 없습니다.",
       }),
     ],
-    content: bioContent as object | undefined,
+    content: content as object | undefined,
     editable: false, // Make the editor read-only
   });
 
   useEffect(() => {
-    if (editor && bioContent) {
-      if (JSON.stringify(editor.getJSON()) !== JSON.stringify(bioContent)) {
-        editor.commands.setContent(bioContent as object | null);
+    if (editor && content) {
+      if (JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
+        editor.commands.setContent(content as object | null);
       }
-    } else if (editor && bioContent === null) {
+    } else if (editor && content === null) {
       if (editor.getHTML() !== "") {
         editor.commands.setContent("");
       }
     }
-  }, [editor, bioContent]);
+  }, [editor, content]);
 
   if (!editor) {
     return null;
