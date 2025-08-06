@@ -1,41 +1,36 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
+import { commonTiptapExtensions } from "./tiptap-extensions";
 import { useEffect } from "react";
-
 import { Json } from "@/types/database.types";
+import { isTiptapJsonEmpty } from "@/lib/utils";
 
 interface TiptapViewerProps {
   content: Json | null;
+  placeholder?: string;
 }
 
-export default function TiptapViewer({ content }: TiptapViewerProps) {
+export default function TiptapViewer({ content, placeholder = "작성된 내용이 없습니다." }: TiptapViewerProps) {
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: true,
-        autolink: true,
-      }),
-      Placeholder.configure({
-        placeholder: "작성된 자유 소개가 없습니다.",
-      }),
-    ],
+    extensions: commonTiptapExtensions.map(extension => {
+      if (extension.name === 'placeholder') {
+        return extension.configure({ placeholder });
+      }
+      return extension;
+    }),
     content: content as object | undefined,
     editable: false, // Make the editor read-only
   });
 
   useEffect(() => {
-    if (editor && content) {
-      if (JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
-        editor.commands.setContent(content as object | null);
-      }
-    } else if (editor && content === null) {
-      if (editor.getHTML() !== "") {
+    if (!editor) return;
+
+    if (content && JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
+      editor.commands.setContent(content as object | null);
+    } else if (!content || isTiptapJsonEmpty(content)) {
+      if (!isTiptapJsonEmpty(editor.getJSON())) {
         editor.commands.setContent("");
       }
     }

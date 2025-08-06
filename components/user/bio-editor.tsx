@@ -1,240 +1,43 @@
 "use client";
 
-import { useEditor, EditorContent, Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect } from "react";
-import { updateBio } from "@/app/[username]/actions"; // will create this server action
+import { updateBio, uploadBioImage } from "@/app/[username]/actions";
 import { toast } from "sonner";
-import { List, ListOrdered, Quote, Code, SquareMinus } from "lucide-react";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Json } from "@/types/database.types";
 import { isTiptapJsonEmpty } from "@/lib/utils";
+import { JSONContent } from "@tiptap/react";
+import TiptapEditorWrapper from "@/components/common/tiptap-editor-wrapper";
 
 interface BioEditorProps {
   initialBio: Json | null;
   isOwnProfile: boolean;
 }
 
-const TiptapEditor = ({ editor }: { editor: Editor }) => {
-  const [isBoldActive, setIsBoldActive] = useState(false);
-  const [isItalicActive, setIsItalicActive] = useState(false);
-  const [isStrikeActive, setIsStrikeActive] = useState(false);
-  const [isCodeBlockActive, setIsCodeBlockActive] = useState(false);
-  const [isBlockquoteActive, setIsBlockquoteActive] = useState(false);
-  const [isBulletListActive, setIsBulletListActive] = useState(false);
-  const [isOrderedListActive, setIsOrderedListActive] = useState(false);
-  const [isHeading1Active, setIsHeading1Active] = useState(false);
-  const [isHeading2Active, setIsHeading2Active] = useState(false);
-  const [isHeading3Active, setIsHeading3Active] = useState(false);
-
-  useEffect(() => {
-    if (!editor) return;
-
-    const updateActiveStates = () => {
-      setIsBoldActive(editor.isActive("bold"));
-      setIsItalicActive(editor.isActive("italic"));
-      setIsStrikeActive(editor.isActive("strike"));
-      setIsCodeBlockActive(editor.isActive("codeBlock"));
-      setIsBlockquoteActive(editor.isActive("blockquote"));
-      setIsBulletListActive(editor.isActive("bulletList"));
-      setIsOrderedListActive(editor.isActive("orderedList"));
-      setIsHeading1Active(editor.isActive("heading", { level: 1 }));
-      setIsHeading2Active(editor.isActive("heading", { level: 2 }));
-      setIsHeading3Active(editor.isActive("heading", { level: 3 }));
-    };
-
-    // Initial update
-    updateActiveStates();
-
-    // Subscribe to selection updates
-    editor.on("selectionUpdate", updateActiveStates);
-    editor.on("update", updateActiveStates); // Also listen to general updates
-
-    // Cleanup subscription
-    return () => {
-      editor.off("selectionUpdate", updateActiveStates);
-      editor.off("update", updateActiveStates);
-    };
-  }, [editor]);
-
-  return (
-    <div className="prose max-w-none">
-      {editor && (
-        <div className="flex flex-wrap gap-1 mb-2 items-center">
-          <Button
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            disabled={!editor.can().chain().focus().toggleBold().run()}
-            variant={isBoldActive ? "default" : "outline"}
-            size="sm"
-            className="font-bold text-base"
-          >
-            B
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            disabled={!editor.can().chain().focus().toggleItalic().run()}
-            variant={isItalicActive ? "default" : "outline"}
-            size="sm"
-            className="italic text-base font-serif"
-          >
-            I
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            disabled={!editor.can().chain().focus().toggleStrike().run()}
-            variant={isStrikeActive ? "default" : "outline"}
-            size="sm"
-            className="line-through text-base"
-          >
-            S
-          </Button>
-          <div className="border-l h-6 mx-2"></div> {/* Separator */}
-          <Button
-            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
-            variant={isCodeBlockActive ? "default" : "outline"}
-            size="sm"
-            className="flex items-center justify-center"
-          >
-            <Code size={16} />
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            disabled={!editor.can().chain().focus().toggleBlockquote().run()}
-            variant={isBlockquoteActive ? "default" : "outline"}
-            size="sm"
-            className="flex items-center justify-center"
-          >
-            <Quote size={10} />
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            disabled={!editor.can().chain().focus().toggleBulletList().run()}
-            variant={isBulletListActive ? "default" : "outline"}
-            size="sm"
-            className="flex items-center justify-center"
-          >
-            <List size={16} />
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            disabled={!editor.can().chain().focus().toggleOrderedList().run()}
-            variant={isOrderedListActive ? "default" : "outline"}
-            size="sm"
-            className="flex items-center justify-center"
-          >
-            <ListOrdered size={16} />
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            disabled={!editor.can().chain().focus().setHorizontalRule().run()}
-            variant="outline"
-            size="sm"
-            className="flex items-center justify-center"
-          >
-            <SquareMinus size={16} />
-          </Button>
-          <div className="border-l h-6 mx-2"></div> {/* Separator */}
-          <Button
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 1 }).run()
-            }
-            disabled={
-              !editor.can().chain().focus().toggleHeading({ level: 1 }).run()
-            }
-            variant={isHeading1Active ? "default" : "outline"}
-            size="sm"
-          >
-            H1
-          </Button>
-          <Button
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 2 }).run()
-            }
-            disabled={
-              !editor.can().chain().focus().toggleHeading({ level: 2 }).run()
-            }
-            variant={isHeading2Active ? "default" : "outline"}
-            size="sm"
-          >
-            H2
-          </Button>
-          <Button
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 3 }).run()
-            }
-            disabled={
-              !editor.can().chain().focus().toggleHeading({ level: 3 }).run()
-            }
-            variant={isHeading3Active ? "default" : "outline"}
-            size="sm"
-          >
-            H3
-          </Button>
-        </div>
-      )}
-      <div className="max-h-[60vh] overflow-y-auto">
-        <EditorContent editor={editor} />
-      </div>
-    </div>
-  );
-};
-
 export default function BioEditor({
   initialBio,
   isOwnProfile,
 }: BioEditorProps) {
-  const [isEditing, setIsEditing] = useState(false); // Re-add this state
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: true,
-        autolink: true,
-      }),
-      Placeholder.configure({
-        placeholder: "당신의 SYDE를 자유롭게 표현해보세요.",
-      }),
-    ],
-    content: initialBio as object | undefined,
-    editable: isEditing,
-  });
+  const [currentBioContent, setCurrentBioContent] = useState<JSONContent | null>(initialBio as JSONContent | null);
 
   useEffect(() => {
-    if (editor) {
-      editor.setEditable(isEditing);
-    }
-  }, [editor, isEditing]);
-
-  useEffect(() => {
-    if (editor && initialBio) {
-      if (JSON.stringify(editor.getJSON()) !== JSON.stringify(initialBio)) {
-        editor.commands.setContent(initialBio as object | null);
-      }
-    } else if (editor && initialBio === null) {
-      if (editor.getHTML() !== "") {
-        editor.commands.setContent("");
-      }
-    }
-  }, [editor, initialBio]);
+    setCurrentBioContent(initialBio as JSONContent | null);
+  }, [initialBio]);
 
   const handleSave = useCallback(async () => {
-    if (!editor) return;
+    if (!currentBioContent) return;
 
     setIsLoading(true);
-    const bioContent = JSON.stringify(editor.getJSON());
+    const bioContent = JSON.stringify(currentBioContent);
     const formData = new FormData();
     formData.append("bio", bioContent);
 
     const result: { error?: string; success?: boolean } = await updateBio(
       formData
-    ); // Call server action
+    );
 
     if (result?.error) {
       toast.error("자유 소개 저장 실패", {
@@ -242,34 +45,41 @@ export default function BioEditor({
       });
     } else {
       toast.success("자유 소개 저장 완료");
-      setIsEditing(false); // Revert to setIsEditing(false)
+      setIsEditing(false);
     }
     setIsLoading(false);
-  }, [editor]);
+  }, [currentBioContent]);
 
   const handleCancel = useCallback(() => {
-    if (editor) {
-      if (initialBio === null) {
-        editor.commands.setContent(""); // Clear content if initialBio is null
-      } else {
-        editor.commands.setContent(initialBio as object); // Revert to initial content (JSON object)
-      }
-    }
-    setIsEditing(false); // Revert to setIsEditing(false)
-  }, [editor, initialBio]);
+    setCurrentBioContent(initialBio as JSONContent | null);
+    setIsEditing(false);
+  }, [initialBio]);
 
-  if (!editor) {
-    return null;
-  }
+  const handleContentChange = useCallback((json: JSONContent) => {
+    setCurrentBioContent(json);
+  }, []);
 
   return (
     <div>
       {isEditing ? (
         <>
           <div className="my-4 p-4 border rounded-lg bg-card">
-            <>
-              <TiptapEditor editor={editor} />
-            </>
+            <TiptapEditorWrapper
+              initialContent={currentBioContent}
+              onContentChange={handleContentChange}
+              placeholder="당신의 SYDE를 자유롭게 표현해보세요."
+              editable={true}
+              onImageUpload={async (file) => {
+                const formData = new FormData();
+                formData.append("file", file);
+                const result = await uploadBioImage(formData);
+                if (result.error) {
+                  toast.error("이미지 업로드 실패: " + result.error);
+                  return null;
+                }
+                return result.publicUrl || null;
+              }}
+            />
           </div>
           <div className="mt-4 flex justify-center space-x-2">
             <Button

@@ -76,3 +76,40 @@ export async function updateBio(formData: FormData): Promise<{ error?: string; s
   revalidatePath(`/${user.user_metadata.username}`);
   return { success: true };
 }
+
+export async function uploadBioImage(formData: FormData): Promise<{ publicUrl?: string; error?: string }> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Authentication required." };
+  }
+
+  const file = formData.get("file") as File;
+  if (!file) {
+    return { error: "No file provided." };
+  }
+
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Math.random()}.${fileExt}`;
+  const filePath = `${user.id}/${fileName}`; // Store images under user's ID
+
+  const { error } = await supabase.storage
+    .from("avatars") // Using the 'avatars' bucket for now, can be changed to a dedicated 'bio-images' bucket later
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) {
+    console.error("Error uploading bio image:", error);
+    return { error: error.message };
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from("avatars")
+    .getPublicUrl(filePath);
+
+  return { publicUrl };
+}
