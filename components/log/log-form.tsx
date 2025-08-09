@@ -249,13 +249,13 @@ export function LogForm({
   }, [userId, content, initialLogData, openLoginModal, router, onSuccess]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 border rounded-lg shadow-sm bg-card">
+    <div className="w-full max-w-2xl mx-auto px-4 pb-4 border rounded-lg shadow-sm bg-card">
       <form action={clientAction} className="space-y-4">
         {initialLogData && <input type="hidden" name="logId" value={initialLogData.id} />}
         <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} />
 
         {!initialLogData && (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 mt-0">
             {avatarUrl && <Image src={avatarUrl} alt="User Avatar" width={40} height={40} className="rounded-full object-cover" />}
             <div>
               <p className="font-semibold">{full_name || username || userEmail}</p>

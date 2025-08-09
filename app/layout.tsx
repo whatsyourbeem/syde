@@ -40,6 +40,8 @@ const pretendard = localFont({
 });
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
+import { MobileMenu } from "@/components/layout/mobile-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default async function RootLayout({
   children,
@@ -91,7 +93,7 @@ export default async function RootLayout({
           <LoginModalProvider>
             {" "}
             {/* Wrap with LoginModalProvider */}
-            <nav className="w-full flex flex-col items-center border-b border-b-foreground/10">
+            <nav className="w-full flex flex-col items-center">
               <div className="w-full max-w-5xl flex justify-between items-center px-5 py-3 text-sm">
                 <div className="flex items-center font-semibold">
                   <Link href={"/"} className="flex items-center gap-1">
@@ -107,11 +109,16 @@ export default async function RootLayout({
                     </span>
                   </Link>
                 </div>
-                <HeaderNavigation />
+                {/* Desktop Navigation */}
+                <div className="hidden md:flex flex-grow justify-center items-center text-sm font-semibold gap-12">
+                  <HeaderNavigation /> {/* Home and Gathering links */}
+                </div>
+
+                {/* Right-side Icons (Responsive) */}
                 <div className="flex items-center gap-4">
                   <Link
                     href="/search"
-                    className="text-foreground hover:text-primary"
+                    className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
                   >
                     <Search size={20} />
                   </Link>
@@ -132,6 +139,18 @@ export default async function RootLayout({
                 </div>
               </div>
             </nav>
+            <div className="md:hidden w-full flex justify-center items-center py-2">
+              <Tabs defaultValue="home" className="w-full max-w-md">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="home" asChild>
+                    <Link href="/">HOME</Link>
+                  </TabsTrigger>
+                  <TabsTrigger value="gathering" asChild>
+                    <Link href="/gathering">GATHERING</Link>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
             {children}
             <Toaster />
           </LoginModalProvider>

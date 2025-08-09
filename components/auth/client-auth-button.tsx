@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
 
+import { UserRound } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { User } from "@supabase/supabase-js";
 
 interface ClientAuthButtonProps {
@@ -26,7 +34,7 @@ export function ClientAuthButton({
     <>
       {user ? (
         <div className="flex items-center gap-4">
-          <Link href={profileLink} className="flex-none">
+          <Link href={profileLink} className="flex-none m-0.5">
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
@@ -41,14 +49,21 @@ export function ClientAuthButton({
           </Link>
         </div>
       ) : (
-        <div className="flex gap-2">
-          <Button size="sm" variant={"outline"} onClick={openLoginModal}>
-            Sign in
-          </Button>
-          <Button asChild size="sm" variant={"default"}>
-            <Link href="/auth/sign-up">Sign up</Link>
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative rounded-full m-0.5 h-9 w-9">
+              <UserRound className="h-5 w-5 !size-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onClick={openLoginModal}>
+              Sign in
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/auth/sign-up">Sign up</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </>
   );
