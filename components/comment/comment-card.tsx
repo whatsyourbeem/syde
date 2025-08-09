@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { CommentForm } from "@/components/comment/comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button"; // Import Button
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 import { linkifyMentions } from "@/lib/utils";
 
@@ -129,133 +130,163 @@ export function CommentCard({
   };
 
   return (
-    <div className="flex items-start justify-between gap-3 p-2">
-      <div className="flex items-start gap-3">
-        {avatarUrlWithCacheBuster && (
-          <Link href={`/${comment.profiles?.username || comment.user_id}`}>
-            <Image
-              src={avatarUrlWithCacheBuster}
-              alt={`${comment.profiles?.username || "User"}'s avatar`}
-              width={32}
-              height={32}
-              className="rounded-full object-cover flex-shrink-0"
-            />
-          </Link>
-        )}
-        <div className="flex-grow">
-          <div className="flex items-center gap-2">
-            <Link href={`/${comment.profiles?.username || comment.user_id}`}>
-              <p className="font-semibold text-sm hover:underline">
-                {comment.profiles?.full_name ||
-                  comment.profiles?.username ||
-                  "Anonymous"}
+    <HoverCard openDelay={350}>
+      <div className="flex items-start justify-between gap-3 p-2">
+        <div className="flex items-start gap-3">
+          {avatarUrlWithCacheBuster && (
+            <HoverCardTrigger asChild>
+              <Link href={`/${comment.profiles?.username || comment.user_id}`}>
+                <Image
+                  src={avatarUrlWithCacheBuster}
+                  alt={`${comment.profiles?.username || "User"}'s avatar`}
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover flex-shrink-0"
+                />
+              </Link>
+            </HoverCardTrigger>
+          )}
+          <div className="flex-grow">
+            <div className="flex items-center gap-2">
+              <HoverCardTrigger asChild>
+                <Link href={`/${comment.profiles?.username || comment.user_id}`}>
+                  <p className="font-semibold text-sm hover:underline">
+                    {comment.profiles?.full_name ||
+                      comment.profiles?.username ||
+                      "Anonymous"}
+                  </p>
+                </Link>
+              </HoverCardTrigger>
+              <p className="text-xs text-muted-foreground">
+                @{comment.profiles?.username || comment.user_id}
               </p>
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              @{comment.profiles?.username || comment.user_id}
-            </p>
-          </div>
-          {isEditing ? (
-            <CommentForm
-              logId={comment.log_id}
-              currentUserId={currentUserId}
-              initialCommentData={comment}
-              onCommentUpdated={() => setIsEditing(false)}
-              onCancel={() => setIsEditing(false)}
-            />
-          ) : (
-            <>
-              <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <button
-                  onClick={handleLike}
-                  disabled={loading || isEditing}
-                  className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1 group"
-                  aria-label="Like comment"
-                >
-                  <HeartIcon
-                    className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"}
-                    size={14}
-                  />
-                  <span className="text-xs">{likesCount}</span>
-                </button>
-                {level < 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowReplyForm(!showReplyForm)}
-                    className="text-xs text-muted-foreground hover:text-blue-500"
+            </div>
+            {isEditing ? (
+              <CommentForm
+                logId={comment.log_id}
+                currentUserId={currentUserId}
+                initialCommentData={comment}
+                onCommentUpdated={() => setIsEditing(false)}
+                onCancel={() => setIsEditing(false)}
+              />
+            ) : (
+              <>
+                <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={handleLike}
+                    disabled={loading || isEditing}
+                    className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1 group"
+                    aria-label="Like comment"
                   >
-                    답글 달기
-                  </Button>
-                )}
-                {currentUserId === comment.user_id && (
-                  <>
+                    <HeartIcon
+                      className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"}
+                      size={14}
+                    />
+                    <span className="text-xs">{likesCount}</span>
+                  </button>
+                  {level < 1 && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setIsEditing(true)}
-                      disabled={loading}
+                      onClick={() => setShowReplyForm(!showReplyForm)}
                       className="text-xs text-muted-foreground hover:text-blue-500"
                     >
-                      수정
+                      답글 달기
                     </Button>
+                  )}
+                  {currentUserId === comment.user_id && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
+                        disabled={loading}
+                        className="text-xs text-muted-foreground hover:text-blue-500"
+                      >
+                        수정
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleDelete}
+                        disabled={loading}
+                        className="text-xs text-muted-foreground hover:text-red-500"
+                      >
+                        삭제
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {showReplyForm && (
+                  <div className="mt-2 ml-4">
+                    <CommentForm
+                      logId={logId}
+                      currentUserId={currentUserId}
+                      parentCommentId={comment.id}
+                      onCommentAdded={() => setShowReplyForm(false)}
+                      onCancel={() => setShowReplyForm(false)}
+                    />
+                  </div>
+                )}
+                {comment.replies && comment.replies.length > 0 && level === 0 && (
+                  <div className="mt-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleDelete}
-                      disabled={loading}
-                      className="text-xs text-muted-foreground hover:text-red-500"
+                      onClick={() => setShowReplies(!showReplies)}
+                      className="text-xs text-muted-foreground"
                     >
-                      삭제
+                      {showReplies ? "답글 숨기기" : `답글 ${comment.replies.length}개 보기`}
                     </Button>
-                  </>
+                  </div>
                 )}
-              </div>
-              {showReplyForm && (
-                <div className="mt-2 ml-4">
-                  <CommentForm
-                    logId={logId}
-                    currentUserId={currentUserId}
-                    parentCommentId={comment.id}
-                    onCommentAdded={() => setShowReplyForm(false)}
-                    onCancel={() => setShowReplyForm(false)}
-                  />
-                </div>
-              )}
-              {comment.replies && comment.replies.length > 0 && level === 0 && (
-                <div className="mt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowReplies(!showReplies)}
-                    className="text-xs text-muted-foreground"
-                  >
-                    {showReplies ? "답글 숨기기" : `답글 ${comment.replies.length}개 보기`}
-                  </Button>
-                </div>
-              )}
-              {showReplies && comment.replies && comment.replies.length > 0 && (
-                <div className="mt-2 space-y-2 border-l pl-4">
-                  {comment.replies.map((reply) => (
-                    <CommentCard
-                      key={reply.id}
-                      comment={reply}
-                      currentUserId={currentUserId}
-                      mentionedProfiles={mentionedProfiles}
-                      initialLikesCount={reply.initialLikesCount}
-                      initialHasLiked={reply.initialHasLiked}
-                      onLikeStatusChange={onLikeStatusChange}
-                      logId={logId}
-                      level={level + 1}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                {showReplies && comment.replies && comment.replies.length > 0 && (
+                  <div className="mt-2 space-y-2 border-l pl-4">
+                    {comment.replies.map((reply) => (
+                      <CommentCard
+                        key={reply.id}
+                        comment={reply}
+                        currentUserId={currentUserId}
+                        mentionedProfiles={mentionedProfiles}
+                        initialLikesCount={reply.initialLikesCount}
+                        initialHasLiked={reply.initialHasLiked}
+                        onLikeStatusChange={onLikeStatusChange}
+                        logId={logId}
+                        level={level + 1}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      <HoverCardContent className="w-80" align="start" alignOffset={-44}>
+        <Link href={`/${comment.profiles?.username || comment.user_id}`}>
+          <div className="flex justify-start space-x-4">
+            {avatarUrlWithCacheBuster && (
+              <Image
+                src={avatarUrlWithCacheBuster}
+                alt={`${comment.profiles?.username || "User"}'s avatar`}
+                width={64}
+                height={64}
+                className="rounded-full object-cover"
+              />
+            )}
+            <div className="space-y-1">
+              <h4 className="text-base font-semibold">
+                {comment.profiles?.full_name || ""}
+              </h4>
+              <p className="text-sm">@{comment.profiles?.username || "Anonymous"}</p>
+              <p className="text-xs text-muted-foreground">
+                {comment.profiles?.tagline || ""}
+              </p>
+            </div>
+          </div>
+        </Link>
+      </HoverCardContent>
+    </HoverCard>
   );
 }

@@ -228,27 +228,29 @@ export function LogDetail({ log, user }: LogDetailProps) {
               </div>
             </div>
           </div>
-          <HoverCardContent className="w-80">
-            <div className="flex justify-between space-x-4">
-              {avatarUrlWithCacheBuster && (
-                <Image
-                  src={avatarUrlWithCacheBuster}
-                  alt={`${log.profiles?.username || "User"}'s avatar`}
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover"
-                />
-              )}
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold">
-                  @{log.profiles?.username || "Anonymous"}
-                </h4>
-                <p className="text-sm">{log.profiles?.full_name || ""}</p>
-                <p className="text-xs text-muted-foreground">
-                  {log.profiles?.tagline || ""}
-                </p>
+          <HoverCardContent className="w-80" align="start" alignOffset={-52}>
+            <Link href={`/${log.profiles?.username || log.user_id}`}>
+              <div className="flex justify-start space-x-4">
+                {avatarUrlWithCacheBuster && (
+                  <Image
+                    src={avatarUrlWithCacheBuster}
+                    alt={`${log.profiles?.username || "User"}'s avatar`}
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover"
+                  />
+                )}
+                <div className="space-y-1">
+                  <h4 className="text-base font-semibold">
+                    {log.profiles?.full_name || ""}
+                  </h4>
+                  <p className="text-sm">@{log.profiles?.username || "Anonymous"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {log.profiles?.tagline || ""}
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
           </HoverCardContent>
         </HoverCard>
         {user?.id === log.user_id && (

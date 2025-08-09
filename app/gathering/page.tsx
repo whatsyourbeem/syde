@@ -7,7 +7,12 @@ import { Clock, MapPin, Users } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClubList from "@/components/meetup/club-list";
-import { Enums } from "@/types/database.types";
+import { Database, Enums } from "@/types/database.types";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+
+type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
+  organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+};
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -80,7 +85,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
+      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .order("created_at", { ascending: false });
 
@@ -92,11 +97,12 @@ export default async function MeetupPage({
   }
 
   const { data: meetups, error: meetupsError } = await meetupQuery;
+  const typedMeetups = meetups as MeetupWithOrganizerProfile[];
 
   // Fetch clubs
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
-    .select("*, owner_profile:profiles!clubs_owner_id_fkey(*), member_count:club_members(count)")
+    .select("*, owner_profile:profiles!clubs_owner_id_fkey(avatar_url, bio, full_name, id, link, tagline, updated_at, username), member_count:club_members(count)")
     .order("created_at", { ascending: false });
 
   if (meetupsError || clubsError) {
@@ -129,13 +135,9 @@ export default async function MeetupPage({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {meetups.map((meetup) => (
-                <Link
-                  href={`/gathering/meetup/${meetup.id}`}
-                  key={meetup.id}
-                  className="block"
-                >
-                  <div className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full">
+              {typedMeetups.map((meetup) => (
+                <div key={meetup.id} className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full flex flex-col">
+                  <Link href={`/gathering/meetup/${meetup.id}`}>
                     <div className="relative">
                       <Image
                         src={
@@ -143,8 +145,8 @@ export default async function MeetupPage({
                           "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
                         }
                         alt={meetup.title}
-                        width={300} // 임의의 너비
-                        height={200} // 임의의 높이
+                        width={300}
+                        height={200}
                         className={`w-full h-48 object-cover rounded-t-lg ${
                           meetup.status === "종료" ? "grayscale opacity-50" : ""
                         }`}
@@ -155,74 +157,116 @@ export default async function MeetupPage({
                         </Badge>
                       </div>
                     </div>
-                    <div className="px-6 pt-4 pb-6">
-                      <h2 className="text-base font-semibold mb-2 line-clamp-3">
+                  </Link>
+                  <div className="px-6 pt-4 pb-6 flex-grow flex flex-col">
+                    <Link href={`/gathering/meetup/${meetup.id}`}>
+                      <h2 className="text-base font-semibold mb-2 line-clamp-3 hover:underline">
                         {meetup.title}
                       </h2>
-                      <div className="flex gap-1 mb-4">
-                        <Badge
-                          className={getCategoryBadgeClass(meetup.category)}
-                        >
-                          {meetup.category}
-                        </Badge>
-                        <Badge
-                          className={getLocationTypeBadgeClass(
-                            meetup.location_type
-                          )}
-                        >
-                          {meetup.location_type}
-                        </Badge>
-                      </div>
+                    </Link>
+                    <div className="flex gap-1 mb-4">
+                      <Badge
+                        className={getCategoryBadgeClass(meetup.category)}
+                      >
+                        {meetup.category}
+                      </Badge>
+                      <Badge
+                        className={getLocationTypeBadgeClass(
+                          meetup.location_type
+                        )}
+                      >
+                        {meetup.location_type}
+                      </Badge>
+                    </div>
+                    <HoverCard openDelay={350}>
                       <div className="text-sm text-gray-500 flex items-center gap-2">
-                        <Avatar className="size-5">
-                          {" "}
-                          {/* 아바타 컴포넌트 추가 */}
-                          <AvatarImage
-                            src={
-                              meetup.organizer_profile?.avatar_url || undefined
-                            }
-                          />
-                          <AvatarFallback>
-                            {meetup.organizer_profile?.username?.charAt(0) ||
-                              "U"}
-                          </AvatarFallback>
-                        </Avatar>
+                        <HoverCardTrigger asChild>
+                          <Link href={`/${meetup.organizer_profile?.username}`}>
+                            <Avatar className="size-5">
+                              <AvatarImage
+                                src={
+                                  meetup.organizer_profile?.avatar_url || undefined
+                                }
+                              />
+                              <AvatarFallback>
+                                {meetup.organizer_profile?.username?.charAt(0) ||
+                                  "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                          </Link>
+                        </HoverCardTrigger>
                         <p>
-                          <span className="font-semibold text-black">
-                            {meetup.organizer_profile?.full_name ||
-                              meetup.organizer_profile?.username ||
-                              "알 수 없음"}
-                          </span>
+                          <HoverCardTrigger asChild>
+                            <Link href={`/${meetup.organizer_profile?.username}`}>
+                              <span className="font-semibold text-black hover:underline">
+                                {meetup.organizer_profile?.full_name ||
+                                  meetup.organizer_profile?.username ||
+                                  "알 수 없음"}
+                              </span>
+                            </Link>
+                          </HoverCardTrigger>
                           <span className="ml-1">모임장</span>
                         </p>
                       </div>
-                      <div className="text-sm text-gray-500 mt-2">
-                        {meetup.max_participants && (
-                          <p className="flex items-center gap-1 mb-1">
-                            <Users className="size-4" />
-                            {meetup.max_participants}명
-                          </p>
+                      <HoverCardContent className="w-80" align="start" alignOffset={-28}>
+                        {meetup.organizer_profile && (
+                          <Link href={`/${meetup.organizer_profile.username}`}>
+                            <div className="flex justify-start space-x-4">
+                              {meetup.organizer_profile.avatar_url ? (
+                                <Image
+                                  src={meetup.organizer_profile.avatar_url}
+                                  alt={`${meetup.organizer_profile.username || "User"}'s avatar`}
+                                  width={64}
+                                  height={64}
+                                  className="rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="size-16 rounded-full bg-muted flex items-center justify-center">
+                                  <span className="text-2xl font-semibold">
+                                    {meetup.organizer_profile.username?.charAt(0) || "U"}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="space-y-1">
+                                <h4 className="text-base font-semibold">
+                                  {meetup.organizer_profile.full_name || ""}
+                                </h4>
+                                <p className="text-sm">@{meetup.organizer_profile.username || "Anonymous"}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {meetup.organizer_profile.tagline || ""}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
                         )}
-                        {meetup.start_datetime && (
-                          <p className="tracking-wide flex items-center gap-1 mb-1">
-                            <Clock className="size-4" />
-                            {formatDate(meetup.start_datetime)}
-                            {meetup.end_datetime &&
-                              formatDate(meetup.start_datetime) !==
-                                formatDate(meetup.end_datetime) &&
-                              ` - ${formatDate(meetup.end_datetime, false)}`}
-                          </p>
-                        )}
-                        {meetup.location_description && (
-                          <p className="flex items-center gap-1">
-                            <MapPin className="size-4" />
-                            {meetup.location_description}
-                          </p>
-                        )}
-                      </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    <div className="text-sm text-gray-500 mt-2 flex-grow">
+                      {meetup.max_participants && (
+                        <p className="flex items-center gap-1 mb-1">
+                          <Users className="size-4" />
+                          {meetup.max_participants}명
+                        </p>
+                      )}
+                      {meetup.start_datetime && (
+                        <p className="tracking-wide flex items-center gap-1 mb-1">
+                          <Clock className="size-4" />
+                          {formatDate(meetup.start_datetime)}
+                          {meetup.end_datetime &&
+                            formatDate(meetup.start_datetime) !==
+                              formatDate(meetup.end_datetime) &&
+                            ` - ${formatDate(meetup.end_datetime, false)}`}
+                        </p>
+                      )}
+                      {meetup.location_description && (
+                        <p className="flex items-center gap-1">
+                          <MapPin className="size-4" />
+                          {meetup.location_description}
+                        </p>
+                      )}
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
