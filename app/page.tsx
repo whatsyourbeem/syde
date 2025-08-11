@@ -5,6 +5,14 @@ import Image from "next/image";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -38,38 +46,50 @@ export default async function Home() {
   }
 
   return (
+    <>
     <main className="flex min-h-[calc(100vh-4rem)] justify-center p-5 gap-x-5">
       <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
         {user ? (
-          <div className="flex flex-col items-center p-4">
-            {avatarUrl && (
-              <Image
-                src={avatarUrl}
-                alt="User Avatar"
-                width={60}
-                height={60}
-                className="rounded-full object-cover mb-4"
+          <Dialog>
+            <div className="flex flex-col items-center p-4">
+              {avatarUrl && (
+                <Image
+                  src={avatarUrl}
+                  alt="User Avatar"
+                  width={60}
+                  height={60}
+                  className="rounded-full object-cover mb-4"
+                />
+              )}
+              {full_name && <p className="text-base font-bold">{full_name}</p>}
+              {username && <p className="text-sm text-gray-500">@{username}</p>}
+              <DialogTrigger asChild>
+                <Button variant="default" className="mt-4">
+                  로그 작성하기
+                </Button>
+              </DialogTrigger>
+            </div>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>새 로그 작성</DialogTitle>
+                <DialogDescription>새로운 로그를 작성하여 공유하세요.</DialogDescription>
+              </DialogHeader>
+              <LogForm
+                userId={user?.id || null}
+                userEmail={user?.email || null}
+                avatarUrl={avatarUrl}
+                username={username}
+                full_name={full_name}
               />
-            )}
-            {full_name && <p className="text-base font-bold">{full_name}</p>}
-            {username && <p className="text-sm text-gray-500">@{username}</p>}
-            <Button variant="default" className="mt-4">
-              로그 작성하기
-            </Button>
-          </div>
+            </DialogContent>
+          </Dialog>
         ) : (
           <LoginPromptCard />
         )}
       </div>
       <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
         <div className="w-full mx-auto mb-8">
-          <LogForm
-            userId={user?.id || null}
-            userEmail={user?.email || null}
-            avatarUrl={avatarUrl}
-            username={username}
-            full_name={full_name} // Add this line
-          />
+          {/* LogForm will be moved to DialogContent */}
         </div>
         <LogListWrapper currentUserId={user?.id || null} />
       </div>
@@ -116,5 +136,6 @@ export default async function Home() {
         </div>
       </div>
     </main>
+    </>
   );
 }
