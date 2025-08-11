@@ -121,7 +121,7 @@ export default async function MeetupPage({
 
 
   return (
-    <div className="max-w-5xl mx-auto p-4">
+    <div className="w-full p-4">
       <Tabs defaultValue={selectedTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="meetups">Meetups</TabsTrigger>

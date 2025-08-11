@@ -94,7 +94,7 @@ export default async function RootLayout({
             {" "}
             {/* Wrap with LoginModalProvider */}
             <div className="w-full bg-background">
-              <div className="w-full max-w-5xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
+              <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
                 <div className="w-1/3">
                   <Link
                     href="https://open.kakao.com/o/gduSGmtf"
@@ -154,7 +154,7 @@ export default async function RootLayout({
               </div>
             </div>
             <div className="sticky top-0 z-40 w-full border-b bg-background">
-              <nav className="w-full max-w-5xl mx-auto hidden md:flex justify-center items-center px-5">
+              <nav className="w-full max-w-6xl mx-auto hidden md:flex justify-center items-center px-5">
                 <HeaderNavigation />
               </nav>
               <div className="md:hidden w-full flex justify-center items-center py-4">
@@ -170,7 +170,7 @@ export default async function RootLayout({
                 </Tabs>
               </div>
             </div>
-            {children}
+            <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />
           </LoginModalProvider>
         </Providers>
