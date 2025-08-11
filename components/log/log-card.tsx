@@ -210,7 +210,7 @@ export function LogCard({
 
   return (
     <HoverCard openDelay={350}>
-      <div className="border rounded-lg p-4 mb-4 bg-card flex flex-col">
+      <div className="rounded-lg bg-card flex flex-col">
         {/* Section 1: Profile Header (Not clickable as a block) */}
         <div className="flex items-center">
           {avatarUrlWithCacheBuster && (

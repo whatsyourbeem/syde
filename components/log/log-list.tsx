@@ -293,23 +293,27 @@ export function LogList({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-2xl mx-auto space-y-6 px-6">
       {logs.length === 0 && !isLoading ? (
         <p className="text-center text-muted-foreground">
           아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
         </p>
       ) : (
-        logs.map((log) => (
-          <LogCard
-            key={log.id}
-            log={log}
-            currentUserId={currentUserId}
-            initialLikesCount={log.likesCount}
-            initialHasLiked={log.hasLiked}
-            initialCommentsCount={log.log_comments.length}
-            mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
-            searchQuery={searchQuery} // Pass searchQuery to LogCard
-          />
+        logs.map((log, index) => (
+          <div key={log.id}>
+            <LogCard
+              log={log}
+              currentUserId={currentUserId}
+              initialLikesCount={log.likesCount}
+              initialHasLiked={log.hasLiked}
+              initialCommentsCount={log.log_comments.length}
+              mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
+              searchQuery={searchQuery} // Pass searchQuery to LogCard
+            />
+            {index < logs.length - 1 && (
+              <div className="border-b border-gray-200 my-6"></div>
+            )}
+          </div>
         ))
       )}
       <div className="flex justify-center space-x-2 mt-4">
