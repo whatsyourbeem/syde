@@ -40,8 +40,8 @@ const pretendard = localFont({
 });
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
-import { MobileMenu } from "@/components/layout/mobile-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 export default async function RootLayout({
   children,
@@ -93,29 +93,43 @@ export default async function RootLayout({
           <LoginModalProvider>
             {" "}
             {/* Wrap with LoginModalProvider */}
-            <nav className="w-full flex flex-col items-center">
-              <div className="w-full max-w-5xl flex justify-between items-center px-5 py-3 text-sm">
-                <div className="flex items-center font-semibold">
+            <div className="w-full bg-background">
+              <div className="w-full max-w-5xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
+                <div className="w-1/3">
+                  <Link
+                    href="https://open.kakao.com/o/gduSGmtf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 hover:bg-[#FEE500]/20"
+                    >
+                      <Image
+                        src="/kakao-talk.png"
+                        alt="Kakao"
+                        width={24}
+                        height={24}
+                      />
+                      <span className="text-[#4B4737]">SYDE 오픈채팅</span>
+                    </Button>
+                  </Link>
+                </div>
+                <div className="w-1/3 flex justify-center items-center font-semibold">
                   <Link href={"/"} className="flex items-center gap-1">
                     <Image
                       src="/logo_no_bg.png"
                       alt="SYDE"
-                      width={36}
-                      height={36}
+                      width={44}
+                      height={44}
                       priority
                     />
-                    <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
+                    <span className="text-4xl font-extrabold tracking-tight text-sydenightblue">
                       SYDE
                     </span>
                   </Link>
                 </div>
-                {/* Desktop Navigation */}
-                <div className="hidden md:flex flex-grow justify-center items-center text-sm font-semibold gap-12">
-                  <HeaderNavigation /> {/* Home and Gathering links */}
-                </div>
-
-                {/* Right-side Icons (Responsive) */}
-                <div className="flex items-center gap-4">
+                <div className="w-1/3 flex justify-end items-center gap-4">
                   <Link
                     href="/search"
                     className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
@@ -138,18 +152,23 @@ export default async function RootLayout({
                   />
                 </div>
               </div>
-            </nav>
-            <div className="md:hidden w-full flex justify-center items-center py-2">
-              <Tabs defaultValue="home" className="w-full max-w-md">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="home" asChild>
-                    <Link href="/">HOME</Link>
-                  </TabsTrigger>
-                  <TabsTrigger value="gathering" asChild>
-                    <Link href="/gathering">GATHERING</Link>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+            </div>
+            <div className="sticky top-0 z-40 w-full border-b bg-background">
+              <nav className="w-full max-w-5xl mx-auto hidden md:flex justify-center items-center px-5">
+                <HeaderNavigation />
+              </nav>
+              <div className="md:hidden w-full flex justify-center items-center py-4">
+                <Tabs defaultValue="home" className="w-full max-w-md">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="home" asChild>
+                      <Link href="/">HOME</Link>
+                    </TabsTrigger>
+                    <TabsTrigger value="gathering" asChild>
+                      <Link href="/gathering">GATHERING</Link>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
             {children}
             <Toaster />

@@ -39,8 +39,8 @@ export function ClientAuthButton({
               <Image
                 src={avatarUrl}
                 alt="User Avatar"
-                width={40}
-                height={40}
+                width={36}
+                height={36}
                 className="rounded-full object-cover"
               />
             ) : (
