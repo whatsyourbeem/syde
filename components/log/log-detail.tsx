@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LogForm } from "@/components/log/log-form";
+import { LogEditDialog } from "@/components/log/log-edit-dialog";
+
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
@@ -51,7 +52,7 @@ interface LogDetailProps {
 export function LogDetail({ log, user }: LogDetailProps) {
   const supabase = createClient();
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
+  
   const [mentionedProfiles, setMentionedProfiles] = useState<
     Array<{ id: string; username: string | null }>
   >([]);
@@ -261,9 +262,19 @@ export function LogDetail({ log, user }: LogDetailProps) {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                수정
-              </DropdownMenuItem>
+              <LogEditDialog
+                userId={user?.id || null}
+                userEmail={null}
+                avatarUrl={log.profiles?.avatar_url || null}
+                username={log.profiles?.username || null}
+                full_name={log.profiles?.full_name || null}
+                initialLogData={log}
+                onSuccess={() => router.refresh()}
+              >
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  수정
+                </DropdownMenuItem>
+              </LogEditDialog>
               <DropdownMenuItem
                 onClick={async () => {
                   const isConfirmed = window.confirm(
@@ -297,15 +308,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
         )}
       </div>
       {/* Log Content or Edit Form */}
-      {isEditing ? (
-        <LogForm
-          userId={user?.id || null}
-          initialLogData={log}
-          onCancel={() => setIsEditing(false)}
-          onSuccess={() => setIsEditing(false)}
-        />
-      ) : (
-        <div className="py-1 pl-11">
+      <div className="py-1 pl-11">
           <p className="mb-3 text-base whitespace-pre-wrap leading-relaxed">
             {linkifyMentions(log.content, mentionedProfiles)}
           </p>
@@ -325,7 +328,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
             </div>
           )}
         </div>
-      )}
       {/* Image Modal */}
       {showImageModal && (
         <div

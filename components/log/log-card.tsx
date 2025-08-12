@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { LogForm } from "@/components/log/log-form";
+import { LogEditDialog } from "@/components/log/log-edit-dialog";
+
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
@@ -45,7 +46,7 @@ export function LogCard({
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount); // Added commentsCount state
   const [loading, setLoading] = useState(false);
   const [showComments, setShowComments] = useState(false); // State to toggle comments
-  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  
   const [showReadMore, setShowReadMore] = useState(false); // State for "Read More" button
   const [imageStyle, setImageStyle] = useState<{
     width?: string;
@@ -203,9 +204,7 @@ export function LogCard({
   };
 
   const handleCardClick = () => {
-    if (!isEditing) {
-      router.push(`/log/${log.id}`);
-    }
+    router.push(`/log/${log.id}`);
   };
 
   return (
@@ -248,14 +247,23 @@ export function LogCard({
           <div className="flex items-center gap-2 ml-auto">
             {currentUserId === log.user_id && (
               <>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  disabled={loading}
-                  className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
-                  aria-label="Edit log"
+                <LogEditDialog
+                  userId={currentUserId}
+                  userEmail={null}
+                  avatarUrl={log.profiles?.avatar_url || null}
+                  username={log.profiles?.username || null}
+                  full_name={log.profiles?.full_name || null}
+                  initialLogData={log}
+                  onSuccess={() => router.refresh()}
                 >
-                  <Edit size={16} />
-                </button>
+                  <button
+                    disabled={loading}
+                    className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
+                    aria-label="Edit log"
+                  >
+                    <Edit size={16} />
+                  </button>
+                </LogEditDialog>
                 <button
                   onClick={handleDelete}
                   disabled={loading}
@@ -270,46 +278,38 @@ export function LogCard({
         </div>
 
         {/* Section 2: Content (Clickable block) */}
-        {isEditing ? (
-          <LogForm
-            userId={currentUserId}
-            initialLogData={log}
-            onCancel={() => setIsEditing(false)}
-          />
-        ) : (
-          <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px] relative">
-            <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
-              {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
-            </p>
-            {showReadMore && (
-              <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-11 pt-5 pb-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent card click
-                    router.push(`/log/${log.id}`);
-                  }}
-                  className="text-blue-500 hover:underline text-sm font-semibold"
-                >
-                  ... 더보기
-                </button>
-              </div>
-            )}
-            {log.image_url && (
-              <div
-                className="relative w-full mt-3 rounded-md overflow-hidden max-h-[400px]"
-                style={imageStyle ? { ...imageStyle } : {}}
+        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px] relative">
+          <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
+            {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
+          </p>
+          {showReadMore && (
+            <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-11 pt-5 pb-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card click
+                  router.push(`/log/${log.id}`);
+                }}
+                className="text-blue-500 hover:underline text-sm font-semibold"
               >
-                <Image
-                  src={log.image_url}
-                  alt="Log image"
-                  fill
-                  style={{ objectFit: imageStyle?.objectFit || "contain" }}
-                  sizes="(max-width: 768px) 100vw, 672px"
-                />
-              </div>
-            )}
-          </div>
-        )}
+                ... 더보기
+              </button>
+            </div>
+          )}
+          {log.image_url && (
+            <div
+              className="relative w-full mt-3 rounded-md overflow-hidden max-h-[400px]"
+              style={imageStyle ? { ...imageStyle } : {}}
+            >
+              <Image
+                src={log.image_url}
+                alt="Log image"
+                fill
+                style={{ objectFit: imageStyle?.objectFit || "contain" }}
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Section 3: Actions (Independent buttons) */}
         <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">

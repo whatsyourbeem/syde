@@ -40,7 +40,7 @@ const pretendard = localFont({
 });
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
 export default async function RootLayout({
