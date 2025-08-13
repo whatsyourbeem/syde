@@ -7,10 +7,10 @@ export function HeaderNavigation() {
   const pathname = usePathname();
 
   return (
-    <div className="flex-grow flex justify-center items-center text-base font-semibold gap-4">
+    <div className="w-full flex-grow flex justify-center items-center text-xs md:text-base font-semibold">
       <Link
         href="/"
-        className={`py-4 px-4 hover:bg-secondary ${
+        className={`flex-1 text-center py-1 px-4 hover:bg-secondary md:flex-none md:text-left md:py-4 ${
           pathname === "/" || pathname.startsWith("/log")
             ? "font-bold text-primary border-b-2 border-primary"
             : "text-gray-400"
@@ -20,7 +20,7 @@ export function HeaderNavigation() {
       </Link>
       <Link
         href="/gathering"
-        className={`py-4 px-4 hover:bg-secondary ${
+        className={`flex-1 text-center py-1 px-4 hover:bg-secondary md:flex-none md:text-left md:py-4 ${
           pathname.startsWith("/gathering")
             ? "font-bold text-primary border-b-2 border-primary"
             : "text-gray-400"

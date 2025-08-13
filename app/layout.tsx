@@ -40,6 +40,7 @@ const pretendard = localFont({
 });
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
@@ -95,80 +96,115 @@ export default async function RootLayout({
             {/* Wrap with LoginModalProvider */}
             <div className="w-full bg-background">
               <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
-                <div className="w-1/3">
-                  <Link
-                    href="https://open.kakao.com/o/gduSGmtf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button
-                      variant="ghost"
-                      className="flex items-center gap-2 hover:bg-[#FEE500]/20"
-                    >
+                {/* Mobile specific layout */}
+                <div className="flex md:hidden w-full justify-between items-center">
+                  <div className="flex items-center">
+                    <MobileMenu
+                      user={user} // Pass user object
+                      avatarUrl={avatarUrl}
+                      username={usernameForAuthButton}
+                      unreadNotifCount={unreadNotifCount}
+                      userId={user?.id || null}
+                    />
+                    <Link href={"/"} className="flex items-center gap-1">
                       <Image
-                        src="/kakao-talk.png"
-                        alt="Kakao"
-                        width={24}
-                        height={24}
+                        src="/logo_no_bg.png"
+                        alt="SYDE"
+                        width={22}
+                        height={22}
+                        priority
                       />
-                      <span className="text-[#4B4737]">SYDE 오픈채팅</span>
-                    </Button>
-                  </Link>
+                      <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
+                        SYDE
+                      </span>
+                    </Link>
+                  </div>
+                  <div className="flex justify-end items-center gap-4">
+                    <Link
+                      href="/search"
+                      className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
+                    >
+                      <Search size={20} />
+                    </Link>
+                    <Suspense
+                      fallback={
+                        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                      }
+                    >
+                      <NotificationBell
+                        initialUnreadCount={unreadNotifCount}
+                        userId={user?.id || null}
+                      />
+                    </Suspense>
+                  </div>
                 </div>
-                <div className="w-1/3 flex justify-center items-center font-semibold">
-                  <Link href={"/"} className="flex items-center gap-1">
-                    <Image
-                      src="/logo_no_bg.png"
-                      alt="SYDE"
-                      width={44}
-                      height={44}
-                      priority
+
+                {/* Desktop specific layout */}
+                <div className="hidden md:flex w-full justify-between items-center">
+                  <div className="w-1/3">
+                    <Link
+                      href="https://open.kakao.com/o/gduSGmtf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button
+                        variant="ghost"
+                        className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
+                      >
+                        <Image
+                          src="/kakao-talk.png"
+                          alt="Kakao"
+                          width={24}
+                          height={24}
+                        />
+                        <span className="hidden md:inline text-[#4B4737]">SYDE 오픈채팅</span>
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="w-1/3 flex justify-center items-center font-semibold">
+                    <Link href={"/"} className="flex items-center gap-1">
+                      <Image
+                        src="/logo_no_bg.png"
+                        alt="SYDE"
+                        width={44}
+                        height={44}
+                        priority
+                      />
+                      <span className="text-4xl font-extrabold tracking-tight text-sydenightblue">
+                        SYDE
+                      </span>
+                    </Link>
+                  </div>
+                  <div className="w-1/3 flex justify-end items-center gap-4">
+                    <Link
+                      href="/search"
+                      className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
+                    >
+                      <Search size={20} />
+                    </Link>
+                    <Suspense
+                      fallback={
+                        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                      }
+                    >
+                      <NotificationBell
+                        initialUnreadCount={unreadNotifCount}
+                        userId={user?.id || null}
+                      />
+                    </Suspense>
+                    <AuthButton
+                      avatarUrl={avatarUrl}
+                      username={usernameForAuthButton}
                     />
-                    <span className="text-4xl font-extrabold tracking-tight text-sydenightblue">
-                      SYDE
-                    </span>
-                  </Link>
-                </div>
-                <div className="w-1/3 flex justify-end items-center gap-4">
-                  <Link
-                    href="/search"
-                    className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                  >
-                    <Search size={20} />
-                  </Link>
-                  <Suspense
-                    fallback={
-                      <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                    }
-                  >
-                    <NotificationBell
-                      initialUnreadCount={unreadNotifCount}
-                      userId={user?.id ?? null}
-                    />
-                  </Suspense>
-                  <AuthButton
-                    avatarUrl={avatarUrl}
-                    username={usernameForAuthButton}
-                  />
+                  </div>
                 </div>
               </div>
             </div>
             <div className="sticky top-0 z-40 w-full border-b bg-background">
-              <nav className="w-full max-w-6xl mx-auto hidden md:flex justify-center items-center px-5">
+              <nav className="h-8 md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
                 <HeaderNavigation />
               </nav>
-              <div className="md:hidden w-full flex justify-center items-center py-4">
-                <Tabs defaultValue="home" className="w-full max-w-md">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="home" asChild>
-                      <Link href="/">HOME</Link>
-                    </TabsTrigger>
-                    <TabsTrigger value="gathering" asChild>
-                      <Link href="/gathering">GATHERING</Link>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
+              
             </div>
             <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />
