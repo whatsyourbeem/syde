@@ -41,7 +41,7 @@ const pretendard = localFont({
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
 import { MobileMenu } from "@/components/layout/mobile-menu";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Button } from "@/components/ui/button";
 
 export default async function RootLayout({
@@ -103,8 +103,6 @@ export default async function RootLayout({
                       user={user} // Pass user object
                       avatarUrl={avatarUrl}
                       username={usernameForAuthButton}
-                      unreadNotifCount={unreadNotifCount}
-                      userId={user?.id || null}
                     />
                     <Link href={"/"} className="flex items-center gap-1">
                       <Image
