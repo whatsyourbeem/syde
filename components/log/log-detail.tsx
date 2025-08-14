@@ -264,7 +264,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
             <DropdownMenuContent align="end">
               <LogEditDialog
                 userId={user?.id || null}
-                userEmail={null}
                 avatarUrl={log.profiles?.avatar_url || null}
                 username={log.profiles?.username || null}
                 full_name={log.profiles?.full_name || null}

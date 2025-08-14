@@ -43,7 +43,6 @@ export default async function Home() {
           {user ? (
             <LogEditDialog
               userId={user?.id || null}
-              userEmail={user?.email || null}
               avatarUrl={avatarUrl}
               username={username}
               full_name={full_name}

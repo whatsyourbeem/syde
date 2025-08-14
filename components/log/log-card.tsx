@@ -249,7 +249,6 @@ export function LogCard({
               <>
                 <LogEditDialog
                   userId={currentUserId}
-                  userEmail={null}
                   avatarUrl={log.profiles?.avatar_url || null}
                   username={log.profiles?.username || null}
                   full_name={log.profiles?.full_name || null}
