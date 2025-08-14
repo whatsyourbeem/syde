@@ -1,10 +1,13 @@
-'use client';
+"use client";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 import { LogList } from "@/components/log/log-list";
+import { LogCreateButton } from "@/components/log/log-create-button";
+import { Database } from "@/types/database.types";
 
 interface LogListWrapperProps {
-  currentUserId: string | null;
+  user: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  avatarUrl: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
@@ -12,21 +15,27 @@ interface LogListWrapperProps {
 }
 
 export function LogListWrapper({
-  currentUserId,
+  user,
+  avatarUrl,
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
 }: LogListWrapperProps) {
   const searchParams = useSearchParams();
-  const searchQuery = searchParams.get('q') || '';
+  const searchQuery = searchParams.get("q") || "";
 
   return (
-    <LogList
-      currentUserId={currentUserId}
-      filterByUserId={filterByUserId}
-      filterByCommentedUserId={filterByCommentedUserId}
-      filterByLikedUserId={filterByLikedUserId}
-      searchQuery={searchQuery}
-    />
+    <div>
+      {!filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && (
+        <LogCreateButton user={user} avatarUrl={avatarUrl} />
+      )}
+      <LogList
+        currentUserId={user?.id || null}
+        filterByUserId={filterByUserId}
+        filterByCommentedUserId={filterByCommentedUserId}
+        filterByLikedUserId={filterByLikedUserId}
+        searchQuery={searchQuery}
+      />
+    </div>
   );
 }

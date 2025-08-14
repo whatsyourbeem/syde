@@ -12,11 +12,9 @@ interface MobileMenuProps {
   user: User | null; // Add user prop
   avatarUrl: string | null;
   username: string | null;
-  unreadNotifCount: number;
-  userId: string | null;
 }
 
-export function MobileMenu({ user, avatarUrl, username, unreadNotifCount, userId }: MobileMenuProps) { // Destructure user
+export function MobileMenu({ user, avatarUrl, username }: MobileMenuProps) { // Destructure user
   return (
     <Sheet>
       <SheetTrigger asChild>

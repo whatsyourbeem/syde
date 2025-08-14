@@ -19,6 +19,28 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const q = resolvedSearchParams.q;
   const currentTab = resolvedSearchParams.tab || "logs"; // Default to 'logs'
 
+  let profile = null;
+  let avatarUrl = null;
+  if (user) {
+    const { data, error: profileError } = await supabase
+      .from("profiles")
+      .select("*, updated_at")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError && profileError.code !== "PGRST116") {
+      console.error("Error fetching profile for LogForm:", profileError);
+    } else if (data) {
+      profile = data;
+      avatarUrl =
+        profile.avatar_url && profile.updated_at
+          ? `${profile.avatar_url}?t=${new Date(
+              profile.updated_at
+            ).getTime()}`
+          : profile.avatar_url;
+    }
+  }
+
   return (
     <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5">
       <div className="w-full max-w-2xl mx-auto mb-8">
@@ -36,7 +58,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </TabsList>
         <TabsContent value="logs">
           {q ? (
-            <LogListWrapper currentUserId={user?.id || null} searchQuery={q} />
+            <LogListWrapper user={profile} avatarUrl={avatarUrl} />
           ) : (
             <div className="text-center text-muted-foreground mt-10">
               <h2 className="text-2xl font-bold mb-4">로그 검색</h2>

@@ -13,26 +13,25 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let profile = null;
   let avatarUrl = null;
-  let username = null;
-  let full_name = null;
   if (user) {
-    const { data: profile, error: profileError } = await supabase
+    const { data, error: profileError } = await supabase
       .from("profiles")
-      .select("avatar_url, username, full_name, updated_at")
+      .select("*, updated_at")
       .eq("id", user.id)
       .single();
 
     if (profileError && profileError.code !== "PGRST116") {
       console.error("Error fetching profile for LogForm:", profileError);
-    } else if (profile) {
-      avatarUrl = profile.avatar_url
-        ? `${profile.avatar_url}?t=${
-            profile.updated_at ? new Date(profile.updated_at).getTime() : ""
-          }`
-        : null;
-      username = profile.username;
-      full_name = profile.full_name; // Add this line
+    } else if (data) {
+      profile = data;
+      avatarUrl =
+        profile.avatar_url && profile.updated_at
+          ? `${profile.avatar_url}?t=${new Date(
+              profile.updated_at
+            ).getTime()}`
+          : profile.avatar_url;
     }
   }
 
@@ -40,19 +39,19 @@ export default async function Home() {
     <>
       <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 py-3 md:p-5">
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-          {user ? (
+          {user && profile ? (
             <LogEditDialog
-              userId={user?.id || null}
+              userId={user.id}
               avatarUrl={avatarUrl}
-              username={username}
-              full_name={full_name}
+              username={profile.username}
+              full_name={profile.full_name}
             />
           ) : (
             <LoginPromptCard />
           )}
         </div>
         <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
-          <LogListWrapper currentUserId={user?.id || null} />
+          <LogListWrapper user={profile} avatarUrl={avatarUrl} />
         </div>
         <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen p-4">
           <div className="flex flex-col items-center text-center">
