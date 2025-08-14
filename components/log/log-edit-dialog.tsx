@@ -19,8 +19,21 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+
+interface MentionSuggestion {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+}
 
 interface LogEditDialogProps {
   userId: string | null;
@@ -28,12 +41,29 @@ interface LogEditDialogProps {
   username: string | null;
   full_name: string | null;
   initialLogData?: Database["public"]["Tables"]["logs"]["Row"];
-  children?: React.ReactNode; // To allow custom trigger
-  onSuccess?: () => void; // New prop for success callback
-  onCancel?: () => void; // New prop for cancel callback
+  children?: React.ReactNode;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-// SubmitButton component from log-form.tsx
+function useMediaQuery(query: string) {
+  const [value, setValue] = useState(false);
+
+  useEffect(() => {
+    function onChange(event: MediaQueryListEvent) {
+      setValue(event.matches);
+    }
+
+    const result = window.matchMedia(query);
+    result.addEventListener("change", onChange);
+    setValue(result.matches);
+
+    return () => result.removeEventListener("change", onChange);
+  }, [query]);
+
+  return value;
+}
+
 function SubmitButton({
   initialLogData,
   content,
@@ -58,6 +88,194 @@ function SubmitButton({
   );
 }
 
+function LogForm({
+  clientAction,
+  initialLogData,
+  imageUrlForForm,
+  avatarUrl,
+  content,
+  handleContentChange,
+  handleKeyDown,
+  isUploading,
+  isSubmitting,
+  userId,
+  openLoginModal,
+  textareaRef,
+  showSuggestions,
+  mentionSuggestions,
+  activeSuggestionIndex,
+  handleSelectSuggestion,
+  imagePreviewUrl,
+  removeImage,
+  fileInputRef,
+  handleImageChange,
+  onCancel,
+  setOpen,
+}: {
+  clientAction: (formData: FormData) => Promise<void>;
+  initialLogData?: LogEditDialogProps["initialLogData"];
+  imageUrlForForm: string | null;
+  avatarUrl: string | null;
+  content: string;
+  handleContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  isUploading: boolean;
+  isSubmitting: boolean;
+  userId: string | null;
+  openLoginModal: () => void;
+  textareaRef: React.Ref<HTMLTextAreaElement>;
+  showSuggestions: boolean;
+  mentionSuggestions: MentionSuggestion[];
+  activeSuggestionIndex: number;
+  handleSelectSuggestion: (suggestion: MentionSuggestion) => void;
+  imagePreviewUrl: string | null;
+  removeImage: () => void;
+  fileInputRef: React.Ref<HTMLInputElement>;
+  handleImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onCancel?: () => void;
+  setOpen: (open: boolean) => void;
+}) {
+  return (
+    <form
+      action={clientAction}
+      className="flex flex-col h-full overflow-hidden"
+    >
+      <div className="flex-grow flex flex-col p-4 overflow-y-auto">
+        {initialLogData && (
+          <input type="hidden" name="logId" value={initialLogData.id} />
+        )}
+        <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} />
+
+        <div className="flex gap-4 flex-grow min-h-0">
+          {avatarUrl && (
+            <Image
+              src={avatarUrl}
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="rounded-full object-cover self-start"
+            />
+          )}
+          <div className="relative flex-grow h-full">
+            <Textarea
+              name="content"
+              placeholder="무슨 생각을 하고 계신가요?"
+              value={content}
+              onChange={handleContentChange}
+              onKeyDown={handleKeyDown}
+              disabled={isUploading || !userId || isSubmitting}
+              onClick={() => {
+                if (!userId) openLoginModal();
+              }}
+              ref={textareaRef}
+              className="h-full w-full resize-none border-none p-0 focus-visible:ring-0 shadow-none bg-transparent"
+            />
+            {showSuggestions && mentionSuggestions.length > 0 && (
+              <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg bottom-full mb-1 max-h-60 overflow-auto">
+                {mentionSuggestions.map((suggestion, index) => (
+                  <li
+                    key={suggestion.id}
+                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${
+                      index === activeSuggestionIndex ? "bg-accent" : ""
+                    }`}
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                  >
+                    <div className="flex items-center">
+                      {suggestion.avatar_url && (
+                        <Image
+                          src={suggestion.avatar_url}
+                          alt={`${suggestion.username}'s avatar`}
+                          width={24}
+                          height={24}
+                          className="rounded-full object-cover mr-2"
+                        />
+                      )}
+                      <span className="font-semibold">
+                        {suggestion.full_name || suggestion.username}
+                      </span>
+                      {suggestion.full_name && suggestion.username && (
+                        <span className="text-muted-foreground ml-2">
+                          @{suggestion.username}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {imagePreviewUrl && (
+          <div className="relative w-full max-w-xs mx-auto my-4 flex-shrink-0">
+            <Image
+              src={imagePreviewUrl}
+              alt="Image preview"
+              width={200}
+              height={200}
+              className="rounded-md object-contain"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 h-6 w-6"
+              onClick={removeImage}
+              disabled={isUploading || isSubmitting}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between items-center w-full p-4 border-t flex-shrink-0">
+        <div>
+          <Input
+            id="log-image-input"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+            disabled={isUploading || isSubmitting}
+            ref={fileInputRef}
+          />
+          <Button
+            type="button"
+            variant="link"
+            size="icon"
+            onClick={() => document.getElementById("log-image-input")?.click()}
+            disabled={isUploading || isSubmitting}
+            className="hover:bg-secondary"
+          >
+            <ImagePlus className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setOpen(false);
+                onCancel();
+              }}
+              disabled={isUploading || isSubmitting}
+            >
+              취소
+            </Button>
+          )}
+          <SubmitButton
+            initialLogData={initialLogData}
+            content={content}
+            isSubmitting={isSubmitting}
+          />
+        </div>
+      </div>
+    </form>
+  );
+}
+
 export function LogEditDialog({
   userId,
   avatarUrl,
@@ -65,14 +283,19 @@ export function LogEditDialog({
   full_name,
   initialLogData,
   children,
-  onSuccess, // Destructure onSuccess prop
-  onCancel, // Destructure onCancel prop
+  onSuccess,
+  onCancel,
 }: LogEditDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const dialogTitle = initialLogData ? "로그 수정" : "새 로그 작성";
 
-  // LogForm's state and functions moved here
   const supabase = createClient();
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
@@ -87,15 +310,9 @@ export function LogEditDialog({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { openLoginModal } = useLoginModal();
 
-  // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<
-    Array<{
-      id: string;
-      username: string | null;
-      full_name: string | null;
-      avatar_url: string | null;
-    }>
+    MentionSuggestion[]
   >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
@@ -108,20 +325,17 @@ export function LogEditDialog({
         setShowSuggestions(false);
         return;
       }
-
       const { data, error } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
         .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
         .limit(5);
-
       if (error) {
         console.error("Error fetching mention suggestions:", error);
         setMentionSuggestions([]);
         setShowSuggestions(false);
         return;
       }
-
       setMentionSuggestions(data || []);
       setShowSuggestions(true);
     },
@@ -137,20 +351,15 @@ export function LogEditDialog({
         setMentionSuggestions([]);
       }
     }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [mentionSearchTerm, fetchMentionSuggestions]);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-
     const cursorPosition = e.target.selectionStart;
     const textBeforeCursor = newContent.substring(0, cursorPosition);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
-
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
       const mentionRegex = /^[a-zA-Z0-9._\uAC00-\uD7A3-]*$/u;
@@ -168,19 +377,12 @@ export function LogEditDialog({
     }
   };
 
-  const handleSelectSuggestion = (suggestion: {
-    id: string;
-    username: string | null;
-    full_name: string | null;
-    avatar_url: string | null;
-  }) => {
+  const handleSelectSuggestion = (suggestion: MentionSuggestion) => {
     if (mentionStartIndex === -1) return;
-
     const newContent =
       content.substring(0, mentionStartIndex) +
       `@${suggestion.username} ` +
       content.substring(mentionStartIndex + mentionSearchTerm.length + 1);
-
     setContent(newContent);
     setMentionSearchTerm("");
     setShowSuggestions(false);
@@ -244,13 +446,10 @@ export function LogEditDialog({
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
-
       const { error: uploadError } = await supabase.storage
         .from("logimages")
         .upload(filePath, file, { cacheControl: "3600", upsert: false });
-
       if (uploadError) throw uploadError;
-
       const { data: publicUrlData } = supabase.storage
         .from("logimages")
         .getPublicUrl(filePath);
@@ -267,39 +466,28 @@ export function LogEditDialog({
         openLoginModal();
         return;
       }
-
       setIsSubmitting(true);
-
-      // The server action will process mentions
       formData.set("content", content);
-
       const action = initialLogData ? updateLog : createLog;
       const result = await action(formData);
-
       if (result?.error) {
         alert(`Error: ${result.error}`);
       } else {
-        // Reset form only for new log creation
         if (!initialLogData) {
           setContent("");
           setImagePreviewUrl(null);
           setImageUrlForForm(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-          }
-          setOpen(false); // Close dialog after successful creation
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          setOpen(false);
           if (result?.logId) {
             router.push(`/log/${result.logId}`);
           } else {
             router.refresh();
           }
         } else {
-          // This is an update operation
-          if (onSuccess) {
-            onSuccess(); // Call parent's onSuccess
-          }
-          setOpen(false); // Close dialog after successful update
-          router.refresh(); // Refresh the page to show updated log
+          if (onSuccess) onSuccess();
+          setOpen(false);
+          router.refresh();
         }
       }
       setIsSubmitting(false);
@@ -307,191 +495,90 @@ export function LogEditDialog({
     [userId, content, initialLogData, openLoginModal, router, onSuccess]
   );
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {children ? (
-        <DialogTrigger asChild>{children}</DialogTrigger>
-      ) : (
-        <div className="flex flex-col items-center p-4">
-          {avatarUrl && (
-            <Image
-              src={avatarUrl}
-              alt="User Avatar"
-              width={60}
-              height={60}
-              className="rounded-full object-cover mb-4"
-            />
-          )}
-          {full_name && <p className="text-base font-bold">{full_name}</p>}
-          {username && <p className="text-sm text-gray-500">@{username}</p>}
-          <DialogTrigger asChild>
-            <Button variant="default" className="mt-4">
-              로그 작성하기
-            </Button>
-          </DialogTrigger>
-        </div>
+  const formProps = {
+    clientAction,
+    initialLogData,
+    imageUrlForForm,
+    avatarUrl,
+    content,
+    handleContentChange,
+    handleKeyDown,
+    isUploading,
+    isSubmitting,
+    userId,
+    openLoginModal,
+    textareaRef,
+    showSuggestions,
+    mentionSuggestions,
+    activeSuggestionIndex,
+    handleSelectSuggestion,
+    imagePreviewUrl,
+    removeImage,
+    fileInputRef,
+    handleImageChange,
+    onCancel,
+    setOpen,
+  };
+
+  const triggerContent = children || (
+    <div className="flex flex-col items-center p-4">
+      {avatarUrl && (
+        <Image
+          src={avatarUrl}
+          alt="User Avatar"
+          width={60}
+          height={60}
+          className="rounded-full object-cover mb-4"
+        />
       )}
-      <DialogContent
-        className="sm:max-w-2xl h-[80vh] max-h-[600px] overflow-hidden flex flex-col"
-        showCloseButton={false}
-      >
-        <DialogHeader className="flex flex-row justify-between items-center flex-shrink-0">
-          <DialogTitle>{dialogTitle}</DialogTitle>
-          <DialogClose asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground border-none"
-            >
-              <X size={20} />
-              <span className="sr-only">Close</span>
-            </Button>
-          </DialogClose>
-        </DialogHeader>
-        <div className="border-b my-4 flex-shrink-0" />
+      {full_name && <p className="text-base font-bold">{full_name}</p>}
+      {username && <p className="text-sm text-gray-500">@{username}</p>}
+      <Button variant="default" className="mt-4">
+        로그 작성하기
+      </Button>
+    </div>
+  );
 
-        {/* Main content area with flex-grow */}
-        <div className="flex flex-col flex-grow min-h-0">
-          <form action={clientAction} className="flex flex-col h-full">
-            {initialLogData && (
-              <input type="hidden" name="logId" value={initialLogData.id} />
-            )}
-            <input
-              type="hidden"
-              name="imageUrl"
-              value={imageUrlForForm || ""}
-            />
+  if (!isMounted) {
+    return <>{triggerContent}</>;
+  }
 
-            <div className="flex gap-4 flex-grow min-h-0">
-              {avatarUrl && (
-                <Image
-                  src={avatarUrl}
-                  alt="User Avatar"
-                  width={40}
-                  height={40}
-                  className="rounded-full object-cover self-start"
-                />
-              )}
-              <div className="relative flex-grow">
-                <Textarea
-                  name="content"
-                  placeholder="무슨 생각을 하고 계신가요?"
-                  value={content}
-                  onChange={handleContentChange}
-                  onKeyDown={handleKeyDown}
-                  disabled={isUploading || !userId || isSubmitting}
-                  onClick={() => {
-                    if (!userId) openLoginModal();
-                  }}
-                  ref={textareaRef}
-                  className="h-full w-full resize-none border-none p-0 focus-visible:ring-0 shadow-none"
-                />
-                {showSuggestions && mentionSuggestions.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg bottom-full mb-1 max-h-60 overflow-auto">
-                    {mentionSuggestions.map((suggestion, index) => (
-                      <li
-                        key={suggestion.id}
-                        className={`px-4 py-2 cursor-pointer hover:bg-accent ${
-                          index === activeSuggestionIndex ? "bg-accent" : ""
-                        }`}
-                        onClick={() => handleSelectSuggestion(suggestion)}
-                      >
-                        <div className="flex items-center">
-                          {suggestion.avatar_url && (
-                            <Image
-                              src={suggestion.avatar_url}
-                              alt={`${suggestion.username}'s avatar`}
-                              width={24}
-                              height={24}
-                              className="rounded-full object-cover mr-2"
-                            />
-                          )}
-                          <span className="font-semibold">
-                            {suggestion.full_name || suggestion.username}
-                          </span>
-                          {suggestion.full_name && suggestion.username && (
-                            <span className="text-muted-foreground ml-2">
-                              @{suggestion.username}
-                            </span>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>{triggerContent}</DialogTrigger>
+        <DialogContent
+          className="sm:max-w-2xl h-[80vh] max-h-[600px] p-0 flex flex-col"
+          showCloseButton={false}
+        >
+          <DialogHeader className="flex flex-row justify-between items-center flex-shrink-0 p-4 border-b">
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-sm opacity-70"
+              >
+                <X size={20} />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+          <LogForm {...formProps} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-            {imagePreviewUrl && (
-              <div className="relative w-full max-w-xs mx-auto my-4 flex-shrink-0">
-                <Image
-                  src={imagePreviewUrl}
-                  alt="Image preview"
-                  width={200}
-                  height={200}
-                  className="rounded-md object-contain"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-6 w-6"
-                  onClick={removeImage}
-                  disabled={isUploading || isSubmitting}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            <DialogFooter className="flex justify-between items-center w-full mt-auto pt-4 flex-shrink-0">
-              <div>
-                <Input
-                  id="log-image-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  disabled={isUploading || isSubmitting}
-                  ref={fileInputRef}
-                />
-                <Button
-                  type="button"
-                  variant="link"
-                  size="icon"
-                  onClick={() =>
-                    document.getElementById("log-image-input")?.click()
-                  }
-                  disabled={isUploading || isSubmitting}
-                  className="hover:bg-secondary"
-                >
-                  <ImagePlus className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                {onCancel && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setOpen(false);
-                      onCancel();
-                    }}
-                    disabled={isUploading || isSubmitting}
-                  >
-                    취소
-                  </Button>
-                )}
-                <SubmitButton
-                  initialLogData={initialLogData}
-                  content={content}
-                  isSubmitting={isSubmitting}
-                />
-              </div>
-            </DialogFooter>
-          </form>
-        </div>
-      </DialogContent>
-    </Dialog>
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>{triggerContent}</DrawerTrigger>
+      <DrawerContent className="h-[90vh]">
+        <DrawerHeader className="text-left">
+          <DrawerTitle>{dialogTitle}</DrawerTitle>
+        </DrawerHeader>
+        <LogForm {...formProps} />
+      </DrawerContent>
+    </Drawer>
   );
 }
