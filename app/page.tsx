@@ -38,7 +38,7 @@ export default async function Home() {
 
   return (
     <>
-      <main className="flex min-h-[calc(100vh-4rem)] justify-center p-5 gap-x-5">
+      <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 py-3 md:p-5">
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
           {user ? (
             <LogEditDialog
