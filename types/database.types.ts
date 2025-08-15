@@ -14,6 +14,97 @@ export type Database = {
   };
   public: {
     Tables: {
+      club_forum_posts: {
+        Row: {
+          content: Json | null;
+          created_at: string | null;
+          forum_id: string;
+          id: string;
+          parent_post_id: string | null;
+          user_id: string;
+        };
+        Insert: {
+          content?: Json | null;
+          created_at?: string | null;
+          forum_id: string;
+          id?: string;
+          parent_post_id?: string | null;
+          user_id: string;
+        };
+        Update: {
+          content?: Json | null;
+          created_at?: string | null;
+          forum_id?: string;
+          id?: string;
+          parent_post_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_forum_posts_forum_id_fkey";
+            columns: ["forum_id"];
+            isOneToOne: false;
+            referencedRelation: "club_forums";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_forum_posts_parent_post_id_fkey";
+            columns: ["parent_post_id"];
+            isOneToOne: false;
+            referencedRelation: "club_forum_posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_forum_posts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      club_forums: {
+        Row: {
+          club_id: string;
+          content: Json | null;
+          created_at: string | null;
+          id: string;
+          title: string;
+          user_id: string;
+        };
+        Insert: {
+          club_id: string;
+          content?: Json | null;
+          created_at?: string | null;
+          id?: string;
+          title: string;
+          user_id: string;
+        };
+        Update: {
+          club_id?: string;
+          content?: Json | null;
+          created_at?: string | null;
+          id?: string;
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_forums_club_id_fkey";
+            columns: ["club_id"];
+            isOneToOne: false;
+            referencedRelation: "clubs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_forums_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       club_members: {
         Row: {
           club_id: string;
