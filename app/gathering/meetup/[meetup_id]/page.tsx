@@ -4,6 +4,7 @@ import MeetupDetailClient from "@/components/meetup/meetup-detail-client";
 import { Database } from "@/types/database.types";
 
 type Meetup = Database['public']['Tables']['meetups']['Row'] & {
+  clubs: Database['public']['Tables']['clubs']['Row'] | null;
   organizer_profile: Database['public']['Tables']['profiles']['Row'] | null;
   meetup_participants: {
     profiles: Database['public']['Tables']['profiles']['Row'] | null;
@@ -18,7 +19,7 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ m
   const { data: meetup, error } = await supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), meetup_participants(profiles(id, full_name, username, avatar_url)), category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
+      "*, clubs(*), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url), meetup_participants(profiles(id, full_name, username, avatar_url)), category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .eq("id", meetup_id)
     .single();

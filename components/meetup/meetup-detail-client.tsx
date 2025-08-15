@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Network } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
@@ -69,6 +69,7 @@ function getStatusBadgeClass(status: string) {
 }
 
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
+  clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
   organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
   meetup_participants: {
     profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -88,7 +89,7 @@ export default function MeetupDetailClient({
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold">{meetup.title}</h1>
         {isOrganizer && (
           <Link href={`/gathering/meetup/${meetup.id}/edit`}>
@@ -96,6 +97,15 @@ export default function MeetupDetailClient({
           </Link>
         )}
       </div>
+
+      {meetup.clubs && (
+        <div className="mb-4">
+          <Link href={`/gathering/club/${meetup.clubs.id}`} className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline">
+            <Network className="size-5" />
+            {meetup.clubs.name}
+          </Link>
+        </div>
+      )}
 
       {/* 카테고리, 형태, 상태 배지 */}
       <div className="flex gap-2 mb-4">

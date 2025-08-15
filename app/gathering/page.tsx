@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Users } from "lucide-react";
+import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClubList from "@/components/meetup/club-list";
@@ -12,6 +12,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 
 type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
   organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
 };
 
 // 날짜 포맷 헬퍼 함수 추가
@@ -85,7 +86,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
+      "*, clubs(id, name), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .order("created_at", { ascending: false });
 
@@ -164,6 +165,12 @@ export default async function MeetupPage({
                         {meetup.title}
                       </h2>
                     </Link>
+                    {meetup.clubs && (
+                      <Link href={`/gathering/club/${meetup.clubs.id}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2">
+                        <Network className="size-4" />
+                        <span>{meetup.clubs.name}</span>
+                      </Link>
+                    )}
                     <div className="flex gap-1 mb-4">
                       <Badge
                         className={getCategoryBadgeClass(meetup.category)}
