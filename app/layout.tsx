@@ -99,11 +99,6 @@ export default async function RootLayout({
                 {/* Mobile specific layout */}
                 <div className="flex md:hidden w-full justify-between items-center">
                   <div className="flex items-center">
-                    <MobileMenu
-                      user={user} // Pass user object
-                      avatarUrl={avatarUrl}
-                      username={usernameForAuthButton}
-                    />
                     <Link href={"/"} className="flex items-center gap-1">
                       <Image
                         src="/logo_no_bg.png"
@@ -124,16 +119,24 @@ export default async function RootLayout({
                     >
                       <Search size={20} />
                     </Link>
-                    <Suspense
-                      fallback={
-                        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                    <MobileMenu
+                      user={user}
+                      notificationBell={
+                        <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
+                          <NotificationBell
+                            initialUnreadCount={unreadNotifCount}
+                            userId={user?.id || null}
+                          />
+                        </Suspense>
                       }
-                    >
-                      <NotificationBell
-                        initialUnreadCount={unreadNotifCount}
-                        userId={user?.id || null}
-                      />
-                    </Suspense>
+                      authButton={
+                        <AuthButton
+                          avatarUrl={avatarUrl}
+                          username={usernameForAuthButton}
+                          sheetHeader={true}
+                        />
+                      }
+                    />
                   </div>
                 </div>
 
@@ -193,6 +196,7 @@ export default async function RootLayout({
                     <AuthButton
                       avatarUrl={avatarUrl}
                       username={usernameForAuthButton}
+                      sheetHeader={false}
                     />
                   </div>
                 </div>

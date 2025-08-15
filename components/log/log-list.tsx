@@ -293,7 +293,7 @@ export function LogList({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 px-6">
+    <div className="w-full max-w-2xl mx-auto space-y-4 px-6 py-3">
       {logs.length === 0 && !isLoading ? (
         <p className="text-center text-muted-foreground">
           아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
@@ -311,7 +311,7 @@ export function LogList({
               searchQuery={searchQuery} // Pass searchQuery to LogCard
             />
             {index < logs.length - 1 && (
-              <div className="border-b border-gray-200 my-6"></div>
+              <div className="border-b border-gray-200 my-4"></div>
             )}
           </div>
         ))
