@@ -278,7 +278,7 @@ export function LogCard({
         </div>
 
         {/* Section 2: Content (Clickable block) */}
-        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[48px] relative" style={{ marginTop: '-12px' }}>
+        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[44px] relative" style={{ marginTop: '-12px' }}>
           <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
@@ -312,7 +312,7 @@ export function LogCard({
         </div>
 
         {/* Section 3: Actions (Independent buttons) */}
-        <div className="flex justify-between items-center text-sm text-muted-foreground px-[48px] pt-2">
+        <div className="flex justify-between items-center text-sm text-muted-foreground px-[44px] pt-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
