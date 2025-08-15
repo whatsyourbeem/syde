@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ClubList from "@/components/meetup/club-list";
+import ClubList from "@/components/club/club-list";
 import { Database, Enums } from "@/types/database.types";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
