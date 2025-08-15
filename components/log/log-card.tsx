@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark } from "lucide-react"; // Added MessageCircle and Trash2
+import { HeartIcon, MessageCircle, Trash2, Edit, Share2, Bookmark, MoreHorizontal } from "lucide-react"; // Added MessageCircle and Trash2
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 
@@ -211,7 +212,7 @@ export function LogCard({
     <HoverCard openDelay={350}>
       <div className="rounded-lg bg-card flex flex-col">
         {/* Section 1: Profile Header (Not clickable as a block) */}
-        <div className="flex items-center">
+        <div className="flex items-start">
           {avatarUrlWithCacheBuster && (
             <HoverCardTrigger asChild>
               <Link href={`/${log.profiles?.username || log.user_id}`}>
@@ -220,13 +221,13 @@ export function LogCard({
                   alt={`${log.profiles?.username || "User"}'s avatar`}
                   width={36}
                   height={36}
-                  className="rounded-full object-cover mr-3"
+                  className="rounded-full object-cover mr-2"
                 />
               </Link>
             </HoverCardTrigger>
           )}
           <div className="flex-grow">
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-1">
               <HoverCardTrigger asChild>
                 <Link href={`/${log.profiles?.username || log.user_id}`}>
                   <p className="font-semibold hover:underline text-log-content">
@@ -240,44 +241,44 @@ export function LogCard({
               {log.profiles?.tagline && (
                 <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
               )}
-              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;&nbsp;{formattedLogDate}</p>
+              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedLogDate}</p>
             </div>
             
           </div>
           <div className="flex items-center gap-2 ml-auto">
             {currentUserId === log.user_id && (
-              <>
-                <LogEditDialog
-                  userId={currentUserId}
-                  avatarUrl={log.profiles?.avatar_url || null}
-                  username={log.profiles?.username || null}
-                  full_name={log.profiles?.full_name || null}
-                  initialLogData={log}
-                  onSuccess={() => router.refresh()}
-                >
-                  <button
-                    disabled={loading}
-                    className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
-                    aria-label="Edit log"
-                  >
-                    <Edit size={16} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 text-muted-foreground rounded-full hover:bg-secondary">
+                    <MoreHorizontal size={16} />
                   </button>
-                </LogEditDialog>
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
-                  aria-label="Delete log"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <LogEditDialog
+                    userId={currentUserId}
+                    avatarUrl={log.profiles?.avatar_url || null}
+                    username={log.profiles?.username || null}
+                    full_name={log.profiles?.full_name || null}
+                    initialLogData={log}
+                    onSuccess={() => router.refresh()}
+                  >
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>수정</span>
+                    </DropdownMenuItem>
+                  </LogEditDialog>
+                  <DropdownMenuItem onClick={handleDelete} className="text-red-500 cursor-pointer">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>삭제</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
 
         {/* Section 2: Content (Clickable block) */}
-        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[52px] relative">
+        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[48px] relative" style={{ marginTop: '-12px' }}>
           <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
@@ -311,7 +312,7 @@ export function LogCard({
         </div>
 
         {/* Section 3: Actions (Independent buttons) */}
-        <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
+        <div className="flex justify-between items-center text-sm text-muted-foreground px-[48px] pt-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
