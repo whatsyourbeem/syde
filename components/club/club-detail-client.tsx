@@ -180,9 +180,11 @@ export default function ClubDetailClient({ club, isMember, currentUserId }: Club
           {club.forum ? (
             <div>
               <h2 className="text-xl font-semibold mb-4">{club.forum.name}</h2>
-              <div className="mb-6">
+              <div className="mb-6 flex justify-end">
                 {isMember ? (
-                  <ClubPostForm forumId={club.forum.id} />
+                  <Link href={`/gathering/club/${club.id}/post/create`}>
+                    <Button>새 게시글 작성</Button>
+                  </Link>
                 ) : (
                   <div className="p-4 border rounded-lg text-center text-muted-foreground">
                     <p>클럽에 가입해야 게시글을 작성할 수 있습니다.</p>
