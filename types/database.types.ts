@@ -20,7 +20,7 @@ export type Database = {
           created_at: string | null;
           forum_id: string;
           id: string;
-          parent_post_id: string | null;
+          title: string;
           user_id: string;
         };
         Insert: {
@@ -28,7 +28,7 @@ export type Database = {
           created_at?: string | null;
           forum_id: string;
           id?: string;
-          parent_post_id?: string | null;
+          title: string;
           user_id: string;
         };
         Update: {
@@ -36,7 +36,7 @@ export type Database = {
           created_at?: string | null;
           forum_id?: string;
           id?: string;
-          parent_post_id?: string | null;
+          title?: string;
           user_id?: string;
         };
         Relationships: [
@@ -45,13 +45,6 @@ export type Database = {
             columns: ["forum_id"];
             isOneToOne: false;
             referencedRelation: "club_forums";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "club_forum_posts_parent_post_id_fkey";
-            columns: ["parent_post_id"];
-            isOneToOne: false;
-            referencedRelation: "club_forum_posts";
             referencedColumns: ["id"];
           },
           {
@@ -66,27 +59,21 @@ export type Database = {
       club_forums: {
         Row: {
           club_id: string;
-          content: Json | null;
-          created_at: string | null;
+          description: string | null;
           id: string;
-          title: string;
-          user_id: string;
+          name: string;
         };
         Insert: {
           club_id: string;
-          content?: Json | null;
-          created_at?: string | null;
+          description?: string | null;
           id?: string;
-          title: string;
-          user_id: string;
+          name: string;
         };
         Update: {
           club_id?: string;
-          content?: Json | null;
-          created_at?: string | null;
+          description?: string | null;
           id?: string;
-          title?: string;
-          user_id?: string;
+          name?: string;
         };
         Relationships: [
           {
@@ -94,13 +81,6 @@ export type Database = {
             columns: ["club_id"];
             isOneToOne: false;
             referencedRelation: "clubs";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "club_forums_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
         ];

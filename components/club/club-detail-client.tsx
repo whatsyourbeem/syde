@@ -12,16 +12,22 @@ import { toast } from "sonner";
 import { Clock, MapPin, Users, UserPlus, LogOut, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { joinClub, leaveClub } from "@/app/gathering/club/actions";
+import ClubPostForm from "./club-post-form";
+import ClubPostList from "./club-post-list"; // Import ClubPostList
 
 // Type Definitions
 type Profile = Tables<'profiles'>;
 type Meetup = Tables<'meetups'> & { organizer_profile: Profile | null };
 type ClubMember = Tables<'club_members'> & { profiles: Profile | null };
+type ClubForum = Tables<'club_forums'>;
+type ClubForumPost = Tables<'club_forum_posts'> & { author: Profile | null };
 
 type Club = Tables<'clubs'> & {
   owner_profile: Profile | null;
   members: ClubMember[];
   meetups: Meetup[];
+  forum: ClubForum | null;
+  posts: ClubForumPost[];
 };
 
 interface ClubDetailClientProps {
@@ -31,13 +37,16 @@ interface ClubDetailClientProps {
 }
 
 // Helper Functions for Meetup Card
-function formatDate(dateString: string) {
+function formatDate(dateString: string | null) {
+  if (!dateString) return "";
   const date = new Date(dateString);
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "short",
+    hour: "numeric",
+    minute: "numeric",
   }).format(date);
 }
 
@@ -159,11 +168,36 @@ export default function ClubDetailClient({ club, isMember, currentUserId }: Club
       </section>
 
       {/* Tabs Section */}
-      <Tabs defaultValue="meetups" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="board" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="board">게시판</TabsTrigger>
           <TabsTrigger value="meetups">모임 ({club.meetups.length})</TabsTrigger>
           <TabsTrigger value="members">멤버 ({club.members.length})</TabsTrigger>
         </TabsList>
+
+        {/* Board Tab */}
+        <TabsContent value="board" className="mt-4">
+          {club.forum ? (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">{club.forum.name}</h2>
+              <div className="mb-6">
+                {isMember ? (
+                  <ClubPostForm forumId={club.forum.id} />
+                ) : (
+                  <div className="p-4 border rounded-lg text-center text-muted-foreground">
+                    <p>클럽에 가입해야 게시글을 작성할 수 있습니다.</p>
+                  </div>
+                )}
+              </div>
+              {/* Replace existing post rendering with ClubPostList */}
+              <ClubPostList posts={club.posts} clubId={club.id} />
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>이 클럽에는 아직 게시판이 없습니다.</p>
+            </div>
+          )}
+        </TabsContent>
 
         {/* Meetups Tab */}
         <TabsContent value="meetups" className="mt-4">
@@ -181,7 +215,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId }: Club
                                 <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
                             )}
                             {meetup.location_description && (
-                                <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
+                                <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {formatDate(meetup.location_description)}</p>
                             )}
                         </div>
                     </div>
