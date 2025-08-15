@@ -128,7 +128,12 @@ export default function ClubDetailClient({ club, isMember, currentUserId }: Club
           </div>
           <div className="mt-4 sm:mt-0">
             {isOwner ? (
-               <Button disabled>클럽장입니다</Button>
+              <div className="flex items-center gap-2">
+                <Button disabled>클럽장입니다</Button>
+                <Link href={`/gathering/meetup/create?club_id=${club.id}`}>
+                  <Button>모임 만들기</Button>
+                </Link>
+              </div>
             ) : isMember ? (
               <Button variant="outline" onClick={handleLeaveClub} disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <LogOut className="mr-2 size-4" />}

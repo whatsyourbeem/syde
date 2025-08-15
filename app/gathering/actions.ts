@@ -50,7 +50,7 @@ export async function updateMeetup(formData: FormData) {
 
   revalidatePath(`/gathering/meetup/${id}`);
   revalidatePath("/gathering");
-  redirect(`/gathering/meetup/${id}`);
+  return { error: null };
 }
 
 export async function uploadMeetupThumbnail(formData: FormData) {
@@ -132,4 +132,47 @@ export async function uploadMeetupDescriptionImage(formData: FormData) {
   }
 
   return { publicUrl: publicUrlData.publicUrl };
+}
+
+export async function createMeetup(formData: FormData) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  const id = formData.get("id") as string;
+  const clubId = formData.get("clubId") as string | null;
+  const maxParticipants = formData.get("maxParticipants") as string;
+
+  const meetupData = {
+    id: id,
+    organizer_id: user.id,
+    club_id: clubId,
+    title: formData.get("title") as string,
+    description: formData.get("description") as string,
+    thumbnail_url: formData.get("thumbnailUrl") as string,
+    category: formData.get("category") as Enums<"meetup_category_enum">,
+    location_type: formData.get("locationType") as Enums<"meetup_location_type_enum">,
+    status: formData.get("status") as Enums<"meetup_status_enum">,
+    start_datetime: (formData.get("startDatetime") as string) || null,
+    end_datetime: (formData.get("endDatetime") as string) || null,
+    location_description: formData.get("locationDescription") as string,
+    max_participants: maxParticipants ? parseInt(maxParticipants, 10) : null,
+  };
+
+  const { error } = await supabase.from("meetups").insert(meetupData);
+
+  if (error) {
+    console.error("Error creating meetup:", error);
+    return { error: error.message };
+  }
+
+  revalidatePath("/gathering");
+  if (clubId) {
+    revalidatePath(`/gathering/club/${clubId}`);
+  }
+  
+  return { error: null };
 }
