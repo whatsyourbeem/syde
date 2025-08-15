@@ -33,7 +33,7 @@ export default function ClubCard({ club }: ClubCardProps) {
             {club.name}
           </h2>
         </Link>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{club.description}</p>
+        
         <div className="flex items-center justify-between text-sm text-gray-500">
           <HoverCard openDelay={350}>
             <div className="flex items-center gap-2">
