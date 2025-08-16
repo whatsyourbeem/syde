@@ -309,7 +309,7 @@ export function CommentList({
   }
 
   return (
-    <div className="mt-4 space-y-2 px-4">
+    <div className="mt-2 space-y-1 px-4">
       {comments.length === 0 && !isLoading ? (
         <p className="text-center text-sm text-muted-foreground">
           아직 댓글이 없습니다.

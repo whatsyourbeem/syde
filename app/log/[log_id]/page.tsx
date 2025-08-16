@@ -26,9 +26,5 @@ export default async function LogDetailPage({ params }: LogDetailPageProps) {
     notFound();
   }
 
-  return (
-    <div className="container mx-auto max-w-2xl">
-      <LogDetail log={log} user={user} />
-    </div>
-  );
+  return <LogDetail log={log} user={user} />;
 }
