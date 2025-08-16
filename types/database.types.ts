@@ -14,6 +14,58 @@ export type Database = {
   };
   public: {
     Tables: {
+      club_forum_post_comments: {
+        Row: {
+          content: string;
+          created_at: string | null;
+          id: string;
+          parent_comment_id: string | null;
+          post_id: string;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          content: string;
+          created_at?: string | null;
+          id?: string;
+          parent_comment_id?: string | null;
+          post_id: string;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          content?: string;
+          created_at?: string | null;
+          id?: string;
+          parent_comment_id?: string | null;
+          post_id?: string;
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "club_forum_post_comments_parent_comment_id_fkey";
+            columns: ["parent_comment_id"];
+            isOneToOne: false;
+            referencedRelation: "club_forum_post_comments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_forum_post_comments_post_id_fkey";
+            columns: ["post_id"];
+            isOneToOne: false;
+            referencedRelation: "club_forum_posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "club_forum_post_comments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       club_forum_posts: {
         Row: {
           content: Json | null;

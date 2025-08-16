@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form"; // Added
+import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list"; // Added
 
 
 
@@ -29,6 +31,7 @@ function formatDate(dateString: string | null) {
 export default async function ClubPostDetailPage({ params }: ClubPostDetailPageProps) {
   const supabase = await createClient();
   const { post_id } = await params;
+  const { data: { user } } = await supabase.auth.getUser(); // Added
 
   const { data: post, error } = await supabase
     .from("club_forum_posts")
@@ -61,6 +64,11 @@ export default async function ClubPostDetailPage({ params }: ClubPostDetailPageP
       </div>
 
       {/* Add comments section or other post interactions here later */}
+      <div className="mt-8 border-t pt-8">
+        <h2 className="text-2xl font-bold mb-4">댓글</h2>
+        <ClubPostCommentForm postId={post.id} currentUserId={user?.id || null} />
+        <ClubPostCommentList postId={post.id} currentUserId={user?.id || null} />
+      </div>
     </div>
   );
 }
