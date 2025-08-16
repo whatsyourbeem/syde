@@ -73,15 +73,27 @@ export async function createClubPost(
     return { error: "내용을 입력해주세요." };
   }
 
+  // Find the club_id from the forum first
+  const { data: forum, error: forumError } = await supabase
+    .from("club_forums")
+    .select("club_id")
+    .eq("id", forumId)
+    .single();
+
+  if (forumError || !forum?.club_id) {
+    console.error("Error finding club for forum:", forumError);
+    return { error: "클럽 정보를 찾을 수 없습니다." };
+  }
+
   const { data: post, error } = await supabase
     .from("club_forum_posts")
-    .insert({
-      forum_id: forumId,
+        .insert({
+      forum_id: forumId, // Corrected to use forum_id
       user_id: user.id,
       title: title,
       content: content,
     })
-    .select("id")
+    .select('id') // Select the id of the newly created post
     .single();
 
   if (error) {
@@ -89,16 +101,7 @@ export async function createClubPost(
     return { error: "게시글 작성 중 오류가 발생했습니다." };
   }
 
-  // Find the club_id from the forum to revalidate the path
-  const { data: forum } = await supabase
-    .from("club_forums")
-    .select("club_id")
-    .eq("id", forumId)
-    .single();
+  revalidatePath(`/gathering/club/${forum.club_id}`);
 
-  if (forum?.club_id) {
-    revalidatePath(`/gathering/club/${forum.club_id}`);
-  }
-
-  return { success: true, post };
+  return { success: true, postId: post.id };
 }

@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { Clock, MapPin, Users, UserPlus, LogOut, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { joinClub, leaveClub } from "@/app/gathering/club/actions";
-import ClubPostForm from "./club-post-form";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
 
 // Type Definitions

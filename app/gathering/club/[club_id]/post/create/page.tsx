@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ClubPostForm from "@/components/club/club-post-form";
-import { Tables } from "@/types/database.types";
 
-type ClubForum = Tables<'club_forums'>; // Define ClubForum type
 
 interface ClubPostCreatePageProps {
   params: Promise<{
@@ -54,7 +52,7 @@ export default async function ClubPostCreatePage({ params }: ClubPostCreatePageP
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">새 게시글 작성</h1>
-      <ClubPostForm forumId={forum.id} />
+      <ClubPostForm forumId={forum.id} clubId={club_id} />
     </div>
   );
 }

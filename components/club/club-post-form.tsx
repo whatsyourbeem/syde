@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Added
 import { Button } from '@/components/ui/button';
 import { createClubPost } from '@/app/gathering/club/actions';
 import { toast } from 'sonner';
@@ -27,9 +28,11 @@ function isJsonContentEmpty(content: JSONContent | null): boolean {
 
 interface ClubPostFormProps {
   forumId: string;
+  clubId: string; // Added
 }
 
-export default function ClubPostForm({ forumId }: ClubPostFormProps) {
+export default function ClubPostForm({ forumId, clubId }: ClubPostFormProps) { // Modified
+  const router = useRouter(); // Added
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState<JSONContent | null>(null);
@@ -54,6 +57,7 @@ export default function ClubPostForm({ forumId }: ClubPostFormProps) {
         setTitle('');
         // Resetting the content by passing null, TiptapEditorWrapper will handle it
         setContent(null);
+        router.push(`/gathering/club/${clubId}/post/${result.postId}`); // Added
       }
     } catch (error) {
       console.error(error);
