@@ -18,7 +18,7 @@ import ClubPostList from "./club-post-list"; // Import ClubPostList
 type Profile = Tables<'profiles'>;
 type Meetup = Tables<'meetups'> & { organizer_profile: Profile | null };
 type ClubMember = Tables<'club_members'> & { profiles: Profile | null };
-type ClubForum = Tables<'club_forums'>;
+
 type ClubForumPost = Tables<'club_forum_posts'> & { author: Profile | null };
 
 type ForumWithPosts = Tables<'club_forums'> & { posts: ClubForumPost[] };
@@ -108,6 +108,25 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
   };
 
   const isOwner = currentUserId === club.owner_id;
+
+  const canReadForum = (forum: ForumWithPosts) => {
+    const permission = forum.read_permission;
+    if (permission === 'PUBLIC') {
+      return true;
+    }
+    if (permission === 'MEMBER') {
+      return isMember;
+    }
+    if (permission === 'FULL_MEMBER') {
+      return userRole === 'FULL_MEMBER' || userRole === 'LEADER';
+    }
+    if (permission === 'LEADER') {
+      return userRole === 'LEADER';
+    }
+    return false;
+  };
+
+  
 
   return (
     <div className="w-full p-4">
@@ -201,7 +220,15 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
               </div>
               {club.forums.map((forum) => (
                 <TabsContent key={forum.id} value={forum.id}>
-                  <ClubPostList posts={forum.posts} clubId={club.id} />
+                  {canReadForum(forum) ? (
+                    <ClubPostList posts={forum.posts} clubId={club.id} />
+                  ) : (
+                    <div className="p-8 text-center bg-secondary rounded-lg">
+                      <p className="text-secondary-foreground">
+                        이 게시판을 볼 수 있는 권한이 없습니다.
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
               ))}
             </Tabs>

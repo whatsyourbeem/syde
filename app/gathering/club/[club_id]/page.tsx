@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ClubDetailClient from "@/components/club/club-detail-client";
 import { Tables } from "@/types/database.types";
 
+type Profile = Tables<'profiles'>;
 type ClubForumPost = Tables<'club_forum_posts'> & { author: Profile | null };
 type ForumWithPosts = Tables<'club_forums'> & { posts: ClubForumPost[] };
 
