@@ -21,12 +21,13 @@ type ClubMember = Tables<'club_members'> & { profiles: Profile | null };
 type ClubForum = Tables<'club_forums'>;
 type ClubForumPost = Tables<'club_forum_posts'> & { author: Profile | null };
 
+type ForumWithPosts = Tables<'club_forums'> & { posts: ClubForumPost[] };
+
 type Club = Tables<'clubs'> & {
   owner_profile: Profile | null;
   members: ClubMember[];
   meetups: Meetup[];
-  forum: ClubForum | null;
-  posts: ClubForumPost[];
+  forums: ForumWithPosts[];
 };
 
 interface ClubDetailClientProps {
@@ -182,26 +183,36 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
 
         {/* Board Tab */}
         <TabsContent value="board" className="mt-4">
-          {club.forum ? (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">{club.forum.name}</h2>
-              <div className="mb-6 flex justify-end">
-                {isMember ? (
+          {club.forums && club.forums.length > 0 ? (
+            <Tabs defaultValue={club.forums[0].id} className="w-full">
+              <div className="flex justify-between items-center mb-4">
+                <TabsList>
+                  {club.forums.map((forum) => (
+                    <TabsTrigger key={forum.id} value={forum.id}>
+                      {forum.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {isMember && (
                   <Link href={`/gathering/club/${club.id}/post/create`}>
-                    <Button>새 게시글 작성</Button>
+                    <Button size="sm">새 게시글 작성</Button>
                   </Link>
-                ) : (
-                  <div className="p-4 border rounded-lg text-center text-muted-foreground">
-                    <p>클럽에 가입해야 게시글을 작성할 수 있습니다.</p>
-                  </div>
                 )}
               </div>
-              {/* Replace existing post rendering with ClubPostList */}
-              <ClubPostList posts={club.posts} clubId={club.id} />
-            </div>
+              {club.forums.map((forum) => (
+                <TabsContent key={forum.id} value={forum.id}>
+                  <ClubPostList posts={forum.posts} clubId={club.id} />
+                </TabsContent>
+              ))}
+            </Tabs>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <p>이 클럽에는 아직 게시판이 없습니다.</p>
+              {isMember && (
+                 <Link href={`/gathering/club/${club.id}/post/create`}>
+                    <Button className="mt-4">게시판 첫 글 작성하기</Button>
+                  </Link>
+              )}
             </div>
           )}
         </TabsContent>

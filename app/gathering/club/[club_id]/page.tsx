@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import ClubDetailClient from "@/components/club/club-detail-client";
 import { Tables } from "@/types/database.types";
 
-type Profile = Tables<'profiles'>;
 type ClubForumPost = Tables<'club_forum_posts'> & { author: Profile | null };
+type ForumWithPosts = Tables<'club_forums'> & { posts: ClubForumPost[] };
 
 type ClubDetailPageProps = {
   params: Promise<{
@@ -47,34 +47,35 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
 
-  // Fetch the first forum for the club
-  const { data: forum, error: forumError } = await supabase
+  // Fetch all forums for the club
+  const { data: forums, error: forumsError } = await supabase
     .from("club_forums")
     .select("*")
-    .eq("club_id", club_id)
-    .limit(1)
-    .single();
+    .eq("club_id", club_id);
 
-  let posts: ClubForumPost[] = [];
-  if (forum && !forumError) {
-    // Fetch posts for the forum, including author profiles
-    const { data: forumPosts, error: postsError } = await supabase
-      .from("club_forum_posts")
-      .select("*, profiles(*)")
-      .eq("forum_id", forum.id)
-      .order("created_at", { ascending: false });
-
-    if (postsError) {
-      console.error("Error fetching posts:", postsError);
-      // Decide if a page without posts is acceptable or should be a notFound
-    } else {
-      // Manually map profiles to author property
-      posts = forumPosts?.map(p => ({ ...p, author: p.profiles })) || [];
-    }
-  } else if (forumError && forumError.code !== 'PGRST116') { // PGRST116 = no rows found
-    console.error("Error fetching forum:", forumError);
-    // Decide if a page without a forum is acceptable or should be a notFound
+  if (forumsError) {
+    console.error("Error fetching forums:", forumsError);
+    notFound();
   }
+
+  // For each forum, fetch its posts
+  const forumsWithPosts: ForumWithPosts[] = forums ? await Promise.all(
+    forums.map(async (forum) => {
+      const { data: postsData, error: postsError } = await supabase
+        .from("club_forum_posts")
+        .select("*, author:profiles(*)")
+        .eq("forum_id", forum.id)
+        .order("created_at", { ascending: false });
+
+      if (postsError) {
+        console.error(`Error fetching posts for forum ${forum.id}:`, postsError);
+        return { ...forum, posts: [] }; // Return forum with empty posts on error
+      }
+      
+      const posts = postsData?.map(p => ({ ...p, author: p.author as Profile | null })) || [];
+      return { ...forum, posts };
+    })
+  ) : [];
 
   if (membersError || meetupsError) {
     // Handle errors appropriately
@@ -92,8 +93,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     ...club,
     members: members || [],
     meetups: meetups || [],
-    forum: forum || null,
-    posts: posts,
+    forums: forumsWithPosts,
   };
 
   return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} userRole={userRole} />;
