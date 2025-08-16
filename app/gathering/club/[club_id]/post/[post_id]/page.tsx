@@ -3,10 +3,8 @@ import { notFound } from "next/navigation";
 
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form"; // Added
-import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list"; // Added
-
-
+import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form";
+import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list";
 
 interface ClubPostDetailPageProps {
   params: Promise<{
@@ -30,8 +28,8 @@ function formatDate(dateString: string | null) {
 
 export default async function ClubPostDetailPage({ params }: ClubPostDetailPageProps) {
   const supabase = await createClient();
-  const { post_id } = await params;
-  const { data: { user } } = await supabase.auth.getUser(); // Added
+  const { club_id, post_id } = await params;
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: post, error } = await supabase
     .from("club_forum_posts")
@@ -43,6 +41,21 @@ export default async function ClubPostDetailPage({ params }: ClubPostDetailPageP
     console.error("Error fetching post:", error);
     notFound();
   }
+
+  let memberRole = null;
+  if (user) {
+    const { data: member } = await supabase
+      .from('club_members')
+      .select('role')
+      .eq('club_id', club_id)
+      .eq('user_id', user.id)
+      .single();
+    if (member) {
+      memberRole = member.role;
+    }
+  }
+
+  const isAuthorized = memberRole === 'LEADER' || memberRole === 'FULL_MEMBER';
 
   const author = post.profiles;
 
@@ -60,15 +73,24 @@ export default async function ClubPostDetailPage({ params }: ClubPostDetailPageP
       </div>
 
       <div className="prose prose-sm dark:prose-invert max-w-none mb-8">
-        {post.content && <TiptapViewer content={post.content} />}
+        {isAuthorized ? (
+          post.content && <TiptapViewer content={post.content} />
+        ) : (
+          <div className="p-8 text-center bg-secondary rounded-lg">
+            <p className="text-secondary-foreground">
+              이 게시글의 내용은 클럽의 정회원만 볼 수 있습니다.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Add comments section or other post interactions here later */}
-      <div className="mt-8 border-t pt-8">
-        <h2 className="text-2xl font-bold mb-4">댓글</h2>
-        <ClubPostCommentForm postId={post.id} currentUserId={user?.id || null} />
-        <ClubPostCommentList postId={post.id} currentUserId={user?.id || null} />
-      </div>
+      {isAuthorized && (
+        <div className="mt-8 border-t pt-8">
+          <h2 className="text-2xl font-bold mb-4">댓글</h2>
+          <ClubPostCommentForm postId={post.id} currentUserId={user?.id || null} />
+          <ClubPostCommentList postId={post.id} currentUserId={user?.id || null} />
+        </div>
+      )}
     </div>
   );
 }
