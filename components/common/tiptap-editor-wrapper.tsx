@@ -91,7 +91,7 @@ export default function TiptapEditorWrapper({
   }
 
   return (
-    <div className="rounded-md border">
+    <div>
       <TiptapToolbar
         editor={editor}
         onImageUploadClick={() => fileInputRef.current?.click()}
