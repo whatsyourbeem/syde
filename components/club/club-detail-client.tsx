@@ -33,6 +33,7 @@ interface ClubDetailClientProps {
   club: Club;
   isMember: boolean;
   currentUserId?: string;
+  userRole: string | null;
 }
 
 // Helper Functions for Meetup Card
@@ -60,7 +61,7 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
 }
 
 // Main Component
-export default function ClubDetailClient({ club, isMember, currentUserId }: ClubDetailClientProps) {
+export default function ClubDetailClient({ club, isMember, currentUserId, userRole }: ClubDetailClientProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleJoinClub = async () => {
@@ -122,7 +123,10 @@ export default function ClubDetailClient({ club, isMember, currentUserId }: Club
         </div>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">{club.name}</h1>
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-3xl font-bold">{club.name}</h1>
+              {userRole && <Badge variant="secondary">내 등급: {userRole}</Badge>}
+            </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Avatar className="size-6">
                 <AvatarImage src={club.owner_profile?.avatar_url || undefined} />

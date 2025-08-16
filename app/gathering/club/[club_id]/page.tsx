@@ -83,8 +83,10 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     notFound();
   }
 
-  // Check if the current user is a member
-  const isMember = user ? members?.some(member => member.profiles?.id === user.id) || false : false;
+  // Check if the current user is a member and get their role
+  const currentUserMembership = user ? members?.find(member => member.profiles?.id === user.id) : undefined;
+  const isMember = !!currentUserMembership;
+  const userRole = currentUserMembership?.role || null;
 
   const fullClubData = {
     ...club,
@@ -94,5 +96,5 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     posts: posts,
   };
 
-  return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} />;
+  return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} userRole={userRole} />;
 }
