@@ -27,7 +27,7 @@ export default async function LogDetailPage({ params }: LogDetailPageProps) {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl py-8">
+    <div className="container mx-auto max-w-2xl">
       <LogDetail log={log} user={user} />
     </div>
   );

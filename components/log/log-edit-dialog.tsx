@@ -207,25 +207,28 @@ function LogForm({
         </div>
 
         {imagePreviewUrl && (
-          <div className="relative w-full max-w-xs mx-auto my-4 flex-shrink-0">
-            <Image
-              src={imagePreviewUrl}
-              alt="Image preview"
-              width={200}
-              height={200}
-              className="rounded-md object-contain"
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute top-2 right-2 h-6 w-6"
-              onClick={removeImage}
-              disabled={isUploading || isSubmitting}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <>
+            <div className="border-t my-4" />
+            <div className="relative w-full max-w-xs mx-auto flex-shrink-0">
+              <Image
+                src={imagePreviewUrl}
+                alt="Image preview"
+                width={200}
+                height={200}
+                className="rounded-md object-contain"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 h-6 w-6"
+                onClick={removeImage}
+                disabled={isUploading || isSubmitting}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
         )}
       </div>
 

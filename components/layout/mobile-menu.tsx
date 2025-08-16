@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,11 +11,10 @@ import { logout } from "@/app/auth/actions";
 
 interface MobileMenuProps {
   user: User | null;
-  notificationBell: React.ReactNode;
   authButton: React.ReactNode;
 }
 
-export function MobileMenu({ user, notificationBell, authButton }: MobileMenuProps) {
+export function MobileMenu({ user, authButton }: MobileMenuProps) {
   const pathname = usePathname();
   return (
     <Sheet>
@@ -24,13 +23,20 @@ export function MobileMenu({ user, notificationBell, authButton }: MobileMenuPro
           <Menu />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
-        <div className="flex-grow flex flex-col gap-4 p-4">
-          <div className="flex items-center gap-2 pb-4 border-b">
+      <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col gap-1 py-2 pr-10">
+        <SheetHeader>
+          <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+        </SheetHeader>
+        <div className="flex-grow flex flex-col gap-1">
+          <div className="flex items-center gap-2 pb-2 border-b w-full">
             {authButton}
           </div>
-          <Link href="/" className={`${pathname === "/" ? "font-bold text-primary" : ""}`}>HOME</Link>
-          <Link href="/gathering" className={`${pathname.startsWith("/gathering") ? "font-bold text-primary" : ""}`}>GATHERING</Link>
+          <SheetClose asChild>
+            <Link href="/" className={`mt-2 p-2 ${pathname === "/" ? "font-bold text-primary" : ""}`}>HOME</Link>
+          </SheetClose>
+          <SheetClose asChild>
+            <Link href="/gathering" className={`p-2 ${pathname.startsWith("/gathering") ? "font-bold text-primary" : ""}`}>GATHERING</Link>
+          </SheetClose>
           <Link
             href="https://open.kakao.com/o/gduSGmtf"
             target="_blank"
@@ -45,17 +51,16 @@ export function MobileMenu({ user, notificationBell, authButton }: MobileMenuPro
             />
             <span>SYDE 오픈채팅</span>
           </Link>
-          <div className="flex items-center gap-4 pt-4 border-t">
-            {notificationBell}
-          </div>
         </div>
         {user && (
-            <div className="p-4 border-t">
+            <div className="py-2 px-0 border-t">
                 <form action={logout}>
-                    <Button type="submit" variant="ghost" className="w-full justify-start">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        로그아웃
-                    </Button>
+                    <SheetClose asChild>
+                      <Button type="submit" variant="ghost" className="w-full justify-start">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          로그아웃
+                      </Button>
+                    </SheetClose>
                 </form>
             </div>
         )}
