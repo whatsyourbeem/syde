@@ -2,7 +2,7 @@
 
 import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
 import { commonTiptapExtensions } from "./tiptap-extensions";
-import TiptapToolbar from "./tiptap-toolbar"; // Will be created/modified next
+import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ interface TiptapEditorWrapperProps {
   onContentChange: (json: JSONContent) => void;
   placeholder?: string;
   editable?: boolean;
-  onImageUpload?: (file: File) => Promise<string | null>; // Function to upload image and return public URL
+  onImageUpload?: (file: File) => Promise<string | null>;
 }
 
 export default function TiptapEditorWrapper({
@@ -29,6 +29,12 @@ export default function TiptapEditorWrapper({
       }
       return extension;
     }),
+    editorProps: {
+      attributes: {
+        class:
+          "prose max-w-none focus:outline-none p-4",
+      },
+    },
     content: initialContent || { type: 'doc', content: [] },
     editable,
     onUpdate: ({ editor }) => {
@@ -85,7 +91,7 @@ export default function TiptapEditorWrapper({
   }
 
   return (
-    <div className="prose max-w-none">
+    <div className="rounded-md border">
       <TiptapToolbar
         editor={editor}
         onImageUploadClick={() => fileInputRef.current?.click()}
