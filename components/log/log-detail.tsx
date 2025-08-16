@@ -438,6 +438,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
           currentUserId={user?.id || null}
           pageSize={10}
           showPaginationButtons={true}
+          isDetailPage={true}
         />
         <CommentForm
           logId={log.id}

@@ -13,6 +13,7 @@ interface CommentListProps {
   currentUserId: string | null;
   pageSize?: number;
   showPaginationButtons?: boolean;
+  isDetailPage?: boolean; // New prop
 }
 
 type CommentRow = Database['public']['Tables']['log_comments']['Row'];
@@ -36,7 +37,8 @@ export function CommentList({
   logId,
   currentUserId,
   pageSize = 5,
-  showPaginationButtons = false
+  showPaginationButtons = false,
+  isDetailPage = false, // Destructure isDetailPage with default value
 }: CommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -170,7 +172,7 @@ export function CommentList({
 
   const comments = useMemo(() => data?.comments || [], [data?.comments]);
   const totalCommentsCount = data?.count || 0;
-  const mentionedProfiles = data?.mentionedProfiles || [];
+  const mentionedProfiles = useMemo(() => data?.mentionedProfiles || [], [data?.mentionedProfiles]);
 
   // Helper component for recursive rendering of comments
   const renderComment = (comment: ProcessedComment, level: number = 0) => (
@@ -184,6 +186,7 @@ export function CommentList({
         onLikeStatusChange={handleLikeStatusChange}
         logId={logId}
         level={level}
+        isDetailPage={isDetailPage} // Pass isDetailPage to CommentCard
       />
     </div>
   );
