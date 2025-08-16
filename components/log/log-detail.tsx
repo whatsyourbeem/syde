@@ -178,17 +178,8 @@ export function LogDetail({ log, user }: LogDetailProps) {
     : "";
 
   return (
-    <div className="p-4 mb-4 bg-card flex flex-col">
-      {/* Back Button Bar */}
-      <div className="flex items-center mb-2">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
-          aria-label="Go back"
-        >
-          <ChevronLeft size={24} />
-        </button>
-      </div>
+    <div className="px-4 pb-4 mb-4 bg-card flex flex-col">
+      
       <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center justify-between">
