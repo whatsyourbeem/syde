@@ -77,6 +77,42 @@ export default {
         'log-content': '15px',
       },
     },
+    typography: ({ theme }: { theme: any }) => ({
+      DEFAULT: {
+        css: {
+          p: {
+            marginTop: theme('spacing.2'), // Reduce top margin
+            marginBottom: theme('spacing.2'), // Reduce bottom margin
+            lineHeight: '1.75', // Adjust line height for better readability
+          },
+          ul: {
+            marginTop: theme('spacing.2'),
+            marginBottom: theme('spacing.2'),
+          },
+          ol: {
+            marginTop: theme('spacing.2'),
+            marginBottom: theme('spacing.2'),
+          },
+          li: {
+            marginTop: theme('spacing.1'),
+            marginBottom: theme('spacing.1'),
+          },
+          // You can also adjust heading margins here if needed, but let's start with paragraphs
+          h1: {
+            marginTop: theme('spacing.8'),
+            marginBottom: theme('spacing.4'),
+          },
+          h2: {
+            marginTop: theme('spacing.6'),
+            marginBottom: theme('spacing.3'),
+          },
+          h3: {
+            marginTop: theme('spacing.4'),
+            marginBottom: theme('spacing.2'),
+          },
+        },
+      },
+    }),
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;
