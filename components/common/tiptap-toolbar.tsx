@@ -37,8 +37,6 @@ export default function TiptapToolbar({
   const [isAlignLeftActive, setIsAlignLeftActive] = useState(false);
   const [isAlignCenterActive, setIsAlignCenterActive] = useState(false);
   const [isAlignRightActive, setIsAlignRightActive] = useState(false);
-  const [isImageSelected, setIsImageSelected] = useState(false);
-
   useEffect(() => {
     if (!editor) return;
 
@@ -56,7 +54,7 @@ export default function TiptapToolbar({
       setIsAlignLeftActive(editor.isActive({ textAlign: "left" }));
       setIsAlignCenterActive(editor.isActive({ textAlign: "center" }));
       setIsAlignRightActive(editor.isActive({ textAlign: "right" }));
-      setIsImageSelected(editor.isActive("image"));
+      // Removed setIsImageSelected(editor.isActive("image"));
     };
 
     updateActiveStates();
@@ -68,22 +66,6 @@ export default function TiptapToolbar({
       editor.off("update", updateActiveStates);
     };
   }, [editor]);
-
-  const setImageSize = (size: string | null) => {
-    if (editor) {
-      editor
-        .chain()
-        .focus()
-        .updateAttributes("image", { style: size ? `width: ${size}` : null })
-        .run();
-    }
-  };
-
-  const setImageAlignment = (align: 'left' | 'center' | 'right') => {
-    if (editor) {
-      editor.chain().focus().updateAttributes('image', { align }).run();
-    }
-  };
 
   return (
     <div className="flex flex-col gap-2 mb-2">
@@ -243,75 +225,7 @@ export default function TiptapToolbar({
           )}
         </div>
 
-        {isImageSelected && (
-          <div className="flex flex-wrap gap-1 items-center">
-            {/* Image Size Controls */}
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium mr-1">이미지 크기:</span>
-              <Button
-                type="button"
-                onClick={() => setImageSize("25%")}
-                variant="outline"
-                size="sm"
-              >
-                작게
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setImageSize("50%")}
-                variant="outline"
-                size="sm"
-              >
-                중간
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setImageSize("100%")}
-                variant="outline"
-                size="sm"
-              >
-                크게
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setImageSize(null)}
-                variant="outline"
-                size="sm"
-              >
-                원본
-              </Button>
-            </div>
-            <div className="border-l h-6 mx-2"></div>
-            {/* Image Alignment Buttons */}
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium mr-1">이미지 정렬:</span>
-              <Button
-                type="button"
-                onClick={() => setImageAlignment('left')}
-                variant={editor.isActive('image', { align: 'left' }) ? 'default' : 'outline'}
-                size="sm"
-              >
-                <AlignLeft size={16} />
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setImageAlignment('center')}
-                variant={editor.isActive('image', { align: 'center' }) ? 'default' : 'outline'}
-                size="sm"
-              >
-                <AlignCenter size={16} />
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setImageAlignment('right')}
-                variant={editor.isActive('image', { align: 'right' }) ? 'default' : 'outline'}
-                size="sm"
-              >
-                <AlignRight size={16} />
-              </Button>
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   );

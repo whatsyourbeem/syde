@@ -1,37 +1,9 @@
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import TiptapImage from "@tiptap/extension-image";
+
 import TextAlign from "@tiptap/extension-text-align";
-
-// 1. Extend the Tiptap Image extension to add alignment
-const CustomImage = TiptapImage.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      align: {
-        default: 'left',
-        renderHTML: attributes => ({
-          'data-align': attributes.align,
-        }),
-      },
-      style: {
-        default: null,
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: 'img[data-align]',
-        getAttrs: node => ({
-          align: node.getAttribute('data-align'),
-        }),
-      },
-    ];
-  },
-});
+import ResizeImage from "tiptap-extension-resize-image"; // Import ResizeImage
 
 export const commonTiptapExtensions = [
   StarterKit,
@@ -45,8 +17,12 @@ export const commonTiptapExtensions = [
   Placeholder.configure({
     placeholder: "내용을 입력해주세요.", // Generic placeholder
   }),
-  CustomImage.configure({
+  // Replace CustomImage with ResizeImage
+  ResizeImage.configure({
     inline: false,
     allowBase64: true,
+    // You might need to configure default width/height or other options here
+    // based on the ResizeImage extension's documentation.
+    // For now, let's keep it simple.
   }),
 ];
