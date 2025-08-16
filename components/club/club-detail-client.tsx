@@ -137,7 +137,9 @@ export default function ClubDetailClient({ club, isMember, currentUserId }: Club
           <div className="mt-4 sm:mt-0">
             {isOwner ? (
               <div className="flex items-center gap-2">
-                <Button disabled>클럽장입니다</Button>
+                <Link href={`/gathering/club/${club.id}/edit`}>
+                  <Button variant="outline">클럽정보수정</Button>
+                </Link>
                 <Link href={`/gathering/meetup/create?club_id=${club.id}`}>
                   <Button>모임 만들기</Button>
                 </Link>

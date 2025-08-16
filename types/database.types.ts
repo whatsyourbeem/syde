@@ -181,6 +181,7 @@ export type Database = {
           name: string;
           owner_id: string;
           thumbnail_url: string | null;
+          updated_at: string | null;
         };
         Insert: {
           created_at?: string;
@@ -189,6 +190,7 @@ export type Database = {
           name: string;
           owner_id: string;
           thumbnail_url?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           created_at?: string;
@@ -197,6 +199,7 @@ export type Database = {
           name?: string;
           owner_id?: string;
           thumbnail_url?: string | null;
+          updated_at?: string | null;
         };
         Relationships: [
           {

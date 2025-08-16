@@ -51,6 +51,54 @@ export async function leaveClub(clubId: string) {
   return { success: true };
 }
 
+export async function updateClub(
+  clubId: string,
+  name: string,
+  description: Json,
+  thumbnailUrl: string
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  // Fetch club to verify ownership
+  const { data: club, error: fetchError } = await supabase
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", clubId)
+    .single();
+
+  if (fetchError || !club) {
+    console.error("Error fetching club for update:", fetchError);
+    return { error: "클럽 정보를 찾을 수 없습니다." };
+  }
+
+  if (club.owner_id !== user.id) {
+    return { error: "클럽장만 클럽 정보를 수정할 수 있습니다." };
+  }
+
+  const { error } = await supabase
+    .from("clubs")
+    .update({
+      name: name,
+      description: description,
+      thumbnail_url: thumbnailUrl,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", clubId);
+
+  if (error) {
+    console.error("Error updating club:", error);
+    return { error: "클럽 정보 업데이트 중 오류가 발생했습니다." };
+  }
+
+  revalidatePath(`/gathering/club/${clubId}`);
+  return { success: true };
+}
+
 export async function createClubPost(
   forumId: string,
   title: string,
