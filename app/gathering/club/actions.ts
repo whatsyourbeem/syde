@@ -54,7 +54,7 @@ export async function leaveClub(clubId: string) {
 export async function updateClub(
   clubId: string,
   name: string,
-  description: Json,
+  descriptionString: string, // Change type to string
   thumbnailUrl: string
 ) {
   const supabase = await createClient();
@@ -62,6 +62,15 @@ export async function updateClub(
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
+  }
+
+  // Parse the incoming description string
+  let description: Json | null = null;
+  try {
+    description = JSON.parse(descriptionString);
+  } catch (e) {
+    console.error("Failed to parse club description JSON string:", e);
+    return { error: "Invalid club description content format." };
   }
 
   // Fetch club to verify ownership
@@ -84,7 +93,7 @@ export async function updateClub(
     .from("clubs")
     .update({
       name: name,
-      description: description,
+      description: description, // Now 'description' is a parsed Json object
       thumbnail_url: thumbnailUrl,
       updated_at: new Date().toISOString(),
     })

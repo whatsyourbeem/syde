@@ -18,7 +18,25 @@ interface ClubEditFormProps {
 export default function ClubEditForm({ club }: ClubEditFormProps) {
   const router = useRouter();
   const [name, setName] = useState(club.name);
-  const [description, setDescription] = useState<JSONContent | null>(club.description as JSONContent);
+  const [description, setDescription] = useState<JSONContent | null>(() => {
+    if (club?.description) {
+      // Check if it's already an object, if so, use it directly
+      if (typeof club.description === 'object' && club.description !== null) {
+        return club.description as JSONContent;
+      }
+      // If it's a string, try to parse it
+      if (typeof club.description === 'string') {
+        try {
+          const parsed = JSON.parse(club.description);
+          return parsed;
+        } catch (e) {
+          console.error("Failed to parse club description JSON string:", e);
+          return { type: 'doc', content: [] };
+        }
+      }
+    }
+    return { type: 'doc', content: [] }; // Default empty doc
+  });
   const [thumbnailUrl, setThumbnailUrl] = useState(club.thumbnail_url || '');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,7 +44,7 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    const result = await updateClub(club.id, name, description, thumbnailUrl);
+    const result = await updateClub(club.id, name, JSON.stringify(description), thumbnailUrl);
 
     if (result.error) {
       toast.error(result.error);
