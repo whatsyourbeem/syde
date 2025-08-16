@@ -8,6 +8,7 @@ import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginM
 import { UserRound } from "lucide-react";
 
 import { User } from "@supabase/supabase-js";
+import { SheetClose } from "@/components/ui/sheet";
 
 interface ClientAuthButtonProps {
   user: User | null; // Supabase user object
@@ -33,34 +34,38 @@ export function ClientAuthButton({
         <>
           {user ? (
             // Logged-in mobile sheet: profile image + nickname
-            <Link href={profileLink} className="justify-start p-2">
-              <Button variant="ghost" className="justify-start p-2 h-auto">
-                <div className="flex items-center gap-2">
-                  {avatarUrl ? (
-                    <Image
-                      src={avatarUrl}
-                      alt="User Avatar"
-                      width={36}
-                      height={36}
-                      className="rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 bg-gray-200 rounded-full" />
-                  )}
-                  <div className="flex flex-col items-start">
-                    <span className="text-base font-normal">{username || user.email}</span>
+            <SheetClose asChild>
+              <Link href={profileLink} className="justify-start w-full">
+                <Button variant="ghost" className="justify-start p-2 h-auto w-full">
+                  <div className="flex items-center gap-2">
+                    {avatarUrl ? (
+                      <Image
+                        src={avatarUrl}
+                        alt="User Avatar"
+                        width={36}
+                        height={36}
+                        className="rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 bg-gray-200 rounded-full" />
+                    )}
+                    <div className="flex flex-col items-start">
+                      <span className="text-base font-normal">{username || user.email}</span>
+                    </div>
                   </div>
-                </div>
-              </Button>
-            </Link>
+                </Button>
+              </Link>
+            </SheetClose>
           ) : (
             // Logged-out mobile sheet: UserRound icon + "로그인/회원가입" text
-            <div onClick={openLoginModal} className="flex items-center gap-2 justify-start p-2 h-9 w-auto text-base font-normal">
-              <UserRound className="h-5 w-5 !size-5" />
-              <span className="!text-base !font-normal !text-foreground !block">
-                로그인 / 회원가입
-              </span>
-            </div>
+            <SheetClose asChild>
+              <div onClick={openLoginModal} className="flex items-center gap-2 justify-start p-2 h-9 w-full text-base font-normal">
+                <UserRound className="h-5 w-5 !size-5" />
+                <span className="!text-base !font-normal !text-foreground !block">
+                  로그인 / 회원가입
+                </span>
+              </div>
+            </SheetClose>
           )}
         </>
       ) : (

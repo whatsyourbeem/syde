@@ -119,16 +119,14 @@ export default async function RootLayout({
                     >
                       <Search size={20} />
                     </Link>
+                    <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
+                      <NotificationBell
+                        initialUnreadCount={unreadNotifCount}
+                        userId={user?.id || null}
+                      />
+                    </Suspense>
                     <MobileMenu
                       user={user}
-                      notificationBell={
-                        <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
-                          <NotificationBell
-                            initialUnreadCount={unreadNotifCount}
-                            userId={user?.id || null}
-                          />
-                        </Suspense>
-                      }
                       authButton={
                         <AuthButton
                           avatarUrl={avatarUrl}
