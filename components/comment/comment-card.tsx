@@ -241,7 +241,7 @@ export function CommentCard({
                       />
                     ))}
                     {comment.replies.length > displayReplyCount && (
-                      <div className="flex justify-center mt-0">
+                      <div className="flex justify-start mt-0">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -260,6 +260,18 @@ export function CommentCard({
                         </Button>
                       </div>
                     )}
+                  </div>
+                )}
+                {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
+                  <div className="flex justify-start mt-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowReplies(false)}
+                      className="text-xs text-muted-foreground"
+                    >
+                      답글 숨기기
+                    </Button>
                   </div>
                 )}
                 {showReplies && (

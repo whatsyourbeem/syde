@@ -182,7 +182,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
       {/* Back Button Bar */}
       <div className="flex items-center mb-2 mt-2">
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push('/log')}
           className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
           aria-label="Go back"
         >
