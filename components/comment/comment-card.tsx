@@ -3,12 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { HeartIcon } from "lucide-react"; // Added Edit, HeartIcon
+import { HeartIcon, MessageCircle } from "lucide-react"; // Added Edit, HeartIcon
 import { useState, useEffect } from "react";
 import { CommentForm } from "@/components/comment/comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button"; // Import Button
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+
+import { useRouter } from "next/navigation";
 
 import { linkifyMentions } from "@/lib/utils";
 
@@ -30,6 +32,7 @@ interface CommentCardProps {
   onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void; // New prop
   logId: string; // Add logId prop
   level: number; // Add level prop
+  isDetailPage?: boolean; // New prop
 }
 
 export function CommentCard({
@@ -41,15 +44,17 @@ export function CommentCard({
   onLikeStatusChange,
   logId, // Destructure logId
   level, // Destructure level
+  isDetailPage = false, // Destructure isDetailPage with default value
 }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [likesCount, setLikesCount] = useState(initialLikesCount); // New state
   const [hasLiked, setHasLiked] = useState(initialHasLiked); // New state
-  const [showReplyForm, setShowReplyForm] = useState(false); // New state for reply form
-  const [showReplies, setShowReplies] = useState(level === 0 ? false : true); // New state for showing replies
+  const [showReplies, setShowReplies] = useState(false); // New state for showing replies
+  const [displayReplyCount, setDisplayReplyCount] = useState(5); // New state for replies to display
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -176,7 +181,7 @@ export function CommentCard({
                   <button
                     onClick={handleLike}
                     disabled={loading || isEditing}
-                    className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1 group"
+                    className="p-1 mr-2 text-muted-foreground hover:text-red-500 disabled:opacity-50 flex items-center gap-1 group"
                     aria-label="Like comment"
                   >
                     <HeartIcon
@@ -186,14 +191,16 @@ export function CommentCard({
                     <span className="text-xs">{likesCount}</span>
                   </button>
                   {level < 1 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowReplyForm(!showReplyForm)}
-                      className="text-xs text-muted-foreground hover:text-blue-500"
+                    <button
+                      onClick={() => {
+                        setShowReplies(!showReplies);
+                      }}
+                      className={`p-1 text-muted-foreground hover:text-green-500 flex items-center gap-1 ${showReplies ? 'text-green-500' : ''}`}
+                      aria-label="Reply to comment"
                     >
-                      답글 달기
-                    </Button>
+                      <MessageCircle size={14} />
+                      <span className="text-xs">{comment.replies?.length || 0}</span>
+                    </button>
                   )}
                   {currentUserId === comment.user_id && (
                     <>
@@ -218,32 +225,9 @@ export function CommentCard({
                     </>
                   )}
                 </div>
-                {showReplyForm && (
-                  <div className="mt-2 ml-4">
-                    <CommentForm
-                      logId={logId}
-                      currentUserId={currentUserId}
-                      parentCommentId={comment.id}
-                      onCommentAdded={() => setShowReplyForm(false)}
-                      onCancel={() => setShowReplyForm(false)}
-                    />
-                  </div>
-                )}
-                {comment.replies && comment.replies.length > 0 && level === 0 && (
-                  <div className="mt-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowReplies(!showReplies)}
-                      className="text-xs text-muted-foreground"
-                    >
-                      {showReplies ? "답글 숨기기" : `답글 ${comment.replies.length}개 보기`}
-                    </Button>
-                  </div>
-                )}
                 {showReplies && comment.replies && comment.replies.length > 0 && (
                   <div className="mt-2 space-y-2 border-l pl-4">
-                    {comment.replies.map((reply) => (
+                    {comment.replies.slice(0, displayReplyCount).map((reply) => (
                       <CommentCard
                         key={reply.id}
                         comment={reply}
@@ -256,6 +240,48 @@ export function CommentCard({
                         level={level + 1}
                       />
                     ))}
+                    {comment.replies.length > displayReplyCount && (
+                      <div className="flex justify-start mt-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (isDetailPage) {
+                              setDisplayReplyCount(prevCount => prevCount + 5);
+                            } else {
+                              router.push(`/log/${logId}`);
+                            }
+                          }}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {isDetailPage
+                            ? `답글 ${Math.max(0, comment.replies.length - displayReplyCount)}개 더보기...`
+                            : `답글 ${comment.replies.length-5}개 더보기...`}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
+                  <div className="flex justify-start mt-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowReplies(false)}
+                      className="text-xs text-muted-foreground"
+                    >
+                      답글 숨기기
+                    </Button>
+                  </div>
+                )}
+                {showReplies && (
+                  <div className="mt-2 ml-4">
+                    <CommentForm
+                      logId={logId}
+                      currentUserId={currentUserId}
+                      parentCommentId={comment.id}
+                      onCancel={() => setShowReplies(false)}
+                    />
                   </div>
                 )}
               </>

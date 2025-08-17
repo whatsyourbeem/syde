@@ -309,6 +309,7 @@ export function LogList({
               initialCommentsCount={log.log_comments.length}
               mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
               searchQuery={searchQuery} // Pass searchQuery to LogCard
+              isDetailPage={false} // Add this prop
             />
             {index < logs.length - 1 && (
               <div className="border-b border-gray-200 my-4"></div>

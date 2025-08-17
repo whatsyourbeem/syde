@@ -190,7 +190,7 @@ export function CommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 m-4 relative"
+      className="flex flex-col gap-2 mx-4 my-2 relative"
     >
       <input type="hidden" name="log_id" value={logId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
@@ -199,12 +199,18 @@ export function CommentForm({
         <div className="flex-grow relative">
           <Input
             name="content"
-            placeholder={initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."}
+            placeholder={
+              initialCommentData
+                ? "댓글을 수정하세요..."
+                : parentCommentId
+                ? "답글을 작성하세요..."
+                : "댓글을 작성하세요..."
+            }
             disabled={!currentUserId || isSubmitting}
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
-            className="w-full pr-20"
+            className="w-full pr-20 text-sm"
             ref={inputRef}
           />
           {showSuggestions && mentionSuggestions.length > 0 && (
