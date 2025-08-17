@@ -1,12 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import ClubList from "@/components/club/club-list";
-import { Database } from "@/types/database.types";
 
-export default async function ClubPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string; tab?: string }>;
-}) {
+export default async function ClubPage() {
   const supabase = await createClient();
 
   // Fetch clubs

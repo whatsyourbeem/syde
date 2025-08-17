@@ -168,6 +168,54 @@ export async function uploadClubThumbnail(clubId: string, formData: FormData) {
   return { success: true, url: publicUrl };
 }
 
+export async function uploadClubDescriptionImage(clubId: string, formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: '로그인이 필요합니다.' };
+  }
+
+  // Verify ownership to prevent unauthorized uploads
+  const { data: club, error: fetchError } = await supabase
+    .from('clubs')
+    .select('owner_id')
+    .eq('id', clubId)
+    .single();
+
+  if (fetchError || !club || club.owner_id !== user.id) {
+    return { error: '클럽장만 이미지를 업로드할 수 있습니다.' };
+  }
+
+  const file = formData.get('file') as File;
+  if (!file) {
+    return { error: '이미지 파일을 선택해주세요.' };
+  }
+
+  const filePath = `descriptions/${clubId}/${Date.now()}_${file.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('clubs')
+    .upload(filePath, file);
+
+  if (uploadError) {
+    console.error('Error uploading description image:', uploadError);
+    return { error: '이미지 업로드 중 오류가 발생했습니다.' };
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('clubs')
+    .getPublicUrl(filePath);
+
+  if (!publicUrl) {
+    return { error: '이미지 URL을 가져오는데 실패했습니다.' };
+  }
+
+  return { success: true, url: publicUrl };
+}
+
 export async function createClubPost(
   forumId: string,
   title: string,

@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
 import { JSONContent } from '@tiptap/react';
-import { updateClub, uploadClubThumbnail } from '@/app/gathering/club/actions';
+import { updateClub, uploadClubThumbnail, uploadClubDescriptionImage } from '@/app/gathering/club/actions';
 
 interface ClubEditFormProps {
   club: Tables<'clubs'>;
@@ -35,7 +35,7 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
     }
     return { type: 'doc', content: [] };
   });
-  const [thumbnailUrl, setThumbnailUrl] = useState(club.thumbnail_url || '');
+  const [thumbnailUrl] = useState(club.thumbnail_url || '');
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(club.thumbnail_url);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,6 +105,17 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
           initialContent={description}
           onContentChange={(json) => setDescription(json)}
           placeholder="클럽 설명을 입력하세요..."
+          onImageUpload={async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            const result = await uploadClubDescriptionImage(club.id, formData);
+            if (result.error || !result.url) {
+              // The toast is already handled in the wrapper, but you could log here
+              console.error(result.error || 'Upload failed');
+              return null;
+            }
+            return result.url;
+          }}
         />
       </div>
 
