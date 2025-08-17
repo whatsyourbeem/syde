@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Tables } from '@/types/database.types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
 import { JSONContent } from '@tiptap/react';
-import { updateClub } from '@/app/gathering/club/actions'; // This action needs to be created
+import { updateClub, uploadClubThumbnail } from '@/app/gathering/club/actions';
 
 interface ClubEditFormProps {
   club: Tables<'clubs'>;
@@ -20,31 +21,59 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
   const [name, setName] = useState(club.name);
   const [description, setDescription] = useState<JSONContent | null>(() => {
     if (club?.description) {
-      // Check if it's already an object, if so, use it directly
       if (typeof club.description === 'object' && club.description !== null) {
         return club.description as JSONContent;
       }
-      // If it's a string, try to parse it
       if (typeof club.description === 'string') {
         try {
-          const parsed = JSON.parse(club.description);
-          return parsed;
+          return JSON.parse(club.description);
         } catch (e) {
           console.error("Failed to parse club description JSON string:", e);
           return { type: 'doc', content: [] };
         }
       }
     }
-    return { type: 'doc', content: [] }; // Default empty doc
+    return { type: 'doc', content: [] };
   });
   const [thumbnailUrl, setThumbnailUrl] = useState(club.thumbnail_url || '');
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(club.thumbnail_url);
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setThumbnailFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const result = await updateClub(club.id, name, JSON.stringify(description), thumbnailUrl);
+    let finalThumbnailUrl = thumbnailUrl;
+
+    if (thumbnailFile) {
+      const formData = new FormData();
+      formData.append('thumbnail', thumbnailFile);
+
+      const uploadResult = await uploadClubThumbnail(club.id, formData);
+
+      if (uploadResult.error || !uploadResult.url) {
+        toast.error(uploadResult.error || '썸네일 업로드에 실패했습니다.');
+        setIsLoading(false);
+        return;
+      }
+      finalThumbnailUrl = uploadResult.url;
+    }
+
+    const result = await updateClub(club.id, name, JSON.stringify(description), finalThumbnailUrl);
 
     if (result.error) {
       toast.error(result.error);
@@ -80,14 +109,34 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="thumbnailUrl">썸네일 URL</Label>
-        <Input
-          id="thumbnailUrl"
-          type="url"
-          value={thumbnailUrl}
-          onChange={(e) => setThumbnailUrl(e.target.value)}
-          className="mt-1"
-        />
+        <Label htmlFor="thumbnail">썸네일 이미지</Label>
+        <div className="mt-1 flex flex-col items-center space-y-4">
+          {previewUrl && (
+            <div className="w-full h-64 relative">
+              <Image
+                src={previewUrl}
+                alt="Thumbnail preview"
+                fill
+                className="object-cover rounded-md"
+              />
+            </div>
+          )}
+          <Input
+            id="thumbnail"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+            ref={fileInputRef}
+          />
+          <Button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            variant="outline"
+          >
+            이미지 선택
+          </Button>
+        </div>
       </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">

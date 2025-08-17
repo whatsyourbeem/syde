@@ -13,10 +13,10 @@ export default async function ClubEditPage({ params }: ClubEditPageProps) {
   const supabase = await createClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect('/auth/login');
   }
 
@@ -30,7 +30,7 @@ export default async function ClubEditPage({ params }: ClubEditPageProps) {
     notFound();
   }
 
-  if (session.user.id !== club.owner_id) {
+  if (user.id !== club.owner_id) {
     redirect(`/gathering/club/${club_id}`);
   }
 

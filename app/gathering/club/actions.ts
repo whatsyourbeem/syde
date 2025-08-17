@@ -105,7 +105,67 @@ export async function updateClub(
   }
 
   revalidatePath(`/gathering/club/${clubId}`);
+  revalidatePath(`/gathering/club/${clubId}/edit`);
   return { success: true };
+}
+
+export async function uploadClubThumbnail(clubId: string, formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: '로그인이 필요합니다.' };
+  }
+
+  console.log('Uploading thumbnail for club:', clubId);
+  console.log('User ID:', user.id);
+  
+  // Fetch club to verify ownership
+  const { data: club, error: fetchError } = await supabase
+    .from('clubs')
+    .select('owner_id')
+    .eq('id', clubId)
+    .single();
+
+  if (fetchError || !club) {
+    console.error('Error fetching club for ownership check:', fetchError);
+    return { error: '클럽 정보를 찾을 수 없습니다.' };
+  }
+
+  console.log('Club owner ID:', club.owner_id);
+
+  if (club.owner_id !== user.id) {
+    console.error('User is not the owner of the club.');
+    return { error: '클럽장만 썸네일을 변경할 수 있습니다.' };
+  }
+
+  const file = formData.get('thumbnail') as File;
+  if (!file) {
+    return { error: '이미지 파일을 선택해주세요.' };
+  }
+
+  const filePath = `thumbnails/${clubId}/${Date.now()}_${file.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('clubs') // Correct bucket name
+    .upload(filePath, file);
+
+  if (uploadError) {
+    console.error('Error uploading thumbnail:', uploadError);
+    return { error: '썸네일 업로드 중 오류가 발생했습니다.' };
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('clubs')
+    .getPublicUrl(filePath);
+
+  if (!publicUrl) {
+    return { error: '썸네일 URL을 가져오는데 실패했습니다.' };
+  }
+
+  return { success: true, url: publicUrl };
 }
 
 export async function createClubPost(
