@@ -64,6 +64,7 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
 // Main Component
 export default function ClubDetailClient({ club, isMember, currentUserId, userRole }: ClubDetailClientProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [activeForumId, setActiveForumId] = useState(club.forums[0]?.id || "");
 
   const handleJoinClub = async () => {
     if (!currentUserId) {
@@ -126,7 +127,22 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
     return false;
   };
 
-  
+  const canWriteForum = (forum: ForumWithPosts | undefined) => {
+    if (!forum || !isMember) return false;
+    const permission = forum.write_permission;
+    if (permission === 'MEMBER') {
+      return true;
+    }
+    if (permission === 'FULL_MEMBER') {
+      return userRole === 'FULL_MEMBER' || userRole === 'LEADER';
+    }
+    if (permission === 'LEADER') {
+      return userRole === 'LEADER';
+    }
+    return false;
+  };
+
+  const activeForum = club.forums.find((f) => f.id === activeForumId);
 
   return (
     <div className="w-full p-4">
@@ -203,7 +219,11 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
         {/* Board Tab */}
         <TabsContent value="board" className="mt-4">
           {club.forums && club.forums.length > 0 ? (
-            <Tabs defaultValue={club.forums[0].id} className="w-full">
+            <Tabs
+              defaultValue={activeForumId}
+              className="w-full"
+              onValueChange={setActiveForumId}
+            >
               <div className="flex justify-between items-center mb-4">
                 <TabsList>
                   {club.forums.map((forum) => (
@@ -212,12 +232,20 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                {isMember && (
-                  <Link href={`/gathering/club/${club.id}/post/create`}>
-                    <Button size="sm">새 게시글 작성</Button>
-                  </Link>
-                )}
+                <div className="flex items-center gap-2">
+                  {isOwner && (
+                     <Link href={`/gathering/club/${club.id}/manage`}>
+                        <Button variant="outline" size="sm">게시판 관리</Button>
+                     </Link>
+                  )}
+                  {canWriteForum(activeForum) && (
+                    <Link href={`/gathering/club/${club.id}/post/create?forum_id=${activeForumId}`}>
+                      <Button size="sm">새 게시글 작성</Button>
+                    </Link>
+                  )}
+                </div>
               </div>
+
               {club.forums.map((forum) => (
                 <TabsContent key={forum.id} value={forum.id}>
                   {canReadForum(forum) ? (
@@ -225,7 +253,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                   ) : (
                     <div className="p-8 text-center bg-secondary rounded-lg">
                       <p className="text-secondary-foreground">
-                        이 게시판을 볼 수 있는 권한이 없습니다.
+                        이 게시판의 글 목록을 볼 수 있는 권한이 없습니다.
                       </p>
                     </div>
                   )}
@@ -235,9 +263,9 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <p>이 클럽에는 아직 게시판이 없습니다.</p>
-              {isMember && (
-                 <Link href={`/gathering/club/${club.id}/post/create`}>
-                    <Button className="mt-4">게시판 첫 글 작성하기</Button>
+              {isOwner && (
+                 <Link href={`/gathering/club/${club.id}/manage`}>
+                    <Button className="mt-4">게시판 관리하기</Button>
                   </Link>
               )}
             </div>

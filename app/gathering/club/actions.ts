@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Json } from "@/types/database.types";
+import { Json, Enums } from "@/types/database.types";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export async function joinClub(clubId: string) {
   const supabase = await createClient();
@@ -513,3 +514,176 @@ export async function deleteClubPostComment(commentId: string) {
 
   return { success: true };
 }
+
+export async function updateForumPermissions(params: {
+  forumId: string;
+  clubId: string;
+  readPermission: Enums<"club_permission_level_enum">;
+  writePermission: Enums<"club_permission_level_enum">;
+}) {
+  const {
+    forumId,
+    clubId,
+    readPermission,
+    writePermission
+  } = params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  // Fetch club to verify ownership
+  const { data: club, error: fetchError } = await supabase
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", clubId)
+    .single();
+
+  if (fetchError || !club) {
+    console.error("Error fetching club for permission update:", fetchError);
+    return { error: "클럽 정보를 찾을 수 없습니다." };
+  }
+
+  if (club.owner_id !== user.id) {
+    return { error: "클럽장만 권한을 수정할 수 있습니다." };
+  }
+
+  const { error: updateError } = await supabase
+    .from("club_forums")
+    .update({
+      read_permission: readPermission,
+      write_permission: writePermission,
+    })
+    .eq("id", forumId);
+
+  if (updateError) {
+    console.error("Error updating forum permissions:", updateError);
+    return { error: "게시판 권한 업데이트 중 오류가 발생했습니다." };
+  }
+
+  revalidatePath(`/gathering/club/${clubId}`);
+  revalidatePath(`/gathering/club/${clubId}/manage`);
+  return { success: true };
+}
+
+// A helper function to check club ownership
+async function isClubOwner(supabase: SupabaseClient, clubId: string, userId: string) {
+  const { data: club, error } = await supabase
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", clubId)
+    .single();
+
+  if (error || !club) {
+    return false;
+  }
+
+  return club.owner_id === userId;
+}
+
+export async function createForum(clubId: string, forumName: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  if (!await isClubOwner(supabase, clubId, user.id)) {
+    return { error: "클럽장만 게시판을 생성할 수 있습니다." };
+  }
+
+  const { error } = await supabase.from("club_forums").insert({
+    club_id: clubId,
+    name: forumName,
+    description: "", // Default empty description
+    read_permission: "MEMBER", // Default permission
+    write_permission: "MEMBER", // Default permission
+  });
+
+  if (error) {
+    console.error("Error creating forum:", error);
+    if (error.code === '23505') { // Unique constraint violation
+        return { error: `'${forumName}' 게시판은 이미 존재합니다.` };
+    }
+    return { error: "게시판 생성 중 오류가 발생했습니다." };
+  }
+
+  revalidatePath(`/gathering/club/${clubId}/manage`);
+  return { success: true };
+}
+
+export async function updateForumName(forumId: string, newName: string, clubId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  if (!await isClubOwner(supabase, clubId, user.id)) {
+    return { error: "클럽장만 게시판을 수정할 수 있습니다." };
+  }
+
+  const { error } = await supabase
+    .from("club_forums")
+    .update({ name: newName })
+    .eq("id", forumId);
+
+  if (error) {
+    console.error("Error updating forum name:", error);
+    if (error.code === '23505') { // Unique constraint violation
+        return { error: `'${newName}' 게시판은 이미 존재합니다.` };
+    }
+    return { error: "게시판 이름 변경 중 오류가 발생했습니다." };
+  }
+
+  revalidatePath(`/gathering/club/${clubId}/manage`);
+  return { success: true };
+}
+
+export async function deleteForum(forumId: string, clubId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  if (!await isClubOwner(supabase, clubId, user.id)) {
+    return { error: "클럽장만 게시판을 삭제할 수 있습니다." };
+  }
+
+  // Check if there are any posts in the forum
+  const { count, error: postsError } = await supabase
+    .from("club_forum_posts")
+    .select("id", { count: 'exact', head: true })
+    .eq("forum_id", forumId);
+
+  if (postsError) {
+    console.error("Error checking for posts in forum:", postsError);
+    return { error: "게시글 확인 중 오류가 발생했습니다." };
+  }
+
+  if (count && count > 0) {
+    return { error: "게시글이 있는 게시판은 삭제할 수 없습니다." };
+  }
+
+  const { error: deleteError } = await supabase
+    .from("club_forums")
+    .delete()
+    .eq("id", forumId);
+
+  if (deleteError) {
+    console.error("Error deleting forum:", deleteError);
+    return { error: "게시판 삭제 중 오류가 발생했습니다." };
+  }
+
+  revalidatePath(`/gathering/club/${clubId}/manage`);
+  return { success: true };
+}
+
