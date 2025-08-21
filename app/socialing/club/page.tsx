@@ -8,7 +8,7 @@ export default async function ClubPage() {
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
     .select(
-      "*, owner_profile:profiles!clubs_owner_id_fkey(avatar_url, bio, full_name, id, link, tagline, updated_at, username), member_count:club_members(count), club_members(user_id, profiles(avatar_url, username))"
+      "*, owner_profile:profiles!clubs_owner_id_fkey(avatar_url, bio, full_name, id, link, tagline, updated_at, username), member_count:club_members(count), club_members(user_id, profiles(*))"
     )
     .limit(3, { foreignTable: "club_members" })
     .order("created_at", { ascending: false });
