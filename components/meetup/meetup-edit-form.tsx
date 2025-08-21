@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createMeetup, updateMeetup, uploadMeetupThumbnail } from "@/app/gathering/actions";
+import { createMeetup, updateMeetup, uploadMeetupThumbnail } from "@/app/socialing/actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
@@ -124,14 +124,14 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       toast.error(`모임 ${isEditMode ? '업데이트' : '생성'} 실패: ${result.error}`);
     } else {
       toast.success(`모임이 성공적으로 ${isEditMode ? '업데이트되었습니다' : '생성되었습니다'}.`);
-      router.push(`/gathering/meetup/${id}`);
+      router.push(`/socialing/meetup/${id}`);
     }
     setIsSubmitting(false);
   };
 
   const handleCancel = () => {
     if (isEditMode) {
-      router.push(`/gathering/meetup/${meetup.id}`);
+      router.push(`/socialing/meetup/${meetup.id}`);
     } else {
       router.back();
     }

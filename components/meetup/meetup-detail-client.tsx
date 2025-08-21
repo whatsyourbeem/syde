@@ -92,7 +92,7 @@ export default function MeetupDetailClient({
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold">{meetup.title}</h1>
         {isOrganizer && (
-          <Link href={`/gathering/meetup/${meetup.id}/edit`}>
+          <Link href={`/socialing/meetup/${meetup.id}/edit`}>
             <Button>수정</Button>
           </Link>
         )}
@@ -100,7 +100,7 @@ export default function MeetupDetailClient({
 
       {meetup.clubs && (
         <div className="mb-4">
-          <Link href={`/gathering/club/${meetup.clubs.id}`} className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline">
+          <Link href={`/socialing/club/${meetup.clubs.id}`} className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline">
             <Network className="size-5" />
             {meetup.clubs.name}
           </Link>

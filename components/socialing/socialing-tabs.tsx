@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function GatheringTabs() {
+export default function SocialingTabs() {
   const pathname = usePathname();
 
   // activeTab을 결정하는 로직은 동일하게 유지
@@ -13,7 +13,7 @@ export default function GatheringTabs() {
   return (
     <div className="w-full h-8 md:h-auto flex-grow flex justify-center items-center text-base font-semibold">
       <Link
-        href="/gathering/meetup"
+        href="/socialing/meetup"
         className={cn(
           "flex-1 text-center py-1 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4",
           activeTab === "meetup"
@@ -24,7 +24,7 @@ export default function GatheringTabs() {
         Meetup
       </Link>
       <Link
-        href="/gathering/club"
+        href="/socialing/club"
         className={cn(
           "flex-1 text-center py-1 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4",
           activeTab === "club"

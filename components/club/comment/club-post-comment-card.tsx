@@ -10,7 +10,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 
 import { linkifyMentions } from "@/lib/utils";
 import { Database } from "@/types/database.types";
-import { deleteClubPostComment } from "@/app/gathering/club/actions";
+import { deleteClubPostComment } from "@/app/socialing/club/actions";
 
 type AuthorProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'username' | 'full_name' | 'avatar_url'>; // Define a specific type for fetched author profile
 

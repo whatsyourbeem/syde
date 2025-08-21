@@ -18,7 +18,7 @@ interface ClubCardProps {
 export default function ClubCard({ club }: ClubCardProps) {
   return (
     <div className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden w-full flex items-start gap-4 p-4">
-      <Link href={`/gathering/club/${club.id}`} className="flex-shrink-0">
+      <Link href={`/socialing/club/${club.id}`} className="flex-shrink-0">
         <Image
           src={club.thumbnail_url || 'https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png'}
           alt={club.name}
@@ -28,7 +28,7 @@ export default function ClubCard({ club }: ClubCardProps) {
         />
       </Link>
       <div className="flex-grow">
-        <Link href={`/gathering/club/${club.id}`}>
+        <Link href={`/socialing/club/${club.id}`}>
           <h2 className="text-lg font-semibold mb-1 line-clamp-2 hover:underline">
             {club.name}
           </h2>

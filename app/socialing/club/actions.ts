@@ -7,7 +7,9 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 export async function joinClub(clubId: string) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
@@ -25,13 +27,15 @@ export async function joinClub(clubId: string) {
     return { error: "클럽 가입 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}`);
+  revalidatePath(`/socialing/club/${clubId}`);
   return { success: true };
 }
 
 export async function leaveClub(clubId: string) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
@@ -48,7 +52,7 @@ export async function leaveClub(clubId: string) {
     return { error: "클럽 탈퇴 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}`);
+  revalidatePath(`/socialing/club/${clubId}`);
   return { success: true };
 }
 
@@ -59,7 +63,9 @@ export async function updateClub(
   thumbnailUrl: string
 ) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
@@ -105,8 +111,8 @@ export async function updateClub(
     return { error: "클럽 정보 업데이트 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}`);
-  revalidatePath(`/gathering/club/${clubId}/edit`);
+  revalidatePath(`/socialing/club/${clubId}`);
+  revalidatePath(`/socialing/club/${clubId}/edit`);
   return { success: true };
 }
 
@@ -117,101 +123,104 @@ export async function uploadClubThumbnail(clubId: string, formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: '로그인이 필요합니다.' };
+    return { error: "로그인이 필요합니다." };
   }
 
-  console.log('Uploading thumbnail for club:', clubId);
-  console.log('User ID:', user.id);
-  
+  console.log("Uploading thumbnail for club:", clubId);
+  console.log("User ID:", user.id);
+
   // Fetch club to verify ownership
   const { data: club, error: fetchError } = await supabase
-    .from('clubs')
-    .select('owner_id')
-    .eq('id', clubId)
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", clubId)
     .single();
 
   if (fetchError || !club) {
-    console.error('Error fetching club for ownership check:', fetchError);
-    return { error: '클럽 정보를 찾을 수 없습니다.' };
+    console.error("Error fetching club for ownership check:", fetchError);
+    return { error: "클럽 정보를 찾을 수 없습니다." };
   }
 
-  console.log('Club owner ID:', club.owner_id);
+  console.log("Club owner ID:", club.owner_id);
 
   if (club.owner_id !== user.id) {
-    console.error('User is not the owner of the club.');
-    return { error: '클럽장만 썸네일을 변경할 수 있습니다.' };
+    console.error("User is not the owner of the club.");
+    return { error: "클럽장만 썸네일을 변경할 수 있습니다." };
   }
 
-  const file = formData.get('thumbnail') as File;
+  const file = formData.get("thumbnail") as File;
   if (!file) {
-    return { error: '이미지 파일을 선택해주세요.' };
+    return { error: "이미지 파일을 선택해주세요." };
   }
 
   const filePath = `thumbnails/${clubId}/${Date.now()}_${file.name}`;
 
   const { error: uploadError } = await supabase.storage
-    .from('clubs') // Correct bucket name
+    .from("clubs") // Correct bucket name
     .upload(filePath, file);
 
   if (uploadError) {
-    console.error('Error uploading thumbnail:', uploadError);
-    return { error: '썸네일 업로드 중 오류가 발생했습니다.' };
+    console.error("Error uploading thumbnail:", uploadError);
+    return { error: "썸네일 업로드 중 오류가 발생했습니다." };
   }
 
-  const { data: { publicUrl } } = supabase.storage
-    .from('clubs')
-    .getPublicUrl(filePath);
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("clubs").getPublicUrl(filePath);
 
   if (!publicUrl) {
-    return { error: '썸네일 URL을 가져오는데 실패했습니다.' };
+    return { error: "썸네일 URL을 가져오는데 실패했습니다." };
   }
 
   return { success: true, url: publicUrl };
 }
 
-export async function uploadClubDescriptionImage(clubId: string, formData: FormData) {
+export async function uploadClubDescriptionImage(
+  clubId: string,
+  formData: FormData
+) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: '로그인이 필요합니다.' };
+    return { error: "로그인이 필요합니다." };
   }
 
   // Verify ownership to prevent unauthorized uploads
   const { data: club, error: fetchError } = await supabase
-    .from('clubs')
-    .select('owner_id')
-    .eq('id', clubId)
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", clubId)
     .single();
 
   if (fetchError || !club || club.owner_id !== user.id) {
-    return { error: '클럽장만 이미지를 업로드할 수 있습니다.' };
+    return { error: "클럽장만 이미지를 업로드할 수 있습니다." };
   }
 
-  const file = formData.get('file') as File;
+  const file = formData.get("file") as File;
   if (!file) {
-    return { error: '이미지 파일을 선택해주세요.' };
+    return { error: "이미지 파일을 선택해주세요." };
   }
 
   const filePath = `descriptions/${clubId}/${Date.now()}_${file.name}`;
 
   const { error: uploadError } = await supabase.storage
-    .from('clubs')
+    .from("clubs")
     .upload(filePath, file);
 
   if (uploadError) {
-    console.error('Error uploading description image:', uploadError);
-    return { error: '이미지 업로드 중 오류가 발생했습니다.' };
+    console.error("Error uploading description image:", uploadError);
+    return { error: "이미지 업로드 중 오류가 발생했습니다." };
   }
 
-  const { data: { publicUrl } } = supabase.storage
-    .from('clubs')
-    .getPublicUrl(filePath);
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("clubs").getPublicUrl(filePath);
 
   if (!publicUrl) {
-    return { error: '이미지 URL을 가져오는데 실패했습니다.' };
+    return { error: "이미지 URL을 가져오는데 실패했습니다." };
   }
 
   return { success: true, url: publicUrl };
@@ -253,13 +262,13 @@ export async function createClubPost(
 
   const { data: post, error } = await supabase
     .from("club_forum_posts")
-        .insert({
+    .insert({
       forum_id: forumId, // Corrected to use forum_id
       user_id: user.id,
       title: title,
       content: content,
     })
-    .select('id') // Select the id of the newly created post
+    .select("id") // Select the id of the newly created post
     .single();
 
   if (error) {
@@ -267,7 +276,7 @@ export async function createClubPost(
     return { error: "게시글 작성 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${forum.club_id}`);
+  revalidatePath(`/socialing/club/${forum.club_id}`);
 
   return { success: true, postId: post.id };
 }
@@ -278,7 +287,9 @@ export async function createClubPostComment(
   parentCommentId: string | null = null
 ) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
@@ -325,7 +336,7 @@ export async function createClubPostComment(
     if (forumError || !forumData?.club_id) {
       console.error("Error fetching club_id for forum:", forumError);
     } else {
-      revalidatePath(`/gathering/club/${forumData.club_id}/post/${postId}`);
+      revalidatePath(`/socialing/club/${forumData.club_id}/post/${postId}`);
     }
   }
 
@@ -337,7 +348,9 @@ export async function updateClubPostComment(
   content: string
 ) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
@@ -387,7 +400,9 @@ export async function updateClubPostComment(
       if (forumError || !forumData?.club_id) {
         console.error("Error fetching club_id for forum:", forumError);
       } else {
-        revalidatePath(`/gathering/club/${forumData.club_id}/post/${commentData.post_id}`);
+        revalidatePath(
+          `/socialing/club/${forumData.club_id}/post/${commentData.post_id}`
+        );
       }
     }
   }
@@ -451,7 +466,11 @@ export async function fetchClubPostComments(
 
   if (countError) {
     console.error("Error fetching club post comment count:", countError);
-    return { comments: commentsWithReplies, count: 0, error: countError.message };
+    return {
+      comments: commentsWithReplies,
+      count: 0,
+      error: countError.message,
+    };
   }
 
   return { comments: commentsWithReplies, count: count || 0, error: null };
@@ -459,7 +478,9 @@ export async function fetchClubPostComments(
 
 export async function deleteClubPostComment(commentId: string) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
@@ -508,7 +529,9 @@ export async function deleteClubPostComment(commentId: string) {
     if (forumError || !forumData?.club_id) {
       console.error("Error fetching club_id for forum:", forumError);
     } else {
-      revalidatePath(`/gathering/club/${forumData.club_id}/post/${commentData.post_id}`);
+      revalidatePath(
+        `/socialing/club/${forumData.club_id}/post/${commentData.post_id}`
+      );
     }
   }
 
@@ -521,12 +544,7 @@ export async function updateForumPermissions(params: {
   readPermission: Enums<"club_permission_level_enum">;
   writePermission: Enums<"club_permission_level_enum">;
 }) {
-  const {
-    forumId,
-    clubId,
-    readPermission,
-    writePermission
-  } = params;
+  const { forumId, clubId, readPermission, writePermission } = params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -565,13 +583,17 @@ export async function updateForumPermissions(params: {
     return { error: "게시판 권한 업데이트 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}`);
-  revalidatePath(`/gathering/club/${clubId}/manage`);
+  revalidatePath(`/socialing/club/${clubId}`);
+  revalidatePath(`/socialing/club/${clubId}/manage`);
   return { success: true };
 }
 
 // A helper function to check club ownership
-async function isClubOwner(supabase: SupabaseClient, clubId: string, userId: string) {
+async function isClubOwner(
+  supabase: SupabaseClient,
+  clubId: string,
+  userId: string
+) {
   const { data: club, error } = await supabase
     .from("clubs")
     .select("owner_id")
@@ -587,13 +609,15 @@ async function isClubOwner(supabase: SupabaseClient, clubId: string, userId: str
 
 export async function createForum(clubId: string, forumName: string) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
   }
 
-  if (!await isClubOwner(supabase, clubId, user.id)) {
+  if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판을 생성할 수 있습니다." };
   }
 
@@ -607,25 +631,32 @@ export async function createForum(clubId: string, forumName: string) {
 
   if (error) {
     console.error("Error creating forum:", error);
-    if (error.code === '23505') { // Unique constraint violation
-        return { error: `'${forumName}' 게시판은 이미 존재합니다.` };
+    if (error.code === "23505") {
+      // Unique constraint violation
+      return { error: `'${forumName}' 게시판은 이미 존재합니다.` };
     }
     return { error: "게시판 생성 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}/manage`);
+  revalidatePath(`/socialing/club/${clubId}/manage`);
   return { success: true };
 }
 
-export async function updateForumName(forumId: string, newName: string, clubId: string) {
+export async function updateForumName(
+  forumId: string,
+  newName: string,
+  clubId: string
+) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
   }
 
-  if (!await isClubOwner(supabase, clubId, user.id)) {
+  if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판을 수정할 수 있습니다." };
   }
 
@@ -636,32 +667,35 @@ export async function updateForumName(forumId: string, newName: string, clubId: 
 
   if (error) {
     console.error("Error updating forum name:", error);
-    if (error.code === '23505') { // Unique constraint violation
-        return { error: `'${newName}' 게시판은 이미 존재합니다.` };
+    if (error.code === "23505") {
+      // Unique constraint violation
+      return { error: `'${newName}' 게시판은 이미 존재합니다.` };
     }
     return { error: "게시판 이름 변경 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}/manage`);
+  revalidatePath(`/socialing/club/${clubId}/manage`);
   return { success: true };
 }
 
 export async function deleteForum(forumId: string, clubId: string) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
   }
 
-  if (!await isClubOwner(supabase, clubId, user.id)) {
+  if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판을 삭제할 수 있습니다." };
   }
 
   // Check if there are any posts in the forum
   const { count, error: postsError } = await supabase
     .from("club_forum_posts")
-    .select("id", { count: 'exact', head: true })
+    .select("id", { count: "exact", head: true })
     .eq("forum_id", forumId);
 
   if (postsError) {
@@ -683,19 +717,24 @@ export async function deleteForum(forumId: string, clubId: string) {
     return { error: "게시판 삭제 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}/manage`);
+  revalidatePath(`/socialing/club/${clubId}/manage`);
   return { success: true };
 }
 
-export async function updateForumOrder(clubId: string, orderedForumIds: string[]) {
+export async function updateForumOrder(
+  clubId: string,
+  orderedForumIds: string[]
+) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "로그인이 필요합니다." };
   }
 
-  if (!await isClubOwner(supabase, clubId, user.id)) {
+  if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판 순서를 변경할 수 있습니다." };
   }
 
@@ -706,12 +745,15 @@ export async function updateForumOrder(clubId: string, orderedForumIds: string[]
     .in("id", orderedForumIds);
 
   if (fetchError) {
-    console.error("Error fetching existing forums for order update:", fetchError);
+    console.error(
+      "Error fetching existing forums for order update:",
+      fetchError
+    );
     return { error: "게시판 정보를 가져오는 중 오류가 발생했습니다." };
   }
 
   const updates = orderedForumIds.map((forumId, index) => {
-    const existingForum = existingForums?.find(f => f.id === forumId);
+    const existingForum = existingForums?.find((f) => f.id === forumId);
     if (!existingForum) {
       // This should ideally not happen if orderedForumIds are valid
       throw new Error(`Forum with ID ${forumId} not found.`);
@@ -728,15 +770,16 @@ export async function updateForumOrder(clubId: string, orderedForumIds: string[]
   });
 
   // Use a transaction to ensure all updates succeed or none do
-  const { error } = await supabase.from("club_forums").upsert(updates, { onConflict: 'id' });
+  const { error } = await supabase
+    .from("club_forums")
+    .upsert(updates, { onConflict: "id" });
 
   if (error) {
     console.error("Error updating forum order:", error);
     return { error: "게시판 순서 변경 중 오류가 발생했습니다." };
   }
 
-  revalidatePath(`/gathering/club/${clubId}/manage`);
-  revalidatePath(`/gathering/club/${clubId}`); // Revalidate club detail page as well
+  revalidatePath(`/socialing/club/${clubId}/manage`);
+  revalidatePath(`/socialing/club/${clubId}`); // Revalidate club detail page as well
   return { success: true };
 }
-

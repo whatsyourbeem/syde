@@ -48,8 +48,8 @@ export async function updateMeetup(formData: FormData) {
     return { error: error.message };
   }
 
-  revalidatePath(`/gathering/meetup/${id}`);
-  revalidatePath("/gathering");
+  revalidatePath(`/socialing/meetup/${id}`);
+  revalidatePath("/socialing");
   return { error: null };
 }
 
@@ -169,9 +169,9 @@ export async function createMeetup(formData: FormData) {
     return { error: error.message };
   }
 
-  revalidatePath("/gathering");
+  revalidatePath("/socialing");
   if (clubId) {
-    revalidatePath(`/gathering/club/${clubId}`);
+    revalidatePath(`/socialing/club/${clubId}`);
   }
   
   return { error: null };

@@ -31,7 +31,7 @@ export default async function ClubEditPage({ params }: ClubEditPageProps) {
   }
 
   if (user.id !== club.owner_id) {
-    redirect(`/gathering/club/${club_id}`);
+    redirect(`/socialing/club/${club_id}`);
   }
 
   return (

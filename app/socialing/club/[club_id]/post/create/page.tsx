@@ -45,7 +45,7 @@ export default async function ClubPostCreatePage({ params, searchParams }: ClubP
   if (forumError || !forum) {
     console.error("Error fetching forum or forum not found:", forumError);
     // Redirect to club page with an error message or show notFound
-    redirect(`/gathering/club/${club_id}?error=forum_not_found`);
+    redirect(`/socialing/club/${club_id}?error=forum_not_found`);
   }
 
   // Check if the user is a member with LEADER or FULL_MEMBER role
@@ -81,7 +81,7 @@ export default async function ClubPostCreatePage({ params, searchParams }: ClubP
   }
 
   if (!canCreatePost) {
-    redirect(`/gathering/club/${club_id}?error=unauthorized_to_post`);
+    redirect(`/socialing/club/${club_id}?error=unauthorized_to_post`);
   }
 
   return (

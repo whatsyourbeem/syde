@@ -117,7 +117,7 @@ export default async function MeetupPage({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {typedMeetups.map((meetup) => (
             <div key={meetup.id} className="bg-white shadow-md rounded-lg max-w-sm mx-auto border border-gray-200 overflow-hidden h-full flex flex-col">
-              <Link href={`/gathering/meetup/${meetup.id}`}>
+              <Link href={`/socialing/meetup/${meetup.id}`}>
                 <div className="relative">
                   <Image
                     src={
@@ -139,13 +139,13 @@ export default async function MeetupPage({
                 </div>
               </Link>
               <div className="px-6 pt-4 pb-6 flex-grow flex flex-col">
-                <Link href={`/gathering/meetup/${meetup.id}`}>
+                <Link href={`/socialing/meetup/${meetup.id}`}>
                   <h2 className="text-base font-semibold mb-2 line-clamp-3 hover:underline">
                     {meetup.title}
                   </h2>
                 </Link>
                 {meetup.clubs && (
-                  <Link href={`/gathering/club/${meetup.clubs.id}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2">
+                  <Link href={`/socialing/club/${meetup.clubs.id}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2">
                     <Network className="size-4" />
                     <span>{meetup.clubs.name}</span>
                   </Link>

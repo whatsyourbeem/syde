@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
 import { JSONContent } from '@tiptap/react';
-import { updateClub, uploadClubThumbnail, uploadClubDescriptionImage } from '@/app/gathering/club/actions';
+import { updateClub, uploadClubThumbnail, uploadClubDescriptionImage } from '@/app/socialing/club/actions';
 
 interface ClubEditFormProps {
   club: Tables<'clubs'>;
@@ -79,7 +79,7 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
       toast.error(result.error);
     } else {
       toast.success('클럽 정보가 성공적으로 업데이트되었습니다.');
-      router.push(`/gathering/club/${club.id}`);
+      router.push(`/socialing/club/${club.id}`);
       router.refresh();
     }
     setIsLoading(false);

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Added
 import { Button } from '@/components/ui/button';
-import { createClubPost } from '@/app/gathering/club/actions';
+import { createClubPost } from '@/app/socialing/club/actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
@@ -57,7 +57,7 @@ export default function ClubPostForm({ forumId, clubId }: ClubPostFormProps) { /
         setTitle('');
         // Resetting the content by passing null, TiptapEditorWrapper will handle it
         setContent(null);
-        router.push(`/gathering/club/${clubId}/post/${result.postId}`); // Added
+        router.push(`/socialing/club/${clubId}/post/${result.postId}`); // Added
       }
     } catch (error) {
       console.error(error);

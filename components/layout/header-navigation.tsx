@@ -38,7 +38,7 @@ export function HeaderNavigation() {
           <NavigationMenuTrigger
             className={cn(
               "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 rounded-none h-full flex items-center [&>svg]:hidden",
-              pathname.startsWith("/gathering")
+              pathname.startsWith("/socialing")
                 ? "font-bold text-primary border-b-2 border-primary"
                 : "text-gray-400"
             )}
@@ -47,8 +47,8 @@ export function HeaderNavigation() {
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid gap-0 p-0 w-[150px] md:w-[150px] lg:w-[200px] lg:grid-cols-[1fr]">
-              <ListItem href="/gathering/meetup" title="밋업"></ListItem>
-              <ListItem href="/gathering/club" title="클럽"></ListItem>
+              <ListItem href="/socialing/meetup" title="밋업"></ListItem>
+              <ListItem href="/socialing/club" title="클럽"></ListItem>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>

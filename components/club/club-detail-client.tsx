@@ -11,7 +11,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Clock, MapPin, Users, UserPlus, LogOut, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { joinClub, leaveClub } from "@/app/gathering/club/actions";
+import { joinClub, leaveClub } from "@/app/socialing/club/actions";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
 
 // Type Definitions
@@ -177,7 +177,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           <div className="mt-4 sm:mt-0">
             {isOwner ? (
               <div className="flex items-center gap-2">
-                <Link href={`/gathering/club/${club.id}/edit`}>
+                <Link href={`/socialing/club/${club.id}/edit`}>
                   <Button variant="outline">클럽정보수정</Button>
                 </Link>
               </div>
@@ -231,12 +231,12 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                 </TabsList>
                 <div className="flex items-center gap-2">
                   {isOwner && (
-                     <Link href={`/gathering/club/${club.id}/manage`}>
+                     <Link href={`/socialing/club/${club.id}/manage`}>
                         <Button variant="outline" size="sm">게시판 관리</Button>
                      </Link>
                   )}
                   {canWriteForum(activeForum) && (
-                    <Link href={`/gathering/club/${club.id}/post/create?forum_id=${activeForumId}`}>
+                    <Link href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}>
                       <Button size="sm">새 게시글 작성</Button>
                     </Link>
                   )}
@@ -261,7 +261,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             <div className="text-center py-12 text-muted-foreground">
               <p>이 클럽에는 아직 게시판이 없습니다.</p>
               {isOwner && (
-                 <Link href={`/gathering/club/${club.id}/manage`}>
+                 <Link href={`/socialing/club/${club.id}/manage`}>
                     <Button className="mt-4">게시판 관리하기</Button>
                   </Link>
               )}
@@ -273,7 +273,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
         <TabsContent value="meetups" className="mt-4">
           {isOwner && (
             <div className="flex justify-end mb-4">
-              <Link href={`/gathering/meetup/create?club_id=${club.id}`}>
+              <Link href={`/socialing/meetup/create?club_id=${club.id}`}>
                 <Button>모임 만들기</Button>
               </Link>
             </div>
@@ -281,7 +281,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           {club.meetups.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {club.meetups.map((meetup) => (
-                <Link href={`/gathering/meetup/${meetup.id}`} key={meetup.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow h-full flex flex-col">
+                <Link href={`/socialing/meetup/${meetup.id}`} key={meetup.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow h-full flex flex-col">
                     <div className="flex-grow">
                         <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold line-clamp-2">{meetup.title}</h3>

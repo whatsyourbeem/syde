@@ -35,7 +35,7 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             <Link href="/" className={`mt-2 p-2 ${pathname === "/" ? "font-bold text-primary" : ""}`}>HOME</Link>
           </SheetClose>
           <SheetClose asChild>
-            <Link href="/gathering" className={`p-2 ${pathname.startsWith("/gathering") ? "font-bold text-primary" : ""}`}>GATHERING</Link>
+            <Link href="/socialing" className={`p-2 ${pathname.startsWith("/socialing") ? "font-bold text-primary" : ""}`}>소셜링</Link>
           </SheetClose>
           <Link
             href="https://open.kakao.com/o/gduSGmtf"

@@ -20,7 +20,7 @@ export default function ClubPostList({ posts, clubId }: ClubPostListProps) {
       <ul className="divide-y">
         {posts.map(post => (
           <li key={post.id} className="p-4 hover:bg-gray-50">
-            <Link href={`/gathering/club/${clubId}/post/${post.id}`} className="block">
+            <Link href={`/socialing/club/${clubId}/post/${post.id}`} className="block">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold truncate">{post.title}</h3>
                 <span className="text-sm text-gray-500">

@@ -18,7 +18,7 @@ import {
   updateForumPermissions,
   deleteForum,
   updateForumOrder,
-} from "@/app/gathering/club/actions";
+} from "@/app/socialing/club/actions";
 import { Loader2, Trash2, Edit, Save, PlusCircle, X } from "lucide-react";
 import {
   AlertDialog,
@@ -180,7 +180,7 @@ export default function ClubForumManagementPage({
   return (
     <div className="space-y-8">
       <div>
-        <Link href={`/gathering/club/${club.id}`}>
+        <Link href={`/socialing/club/${club.id}`}>
           <Button variant="outline" className="mb-4"> &larr; {club.name} 클럽으로 돌아가기</Button>
         </Link>
         <h1 className="text-3xl font-bold">게시판 관리</h1>

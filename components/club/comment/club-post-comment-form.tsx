@@ -4,7 +4,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginModal } from "@/context/LoginModalContext";
-import { createClubPostComment, updateClubPostComment } from "@/app/gathering/club/actions";
+import { createClubPostComment, updateClubPostComment } from "@/app/socialing/club/actions";
 import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";

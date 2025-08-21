@@ -1,6 +1,6 @@
 "use client";
 
-import { uploadMeetupDescriptionImage } from "@/app/gathering/actions";
+import { uploadMeetupDescriptionImage } from "@/app/socialing/actions";
 import { toast } from "sonner";
 import { JSONContent } from "@tiptap/react";
 import TiptapEditorWrapper from "@/components/common/tiptap-editor-wrapper";

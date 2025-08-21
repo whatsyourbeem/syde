@@ -31,7 +31,7 @@ export default async function ManageClubForumsPage({ params }: ManageClubForumsP
 
   if (club.owner_id !== user.id) {
     // Or show an unauthorized page
-    redirect(`/gathering/club/${club.id}`);
+    redirect(`/socialing/club/${club.id}`);
   }
 
   return (
