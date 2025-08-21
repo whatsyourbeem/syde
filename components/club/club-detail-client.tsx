@@ -163,7 +163,10 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
               <h1 className="text-3xl font-bold">{club.name}</h1>
               {userRole && <Badge variant="secondary">내 등급: {userRole}</Badge>}
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {club.tagline && (
+              <p className="text-lg text-muted-foreground">{club.tagline}</p>
+            )}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
               <Avatar className="size-6">
                 <AvatarImage src={club.owner_profile?.avatar_url || undefined} />
                 <AvatarFallback>{club.owner_profile?.username?.charAt(0) || 'U'}</AvatarFallback>

@@ -19,6 +19,7 @@ interface ClubEditFormProps {
 export default function ClubEditForm({ club }: ClubEditFormProps) {
   const router = useRouter();
   const [name, setName] = useState(club.name);
+  const [tagline, setTagline] = useState(club.tagline || '');
   const [description, setDescription] = useState<JSONContent | null>(() => {
     if (club?.description) {
       if (typeof club.description === 'object' && club.description !== null) {
@@ -73,7 +74,7 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
       finalThumbnailUrl = uploadResult.url;
     }
 
-    const result = await updateClub(club.id, name, JSON.stringify(description), finalThumbnailUrl);
+    const result = await updateClub(club.id, name, tagline, JSON.stringify(description), finalThumbnailUrl);
 
     if (result.error) {
       toast.error(result.error);
@@ -95,6 +96,18 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          className="mt-1"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="tagline">한 줄 소개</Label>
+        <Input
+          id="tagline"
+          type="text"
+          value={tagline}
+          onChange={(e) => setTagline(e.target.value)}
+          placeholder="클럽을 한 줄로 소개해주세요."
           className="mt-1"
         />
       </div>

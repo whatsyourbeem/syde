@@ -7,7 +7,10 @@ export default async function ClubPage() {
   // Fetch clubs
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
-    .select("*, owner_profile:profiles!clubs_owner_id_fkey(avatar_url, bio, full_name, id, link, tagline, updated_at, username), member_count:club_members(count)")
+    .select(
+      "*, owner_profile:profiles!clubs_owner_id_fkey(avatar_url, bio, full_name, id, link, tagline, updated_at, username), member_count:club_members(count), club_members(user_id, profiles(avatar_url, username))"
+    )
+    .limit(3, { foreignTable: "club_members" })
     .order("created_at", { ascending: false });
 
   if (clubsError) {
@@ -18,15 +21,19 @@ export default async function ClubPage() {
       </div>
     );
   }
-  
-  const clubsWithMemberCount = clubs?.map(club => ({
-    ...club,
-    member_count: Array.isArray(club.member_count) ? club.member_count[0]?.count || 0 : 0,
-  })) || [];
+
+  const clubsWithMemberAndCount =
+    clubs?.map((club) => ({
+      ...club,
+      member_count: Array.isArray(club.member_count)
+        ? club.member_count[0]?.count || 0
+        : 0,
+      members: club.club_members.map((m) => m.profiles),
+    })) || [];
 
   return (
-    <div className="w-full p-4">
-      <ClubList clubs={clubsWithMemberCount} />
+    <div className="w-full">
+      <ClubList clubs={clubsWithMemberAndCount} />
     </div>
   );
 }

@@ -59,6 +59,7 @@ export async function leaveClub(clubId: string) {
 export async function updateClub(
   clubId: string,
   name: string,
+  tagline: string,
   descriptionString: string, // Change type to string
   thumbnailUrl: string
 ) {
@@ -100,6 +101,7 @@ export async function updateClub(
     .from("clubs")
     .update({
       name: name,
+      tagline: tagline,
       description: description, // Now 'description' is a parsed Json object
       thumbnail_url: thumbnailUrl,
       updated_at: new Date().toISOString(),

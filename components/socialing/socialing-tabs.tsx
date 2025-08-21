@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SocialingTabs() {

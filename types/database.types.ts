@@ -189,6 +189,7 @@ export type Database = {
           id: string;
           name: string;
           owner_id: string;
+          tagline: string | null;
           thumbnail_url: string | null;
           updated_at: string | null;
         };
@@ -198,6 +199,7 @@ export type Database = {
           id?: string;
           name: string;
           owner_id: string;
+          tagline?: string | null;
           thumbnail_url?: string | null;
           updated_at?: string | null;
         };
@@ -207,6 +209,7 @@ export type Database = {
           id?: string;
           name?: string;
           owner_id?: string;
+          tagline?: string | null;
           thumbnail_url?: string | null;
           updated_at?: string | null;
         };

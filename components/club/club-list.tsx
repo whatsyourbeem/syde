@@ -5,6 +5,7 @@ import { Database } from '@/types/database.types';
 type Club = Database['public']['Tables']['clubs']['Row'] & {
   owner_profile: Database['public']['Tables']['profiles']['Row'] | null;
   member_count: number;
+  members: Database['public']['Tables']['profiles']['Row'][]; // Add members array
 };
 
 interface ClubListProps {
@@ -19,9 +20,11 @@ export default function ClubList({ clubs }: ClubListProps) {
           <p>해당 클럽이 없습니다.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {clubs.map((club) => (
-            <ClubCard key={club.id} club={club} />
+            <div key={club.id} className="border-b last:border-b-0">
+              <ClubCard club={club} />
+            </div>
           ))}
         </div>
       )}
