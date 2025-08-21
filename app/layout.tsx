@@ -119,7 +119,11 @@ export default async function RootLayout({
                     >
                       <Search size={20} />
                     </Link>
-                    <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
+                    <Suspense
+                      fallback={
+                        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                      }
+                    >
                       <NotificationBell
                         initialUnreadCount={unreadNotifCount}
                         userId={user?.id || null}
@@ -156,7 +160,9 @@ export default async function RootLayout({
                           width={24}
                           height={24}
                         />
-                        <span className="hidden md:inline text-[#4B4737]">SYDE 오픈채팅</span>
+                        <span className="hidden md:inline text-[#4B4737]">
+                          SYDE 오픈채팅
+                        </span>
                       </Button>
                     </Link>
                   </div>
@@ -200,11 +206,10 @@ export default async function RootLayout({
                 </div>
               </div>
             </div>
-            <div className="sticky top-0 z-40 w-full border-b bg-background">
-              <nav className="h-8 md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
+            <div className="sticky top-0 z-40 w-full bg-background">
+              <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5 border-b">
                 <HeaderNavigation />
               </nav>
-              
             </div>
             <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />
