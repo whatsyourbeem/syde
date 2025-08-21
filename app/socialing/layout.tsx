@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import SocialingTabs from "@/components/socialing/socialing-tabs";
 
-
 export default function SocialingLayout({
   children,
 }: {
@@ -18,7 +17,7 @@ export default function SocialingLayout({
     <div className="w-full">
       {shouldShowTabs && (
         <div className={"w-full pt-8"}>
-          <div className="w-full max-w-4xl mx-auto px-4 border-b pb-8">
+          <div className="w-full mx-auto px-4 border-b pb-8">
             <SocialingTabs />
             <div className="text-center text-muted-foreground mt-4">
               {pathname === "/socialing/meetup" && (
@@ -41,7 +40,7 @@ export default function SocialingLayout({
           </div>
         </div>
       )}
-      <div className="max-w-4xl mx-auto">{children}</div>
+      <div className="mx-auto">{children}</div>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export default function ClubCard({ club }: ClubCardProps) {
 
   return (
     <div
-      className="bg-white rounded-lg overflow-hidden w-full flex items-start gap-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+      className="bg-white rounded-lg overflow-hidden w-full flex items-start gap-4 px-4 py-6 cursor-pointer hover:bg-gray-50 transition-colors"
       onClick={handleCardClick}
     >
       <div className="flex-shrink-0">

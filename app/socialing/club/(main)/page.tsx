@@ -32,7 +32,7 @@ export default async function ClubPage() {
     })) || [];
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-3xl mx-auto">
       <ClubList clubs={clubsWithMemberAndCount} />
     </div>
   );

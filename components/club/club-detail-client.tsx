@@ -145,9 +145,9 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
   const activeForum = club.forums.find((f) => f.id === activeForumId);
 
   return (
-    <div className="w-full p-4">
+    <>
       {/* Header Section */}
-      <header className="mb-8">
+      <header className="mb-8 p-4 border-b">
         <div className="relative h-48 w-full rounded-lg overflow-hidden mb-4">
           <Image
             src={club.thumbnail_url || "/default_thumbnail.png"}
@@ -200,7 +200,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
       </header>
 
       {/* Description Section */}
-      <section className="prose prose-sm dark:prose-invert max-w-none mb-8 p-6 bg-muted rounded-lg">
+      <section className="prose prose-sm dark:prose-invert max-w-none mb-8 p-6">
         {club.description ? (
           <TiptapViewer content={club.description} />
         ) : (
@@ -210,10 +210,9 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
 
       {/* Tabs Section */}
       <Tabs defaultValue="board" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="board">게시판</TabsTrigger>
           <TabsTrigger value="meetups">모임 ({club.meetups.length})</TabsTrigger>
-          <TabsTrigger value="members">멤버 ({club.members.length})</TabsTrigger>
         </TabsList>
 
         {/* Board Tab */}
@@ -282,7 +281,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             </div>
           )}
           {club.meetups.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {club.meetups.map((meetup) => (
                 <Link href={`/socialing/meetup/${meetup.id}`} key={meetup.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow h-full flex flex-col">
                     <div className="flex-grow">
@@ -321,31 +320,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             </div>
           )}
         </TabsContent>
-
-        {/* Members Tab */}
-        <TabsContent value="members" className="mt-4">
-           {club.members.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {club.members.map((member) => (
-                <Link href={`/${member.profiles?.username}`} key={member.profiles?.id} className="flex flex-col items-center gap-2 p-3 border rounded-lg hover:shadow-md transition-shadow">
-                  <Avatar className="size-16">
-                    <AvatarImage src={member.profiles?.avatar_url || undefined} />
-                    <AvatarFallback className="text-2xl">{member.profiles?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div className="text-center">
-                    <p className="font-semibold text-sm truncate">{member.profiles?.full_name || member.profiles?.username}</p>
-                    <p className="text-xs text-muted-foreground">@{member.profiles?.username}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-             <div className="text-center py-12 text-muted-foreground">
-              <p>클럽 멤버가 아직 없습니다.</p>
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }
