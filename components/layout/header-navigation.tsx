@@ -30,44 +30,25 @@ export function HeaderNavigation() {
                   : "text-gray-400"
               )}
             >
-              HOME
+              로그
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuTrigger
             className={cn(
-              "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 rounded-none h-full flex items-center",
+              "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 rounded-none h-full flex items-center [&>svg]:hidden",
               pathname.startsWith("/gathering")
                 ? "font-bold text-primary border-b-2 border-primary"
                 : "text-gray-400"
             )}
           >
-            GATHERING
+            소셜링
           </NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-              <li className="row-span-3">
-                <NavigationMenuLink asChild>
-                  <Link
-                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                    href="/gathering"
-                  >
-                    <div className="mb-2 mt-4 text-lg font-medium">
-                      Gathering
-                    </div>
-                    <p className="text-sm leading-tight text-muted-foreground">
-                      Meetups and Clubs for your community.
-                    </p>
-                  </Link>
-                </NavigationMenuLink>
-              </li>
-              <ListItem href="/gathering/meetup" title="Meetup">
-                Find and join meetups.
-              </ListItem>
-              <ListItem href="/gathering/club" title="Club">
-                Discover and create clubs.
-              </ListItem>
+            <ul className="grid gap-0 p-0 w-[150px] md:w-[150px] lg:w-[200px] lg:grid-cols-[1fr]">
+              <ListItem href="/gathering/meetup" title="밋업"></ListItem>
+              <ListItem href="/gathering/club" title="클럽"></ListItem>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
