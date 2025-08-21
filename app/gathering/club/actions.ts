@@ -687,3 +687,56 @@ export async function deleteForum(forumId: string, clubId: string) {
   return { success: true };
 }
 
+export async function updateForumOrder(clubId: string, orderedForumIds: string[]) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  if (!await isClubOwner(supabase, clubId, user.id)) {
+    return { error: "클럽장만 게시판 순서를 변경할 수 있습니다." };
+  }
+
+  // Fetch existing forum data to get club_id and name for upsert
+  const { data: existingForums, error: fetchError } = await supabase
+    .from("club_forums")
+    .select("id, club_id, name, read_permission, write_permission, description")
+    .in("id", orderedForumIds);
+
+  if (fetchError) {
+    console.error("Error fetching existing forums for order update:", fetchError);
+    return { error: "게시판 정보를 가져오는 중 오류가 발생했습니다." };
+  }
+
+  const updates = orderedForumIds.map((forumId, index) => {
+    const existingForum = existingForums?.find(f => f.id === forumId);
+    if (!existingForum) {
+      // This should ideally not happen if orderedForumIds are valid
+      throw new Error(`Forum with ID ${forumId} not found.`);
+    }
+    return {
+      id: forumId,
+      position: index,
+      club_id: existingForum.club_id,
+      name: existingForum.name,
+      read_permission: existingForum.read_permission,
+      write_permission: existingForum.write_permission,
+      description: existingForum.description,
+    };
+  });
+
+  // Use a transaction to ensure all updates succeed or none do
+  const { error } = await supabase.from("club_forums").upsert(updates, { onConflict: 'id' });
+
+  if (error) {
+    console.error("Error updating forum order:", error);
+    return { error: "게시판 순서 변경 중 오류가 발생했습니다." };
+  }
+
+  revalidatePath(`/gathering/club/${clubId}/manage`);
+  revalidatePath(`/gathering/club/${clubId}`); // Revalidate club detail page as well
+  return { success: true };
+}
+

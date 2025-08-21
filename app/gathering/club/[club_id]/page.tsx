@@ -52,7 +52,8 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const { data: forums, error: forumsError } = await supabase
     .from("club_forums")
     .select("*")
-    .eq("club_id", club_id);
+    .eq("club_id", club_id)
+    .order("position", { ascending: true });
 
   if (forumsError) {
     console.error("Error fetching forums:", forumsError);

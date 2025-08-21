@@ -114,6 +114,7 @@ export type Database = {
           description: string | null;
           id: string;
           name: string;
+          position: number;
           read_permission: Database["public"]["Enums"]["club_permission_level_enum"];
           write_permission: Database["public"]["Enums"]["club_permission_level_enum"];
         };
@@ -122,6 +123,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           name: string;
+          position?: number;
           read_permission?: Database["public"]["Enums"]["club_permission_level_enum"];
           write_permission?: Database["public"]["Enums"]["club_permission_level_enum"];
         };
@@ -130,6 +132,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           name?: string;
+          position?: number;
           read_permission?: Database["public"]["Enums"]["club_permission_level_enum"];
           write_permission?: Database["public"]["Enums"]["club_permission_level_enum"];
         };
@@ -575,7 +578,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_club_member_role: {
+        Args: { p_club_id: string; p_user_id: string };
+        Returns: Database["public"]["Enums"]["club_member_role_enum"];
+      };
+      get_club_owner: {
+        Args: { club_id_text: string };
+        Returns: string;
+      };
     };
     Enums: {
       club_member_role_enum: "LEADER" | "FULL_MEMBER" | "GENERAL_MEMBER";

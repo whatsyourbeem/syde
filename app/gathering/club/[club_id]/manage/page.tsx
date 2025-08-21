@@ -19,9 +19,10 @@ export default async function ManageClubForumsPage({ params }: ManageClubForumsP
     .from("clubs")
     .select(`
       *,
-      forums:club_forums (*)
+      forums:club_forums(*)
     `)
     .eq("id", club_id)
+    .order("position", { foreignTable: "club_forums", ascending: true })
     .single();
 
   if (error || !club) {
@@ -33,12 +34,9 @@ export default async function ManageClubForumsPage({ params }: ManageClubForumsP
     redirect(`/gathering/club/${club.id}`);
   }
 
-  // Sort forums by name before passing to the client component
-  const sortedForums = club.forums.sort((a, b) => a.name.localeCompare(b.name));
-
   return (
     <div className="container mx-auto px-4 py-8">
-      <ClubForumManagementPage club={club} initialForums={sortedForums} />
+      <ClubForumManagementPage club={club} initialForums={club.forums} />
     </div>
   );
 }

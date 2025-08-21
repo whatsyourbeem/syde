@@ -1,30 +1,51 @@
 import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import ClubPostForm from "@/components/club/club-post-form";
-
 
 interface ClubPostCreatePageProps {
   params: Promise<{
     club_id: string;
   }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function ClubPostCreatePage({ params }: ClubPostCreatePageProps) {
+export default async function ClubPostCreatePage({ params, searchParams }: ClubPostCreatePageProps) {
   const { club_id } = await params;
+  const awaitedSearchParams = await searchParams;
+  const forumIdFromQuery = awaitedSearchParams?.forum_id as string | undefined;
   const supabase = await createClient();
 
-  // Fetch the first forum for the club
-  const { data: forum, error: forumError } = await supabase
-    .from("club_forums")
-    .select("*")
-    .eq("club_id", club_id)
-    .limit(1)
-    .single();
+  let forum;
+  let forumError;
+
+  if (forumIdFromQuery) {
+    // Fetch the specific forum using forumId from query params
+    const { data, error } = await supabase
+      .from("club_forums")
+      .select("*")
+      .eq("id", forumIdFromQuery)
+      .eq("club_id", club_id) // Ensure forum belongs to this club
+      .single();
+    forum = data;
+    forumError = error;
+  } else {
+    // If no forum_id is provided, fetch the first forum (fallback or error)
+    // This case should ideally not happen if the button always passes forum_id
+    const { data, error } = await supabase
+      .from("club_forums")
+      .select("*")
+      .eq("club_id", club_id)
+      .order("position", { ascending: true })
+      .limit(1)
+      .single();
+    forum = data;
+    forumError = error;
+  }
 
   if (forumError || !forum) {
-    // If no forum exists for the club, or an error occurred, show notFound
-    console.error("Error fetching forum for club:", forumError);
-    notFound();
+    console.error("Error fetching forum or forum not found:", forumError);
+    // Redirect to club page with an error message or show notFound
+    redirect(`/gathering/club/${club_id}?error=forum_not_found`);
   }
 
   // Check if the user is a member with LEADER or FULL_MEMBER role
@@ -38,15 +59,29 @@ export default async function ClubPostCreatePage({ params }: ClubPostCreatePageP
       .eq("user_id", user.id)
       .single();
 
-    if (!memberError && member && (member.role === 'LEADER' || member.role === 'FULL_MEMBER')) {
-      canCreatePost = true;
+    if (!memberError && member && (member.role === 'LEADER' || member.role === 'FULL_MEMBER' || member.role === 'GENERAL_MEMBER')) {
+      // Also check write permission of the specific forum
+      const { data: forumPermissions, error: permError } = await supabase
+        .from("club_forums")
+        .select("write_permission")
+        .eq("id", forum.id)
+        .single();
+
+      if (!permError && forumPermissions) {
+        const writePermission = forumPermissions.write_permission;
+        if (writePermission === 'MEMBER' && (member.role === 'GENERAL_MEMBER' || member.role === 'FULL_MEMBER' || member.role === 'LEADER')) {
+          canCreatePost = true;
+        } else if (writePermission === 'FULL_MEMBER' && (member.role === 'FULL_MEMBER' || member.role === 'LEADER')) {
+          canCreatePost = true;
+        } else if (writePermission === 'LEADER' && member.role === 'LEADER') {
+          canCreatePost = true;
+        }
+      }
     }
   }
 
   if (!canCreatePost) {
-    // Redirect or show an error if user is not authorized
-    // For now, just show a message or notFound
-    notFound(); // Or redirect to login/club page with a message
+    redirect(`/gathering/club/${club_id}?error=unauthorized_to_post`);
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { Tables, Enums } from "@/types/database.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import {
   updateForumName,
   updateForumPermissions,
   deleteForum,
+  updateForumOrder,
 } from "@/app/gathering/club/actions";
 import { Loader2, Trash2, Edit, Save, PlusCircle, X } from "lucide-react";
 import {
@@ -63,6 +64,15 @@ export default function ClubForumManagementPage({
   const [editingName, setEditingName] = useState("");
   const [newForumName, setNewForumName] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [orderedForums, setOrderedForums] = useState(initialForums);
+  const [orderChanged, setOrderChanged] = useState(false);
+
+  // Sync orderedForums with initialForums when initialForums changes (e.g., after create/delete)
+  // This ensures the local state reflects the server state after revalidation
+  React.useEffect(() => {
+    setOrderedForums(initialForums);
+    setOrderChanged(false);
+  }, [initialForums]);
 
   const handleCreateForum = () => {
     if (newForumName.trim() === "") {
@@ -77,7 +87,7 @@ export default function ClubForumManagementPage({
       } else {
         toast.success(`'${newForumName.trim()}' 게시판이 생성되었습니다.`);
         setNewForumName("");
-        // No need to manually update state, revalidation will handle it
+        // Revalidation will update initialForums, which will then update orderedForums via useEffect
       }
     });
   };
@@ -140,6 +150,33 @@ export default function ClubForumManagementPage({
     });
   };
 
+  const handleMove = (forumId: string, direction: 'up' | 'down') => {
+    const currentIndex = orderedForums.findIndex(f => f.id === forumId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (newIndex >= 0 && newIndex < orderedForums.length) {
+      const newOrderedForums = [...orderedForums];
+      const [movedForum] = newOrderedForums.splice(currentIndex, 1);
+      newOrderedForums.splice(newIndex, 0, movedForum);
+      setOrderedForums(newOrderedForums);
+      setOrderChanged(true);
+    }
+  };
+
+  const handleSaveOrder = () => {
+    startTransition(async () => {
+      const result = await updateForumOrder(club.id, orderedForums.map(f => f.id));
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("게시판 순서가 성공적으로 저장되었습니다.");
+        setOrderChanged(false);
+      }
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -173,8 +210,16 @@ export default function ClubForumManagementPage({
 
       {/* Forum List */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">게시판 목록</h2>
-        {initialForums.map((forum) => (
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">게시판 목록</h2>
+          {orderChanged && (
+            <Button onClick={handleSaveOrder} disabled={isPending}>
+              {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4"/>}
+              순서 저장
+            </Button>
+          )}
+        </div>
+        {orderedForums.map((forum, index) => (
           <div
             key={forum.id}
             className="flex flex-col gap-4 p-4 border rounded-md bg-card"
@@ -194,6 +239,12 @@ export default function ClubForumManagementPage({
                 {editingForumId !== forum.id && (
                     <Button size="icon" variant="ghost" onClick={() => handleEditName(forum)}><Edit className="size-4"/></Button>
                 )}
+                <Button size="icon" variant="ghost" onClick={() => handleMove(forum.id, 'up')} disabled={index === 0 || isPending}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-up"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                </Button>
+                <Button size="icon" variant="ghost" onClick={() => handleMove(forum.id, 'down')} disabled={index === orderedForums.length - 1 || isPending}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-down"><path d="m19 12-7 7-7-7"/><path d="M12 5v14"/></svg>
+                </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive/80">

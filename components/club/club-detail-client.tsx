@@ -180,9 +180,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                 <Link href={`/gathering/club/${club.id}/edit`}>
                   <Button variant="outline">클럽정보수정</Button>
                 </Link>
-                <Link href={`/gathering/meetup/create?club_id=${club.id}`}>
-                  <Button>모임 만들기</Button>
-                </Link>
               </div>
             ) : isMember ? (
               <Button variant="outline" onClick={handleLeaveClub} disabled={isLoading}>
@@ -274,6 +271,13 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
 
         {/* Meetups Tab */}
         <TabsContent value="meetups" className="mt-4">
+          {isOwner && (
+            <div className="flex justify-end mb-4">
+              <Link href={`/gathering/meetup/create?club_id=${club.id}`}>
+                <Button>모임 만들기</Button>
+              </Link>
+            </div>
+          )}
           {club.meetups.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {club.meetups.map((meetup) => (
