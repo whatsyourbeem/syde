@@ -102,7 +102,6 @@ export function getPlainTextFromTiptapJson(jsonContent: Json | null): string {
     try {
       parsedContent = JSON.parse(jsonContent);
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       console.error("Failed to parse Tiptap JSON string:", e);
       return String(jsonContent); // Return original string if parsing fails
     }
