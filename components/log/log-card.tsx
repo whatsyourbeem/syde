@@ -29,6 +29,7 @@ interface LogCardProps {
   initialCommentsCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string; // New prop
+  isDetailPage?: boolean; // Add this line
 }
 
 export function LogCard({
@@ -39,6 +40,7 @@ export function LogCard({
   initialCommentsCount,
   mentionedProfiles,
   searchQuery, // Destructure searchQuery
+  isDetailPage = false, // Default to false
 }: LogCardProps) {
   const supabase = createClient();
   const router = useRouter();
@@ -205,6 +207,7 @@ export function LogCard({
   };
 
   const handleCardClick = () => {
+    if (isDetailPage) return; // Don't navigate if already on the detail page
     router.push(`/log/${log.id}`);
   };
 
@@ -278,11 +281,11 @@ export function LogCard({
         </div>
 
         {/* Section 2: Content (Clickable block) */}
-        <div onClick={handleCardClick} className="cursor-pointer py-1 pl-[44px] relative" style={{ marginTop: '-12px' }}>
-          <p ref={contentRef} className="mb-3 text-log-content whitespace-pre-wrap overflow-hidden max-h-72">
+        <div onClick={handleCardClick} className={`${!isDetailPage ? 'cursor-pointer' : ''} py-1 pl-[44px] relative`} style={{ marginTop: '-12px' }}>
+          <p ref={contentRef} className={`mb-3 text-log-content whitespace-pre-wrap ${!isDetailPage ? 'overflow-hidden max-h-72' : ''}`}>
             {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
           </p>
-          {showReadMore && (
+          {showReadMore && !isDetailPage && (
             <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-11 pt-5 pb-3">
               <button
                 onClick={(e) => {
