@@ -66,7 +66,7 @@ export default function ClubSidebarInfo({
     <div className="p-4 rounded-lg bg-white">
       <div className="relative w-24 h-24 mb-4 mx-auto">
         <Image
-          src={clubThumbnailUrl || "/default_thumbnail.png"}
+          src={clubThumbnailUrl || "/default_club_thumbnail.png"}
           alt={`${clubName} thumbnail`}
           fill
           className="rounded-full object-cover"

@@ -12,7 +12,7 @@ export default async function ClubDetailLayout({
   children: React.ReactNode;
   params: { club_id: string };
 }) {
-  const { club_id } = params;
+  const club_id: string = params.club_id; // Reintroduce this line
   const supabase = await createClient();
 
   const { data: club, error: clubError } = await supabase

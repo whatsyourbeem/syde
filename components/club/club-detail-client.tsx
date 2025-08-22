@@ -7,13 +7,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Clock, MapPin, Users, LogOut, Loader2, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { leaveClub } from "@/app/socialing/club/actions";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 
 // Type Definitions
@@ -162,13 +167,20 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
       )}
 
       {/* Description Section */}
-      <section className="prose prose-sm dark:prose-invert max-w-none mb-8 p-6">
-        {club.description ? (
-          <TiptapViewer content={club.description} />
-        ) : (
-          <p className="text-muted-foreground">클럽 설명이 아직 없습니다.</p>
-        )}
-      </section>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="description">
+          <AccordionTrigger className="text-xl font-bold px-6 py-4">
+            {club.name}
+          </AccordionTrigger>
+          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-6">
+            {club.description ? (
+              <TiptapViewer content={club.description} />
+            ) : (
+              <p className="text-muted-foreground">클럽 설명이 아직 없습니다.</p>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {/* Tabs Section */}
       <Tabs defaultValue="board" className="w-full">
