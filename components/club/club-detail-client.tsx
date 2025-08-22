@@ -132,6 +132,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           clubName={club.name}
           clubTagline={club.tagline || undefined}
           clubId={club.id}
+          clubThumbnailUrl={club.thumbnail_url || undefined}
           ownerProfileAvatarUrl={club.owner_profile?.avatar_url || undefined}
           ownerProfileUsername={club.owner_profile?.username || undefined}
           ownerProfileFullName={club.owner_profile?.full_name || undefined}
@@ -159,19 +160,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           </DropdownMenu>
         </div>
       )}
-
-      {/* Header Section */}
-      <header className="mb-8 p-4 border-b">
-        <div className="relative h-48 w-full rounded-lg overflow-hidden mb-4">
-          <Image
-            src={club.thumbnail_url || "/default_thumbnail.png"}
-            alt={`${club.name} thumbnail`}
-            layout="fill"
-            objectFit="cover"
-            className="bg-muted"
-          />
-        </div>
-      </header>
 
       {/* Description Section */}
       <section className="prose prose-sm dark:prose-invert max-w-none mb-8 p-6">

@@ -61,6 +61,7 @@ export default async function ClubDetailLayout({
           clubName={club.name}
           clubTagline={club.tagline || undefined}
           clubId={club.id}
+          clubThumbnailUrl={club.thumbnail_url || undefined}
           ownerProfileAvatarUrl={club.owner_profile?.avatar_url || undefined}
           ownerProfileUsername={club.owner_profile?.username || undefined}
           ownerProfileFullName={club.owner_profile?.full_name || undefined}

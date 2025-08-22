@@ -8,6 +8,7 @@ import { Loader2, UserPlus } from "lucide-react"; // Removed LogOut
 import { joinClub } from "@/app/socialing/club/actions"; // Removed leaveClub
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 
 // type Club = Tables<'clubs'> & { owner_profile: Profile | null }; // Removed this type
 
@@ -15,6 +16,7 @@ interface ClubSidebarInfoProps {
   clubName: string;
   clubTagline?: string;
   clubId: string;
+  clubThumbnailUrl?: string;
   ownerProfileAvatarUrl?: string;
   ownerProfileUsername?: string;
   ownerProfileFullName?: string;
@@ -27,6 +29,7 @@ export default function ClubSidebarInfo({
   clubName,
   clubTagline,
   clubId,
+  clubThumbnailUrl,
   ownerProfileAvatarUrl,
   ownerProfileUsername,
   ownerProfileFullName,
@@ -61,12 +64,20 @@ export default function ClubSidebarInfo({
 
   return (
     <div className="p-4 rounded-lg bg-white">
-      <h1 className="text-3xl font-bold mb-2">{clubName}</h1>
+      <div className="relative w-24 h-24 mb-4 mx-auto">
+        <Image
+          src={clubThumbnailUrl || "/default_thumbnail.png"}
+          alt={`${clubName} thumbnail`}
+          fill
+          className="rounded-full object-cover"
+        />
+      </div>
+      <h1 className="text-3xl font-bold mb-2 text-start">{clubName}</h1>
       {clubTagline && (
-        <p className="text-lg text-muted-foreground mb-4">{clubTagline}</p>
+        <p className="text-base text-muted-foreground mb-2">{clubTagline}</p>
       )}
       
-      <div className="flex flex-row md:flex-col   md:gap-2"> {/* Main responsive container */}
+      <div className="flex flex-row md:flex-col md:mt-4 md:gap-2"> {/* Main responsive container */}
         {/* Owner Info (Left on mobile, top on desktop) */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Avatar className="size-6">
@@ -75,12 +86,12 @@ export default function ClubSidebarInfo({
           </Avatar>
           <Link href={`/${ownerProfileUsername}`} className="hover:underline">
             <span className="font-semibold text-primary">{ownerProfileFullName || ownerProfileUsername}</span>
-            <span className="ml-1">클럽장</span>
+            <span className="ml-2">클럽장</span>
           </Link>
         </div>
 
         {/* Badge and Buttons (Right on mobile, bottom on desktop) */} 
-        <div className="flex items-center gap-2 mt-2 md:mt-0 ml-auto"> {/* ml-auto pushes to right on mobile */} 
+        <div className="flex items-center gap-2 mt-0 ml-auto md:ml-0 md:mt-2"> {/* ml-auto pushes to right on mobile */} 
           {userRole && <Badge variant="secondary">내 등급: {userRole}</Badge>}
           {!isMember && (
             <Button onClick={handleJoinClub} disabled={isLoading} className="w-fit">
