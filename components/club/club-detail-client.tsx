@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Clock, MapPin, Users, UserPlus, LogOut, Loader2, MoreHorizontal } from "lucide-react";
+import { Clock, MapPin, Users, LogOut, Loader2, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { joinClub, leaveClub } from "@/app/socialing/club/actions";
+import { leaveClub } from "@/app/socialing/club/actions";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 
@@ -67,27 +67,6 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
 export default function ClubDetailClient({ club, isMember, currentUserId, userRole }: ClubDetailClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeForumId, setActiveForumId] = useState(club.forums[0]?.id || "");
-
-  const handleJoinClub = async () => {
-    if (!currentUserId) {
-      toast.error("로그인이 필요합니다.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await joinClub(club.id);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("클럽에 가입되었습니다.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("클럽 가입 중 예기치 않은 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLeaveClub = async () => {
     if (!currentUserId) {
@@ -150,7 +129,12 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
     <div className="relative"> {/* Added relative positioning */}
       <div className="block md:hidden mb-4"> {/* Visible only on mobile */}
         <ClubSidebarInfo
-          club={club}
+          clubName={club.name}
+          clubTagline={club.tagline || undefined}
+          clubId={club.id}
+          ownerProfileAvatarUrl={club.owner_profile?.avatar_url || undefined}
+          ownerProfileUsername={club.owner_profile?.username || undefined}
+          ownerProfileFullName={club.owner_profile?.full_name || undefined}
           isMember={isMember}
           currentUserId={currentUserId}
           userRole={userRole}

@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { leaveClub } from "@/app/socialing/club/actions";
-import { createClient } from "@/lib/supabase/client"; // Client-side Supabase client
 
 interface ClubActionsDropdownProps {
   clubId: string;

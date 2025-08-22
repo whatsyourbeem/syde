@@ -224,7 +224,7 @@ export function LogCard({
       try {
         await navigator.clipboard.writeText(url);
         toast.success("링크를 복사했어요!");
-      } catch (error) {
+      } catch {
         setCopyUrl(url);
         setShowCopyDialog(true);
       }
@@ -496,7 +496,7 @@ export function LogCard({
                   try {
                     await navigator.clipboard.writeText(copyUrl);
                     toast.success("링크를 복사했어요!");
-                  } catch (err) {
+                  } catch {
                     toast.error("복사에 실패했어요. 수동으로 복사해주세요.");
                   }
                 } else {

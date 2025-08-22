@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Tables } from "@/types/database.types"; // Keep this if Profile is used elsewhere, otherwise remove
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -16,7 +15,6 @@ interface ClubSidebarInfoProps {
   clubName: string;
   clubTagline?: string;
   clubId: string;
-  clubOwnerId: string;
   ownerProfileAvatarUrl?: string;
   ownerProfileUsername?: string;
   ownerProfileFullName?: string;
@@ -29,7 +27,6 @@ export default function ClubSidebarInfo({
   clubName,
   clubTagline,
   clubId,
-  clubOwnerId,
   ownerProfileAvatarUrl,
   ownerProfileUsername,
   ownerProfileFullName,
@@ -61,8 +58,6 @@ export default function ClubSidebarInfo({
   };
 
   // handleLeaveClub is no longer needed here as the button was moved
-
-  const isOwner = currentUserId === clubOwnerId; // Use clubOwnerId from props
 
   return (
     <div className="p-4 rounded-lg bg-white">

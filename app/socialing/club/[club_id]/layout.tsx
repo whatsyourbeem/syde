@@ -3,8 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import ClubMembersList from "@/components/club/club-members-list";
 import ClubSidebarInfo from "@/components/club/club-sidebar-info";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import ClubActionsDropdown from "@/components/club/club-actions-dropdown";
 
 export default async function ClubDetailLayout({
@@ -43,7 +41,7 @@ export default async function ClubDetailLayout({
   let userRole: string | null = null;
 
   if (currentUserId) {
-    const { data: memberData, error: memberError } = await supabase
+    const { data: memberData } = await supabase
       .from("club_members")
       .select("role")
       .eq("club_id", club_id)
@@ -63,7 +61,6 @@ export default async function ClubDetailLayout({
           clubName={club.name}
           clubTagline={club.tagline || undefined}
           clubId={club.id}
-          clubOwnerId={club.owner_id}
           ownerProfileAvatarUrl={club.owner_profile?.avatar_url || undefined}
           ownerProfileUsername={club.owner_profile?.username || undefined}
           ownerProfileFullName={club.owner_profile?.full_name || undefined}
