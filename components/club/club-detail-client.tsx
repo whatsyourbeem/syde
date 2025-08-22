@@ -5,14 +5,16 @@ import { Tables, Enums } from "@/types/database.types";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Clock, MapPin, Users, UserPlus, LogOut, Loader2 } from "lucide-react";
+import { Clock, MapPin, Users, UserPlus, LogOut, Loader2, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { joinClub, leaveClub } from "@/app/socialing/club/actions";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
+import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 
 // Type Definitions
 type Profile = Tables<'profiles'>;
@@ -145,7 +147,35 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
   const activeForum = club.forums.find((f) => f.id === activeForumId);
 
   return (
-    <>
+    <div className="relative"> {/* Added relative positioning */}
+      <div className="block md:hidden mb-4"> {/* Visible only on mobile */}
+        <ClubSidebarInfo
+          club={club}
+          isMember={isMember}
+          currentUserId={currentUserId}
+          userRole={userRole}
+        />
+      </div>
+
+      {/* More button dropdown */}
+      {isMember && !isOwner && (
+        <div className="absolute top-0 right-0 mt-4 mr-4"> {/* Positioned top right */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleLeaveClub}>
+                {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <LogOut className="mr-2 size-4" />}
+                {isLoading ? "처리 중..." : "클럽 탈퇴"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+
       {/* Header Section */}
       <header className="mb-8 p-4 border-b">
         <div className="relative h-48 w-full rounded-lg overflow-hidden mb-4">
@@ -156,46 +186,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             objectFit="cover"
             className="bg-muted"
           />
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-3xl font-bold">{club.name}</h1>
-              {userRole && <Badge variant="secondary">내 등급: {userRole}</Badge>}
-            </div>
-            {club.tagline && (
-              <p className="text-lg text-muted-foreground">{club.tagline}</p>
-            )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-              <Avatar className="size-6">
-                <AvatarImage src={club.owner_profile?.avatar_url || undefined} />
-                <AvatarFallback>{club.owner_profile?.username?.charAt(0) || 'U'}</AvatarFallback>
-              </Avatar>
-              <span>
-                <span className="font-semibold text-primary">{club.owner_profile?.full_name || club.owner_profile?.username}</span>
-                <span className="ml-1">클럽장</span>
-              </span>
-            </div>
-          </div>
-          <div className="mt-4 sm:mt-0">
-            {isOwner ? (
-              <div className="flex items-center gap-2">
-                <Link href={`/socialing/club/${club.id}/edit`}>
-                  <Button variant="outline">클럽정보수정</Button>
-                </Link>
-              </div>
-            ) : isMember ? (
-              <Button variant="outline" onClick={handleLeaveClub} disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <LogOut className="mr-2 size-4" />}
-                {isLoading ? "처리 중..." : "클럽 탈퇴"}
-              </Button>
-            ) : (
-              <Button onClick={handleJoinClub} disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <UserPlus className="mr-2 size-4" />}
-                {isLoading ? "처리 중..." : "클럽 가입"}
-              </Button>
-            )}
-          </div>
         </div>
       </header>
 
@@ -321,6 +311,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           )}
         </TabsContent>
       </Tabs>
-    </>
+    </div>
   );
 }
