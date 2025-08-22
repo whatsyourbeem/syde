@@ -94,7 +94,7 @@ export default function ClubSidebarInfo({
         <div className="flex items-center gap-2 mt-0 ml-auto md:ml-0 md:mt-2"> {/* ml-auto pushes to right on mobile */} 
           {userRole && <Badge variant="secondary">내 등급: {userRole}</Badge>}
           {!isMember && (
-            <Button onClick={handleJoinClub} disabled={isLoading} className="w-fit">
+            <Button onClick={handleJoinClub} disabled={isLoading} className="w-fit md:w-full">
               {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <UserPlus className="mr-2 size-4" />}
               {isLoading ? "처리 중..." : "클럽 가입"}
             </Button>
