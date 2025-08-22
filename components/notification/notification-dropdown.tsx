@@ -55,16 +55,16 @@ const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropd
         <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-secondary">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
               {unreadCount}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <DropdownMenuLabel className='text-base'>알림</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Button onClick={handleMarkAllAsRead} variant="link" className="w-full text-right">Mark all as read</Button>
+        <Button onClick={handleMarkAllAsRead} variant="link" className="w-full h-7 text-right py-0">모두 읽음으로 표시</Button>
         <DropdownMenuSeparator />
         <div className="max-h-96 overflow-y-auto">
           {notifications?.map((notification) => (

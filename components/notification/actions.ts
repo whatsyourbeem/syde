@@ -21,7 +21,7 @@ export async function getNotifications(): Promise<{ data: NotificationType[] | n
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { data: null, error: 'User not found' };
+    return { data: null, error: '유저를 찾을 수 없습니다' };
   }
 
   const { data, error } = await supabase
