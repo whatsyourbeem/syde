@@ -42,7 +42,7 @@ function AccordionTrigger({
         {...props}
       >
         {children}
-        <div className="flex flex-row h-full align-middle">
+        <div className="flex flex-row h-full items-center">
         {showDetailText && (
             <span className="text-xs font-normal text-muted-foreground mr-2">상세보기</span>
           )}
