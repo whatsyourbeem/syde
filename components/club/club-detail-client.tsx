@@ -146,10 +146,10 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           userRole={userRole}
         />
       </div>
-
-      {/* More button dropdown */}
+{/* 
+      // More button dropdown 
       {isMember && !isOwner && (
-        <div className="absolute top-0 right-0 mt-4 mr-4"> {/* Positioned top right */}
+        <div className="absolute top-0 right-0 mt-4 mr-4"> //Positioned top right
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -164,12 +164,13 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      )}
+      )} 
+      */}
 
       {/* Description Section */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="description">
-          <AccordionTrigger className="text-xl font-bold px-6 py-4" showDetailText={true}>
+          <AccordionTrigger className="text-lg font-bold px-6 py-4" showDetailText={true}>
             {club.name}
           </AccordionTrigger>
           <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-6">

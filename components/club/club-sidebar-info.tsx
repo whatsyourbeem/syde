@@ -72,7 +72,7 @@ export default function ClubSidebarInfo({
           className="rounded-full object-cover"
         />
       </div>
-      <h1 className="text-3xl font-bold mb-2 text-start">{clubName}</h1>
+      <h1 className="text-2xl font-bold mb-2 text-start">{clubName}</h1>
       {clubTagline && (
         <p className="text-base text-muted-foreground mb-2">{clubTagline}</p>
       )}
@@ -94,7 +94,7 @@ export default function ClubSidebarInfo({
         <div className="flex items-center gap-2 mt-0 ml-auto md:ml-0 md:mt-2"> {/* ml-auto pushes to right on mobile */} 
           {userRole && <Badge variant="secondary">내 등급: {userRole}</Badge>}
           {!isMember && (
-            <Button onClick={handleJoinClub} disabled={isLoading} className="w-fit md:w-full">
+            <Button onClick={handleJoinClub} disabled={isLoading} className="w-fit md:w-full text-xs py-0">
               {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <UserPlus className="mr-2 size-4" />}
               {isLoading ? "처리 중..." : "클럽 가입"}
             </Button>
