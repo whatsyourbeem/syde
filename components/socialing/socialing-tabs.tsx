@@ -12,14 +12,14 @@ export default function SocialingTabs() {
 
   return (
     <Tabs defaultValue={activeTab} className="mx-auto max-w-fit">
-      <TabsList className="flex justify-center items-center gap-2">
+      <TabsList className="flex justify-center items-center gap-1">
         <TabsTrigger value="meetup" asChild>
-          <Link href="/socialing/meetup" className="px-4 py-2 md:px-6 md:py-4">
+          <Link href="/socialing/meetup" className="px-4 py-2">
             밋업
           </Link>
         </TabsTrigger>
         <TabsTrigger value="club" asChild>
-          <Link href="/socialing/club" className="px-4 py-2 md:px-6 md:py-4">
+          <Link href="/socialing/club" className="px-4 py-2">
             클럽
           </Link>
         </TabsTrigger>

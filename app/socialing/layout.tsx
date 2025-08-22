@@ -16,8 +16,8 @@ export default function SocialingLayout({
   return (
     <div className="w-full">
       {shouldShowTabs && (
-        <div className={"w-full pt-8"}>
-          <div className="w-full mx-auto px-4 border-b pb-8">
+        <div className="w-full bg-card border-b">
+          <div className="w-full mx-auto px-4 py-8">
             <SocialingTabs />
             <div className="text-center text-muted-foreground mt-4">
               {pathname === "/socialing/meetup" && (
