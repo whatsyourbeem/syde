@@ -70,7 +70,7 @@ export function HeaderNavigation() {
             소셜링
           </NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-0 p-0 w-[150px] md:w-[150px] lg:w-[200px] lg:grid-cols-[1fr]">
+            <ul className="grid gap-0 p-0 w-[150px] lg:grid-cols-[1fr]">
               <ListItem href="/socialing/meetup" title="밋업"></ListItem>
               <ListItem href="/socialing/club" title="클럽"></ListItem>
             </ul>
@@ -91,7 +91,7 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            "flex items-start select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
           {...props}
