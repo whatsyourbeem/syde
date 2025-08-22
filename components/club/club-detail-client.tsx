@@ -169,7 +169,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
       {/* Description Section */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="description">
-          <AccordionTrigger className="text-xl font-bold px-6 py-4">
+          <AccordionTrigger className="text-xl font-bold px-6 py-4" showDetailText={true}>
             {club.name}
           </AccordionTrigger>
           <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-6">

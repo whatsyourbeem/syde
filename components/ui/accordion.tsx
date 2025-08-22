@@ -28,8 +28,9 @@ function AccordionItem({
 function AccordionTrigger({
   className,
   children,
+  showDetailText, // New prop
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+}: React.ComponentProps<typeof AccordionPrimitive.Trigger> & {showDetailText?: boolean}) {
   return (
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
@@ -41,7 +42,12 @@ function AccordionTrigger({
         {...props}
       >
         {children}
+        <div className="flex flex-row h-full align-middle">
+        {showDetailText && (
+            <span className="text-xs font-normal text-muted-foreground mr-2">상세보기</span>
+          )}
         <ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" />
+        </div>
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )
