@@ -13,12 +13,9 @@ import { Clock, MapPin, Users, LogOut, Loader2, MoreHorizontal } from "lucide-re
 import { Badge } from "@/components/ui/badge";
 import { leaveClub } from "@/app/socialing/club/actions";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 
 // Type Definitions
@@ -168,8 +165,8 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
       {/* Description Section */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="description">
-          <AccordionTrigger className="text-lg font-bold px-6 py-4" showDetailText={true}>
-            {club.name}
+          <AccordionTrigger className="text-2xl font-bold px-4 py-4" showDetailText={true}>
+            <h2 className="flex items-baseline gap-1">💬<span className="font-extrabold pl-1">{club.name}</span>의 소개</h2>
           </AccordionTrigger>
           <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-6">
             {club.description ? (
@@ -181,119 +178,126 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
         </AccordionItem>
       </Accordion>
 
-      {/* Tabs Section */}
-      <Tabs defaultValue="board" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="board">게시판</TabsTrigger>
-          <TabsTrigger value="meetups">모임 ({club.meetups.length})</TabsTrigger>
-        </TabsList>
-
-        {/* Board Tab */}
-        <TabsContent value="board" className="mt-4">
-          {club.forums && club.forums.length > 0 ? (
-            <Tabs
-              defaultValue={activeForumId}
+      {/* Meetups Section */}
+      <div className="w-full px-4 py-8">
+        <h2 className="text-2xl font-bold mb-4">🤝<span className="font-extrabold pl-2">모임</span></h2>
+        {club.meetups.length > 0 ? (
+          <div className="px-12"> {/* New wrapper div with padding */}
+            <Carousel
+              opts={{
+                align: "center",
+                loop: true,
+              }}
               className="w-full"
-              onValueChange={setActiveForumId}
             >
-              <div className="flex justify-between items-center mb-4">
-                <TabsList>
-                  {club.forums.map((forum) => (
-                    <TabsTrigger key={forum.id} value={forum.id}>
-                      {forum.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <div className="flex items-center gap-2">
-                  {isOwner && (
-                     <Link href={`/socialing/club/${club.id}/manage`}>
-                        <Button variant="outline" size="sm">게시판 관리</Button>
-                     </Link>
-                  )}
-                  {canWriteForum(activeForum) && (
-                    <Link href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}>
-                      <Button size="sm">새 게시글 작성</Button>
-                    </Link>
-                  )}
-                </div>
-              </div>
-
-              {club.forums.map((forum) => (
-                <TabsContent key={forum.id} value={forum.id}>
-                  {canReadForum(forum) ? (
-                    <ClubPostList posts={forum.posts} clubId={club.id} />
-                  ) : (
-                    <div className="p-8 text-center bg-secondary rounded-lg">
-                      <p className="text-secondary-foreground">
-                        이 게시판의 글 목록을 볼 수 있는 권한이 없습니다.
-                      </p>
+              <CarouselContent>
+                {club.meetups.map((meetup) => (
+                  <CarouselItem key={meetup.id} className="md:basis-1/2 lg:basis-1/3 ">
+                    <div className="p-1">
+                      <Card>
+                        <CardContent className="flex flex-col items-start p-4">
+                          <Link href={`/socialing/meetup/${meetup.id}`} className="w-full">
+                            <div className="flex-grow">
+                              <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-semibold line-clamp-2">{meetup.title}</h3>
+                                <Badge className={getStatusBadgeClass(meetup.status)}>{meetup.status}</Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                {meetup.start_datetime && (
+                                  <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
+                                )}
+                                {meetup.location_description && (
+                                  <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {formatDate(meetup.location_description)}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="size-5">
+                                  <AvatarImage src={meetup.organizer_profile?.avatar_url || undefined} />
+                                  <AvatarFallback>{meetup.organizer_profile?.username?.charAt(0) || 'U'}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs font-medium">{meetup.organizer_profile?.full_name || meetup.organizer_profile?.username}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Users className="size-3" />
+                                <span>{meetup.max_participants || '무제한'}</span>
+                              </div>
+                            </div>
+                          </Link>
+                        </CardContent>
+                      </Card>
                     </div>
-                  )}
-                </TabsContent>
-              ))}
-            </Tabs>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>이 클럽에는 아직 게시판이 없습니다.</p>
-              {isOwner && (
-                 <Link href={`/socialing/club/${club.id}/manage`}>
-                    <Button className="mt-4">게시판 관리하기</Button>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>이 클럽에서 주최하는 모임이 아직 없습니다.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Board Section */}
+      <div className="w-full px-4 py-8">
+        <h2 className="text-2xl font-bold mb-4">📌<span className="font-extrabold pl-2">게시판</span></h2>
+        {club.forums && club.forums.length > 0 ? (
+          <Tabs
+            defaultValue={activeForumId}
+            className="w-full"
+            onValueChange={setActiveForumId}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <TabsList>
+                {club.forums.map((forum) => (
+                  <TabsTrigger key={forum.id} value={forum.id}>
+                    {forum.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <div className="flex items-center gap-2">
+                {isOwner && (
+                   <Link href={`/socialing/club/${club.id}/manage`}>
+                      <Button variant="outline" size="sm">게시판 관리</Button>
+                   </Link>
+                )}
+                {canWriteForum(activeForum) && (
+                  <Link href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}>
+                    <Button size="sm">새 게시글 작성</Button>
                   </Link>
-              )}
+                )}
+              </div>
             </div>
-          )}
-        </TabsContent>
 
-        {/* Meetups Tab */}
-        <TabsContent value="meetups" className="mt-4">
-          {isOwner && (
-            <div className="flex justify-end mb-4">
-              <Link href={`/socialing/meetup/create?club_id=${club.id}`}>
-                <Button>모임 만들기</Button>
-              </Link>
-            </div>
-          )}
-          {club.meetups.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {club.meetups.map((meetup) => (
-                <Link href={`/socialing/meetup/${meetup.id}`} key={meetup.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow h-full flex flex-col">
-                    <div className="flex-grow">
-                        <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-semibold line-clamp-2">{meetup.title}</h3>
-                            <Badge className={getStatusBadgeClass(meetup.status)}>{meetup.status}</Badge>
-                        </div>
-                        <div className="text-xs text-muted-foreground space-y-1">
-                            {meetup.start_datetime && (
-                                <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
-                            )}
-                            {meetup.location_description && (
-                                <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {formatDate(meetup.location_description)}</p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t">
-                        <div className="flex items-center gap-2">
-                            <Avatar className="size-5">
-                                <AvatarImage src={meetup.organizer_profile?.avatar_url || undefined} />
-                                <AvatarFallback>{meetup.organizer_profile?.username?.charAt(0) || 'U'}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-medium">{meetup.organizer_profile?.full_name || meetup.organizer_profile?.username}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Users className="size-3" />
-                            <span>{meetup.max_participants || '무제한'}</span>
-                        </div>
-                    </div>
+            {club.forums.map((forum) => (
+              <TabsContent key={forum.id} value={forum.id}>
+                {canReadForum(forum) ? (
+                  <ClubPostList posts={forum.posts} clubId={club.id} />
+                ) : (
+                  <div className="p-8 text-center bg-secondary rounded-lg">
+                    <p className="text-secondary-foreground">
+                      이 게시판의 글 목록을 볼 수 있는 권한이 없습니다.
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>이 클럽에는 아직 게시판이 없습니다.</p>
+            {isOwner && (
+               <Link href={`/socialing/club/${club.id}/manage`}>
+                  <Button className="mt-4">게시판 관리하기</Button>
                 </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>이 클럽에서 주최하는 모임이 아직 없습니다.</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
