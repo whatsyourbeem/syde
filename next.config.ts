@@ -4,7 +4,9 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       "wdtkwfgmsbtjkraxzazx.supabase.co",
-      "wdtkwfgmsbtjkraxzazx.supabase.co", // Add this line for logimages bucket
+      "img1.kakaocdn.net",
+      "t1.kakaocdn.net",
+      "k.kakaocdn.net",
     ],
   },
   /* config options here */

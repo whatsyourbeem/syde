@@ -1,30 +1,45 @@
 import { createClient } from "@/lib/supabase/server";
-import { type EmailOtpType } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { type NextRequest } from "next/server";
+import { uploadAvatarFromUrl } from "@/app/auth/avatar-actions"; // Import the new action
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const token_hash = searchParams.get("token_hash");
-  const type = searchParams.get("type") as EmailOtpType | null;
+  const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
-  if (token_hash && type) {
+  if (code) {
     const supabase = await createClient();
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code); // Get data as well
 
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    });
     if (!error) {
-      // redirect user to specified redirect URL or root of app
-      redirect(next);
+      // Check if user exists and has an avatar URL from OAuth provider
+      if (data.user && data.user.user_metadata && data.user.user_metadata.avatar_url) {
+        const providerAvatarUrl = data.user.user_metadata.avatar_url;
+        const userId = data.user.id;
+
+        // Upload avatar to Supabase Storage
+        const newAvatarUrl = await uploadAvatarFromUrl(userId, providerAvatarUrl);
+
+        // If upload was successful, update the user's profile in public.profiles
+        if (newAvatarUrl) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: newAvatarUrl })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error("Error updating profile avatar_url:", updateError);
+            // Decide how to handle this error: redirect to error page or proceed
+            // For now, we'll just log and proceed, as login itself was successful
+          }
+        }
+      }
+      return redirect(next);
     } else {
-      // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${error?.message}`);
+      return redirect(`/auth/error?error=${encodeURIComponent(error.message)}`);
     }
   }
 
-  // redirect the user to an error page with some instructions
-  redirect(`/auth/error?error=No token hash or type`);
+  return redirect("/auth/error?message=No code found.");
 }

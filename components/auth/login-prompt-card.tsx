@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useLoginModal } from "@/context/LoginModalContext";
 import Image from "next/image";
+import { loginWithGoogle } from "@/app/auth/login/actions";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 export function LoginPromptCard() {
-  const { openLoginModal } = useLoginModal();
-
+  const { openLoginDialog } = useLoginDialog();
   return (
     <div className="flex flex-col items-center p-4 rounded-lg bg-card text-center">
       <Image
@@ -21,7 +21,7 @@ export function LoginPromptCard() {
         <br />
         1194명의 SYDER와 함께해요.
       </p>
-      <Button onClick={openLoginModal}>SYDE 시작하기</Button>
+      <Button onClick={openLoginDialog}>SYDE 시작하기</Button>
     </div>
   );
 }

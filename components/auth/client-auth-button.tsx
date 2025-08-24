@@ -3,12 +3,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useLoginModal } from "@/context/LoginModalContext"; // Import useLoginModal
-
 import { UserRound } from "lucide-react";
-
 import { User } from "@supabase/supabase-js";
 import { SheetClose } from "@/components/ui/sheet";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 interface ClientAuthButtonProps {
   user: User | null; // Supabase user object
@@ -23,8 +21,7 @@ export function ClientAuthButton({
   username,
   sheetHeader,
 }: ClientAuthButtonProps) {
-  const { openLoginModal } = useLoginModal(); // Use the hook
-
+  const { openLoginDialog } = useLoginDialog();
   const profileLink = username ? `/${username}` : "/profile";
 
   return (
@@ -57,14 +54,20 @@ export function ClientAuthButton({
               </Link>
             </SheetClose>
           ) : (
-            // Logged-out mobile sheet: UserRound icon + "로그인/회원가입" text
+            // Logged-out mobile sheet: Login Button
             <SheetClose asChild>
-              <div onClick={openLoginModal} className="flex items-center gap-2 justify-start p-2 h-9 w-full text-base font-normal">
-                <UserRound className="h-5 w-5 !size-5" />
-                <span className="!text-base !font-normal !text-foreground !block">
-                  로그인 / 회원가입
-                </span>
-              </div>
+              <Button
+                onClick={openLoginDialog}
+                variant="ghost"
+                className="justify-start p-2 h-auto w-full"
+              >
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-5 w-5" />
+                  <span className="text-base font-normal">
+                    로그인 / 회원가입
+                  </span>
+                </div>
+              </Button>
             </SheetClose>
           )}
         </>
@@ -87,9 +90,13 @@ export function ClientAuthButton({
               )}
             </Link>
           ) : (
-            // Logged-out desktop: UserRound icon only
-            <Button variant="ghost" onClick={openLoginModal} className="relative rounded-full m-0.5 h-9 w-9">
-              <UserRound className="h-5 w-5 !size-5" />
+            // Logged-out desktop: Login Button
+            <Button
+              onClick={openLoginDialog}
+              variant="ghost"
+              className="relative rounded-full m-0.5 h-9 w-9"
+            >
+              <UserRound className="h-5 w-5" />
             </Button>
           )}
         </>

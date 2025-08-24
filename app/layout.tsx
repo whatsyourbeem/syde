@@ -5,7 +5,10 @@ import { AuthButton } from "@/components/auth/auth-button";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { LoginModalProvider } from "@/context/LoginModalContext"; // Import LoginModalProvider
+
+import { LoginDialogProvider } from "@/context/LoginDialogContext";
+import { LoginDialog } from "@/components/auth/login-dialog";
+
 import { Providers } from "@/components/layout/providers"; // Import Providers
 import { Search } from "lucide-react"; // Import Search icon
 import NotificationBell from "@/components/notification/notification-bell";
@@ -89,11 +92,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${pretendard.className} antialiased`}>
         <Providers>
-          {" "}
-          {/* Wrap with Providers */}
-          <LoginModalProvider>
-            {" "}
-            {/* Wrap with LoginModalProvider */}
+          <LoginDialogProvider>
             <div className="w-full bg-background">
               <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
                 {/* Mobile specific layout */}
@@ -213,7 +212,8 @@ export default async function RootLayout({
             </div>
             <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />
-          </LoginModalProvider>
+            <LoginDialog />
+          </LoginDialogProvider>
         </Providers>
       </body>
     </html>
