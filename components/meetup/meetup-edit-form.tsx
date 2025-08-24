@@ -90,8 +90,8 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!category || !locationType || !status || !startDatetime || !endDatetime) {
-        toast.error("모든 필수 필드를 채워주세요.");
+    if (!category || !locationType || !status) {
+        toast.error("카테고리, 진행 방식, 상태를 모두 선택해주세요.");
         setIsSubmitting(false);
         return;
     }
@@ -213,7 +213,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex gap-4"> {/* Row for Start Date and Time */}
+        <div className="flex gap-2"> {/* Row for Start Date and Time */}
           <DatePicker
             label="시작 날짜"
             date={startDatetime}
@@ -237,11 +237,11 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
                 setStartDatetime(today);
               }
             }}
-            className="w-36"
+            className="w-42"
             required
           />
         </div>
-        <div className="flex gap-4"> {/* Row for End Date and Time */}
+        <div className="flex gap-2"> {/* Row for End Date and Time */}
           <DatePicker
             label="종료 날짜"
             date={endDatetime}
@@ -265,7 +265,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
                 setEndDatetime(today);
               }
             }}
-            className="w-36"
+            className="w-42"
             required // Add required prop
           />
         </div>

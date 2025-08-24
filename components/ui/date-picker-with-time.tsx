@@ -34,15 +34,15 @@ export function DatePicker({ date, setDate, label, className, required }: DatePi
           <Button
             variant={"outline"}
             className={cn(
-              "w-full justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal px-2",
               !date && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="m-0 h-4 w-4" />
             {date ? format(date, "yyyy년 M월 d일") : "날짜 선택"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-0 w-56 max-h-[180px] overflow-y-auto flex flex-col" side="bottom" sideOffset={10} avoidCollisions={false}>
+        <PopoverContent className="w-60 h-80 p-0" align="start" side="bottom" sideOffset={10}>
           <Calendar
             mode="single"
             selected={date}
