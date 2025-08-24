@@ -182,7 +182,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             >
               <CarouselContent>
                 {club.meetups.map((meetup) => (
-                  <CarouselItem key={meetup.id} className="md:basis-1/2 lg:basis-1/3 ">
+                  <CarouselItem key={meetup.id} className="md:basis-1/2 lg:basis-1/2 ">
                     <div className="p-1">
                       <Card>
                         <CardContent className="flex flex-col items-start p-4">
@@ -197,7 +197,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                                   <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
                                 )}
                                 {meetup.location_description && (
-                                  <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {formatDate(meetup.location_description)}</p>
+                                  <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
                                 )}
                               </div>
                             </div>
