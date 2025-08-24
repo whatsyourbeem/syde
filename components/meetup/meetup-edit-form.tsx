@@ -151,7 +151,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
-          모임 제목
+          모임 제목 <span className="text-red-500">*</span>
         </label>
         <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="text-sm"/>
       </div>
@@ -216,7 +216,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
-            카테고리
+            카테고리 <span className="text-red-500">*</span>
           </label>
           <Select value={category} onValueChange={(value: Enums<"meetup_category_enum">) => setCategory(value)} required>
             <SelectTrigger>
@@ -233,7 +233,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
 
         <div>
           <label htmlFor="locationType" className="block text-sm font-semibold text-gray-700 mb-1">
-            진행 방식
+            진행 방식 <span className="text-red-500">*</span>
           </label>
           <Select value={locationType} onValueChange={(value: Enums<"meetup_location_type_enum">) => setLocationType(value)} required>
             <SelectTrigger>
@@ -249,7 +249,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
 
       <div>
         <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-1">
-          상태
+          상태 <span className="text-red-500">*</span>
         </label>
         <Select value={status} onValueChange={(value: Enums<"meetup_status_enum">) => setStatus(value)} required>
           <SelectTrigger>
@@ -267,15 +267,15 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="startDatetime" className="block text-sm font-semibold text-gray-700 mb-1">
-            시작 일시
+            시작 일시 <span className="text-red-500">*</span>
           </label>
-          <Input id="startDatetime" type="datetime-local" value={startDatetime} onChange={(e) => setStartDatetime(e.target.value)} />
+          <Input required id="startDatetime" type="datetime-local" value={startDatetime} onChange={(e) => setStartDatetime(e.target.value)} />
         </div>
         <div>
           <label htmlFor="endDatetime" className="block text-sm font-semibold text-gray-700 mb-1">
-            종료 일시
+            종료 일시 <span className="text-red-500">*</span>
           </label>
-          <Input id="endDatetime" type="datetime-local" value={endDatetime} onChange={(e) => setEndDatetime(e.target.value)} />
+          <Input required id="endDatetime" type="datetime-local" value={endDatetime} onChange={(e) => setEndDatetime(e.target.value)} />
         </div>
       </div>
 
