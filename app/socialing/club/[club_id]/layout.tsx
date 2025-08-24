@@ -67,22 +67,20 @@ export default async function ClubDetailLayout({
   }
 
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:pb-5">
-      <div className="hidden md:block w-1/4 sticky top-[70px] self-start h-screen">
+    <main className="flex justify-center items-start gap-x-4 pb-3 md:pb-5 min-h-screen max-w-screen-xl mx-auto">
+      <div className="hidden md:block pl-4 w-64 sticky top-[70px] self-start">
         <ClubSidebarInfo
           clubName={club.name}
           clubTagline={club.tagline || undefined}
           clubId={club.id}
           clubThumbnailUrl={club.thumbnail_url || undefined}
-          ownerProfileAvatarUrl={club.owner_profile?.avatar_url || undefined}
-          ownerProfileUsername={club.owner_profile?.username || undefined}
-          ownerProfileFullName={club.owner_profile?.full_name || undefined}
+          ownerProfile={club.owner_profile}
           isMember={isMember}
           currentUserId={currentUserId}
           userRole={userRole}
         />
       </div>
-      <div className="w-full md:w-2/3 lg:w-3/5 border-x border-gray-200">
+      <div className="w-auto flex-1 border-x border-gray-200">
         <ClubActionsDropdown
           clubId={club.id}
           isOwner={isOwner}
@@ -91,7 +89,7 @@ export default async function ClubDetailLayout({
         />
         {children}
       </div>
-      <div className="hidden lg:block w-1/6 sticky top-[70px] self-start h-screen">
+      <div className="hidden lg:block w-[180px] sticky top-[70px] self-start">
         <ClubMembersList members={members || []} />
       </div>
     </main>

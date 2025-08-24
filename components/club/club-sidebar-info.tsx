@@ -8,6 +8,7 @@ import { Loader2, UserPlus } from "lucide-react"; // Removed LogOut
 import { joinClub } from "@/app/socialing/club/actions"; // Removed leaveClub
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import Image from "next/image";
 
 // type Club = Tables<'clubs'> & { owner_profile: Profile | null }; // Removed this type
@@ -17,9 +18,12 @@ interface ClubSidebarInfoProps {
   clubTagline?: string;
   clubId: string;
   clubThumbnailUrl?: string;
-  ownerProfileAvatarUrl?: string;
-  ownerProfileUsername?: string;
-  ownerProfileFullName?: string;
+  ownerProfile: {
+    avatar_url?: string | null;
+    username?: string | null;
+    full_name?: string | null;
+    tagline?: string | null;
+  } | null;
   isMember: boolean;
   currentUserId?: string;
   userRole: string | null;
@@ -30,9 +34,7 @@ export default function ClubSidebarInfo({
   clubTagline,
   clubId,
   clubThumbnailUrl,
-  ownerProfileAvatarUrl,
-  ownerProfileUsername,
-  ownerProfileFullName,
+  ownerProfile,
   isMember,
   currentUserId,
   userRole,
@@ -79,16 +81,41 @@ export default function ClubSidebarInfo({
       
       <div className="flex flex-row md:flex-col md:mt-4 md:gap-2"> {/* Main responsive container */}
         {/* Owner Info (Left on mobile, top on desktop) */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Avatar className="size-6">
-            <AvatarImage src={ownerProfileAvatarUrl || undefined} />
-            <AvatarFallback>{ownerProfileUsername?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
-          <Link href={`/${ownerProfileUsername}`} className="hover:underline">
-            <span className="font-semibold text-primary">{ownerProfileFullName || ownerProfileUsername}</span>
-            <span className="ml-2">클럽장</span>
-          </Link>
-        </div>
+        <HoverCard openDelay={350}>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <HoverCardTrigger asChild>
+              <Link href={`/${ownerProfile?.username}`}>
+                <Avatar className="size-6">
+                  <AvatarImage src={ownerProfile?.avatar_url || undefined} />
+                  <AvatarFallback>{ownerProfile?.username?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+              </Link>
+            </HoverCardTrigger>
+            <HoverCardTrigger asChild>
+              <Link href={`/${ownerProfile?.username}`} className="hover:underline">
+                <span className="font-semibold text-primary">{ownerProfile?.full_name || ownerProfile?.username}</span>
+                <span className="ml-2">클럽장</span>
+              </Link>
+            </HoverCardTrigger>
+          </div>
+          <HoverCardContent className="w-80" align="start">
+            <Link href={`/${ownerProfile?.username}`}>
+              <div className="flex justify-start space-x-4">
+                <Avatar className="size-16">
+                  <AvatarImage src={ownerProfile?.avatar_url || undefined} />
+                  <AvatarFallback className="text-2xl">{ownerProfile?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                </Avatar>
+                <div className="space-y-1">
+                  <h4 className="text-base font-semibold">{ownerProfile?.full_name}</h4>
+                  <p className="text-sm text-muted-foreground">@{ownerProfile?.username}</p>
+                  {ownerProfile?.tagline && (
+                    <p className="text-xs pt-1">{ownerProfile.tagline}</p>
+                  )}
+                </div>
+              </div>
+            </Link>
+          </HoverCardContent>
+        </HoverCard>
 
         {/* Badge and Buttons (Right on mobile, bottom on desktop) */} 
         <div className="flex items-center gap-2 mt-0 ml-auto md:ml-0 md:mt-2"> {/* ml-auto pushes to right on mobile */} 
