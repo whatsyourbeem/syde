@@ -3,7 +3,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLoginModal } from "@/context/LoginModalContext";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 import { createClubPostComment, updateClubPostComment } from "@/app/socialing/club/actions";
 import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
@@ -42,7 +42,7 @@ export function ClubPostCommentForm({
   onCancel,
 }: ClubPostCommentFormProps) {
   const supabase = createClient();
-  const { openLoginModal } = useLoginModal();
+  const { openLoginDialog } = useLoginDialog();
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,7 +160,7 @@ export function ClubPostCommentForm({
 
   const clientAction = async (formData: FormData) => {
     if (!currentUserId) {
-      openLoginModal();
+      openLoginDialog();
       return;
     }
 

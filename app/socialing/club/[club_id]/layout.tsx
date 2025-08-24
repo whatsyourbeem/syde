@@ -1,5 +1,5 @@
 
-/* eslint-disable @next/next/no-sync-dynamic-apis */
+
 
 import { createClient } from "@/lib/supabase/server";
 import ClubMembersList from "@/components/club/club-members-list";

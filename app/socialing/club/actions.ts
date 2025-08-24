@@ -61,7 +61,7 @@ export async function updateClub(
   name: string,
   tagline: string,
   descriptionString: string, // Change type to string
-  thumbnailUrl: string
+  thumbnailUrl: string | null
 ) {
   const supabase = await createClient();
   const {

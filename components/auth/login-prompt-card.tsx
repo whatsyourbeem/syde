@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { loginWithGoogle } from "@/app/auth/login/actions";
+
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
 export function LoginPromptCard() {

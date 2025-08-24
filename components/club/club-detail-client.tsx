@@ -5,19 +5,19 @@ import { Tables, Enums } from "@/types/database.types";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
-import { toast } from "sonner";
-import { Clock, MapPin, Users, LogOut, Loader2, MoreHorizontal } from "lucide-react";
+
+import { Clock, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { leaveClub } from "@/app/socialing/club/actions";
+
 import ClubPostList from "./club-post-list"; // Import ClubPostList
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
-import { useLoginDialog } from "@/context/LoginDialogContext";
+
 
 // Type Definitions
 type Profile = Tables<'profiles'>;
@@ -68,30 +68,11 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
 
 // Main Component
 export default function ClubDetailClient({ club, isMember, currentUserId, userRole }: ClubDetailClientProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  
   const [activeForumId, setActiveForumId] = useState(club.forums[0]?.id || "");
-  const { openLoginDialog } = useLoginDialog();
+  
 
-  const handleLeaveClub = async () => {
-    if (!currentUserId) {
-      openLoginDialog();
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await leaveClub(club.id);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("클럽에서 탈퇴했습니다.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("클럽 탈퇴 중 예기치 않은 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   const isOwner = currentUserId === club.owner_id;
 
