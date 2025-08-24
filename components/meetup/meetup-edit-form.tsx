@@ -18,7 +18,9 @@ import { createMeetup, updateMeetup, uploadMeetupThumbnail } from "@/app/sociali
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
-import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { DatePicker } from "@/components/ui/date-picker-with-time";
+import { TimePicker } from "@/components/ui/time-picker";
+import { format } from "date-fns";
 import { JSONContent } from "@tiptap/react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -88,8 +90,8 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!category || !locationType || !status) {
-        toast.error("카테고리, 진행 방식, 상태를 모두 선택해주세요.");
+    if (!category || !locationType || !status || !startDatetime || !endDatetime) {
+        toast.error("모든 필수 필드를 채워주세요.");
         setIsSubmitting(false);
         return;
     }
@@ -211,16 +213,62 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DateTimePicker
-          label="시작 일시"
-          date={startDatetime}
-          setDate={setStartDatetime}
-        />
-        <DateTimePicker
-          label="종료 일시"
-          date={endDatetime}
-          setDate={setEndDatetime}
-        />
+        <div className="flex gap-4"> {/* Row for Start Date and Time */}
+          <DatePicker
+            label="시작 날짜"
+            date={startDatetime}
+            setDate={setStartDatetime}
+            required
+          />
+          <TimePicker
+            label="시작 시간"
+            time={startDatetime ? format(startDatetime, "HH:mm") : "00:00"}
+            setTime={(newTime) => {
+              if (startDatetime) {
+                const [hours, minutes] = newTime.split(":").map(Number);
+                const newDate = new Date(startDatetime);
+                newDate.setHours(hours, minutes);
+                setStartDatetime(newDate);
+              } else {
+                // If no date is selected, set a default date (e.g., today) with the selected time
+                const today = new Date();
+                const [hours, minutes] = newTime.split(":").map(Number);
+                today.setHours(hours, minutes);
+                setStartDatetime(today);
+              }
+            }}
+            className="w-36"
+            required
+          />
+        </div>
+        <div className="flex gap-4"> {/* Row for End Date and Time */}
+          <DatePicker
+            label="종료 날짜"
+            date={endDatetime}
+            setDate={setEndDatetime}
+            required
+          />
+          <TimePicker
+            label="종료 시간"
+            time={endDatetime ? format(endDatetime, "HH:mm") : "00:00"}
+            setTime={(newTime) => {
+              if (endDatetime) {
+                const [hours, minutes] = newTime.split(":").map(Number);
+                const newDate = new Date(endDatetime);
+                newDate.setHours(hours, minutes);
+                setEndDatetime(newDate);
+              } else {
+                // If no date is selected, set a default date (e.g., today) with the selected time
+                const today = new Date();
+                const [hours, minutes] = newTime.split(":").map(Number);
+                today.setHours(hours, minutes);
+                setEndDatetime(today);
+              }
+            }}
+            className="w-36"
+            required // Add required prop
+          />
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
