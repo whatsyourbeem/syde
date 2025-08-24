@@ -44,6 +44,7 @@ const pretendard = localFont({
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
 import { MobileMenu } from "@/components/layout/mobile-menu";
+import Footer from "@/components/layout/footer"; // Add this import
 
 import { Button } from "@/components/ui/button";
 
@@ -213,6 +214,7 @@ export default async function RootLayout({
             <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />
             <LoginDialog />
+            <Footer /> {/* Add the Footer component here */}
           </LoginDialogProvider>
         </Providers>
       </body>
