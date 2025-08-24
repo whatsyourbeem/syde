@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import Image from "next/image";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 // type Club = Tables<'clubs'> & { owner_profile: Profile | null }; // Removed this type
 
@@ -40,10 +41,11 @@ export default function ClubSidebarInfo({
   userRole,
 }: ClubSidebarInfoProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { openLoginDialog } = useLoginDialog();
 
   const handleJoinClub = async () => {
     if (!currentUserId) {
-      toast.error("로그인이 필요합니다.");
+      openLoginDialog();
       return;
     }
     setIsLoading(true);

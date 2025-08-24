@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 // Type Definitions
 type Profile = Tables<'profiles'>;
@@ -69,10 +70,11 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
 export default function ClubDetailClient({ club, isMember, currentUserId, userRole }: ClubDetailClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeForumId, setActiveForumId] = useState(club.forums[0]?.id || "");
+  const { openLoginDialog } = useLoginDialog();
 
   const handleLeaveClub = async () => {
     if (!currentUserId) {
-      toast.error("로그인이 필요합니다.");
+      openLoginDialog();
       return;
     }
     setIsLoading(true);

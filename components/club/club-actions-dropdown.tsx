@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { leaveClub } from "@/app/socialing/club/actions";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 interface ClubActionsDropdownProps {
   clubId: string;
@@ -27,10 +28,11 @@ export default function ClubActionsDropdown({
   currentUserId,
 }: ClubActionsDropdownProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { openLoginDialog } = useLoginDialog();
 
   const handleLeaveClub = async () => {
     if (!currentUserId) {
-      toast.error("로그인이 필요합니다.");
+      openLoginDialog();
       return;
     }
     setIsLoading(true);

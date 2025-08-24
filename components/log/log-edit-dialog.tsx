@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { ImagePlus, X } from "lucide-react";
-import { useLoginModal } from "@/context/LoginModalContext";
+import { useLoginDialog } from "@/context/LoginDialogContext";
+
 import { Database } from "@/types/database.types";
 import { createLog, updateLog } from "@/app/log/actions";
 import { useFormStatus } from "react-dom";
@@ -99,7 +100,7 @@ function LogForm({
   isUploading,
   isSubmitting,
   userId,
-  openLoginModal,
+  openLoginDialog,
   textareaRef,
   showSuggestions,
   mentionSuggestions,
@@ -122,7 +123,8 @@ function LogForm({
   isUploading: boolean;
   isSubmitting: boolean;
   userId: string | null;
-  openLoginModal: () => void;
+  openLoginDialog: () => void;
+  
   textareaRef: React.Ref<HTMLTextAreaElement>;
   showSuggestions: boolean;
   mentionSuggestions: MentionSuggestion[];
@@ -165,7 +167,7 @@ function LogForm({
               onKeyDown={handleKeyDown}
               disabled={isUploading || !userId || isSubmitting}
               onClick={() => {
-                if (!userId) openLoginModal();
+                if (!userId) openLoginDialog();
               }}
               ref={textareaRef}
               className="h-full w-full resize-none border-none p-0 focus-visible:ring-0 shadow-none bg-transparent"
@@ -311,7 +313,8 @@ export function LogEditDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { openLoginModal } = useLoginModal();
+  const { openLoginDialog } = useLoginDialog();
+  
 
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<
@@ -466,7 +469,7 @@ export function LogEditDialog({
   const clientAction = useCallback(
     async (formData: FormData) => {
       if (!userId) {
-        openLoginModal();
+        openLoginDialog();
         return;
       }
       setIsSubmitting(true);
@@ -495,7 +498,7 @@ export function LogEditDialog({
       }
       setIsSubmitting(false);
     },
-    [userId, content, initialLogData, openLoginModal, router, onSuccess]
+    [userId, content, initialLogData, openLoginDialog, router, onSuccess]
   );
 
   const formProps = {
@@ -509,7 +512,7 @@ export function LogEditDialog({
     isUploading,
     isSubmitting,
     userId,
-    openLoginModal,
+    openLoginDialog,
     textareaRef,
     showSuggestions,
     mentionSuggestions,

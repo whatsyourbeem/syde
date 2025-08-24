@@ -3,7 +3,8 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLoginModal } from "@/context/LoginModalContext";
+import { useLoginDialog } from "@/context/LoginDialogContext";
+
 import { createComment, updateComment } from "@/app/log/actions";
 import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
@@ -42,7 +43,8 @@ export function CommentForm({
   onCancel,
 }: CommentFormProps) {
   const supabase = createClient();
-  const { openLoginModal } = useLoginModal();
+  const { openLoginDialog } = useLoginDialog();
+  
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,7 +162,7 @@ export function CommentForm({
 
   const clientAction = async (formData: FormData) => {
     if (!currentUserId) {
-      openLoginModal();
+            openLoginDialog();
       return;
     }
 
