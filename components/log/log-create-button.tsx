@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { Database } from "@/types/database.types";
-import { useLoginModal } from "@/context/LoginModalContext";
+import { useLoginDialog } from "@/context/LoginDialogContext";
+
 
 interface LogCreateButtonProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -14,7 +15,8 @@ export function LogCreateButton({
   user,
   avatarUrl,
 }: LogCreateButtonProps) {
-  const { openLoginModal } = useLoginModal();
+  const { openLoginDialog } = useLoginDialog();
+  
 
   const buttonContent = (
     <div className="flex items-center cursor-pointer">
@@ -36,7 +38,7 @@ export function LogCreateButton({
     return (
       <div
         className="px-4 py-3 border-b border-gray-200"
-        onClick={openLoginModal}
+        onClick={openLoginDialog}
       >
         {buttonContent}
       </div>
