@@ -180,7 +180,14 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
 
       {/* Meetups Section */}
       <div className="w-full px-4 py-8">
-        <h2 className="text-2xl font-bold mb-4">🤝<span className="font-extrabold pl-2">모임</span></h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">🤝<span className="font-extrabold pl-2">모임</span></h2>
+          {isOwner && (
+            <Link href={`/socialing/meetup/create?club_id=${club.id}`}>
+              <Button size="sm">모임 만들기</Button>
+            </Link>
+          )}
+        </div>
         {club.meetups.length > 0 ? (
           <div className="px-12"> {/* New wrapper div with padding */}
             <Carousel

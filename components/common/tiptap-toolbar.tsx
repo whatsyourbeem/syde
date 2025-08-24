@@ -68,8 +68,8 @@ export default function TiptapToolbar({
   }, [editor]);
 
   return (
-    <div className="flex flex-col gap-2 mb-2">
-      <div className="flex flex-wrap gap-1 items-center">
+    <div className="flex flex-col gap-1 mb-2">
+      <div className="flex flex-wrap gap-0.5 items-center">
         {/* Text formatting buttons */}
         <Button
           type="button"
@@ -101,7 +101,7 @@ export default function TiptapToolbar({
         >
           S
         </Button>
-        <div className="border-l h-6 mx-2"></div>
+        <div className="border-l h-6 mx-1"></div>
         {/* Text alignment buttons */}
         <Button
           type="button"
@@ -127,7 +127,7 @@ export default function TiptapToolbar({
         >
           <AlignRight size={16} />
         </Button>
-        <div className="border-l h-6 mx-2"></div>
+        <div className="border-l h-6 mx-1"></div>
         {/* Heading buttons */}
         <Button
           type="button"
@@ -156,10 +156,74 @@ export default function TiptapToolbar({
         >
           H3
         </Button>
+        <div className="border-l h-6 mx-1"></div>
+        {/* Other buttons */}
+        <Button
+          type="button"
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
+          variant={isCodeBlockActive ? "default" : "outline"}
+          size="sm"
+          className="flex items-center justify-center"
+        >
+          <Code size={16} />
+        </Button>
+        <Button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          disabled={!editor.can().chain().focus().toggleBlockquote().run()}
+          variant={isBlockquoteActive ? "default" : "outline"}
+          size="sm"
+          className="flex items-center justify-center"
+        >
+          <Quote size={10} />
+        </Button>
+        <Button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          disabled={!editor.can().chain().focus().toggleBulletList().run()}
+          variant={isBulletListActive ? "default" : "outline"}
+          size="sm"
+          className="flex items-center justify-center"
+        >
+          <List size={16} />
+        </Button>
+        <Button
+          type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          disabled={!editor.can().chain().focus().toggleOrderedList().run()}
+          variant={isOrderedListActive ? "default" : "outline"}
+          size="sm"
+          className="flex items-center justify-center"
+        >
+          <ListOrdered size={16} />
+        </Button>
+        <Button
+          type="button"
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          disabled={!editor.can().chain().focus().setHorizontalRule().run()}
+          variant="outline"
+          size="sm"
+          className="flex items-center justify-center"
+        >
+          <SquareMinus size={16} />
+        </Button>
+        {onImageUploadClick && (
+          <>
+            <div className="border-l h-6 mx-1"></div>
+            <Button
+              type="button"
+              onClick={onImageUploadClick}
+              variant="outline"
+              size="sm"
+            >
+              <ImageIcon size={16} />
+            </Button>
+          </>
+        )}
       </div>
-      <div className="flex flex-wrap gap-1 items-center justify-between">
-        <div className="flex flex-wrap gap-1 items-center">
-          {/* Other buttons */}
+      {/* <div className="flex flex-wrap gap-1 items-center justify-between">
+        <div className="flex flex-wrap gap-0.5 items-center">
           <Button
             type="button"
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
@@ -212,7 +276,7 @@ export default function TiptapToolbar({
           </Button>
           {onImageUploadClick && (
             <>
-              <div className="border-l h-6 mx-2"></div>
+              <div className="border-l h-6 mx-1"></div>
               <Button
                 type="button"
                 onClick={onImageUploadClick}
@@ -223,10 +287,8 @@ export default function TiptapToolbar({
               </Button>
             </>
           )}
-        </div>
-
-        
-      </div>
+        </div>   
+      </div> */}
     </div>
   );
 }

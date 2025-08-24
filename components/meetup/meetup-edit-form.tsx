@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -65,6 +67,14 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(meetup?.thumbnail_url || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -140,14 +150,14 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 제목
         </label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="text-sm"/>
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 상세 설명
         </label>
         <MeetupDescriptionEditor
@@ -158,24 +168,54 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div>
-        <label htmlFor="thumbnailFile" className="block text-sm font-medium text-gray-700 mb-1">
+        <Label htmlFor="thumbnailFile" className="text-sm font-semibold text-gray-700 mb-1">
           썸네일 이미지
-        </label>
-        {thumbnailPreview && (
-          <Image
-            src={thumbnailPreview}
-            alt="썸네일 미리보기"
-            width={192}
-            height={128}
-            className="w-48 h-32 object-cover rounded-md mb-2"
-          />
-        )}
-        <Input id="thumbnailFile" type="file" accept="image/*" onChange={handleFileChange} />
+        </Label>
+        <div className="flex items-center gap-4">
+          <div
+            className="relative w-48 h-32 rounded-md overflow-hidden cursor-pointer"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onClick={() => document.getElementById("thumbnailFile")?.click()}
+          >
+            <Image
+                src={thumbnailPreview || "/default_club_thumbnail.png"}
+                alt="썸네일 미리보기"
+                width={192}
+                height={128}
+                className={`object-cover w-full h-full transition-opacity duration-300 ${
+                  isHovered ? "opacity-50" : "opacity-100"
+                }`}
+              />
+            <div
+              className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${
+                isHovered ? "opacity-30" : "opacity-0"
+              }`}
+            >
+              <Plus className="w-12 h-12" color="white" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Input
+              id="thumbnailFile"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="opacity-0 max-w-0 max-h-0 my-0 py-0"
+            />
+            <Button
+              type="button"
+              onClick={() => document.getElementById("thumbnailFile")?.click()}
+            >
+              파일 선택
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
             카테고리
           </label>
           <Select value={category} onValueChange={(value: Enums<"meetup_category_enum">) => setCategory(value)} required>
@@ -192,7 +232,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
         </div>
 
         <div>
-          <label htmlFor="locationType" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="locationType" className="block text-sm font-semibold text-gray-700 mb-1">
             진행 방식
           </label>
           <Select value={locationType} onValueChange={(value: Enums<"meetup_location_type_enum">) => setLocationType(value)} required>
@@ -208,7 +248,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-1">
           상태
         </label>
         <Select value={status} onValueChange={(value: Enums<"meetup_status_enum">) => setStatus(value)} required>
@@ -226,13 +266,13 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="startDatetime" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="startDatetime" className="block text-sm font-semibold text-gray-700 mb-1">
             시작 일시
           </label>
           <Input id="startDatetime" type="datetime-local" value={startDatetime} onChange={(e) => setStartDatetime(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="endDatetime" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="endDatetime" className="block text-sm font-semibold text-gray-700 mb-1">
             종료 일시
           </label>
           <Input id="endDatetime" type="datetime-local" value={endDatetime} onChange={(e) => setEndDatetime(e.target.value)} />
@@ -240,14 +280,14 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div>
-        <label htmlFor="locationDescription" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="locationDescription" className="block text-sm font-semibold text-gray-700 mb-1">
           장소 상세 설명
         </label>
         <Input id="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} />
       </div>
 
       <div>
-        <label htmlFor="maxParticipants" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="maxParticipants" className="block text-sm font-semibold text-gray-700 mb-1">
           최대 인원 (비워두면 무제한)
         </label>
         <Input id="maxParticipants" type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} min="1" />
