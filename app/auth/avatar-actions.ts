@@ -19,7 +19,7 @@ export async function uploadAvatarFromUrl(userId: string, imageUrl: string) {
     const fileExt = imageBlob.type.split('/')[1]; // e.g., 'jpeg', 'png'
     const filePath = `avatars/${userId}/${uuidv4()}.${fileExt}`;
 
-    const { data, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('avatars') // Assuming you have an 'avatars' bucket
       .upload(filePath, imageBlob, {
         cacheControl: '3600',
