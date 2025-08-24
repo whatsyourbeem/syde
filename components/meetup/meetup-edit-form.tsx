@@ -1,10 +1,21 @@
 "use client";
 
+import * as React from "react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -33,6 +44,7 @@ interface MeetupEditFormProps {
 
 export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) {
   const router = useRouter();
+  const formRef = React.useRef<HTMLFormElement>(null);
   const isEditMode = !!meetup;
 
   // Use state to hold the ID, generating a new one only for create mode.
@@ -67,6 +79,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(meetup?.thumbnail_url || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -86,8 +99,12 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmSave = async () => {
     setIsSubmitting(true);
 
     if (!category || !locationType || !status) {
@@ -146,13 +163,33 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const form = formRef.current;
+      if (!form) return;
+
+      const focusable = Array.from(
+        form.querySelectorAll('input, button, select, textarea')
+      ).filter(
+        (el) =>
+          !el.hasAttribute('disabled') && !el.hasAttribute('data-readonly')
+      ) as HTMLElement[];
+
+      const index = focusable.indexOf(e.currentTarget as HTMLElement);
+      if (index > -1 && index < focusable.length - 1) {
+        focusable[index + 1].focus();
+      }
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 제목 <span className="text-red-500">*</span>
         </label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="text-sm"/>
+        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="text-sm" onKeyDown={handleKeyDown}/>
       </div>
 
       <div>
@@ -327,7 +364,7 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
         <label htmlFor="locationDescription" className="block text-sm font-semibold text-gray-700 mb-1">
           장소 상세 설명
         </label>
-        <Input id="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} />
+        <Input id="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} onKeyDown={handleKeyDown} />
       </div>
 
       <div>
@@ -345,6 +382,21 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
           {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
         </Button>
       </div>
+
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>저장하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              입력한 내용으로 모임을 {isEditMode ? "수정" : "생성"}합니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSave}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
