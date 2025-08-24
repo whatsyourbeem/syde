@@ -18,6 +18,7 @@ import { createMeetup, updateMeetup, uploadMeetupThumbnail } from "@/app/sociali
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { JSONContent } from "@tiptap/react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -52,15 +53,11 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
   const [category, setCategory] = useState<Enums<"meetup_category_enum"> | undefined>(meetup?.category);
   const [locationType, setLocationType] = useState<Enums<"meetup_location_type_enum"> | undefined>(meetup?.location_type);
   const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(meetup?.status);
-  const [startDatetime, setStartDatetime] = useState(
-    meetup?.start_datetime
-      ? new Date(meetup.start_datetime).toISOString().slice(0, 16)
-      : ""
+  const [startDatetime, setStartDatetime] = useState<Date | undefined>(
+    meetup?.start_datetime ? new Date(meetup.start_datetime) : undefined
   );
-  const [endDatetime, setEndDatetime] = useState(
-    meetup?.end_datetime
-      ? new Date(meetup.end_datetime).toISOString().slice(0, 16)
-      : ""
+  const [endDatetime, setEndDatetime] = useState<Date | undefined>(
+    meetup?.end_datetime ? new Date(meetup.end_datetime) : undefined
   );
   const [locationDescription, setLocationDescription] = useState(meetup?.location_description || "");
   const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
@@ -120,8 +117,8 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     formData.append("category", category);
     formData.append("locationType", locationType);
     formData.append("status", status);
-    formData.append("startDatetime", startDatetime);
-    formData.append("endDatetime", endDatetime);
+    formData.append("startDatetime", startDatetime?.toISOString() || "");
+    formData.append("endDatetime", endDatetime?.toISOString() || "");
     formData.append("locationDescription", locationDescription);
     formData.append("maxParticipants", maxParticipants.toString());
     if (clubId) {
@@ -214,6 +211,19 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <DateTimePicker
+          label="시작 일시"
+          date={startDatetime}
+          setDate={setStartDatetime}
+        />
+        <DateTimePicker
+          label="종료 일시"
+          date={endDatetime}
+          setDate={setEndDatetime}
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
             카테고리 <span className="text-red-500">*</span>
@@ -264,20 +274,6 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="startDatetime" className="block text-sm font-semibold text-gray-700 mb-1">
-            시작 일시 <span className="text-red-500">*</span>
-          </label>
-          <Input required id="startDatetime" type="datetime-local" value={startDatetime} onChange={(e) => setStartDatetime(e.target.value)} />
-        </div>
-        <div>
-          <label htmlFor="endDatetime" className="block text-sm font-semibold text-gray-700 mb-1">
-            종료 일시 <span className="text-red-500">*</span>
-          </label>
-          <Input required id="endDatetime" type="datetime-local" value={endDatetime} onChange={(e) => setEndDatetime(e.target.value)} />
-        </div>
-      </div>
 
       <div>
         <label htmlFor="locationDescription" className="block text-sm font-semibold text-gray-700 mb-1">
