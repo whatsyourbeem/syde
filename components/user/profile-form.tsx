@@ -21,10 +21,10 @@ interface ProfileFormProps {
   className?: string;
 }
 
-function SubmitButton({ isLinkValid }: { isLinkValid: boolean }) {
+function SubmitButton({ isLinkValid, isUsernameValid }: { isLinkValid: boolean; isUsernameValid: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending || !isLinkValid}>
+    <Button type="submit" disabled={pending || !isLinkValid || !isUsernameValid}>
       {pending ? "수정 중..." : "수정하기"}
     </Button>
   );
@@ -57,6 +57,7 @@ export default function ProfileForm({
   );
   const [isHovered, setIsHovered] = useState(false);
   const [isLinkValid, setIsLinkValid] = useState(true);
+  const [isUsernameValid, setIsUsernameValid] = useState(true);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -86,6 +87,12 @@ export default function ProfileForm({
     }
   };
 
+  const validateUsername = (username: string | null): boolean => {
+    if (!username) return true; // Allow empty for now, or add required validation later
+    const regex = /^[a-zA-Z0-9_-]*$/;
+    return regex.test(username);
+  };
+
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCurrentLink(value);
@@ -94,6 +101,12 @@ export default function ProfileForm({
     } else {
       setIsLinkValid(isValidUrl(value));
     }
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCurrentUsername(value);
+    setIsUsernameValid(validateUsername(value));
   };
 
   const resizeImage = useCallback(
@@ -236,11 +249,17 @@ export default function ProfileForm({
             name="username"
             type="text"
             value={currentUsername || ""}
-            onChange={(e) => setCurrentUsername(e.target.value)}
+            onChange={handleUsernameChange}
+            className={!isUsernameValid ? "border-red-500" : ""}
           />
           <p className="text-sm text-muted-foreground">
             프로필 네임은 프로필 페이지 링크와 연동돼요.
           </p>
+          {!isUsernameValid && (
+            <p className="text-red-500 text-sm mt-1">
+              프로필 네임은 알파벳, 숫자, _ , - 만 사용할 수 있습니다.
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-4">
@@ -319,7 +338,7 @@ export default function ProfileForm({
           )}
         </div>
         <div className="pt-4">
-          <SubmitButton isLinkValid={isLinkValid} />
+          <SubmitButton isLinkValid={isLinkValid} isUsernameValid={isUsernameValid} />
         </div>
       </form>
     </Card>
