@@ -183,7 +183,7 @@ export default function ClubForumManagementPage({
         <Link href={`/socialing/club/${club.id}`}>
           <Button variant="outline" className="mb-4"> &larr; {club.name} 클럽으로 돌아가기</Button>
         </Link>
-        <h1 className="text-3xl font-bold">게시판 관리</h1>
+        <h1 className="text-3xl font-bold pb-4">게시판 관리</h1>
         <p className="text-muted-foreground">
           클럽의 게시판을 추가, 수정, 삭제하고 권한을 설정합니다.
         </p>

@@ -208,12 +208,17 @@ export function CommentForm({
                 ? "답글을 작성하세요..."
                 : "댓글을 작성하세요..."
             }
-            disabled={!currentUserId || isSubmitting}
+            disabled={isSubmitting}
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             className="w-full pr-20 text-sm"
             ref={inputRef}
+            onClick={() => {
+              if (!currentUserId) {
+                openLoginDialog();
+              }
+            }}
           />
           {showSuggestions && mentionSuggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
