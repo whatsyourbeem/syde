@@ -207,9 +207,10 @@ export default async function RootLayout({
               </div>
             </div>
             <div className="sticky top-0 z-40 w-full bg-background">
-              <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5 border-b">
+              <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
                 <HeaderNavigation />
               </nav>
+              <div className="border-b"></div>
             </div>
             <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />
