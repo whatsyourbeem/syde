@@ -215,16 +215,16 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                               <Badge className={`${getLocationTypeBadgeClass(meetup.location_type)} text-xs`}>{meetup.location_type}</Badge>
                             </div>
                             <h3 className="font-semibold line-clamp-2 mb-2">{meetup.title}</h3>
-                            <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                              {meetup.start_datetime && (
-                                <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
-                              )}
-                              {meetup.location_description && (
-                                <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
-                              )}
-                            </div>
                           </div>
-                          <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                          <div className="flex flex-col text-xs text-muted-foreground space-y-1 mt-4"> {/* Time and Location - MOVED HERE */}
+                            {meetup.start_datetime && (
+                              <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
+                            )}
+                            {meetup.location_description && (
+                              <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t">
                             <div className="flex items-center gap-2">
                               <Avatar className="size-5">
                                 <AvatarImage src={meetup.organizer_profile?.avatar_url || undefined} />
