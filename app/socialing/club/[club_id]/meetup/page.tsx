@@ -1,0 +1,131 @@
+import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
+import { Tables, Enums } from "@/types/database.types";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Clock, MapPin, Users } from "lucide-react";
+
+type Profile = Tables<'profiles'>;
+type Meetup = Tables<'meetups'> & { organizer_profile: Profile | null };
+
+// Helper Functions (copied from club-detail-client.tsx)
+function formatDate(dateString: string | null) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const formattedHours = hours.toString().padStart(2, '0');
+
+  return `${year}.${month}.${day}(${weekday}) ${formattedHours}:${minutes}${ampm}`;
+}
+
+function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
+  switch (status) {
+    case "오픈예정": return "border-gray-400 bg-gray-100 text-gray-700 px-1 ";
+    case "신청가능": return "border-green-500 bg-green-50 text-green-700 px-1";
+    case "신청마감": return "border-red-500 bg-red-50 text-red-700 px-1 ";
+    case "종료": return "border-gray-500 bg-gray-50 text-gray-700 px-2 ";
+    default: return "border-gray-500 bg-gray-50 text-gray-700";
+  }
+}
+
+function getCategoryBadgeClass(category: Enums<"meetup_category_enum">) {
+  switch (category) {
+    case "스터디": return "bg-blue-100 text-blue-800 px-1";
+    case "챌린지": return "bg-purple-100 text-purple-800 px-1";
+    case "네트워킹": return "bg-yellow-100 text-yellow-800 px-1";
+    case "기타": return "bg-gray-100 text-gray-800 px-2";
+    default: return "bg-gray-100 text-gray-800";
+  }
+}
+
+function getLocationTypeBadgeClass(locationType: Enums<"meetup_location_type_enum">) {
+  switch (locationType) {
+    case "온라인": return "bg-green-100 text-green-800 px-1";
+    case "오프라인": return "bg-red-100 text-red-800 px-1";
+    default: return "bg-gray-100 text-gray-800";
+  }
+}
+
+export default async function ClubMeetupListPage({ params }: { params: { club_id: string } }) {
+  const supabase = await createClient();
+  const { club_id } = params;
+
+  const { data: club, error: clubError } = await supabase
+    .from('clubs')
+    .select('name')
+    .eq('id', club_id)
+    .single();
+
+  const { data: meetups, error: meetupsError } = await supabase
+    .from("meetups")
+    .select("*, organizer_profile:profiles!meetups_organizer_id_fkey(*)")
+    .eq("club_id", club_id)
+    .order("start_datetime", { ascending: false });
+
+  if (clubError || !club) {
+    notFound();
+  }
+
+  return (
+    <div className="p-4 sm:p-6">
+      <h1 className="text-3xl font-bold mb-6">'{club.name}' 클럽 모임</h1>
+      {meetups && meetups.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {(meetups as Meetup[]).map((meetup) => (
+            <Card key={meetup.id} className="h-full transition-shadow hover:shadow-lg">
+              <CardContent className="flex flex-col items-start p-3 h-full">
+                <Link href={`/socialing/meetup/${meetup.id}`} className="w-full flex flex-col flex-grow">
+                  <div className="flex-grow">
+                    <div className="flex items-center gap-2 mb-4"> {/* New row for badges */}
+                      <Badge className={`${getStatusBadgeClass(meetup.status)} text-xs`}>{meetup.status}</Badge>
+                      <Badge className={`${getCategoryBadgeClass(meetup.category)} text-xs`}>{meetup.category}</Badge>
+                      <Badge className={`${getLocationTypeBadgeClass(meetup.location_type)} text-xs`}>{meetup.location_type}</Badge>
+                    </div>
+                    <h3 className="font-semibold line-clamp-2 mb-2">{meetup.title}</h3>
+                    <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                      {meetup.start_datetime && (
+                        <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
+                      )}
+                      {meetup.location_description && (
+                        <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="size-5">
+                        <AvatarImage src={meetup.organizer_profile?.avatar_url || undefined} />
+                        <AvatarFallback>{meetup.organizer_profile?.username?.charAt(0) || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs font-medium">{meetup.organizer_profile?.full_name || meetup.organizer_profile?.username}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="size-3" />
+                      <span>{meetup.max_participants || '무제한'}</span>
+                    </div>
+                  </div>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>이 클럽에서 주최하는 모임이 아직 없습니다.</p>
+        </div>
+      )}
+    </div>
+  );
+}
