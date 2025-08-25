@@ -80,7 +80,7 @@ export default async function ClubDetailLayout({
           userRole={userRole}
         />
       </div>
-      <div className="w-auto flex-1 border-x border-gray-200">
+      <div className="w-auto flex-1 border-x border-gray-200 min-w-0">
         <ClubActionsDropdown
           clubId={club.id}
           isOwner={isOwner}
