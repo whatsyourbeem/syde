@@ -47,6 +47,7 @@ import { MobileMenu } from "@/components/layout/mobile-menu";
 import Footer from "@/components/layout/footer"; // Add this import
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default async function RootLayout({
   children,
@@ -210,7 +211,7 @@ export default async function RootLayout({
               <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
                 <HeaderNavigation />
               </nav>
-              <div className="border-b"></div>
+              <Separator />
             </div>
             <div className="max-w-6xl mx-auto">{children}</div>
             <Toaster />

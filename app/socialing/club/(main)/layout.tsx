@@ -1,39 +1,148 @@
 
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import { LoginPromptCard } from "@/components/auth/login-prompt-card";
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
-import { usePathname } from "next/navigation";
-
-export default function ClubRootLayout({
+export default async function ClubMainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isClubDetailPage = pathname.match(/\/socialing\/club\/[^/]+$/);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let profile = null;
+  let joinedClubs: { id: string; name: string; thumbnail_url: string | null }[] = [];
+
+  if (user) {
+    const profilePromise = supabase
+      .from("profiles")
+      .select("username, full_name, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    const clubsPromise = supabase
+      .from("club_members")
+      .select("clubs(id, name, thumbnail_url)")
+      .eq("user_id", user.id);
+
+    const [profileResult, clubsResult] = await Promise.all([
+      profilePromise,
+      clubsPromise,
+    ]);
+
+    if (profileResult.error && profileResult.error.code !== "PGRST116") {
+      console.error("Error fetching profile:", profileResult.error);
+    } else {
+      profile = profileResult.data;
+    }
+
+    if (clubsResult.error) {
+      console.error("Error fetching joined clubs:", clubsResult.error);
+    } else {
+      // The result is an array of objects with a 'clubs' property
+      // which can be a single object or null.
+      joinedClubs = clubsResult.data
+        .map((item) => item.clubs)
+        .filter(
+          (
+            club
+          ): club is { id: string; name: string; thumbnail_url: string | null } =>
+            club !== null
+        );
+    }
+  }
 
   return (
     <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:pb-5">
-      {!isClubDetailPage && (
-        <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-          {/* Generic Left Column Content */}
-          <div className="p-4 rounded-lg shadow bg-white">
-            <h3 className="font-bold mb-2">클럽 메뉴</h3>
-            <p className="text-sm text-gray-600">여기에 클럽 관련 일반 메뉴가 표시됩니다.</p>
+      <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
+        {user && profile ? (
+          <div className="bg-white rounded-lg">
+            <div className="flex flex-col items-center p-4">
+              <Link href={`/${profile.username}`}>
+                <Avatar className="size-16 mb-4">
+                  <AvatarImage
+                    src={profile.avatar_url || undefined}
+                    alt={`${profile.username}'s avatar`}
+                  />
+                  <AvatarFallback>
+                    {profile.username?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              <Link href={`/${profile.username}`}>
+                <p className="text-base font-bold hover:underline">
+                  {profile.full_name}
+                </p>
+              </Link>
+              <Link href={`/${profile.username}`}>
+                <p className="text-sm text-gray-500 hover:underline">
+                  @{profile.username}
+                </p>
+              </Link>
+            </div>
+                        <div className="p-4 border-t border-gray-100">
+              <h3 className="text-sm font-semibold mb-3 text-gray-700">
+                내가 가입한 클럽 ({joinedClubs.length})
+              </h3>
+              {joinedClubs.length > 0 ? (
+                <ul className="space-y-3">
+                  {joinedClubs.map((club) => (
+                    <li key={club.id}>
+                      <Link
+                        href={`/socialing/club/${club.id}`}
+                        className="flex items-center gap-3 hover:bg-gray-50 p-1 rounded-md transition-colors"
+                      >
+                        <Image
+                          src={
+                            club.thumbnail_url ||
+                            "/default_club_thumbnail.png"
+                          }
+                          alt={`${club.name} thumbnail`}
+                          width={32}
+                          height={32}
+                          className="size-8 rounded-md object-cover"
+                        />
+                        <span className="text-sm font-medium truncate">
+                          {club.name}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  아직 가입한 클럽이 없어요.
+                  <br />
+                  마음에 드는 클럽에 가입해보세요!
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-      <div className={`w-full md:w-4/5 lg:w-3/5 border-x border-gray-200 ${isClubDetailPage ? 'mx-auto' : ''}`}>
+        ) : (
+          <LoginPromptCard />
+        )}
+      </div>
+      <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
         {children}
       </div>
-      {!isClubDetailPage && (
-        <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen">
-          {/* Generic Right Column Content */}
-          <div className="p-4 rounded-lg shadow bg-white">
-            <h3 className="font-bold mb-2">인기 클럽</h3>
-            <p className="text-sm text-gray-600">여기에 인기 클럽 목록이 표시됩니다.</p>
-          </div>
+      <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen">
+        {/* Generic Right Column Content */}
+        <div className="p-4 rounded-lg bg-white text-center">
+          <h3 className="font-bold mb-2">마음에 드는 클럽이 없나요?</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            관심 있는 주제로 직접 클럽을 개설해보세요!
+          </p>
+          <Button disabled className="w-full">
+            클럽 개설 요청
+          </Button>
         </div>
-      )}
+      </div>
     </main>
   );
 }
