@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Loader2 } from "lucide-react";
+import { MoreHorizontal, Loader2, ChevronLeft } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ export default function ClubActionsDropdown({
   isMember,
   currentUserId,
 }: ClubActionsDropdownProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { openLoginDialog } = useLoginDialog();
 
@@ -53,7 +55,10 @@ export default function ClubActionsDropdown({
   };
 
   return (
-    <div className="flex justify-end items-center p-2 border-b border-gray-200">
+    <div className="flex justify-between items-center p-2 border-b border-gray-200">
+      <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <ChevronLeft className="size-5" />
+      </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">

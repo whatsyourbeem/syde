@@ -203,7 +203,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           <div className="overflow-x-auto pb-4 custom-scrollbar">
             <div className="flex space-x-4 px-4">
               {club.meetups.map((meetup) => (
-                <div key={meetup.id} className="w-[320px] flex-shrink-0">
+                <div key={meetup.id} className="w-[300px] h-[240px] flex-shrink-0">
                   <div className="p-1 h-full">
                     <Card className="h-full transition-shadow hover:shadow-lg">
                       <CardContent className="flex flex-col items-start p-4 h-full">
