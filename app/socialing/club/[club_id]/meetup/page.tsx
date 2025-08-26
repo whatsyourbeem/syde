@@ -10,6 +10,12 @@ import { Clock, MapPin, Users } from "lucide-react";
 type Profile = Tables<'profiles'>;
 type Meetup = Tables<'meetups'> & { organizer_profile: Profile | null };
 
+type ClubMeetupListPageProps = {
+  params: Promise<{
+    club_id: string;
+  }>;
+};
+
 // Helper Functions (copied from club-detail-client.tsx)
 function formatDate(dateString: string | null) {
   if (!dateString) return "";
@@ -58,9 +64,9 @@ function getLocationTypeBadgeClass(locationType: Enums<"meetup_location_type_enu
   }
 }
 
-export default async function ClubMeetupListPage({ params }: { params: { club_id: string } }) {
+export default async function ClubMeetupListPage({ params }: ClubMeetupListPageProps) {
   const supabase = await createClient();
-  const { club_id } = params;
+  const { club_id } = await params;
 
   const { data: club, error: clubError } = await supabase
     .from('clubs')
@@ -78,9 +84,14 @@ export default async function ClubMeetupListPage({ params }: { params: { club_id
     notFound();
   }
 
+  if (meetupsError) {
+    console.error("Error fetching meetups:", meetupsError);
+    // Optionally, you can render an error message to the user
+  }
+
   return (
     <div className="p-4 sm:p-6">
-      <h1 className="text-3xl font-bold mb-6">'{club.name}' 클럽 모임</h1>
+      <h1 className="text-3xl font-bold mb-6">&apos;{club.name}&apos; 클럽 모임</h1>
       {meetups && meetups.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {(meetups as Meetup[]).map((meetup) => (
