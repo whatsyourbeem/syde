@@ -203,9 +203,9 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           <div className="overflow-x-auto pb-4 custom-scrollbar">
             <div className="flex space-x-4 px-4">
               {club.meetups.map((meetup) => (
-                <div key={meetup.id} className="w-[300px] h-[240px] flex-shrink-0">
+                <div key={meetup.id} className="w-[280px] h-[240px] flex-shrink-0">
                   <div className="p-1 h-full">
-                    <Card className="h-full transition-shadow hover:shadow-lg">
+                    <Card className="h-full transition-shadow hover:shadow-lg overflow-hidden">
                       <CardContent className="flex flex-col items-start p-4 h-full">
                         <Link href={`/socialing/meetup/${meetup.id}`} className="w-full flex flex-col flex-grow">
                           <div className="flex-grow">
@@ -214,7 +214,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                               <Badge className={`${getCategoryBadgeClass(meetup.category)} text-xs`}>{meetup.category}</Badge>
                               <Badge className={`${getLocationTypeBadgeClass(meetup.location_type)} text-xs`}>{meetup.location_type}</Badge>
                             </div>
-                            <h3 className="font-semibold line-clamp-2 mb-2">{meetup.title}</h3>
+                            <h3 className="font-semibold line-clamp-2 mb-2 break-words">{meetup.title}</h3>
                           </div>
                           <div className="flex flex-col text-xs text-muted-foreground space-y-1 mt-4"> {/* Time and Location - MOVED HERE */}
                             {meetup.start_datetime && (
