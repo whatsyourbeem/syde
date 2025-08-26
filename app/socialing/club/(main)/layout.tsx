@@ -64,7 +64,7 @@ export default async function ClubMainLayout({
         {user && profile ? (
           <div className="bg-white rounded-lg">
             
-                        <div className="p-4 border-t border-gray-100">
+                        <div className="p-4">
               <h3 className="text-sm font-semibold mb-3 text-gray-700">
                 내가 가입한 클럽 ({joinedClubs.length})
               </h3>
