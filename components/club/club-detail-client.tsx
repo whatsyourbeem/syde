@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import ClubPostList from "./club-post-list"; // Import ClubPostList
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 
 
@@ -46,23 +45,47 @@ interface ClubDetailClientProps {
 function formatDate(dateString: string | null) {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-    hour: "numeric",
-    minute: "numeric",
-  }).format(date);
+
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const formattedHours = hours.toString().padStart(2, '0');
+
+  return `${year}.${month}.${day}(${weekday}) ${formattedHours}:${minutes}${ampm}`;
 }
 
 function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
   switch (status) {
-    case "오픈예정": return "border-gray-400 bg-gray-100 text-gray-700";
-    case "신청가능": return "border-green-500 bg-green-50 text-green-700";
-    case "신청마감": return "border-red-500 bg-red-50 text-red-700";
-    case "종료": return "border-gray-500 bg-gray-50 text-gray-700";
+    case "오픈예정": return "border-gray-400 bg-gray-100 text-gray-700 px-2 w-15";
+    case "신청가능": return "border-green-500 bg-green-50 text-green-700 px-2 w-15";
+    case "신청마감": return "border-red-500 bg-red-50 text-red-700 px-2 w-15";
+    case "종료": return "border-gray-500 bg-gray-50 text-gray-700 px-2 w-10";
     default: return "border-gray-500 bg-gray-50 text-gray-700";
+  }
+}
+
+function getCategoryBadgeClass(category: Enums<"meetup_category_enum">) {
+  switch (category) {
+    case "스터디": return "bg-blue-100 text-blue-800";
+    case "챌린지": return "bg-purple-100 text-purple-800";
+    case "네트워킹": return "bg-yellow-100 text-yellow-800";
+    case "기타": return "bg-gray-100 text-gray-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
+}
+
+function getLocationTypeBadgeClass(locationType: Enums<"meetup_location_type_enum">) {
+  switch (locationType) {
+    case "온라인": return "bg-green-100 text-green-800";
+    case "오프라인": return "bg-red-100 text-red-800";
+    default: return "bg-gray-100 text-gray-800";
   }
 }
 
@@ -162,71 +185,68 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
       </Accordion>
 
       {/* Meetups Section */}
-      <div className="w-full px-4 py-8">
-        <div className="flex justify-between items-center mb-4">
+      <div className="w-full py-8">
+        <div className="flex justify-between items-center mb-4 px-4">
           <h2 className="text-2xl font-bold">🤝<span className="font-extrabold pl-2">모임</span></h2>
-          {isOwner && (
-            <Link href={`/socialing/meetup/create?club_id=${club.id}`}>
-              <Button size="sm">모임 만들기</Button>
+          <div className="flex items-center gap-2">
+            <Link href={`/socialing/club/${club.id}/meetup`}>
+              <Button variant="outline" size="sm">모두 보기</Button>
             </Link>
-          )}
+            {isOwner && (
+              <Link href={`/socialing/meetup/create?club_id=${club.id}`}>
+                <Button size="sm">모임 만들기</Button>
+              </Link>
+            )}
+          </div>
         </div>
         {club.meetups.length > 0 ? (
-          <div className="px-12"> {/* New wrapper div with padding */}
-            <Carousel
-              opts={{
-                align: "center",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {club.meetups.map((meetup) => (
-                  <CarouselItem key={meetup.id} className="md:basis-1/2 lg:basis-1/2 ">
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="flex flex-col items-start p-4">
-                          <Link href={`/socialing/meetup/${meetup.id}`} className="w-full">
-                            <div className="flex-grow">
-                              <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-semibold line-clamp-2">{meetup.title}</h3>
-                                <Badge className={getStatusBadgeClass(meetup.status)}>{meetup.status}</Badge>
-                              </div>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                {meetup.start_datetime && (
-                                  <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
-                                )}
-                                {meetup.location_description && (
-                                  <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
-                                )}
-                              </div>
+          <div className="overflow-x-auto pb-4 custom-scrollbar">
+            <div className="flex space-x-4 px-4">
+              {club.meetups.map((meetup) => (
+                <div key={meetup.id} className="w-[320px] flex-shrink-0">
+                  <div className="p-1 h-full">
+                    <Card className="h-full transition-shadow hover:shadow-lg">
+                      <CardContent className="flex flex-col items-start p-4 h-full">
+                        <Link href={`/socialing/meetup/${meetup.id}`} className="w-full flex flex-col flex-grow">
+                          <div className="flex-grow">
+                            <div className="flex items-center gap-2 mb-2"> {/* New row for badges */}
+                              <Badge className={`${getStatusBadgeClass(meetup.status)} text-xs`}>{meetup.status}</Badge>
+                              <Badge className={`${getCategoryBadgeClass(meetup.category)} text-xs`}>{meetup.category}</Badge>
+                              <Badge className={`${getLocationTypeBadgeClass(meetup.location_type)} text-xs`}>{meetup.location_type}</Badge>
                             </div>
-                            <div className="flex items-center justify-between mt-4 pt-3 border-t">
-                              <div className="flex items-center gap-2">
-                                <Avatar className="size-5">
-                                  <AvatarImage src={meetup.organizer_profile?.avatar_url || undefined} />
-                                  <AvatarFallback>{meetup.organizer_profile?.username?.charAt(0) || 'U'}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs font-medium">{meetup.organizer_profile?.full_name || meetup.organizer_profile?.username}</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Users className="size-3" />
-                                <span>{meetup.max_participants || '무제한'}</span>
-                              </div>
+                            <h3 className="font-semibold line-clamp-2 mb-2">{meetup.title}</h3>
+                          </div>
+                          <div className="flex flex-col text-xs text-muted-foreground space-y-1 mt-4"> {/* Time and Location - MOVED HERE */}
+                            {meetup.start_datetime && (
+                              <p className="flex items-center gap-1.5"><Clock className="size-3" /> {formatDate(meetup.start_datetime)}</p>
+                            )}
+                            {meetup.location_description && (
+                              <p className="flex items-center gap-1.5"><MapPin className="size-3" /> {meetup.location_description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="size-5">
+                                <AvatarImage src={meetup.organizer_profile?.avatar_url || undefined} />
+                                <AvatarFallback>{meetup.organizer_profile?.username?.charAt(0) || 'U'}</AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium">{meetup.organizer_profile?.full_name || meetup.organizer_profile?.username}</span>
                             </div>
-                          </Link>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Users className="size-3" />
+                              <span>{meetup.max_participants || '무제한'}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-12 text-muted-foreground px-4">
             <p>이 클럽에서 주최하는 모임이 아직 없습니다.</p>
           </div>
         )}

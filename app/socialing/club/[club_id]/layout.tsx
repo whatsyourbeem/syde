@@ -68,7 +68,7 @@ export default async function ClubDetailLayout({
 
   return (
     <main className="flex justify-center items-start gap-x-4 pb-3 md:pb-5 min-h-screen max-w-screen-xl mx-auto">
-      <div className="hidden md:block pl-4 w-64 sticky top-[70px] self-start">
+      <div className="hidden md:block pl-4 w-60 sticky top-[70px] self-start">
         <ClubSidebarInfo
           clubName={club.name}
           clubTagline={club.tagline || undefined}
@@ -80,7 +80,7 @@ export default async function ClubDetailLayout({
           userRole={userRole}
         />
       </div>
-      <div className="w-auto flex-1 border-x border-gray-200">
+      <div className="w-auto flex-1 border-x border-gray-200 min-w-0">
         <ClubActionsDropdown
           clubId={club.id}
           isOwner={isOwner}
@@ -89,7 +89,7 @@ export default async function ClubDetailLayout({
         />
         {children}
       </div>
-      <div className="hidden lg:block w-[180px] sticky top-[70px] self-start">
+      <div className="hidden lg:block w-[160px] sticky top-[70px] self-start">
         <ClubMembersList members={members || []} />
       </div>
     </main>
