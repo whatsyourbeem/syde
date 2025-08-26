@@ -150,7 +150,7 @@ export default async function MeetupPage({
                     <span>{meetup.clubs.name}</span>
                   </Link>
                 )}
-                <div className="flex gap-1 mb-4">
+                <div className="flex gap-1 mb-2">
                   <Badge
                     className={getCategoryBadgeClass(meetup.category)}
                   >
@@ -165,7 +165,7 @@ export default async function MeetupPage({
                   </Badge>
                 </div>
                 <HoverCard openDelay={350}>
-                  <div className="text-sm text-gray-500 flex items-center gap-2">
+                  <div className="text-sm text-gray-500 flex items-center gap-2 ">
                     <HoverCardTrigger asChild>
                       <Link href={`/${meetup.organizer_profile?.username}`}>
                         <Avatar className="size-5">

@@ -141,7 +141,7 @@ export default function MeetupDetailClient({
       </div>
 
       {/* 일시 및 장소 정보 */}
-      <div className="text-sm text-gray-500 mb-6">
+      <div className="text-sm text-gray-500 mt-4">
         {meetup.start_datetime && (
           <p className="flex items-center gap-1 mb-1">
             <Clock className="size-4" />
