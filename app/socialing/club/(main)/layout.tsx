@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 

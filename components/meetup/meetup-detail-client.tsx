@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
 import TiptapViewer from "@/components/common/tiptap-viewer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { User } from "@supabase/supabase-js";
+import { joinMeetup } from "@/app/socialing/meetup/actions";
+import { toast } from "sonner";
 
 // 날짜 포맷 헬퍼 함수 (page.tsx에서 복사)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -80,18 +93,92 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
 interface MeetupDetailClientProps {
   meetup: Meetup;
   isOrganizer: boolean;
+  user: User | null;
+  joinedClubIds: string[];
 }
 
 export default function MeetupDetailClient({
-  meetup,
+  meetup: initialMeetup,
   isOrganizer,
+  user,
+  joinedClubIds,
 }: MeetupDetailClientProps) {
+  const [meetup, setMeetup] = useState(initialMeetup);
+  const [isJoinClubDialogOpen, setIsJoinClubDialogOpen] = useState(false);
+  const [, startTransition] = useTransition();
+
   useEffect(() => {
-    document.body.classList.add('no-footer');
+    document.body.classList.add("no-footer");
     return () => {
-      document.body.classList.remove('no-footer');
+      document.body.classList.remove("no-footer");
     };
   }, []);
+
+  const isAlreadyParticipant = user
+    ? meetup.meetup_participants.some((p) => p.profiles?.id === user.id)
+    : false;
+  const isMeetupFull = meetup.max_participants
+    ? meetup.meetup_participants.length >= meetup.max_participants
+    : false;
+
+  const handleApplyClick = () => {
+    if (!user) {
+      // TODO: 로그인 다이얼로그 띄우기
+      toast.error("로그인이 필요합니다.");
+      return;
+    }
+
+    if (meetup.club_id && !joinedClubIds.includes(meetup.club_id)) {
+      setIsJoinClubDialogOpen(true);
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await joinMeetup(meetup.id);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("모임에 참가했습니다!");
+        // Optimistic update: Add the current user's profile to the participants list
+        if (user) {
+          const newParticipant = {
+            profiles: {
+              id: user.id,
+              full_name: user.user_metadata.full_name || null,
+              username: user.user_metadata.user_name || null,
+              avatar_url: user.user_metadata.avatar_url || null,
+              bio: null, // Added missing field
+              link: null, // Added missing field
+              tagline: null, // Added missing field
+              updated_at: null, // Added missing field
+            },
+          };
+          setMeetup((prev) => ({
+            ...prev,
+            meetup_participants: [...prev.meetup_participants, newParticipant],
+          }));
+        }
+      }
+    });
+  };
+
+  const getButtonState = () => {
+    if (isOrganizer) {
+      return { disabled: true, text: "내가 만든 모임" };
+    }
+    if (meetup.status !== "신청가능") {
+      return { disabled: true, text: "신청기간이 아니에요" };
+    }
+    if (isAlreadyParticipant) {
+      return { disabled: true, text: "참가중" };
+    }
+    if (isMeetupFull) {
+      return { disabled: true, text: "정원 마감" };
+    }
+    return { disabled: false, text: "참가 신청하기" };
+  };
+
+  const buttonState = getButtonState();
 
   return (
     <div>
@@ -107,7 +194,10 @@ export default function MeetupDetailClient({
 
         {meetup.clubs && (
           <div className="mb-4">
-            <Link href={`/socialing/club/${meetup.clubs.id}`} className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline">
+            <Link
+              href={`/socialing/club/${meetup.clubs.id}`}
+              className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline"
+            >
               <Network className="size-5" />
               {meetup.clubs.name}
             </Link>
@@ -228,7 +318,6 @@ export default function MeetupDetailClient({
             )}
           </div>
         </div>
-        <div className="h-20" />
       </div>
 
       {/* 고정 하단 바 */}
@@ -237,17 +326,49 @@ export default function MeetupDetailClient({
           <div>
             <p className="text-sm flex items-center gap-2">
               <Users className="size-5 text-gray-500" />
-              <span className="font-bold text-lg">{meetup.meetup_participants.length}명</span>
+              <span className="font-bold text-lg">
+                {meetup.meetup_participants.length}명
+              </span>
               {meetup.max_participants && (
-                <span className="text-gray-500 text-sm"> / {meetup.max_participants}명</span>
+                <span className="text-gray-500 text-sm">
+                  {" "}
+                  / {meetup.max_participants}명
+                </span>
               )}
             </p>
           </div>
-          <Button size="lg" disabled={meetup.status !== '신청가능'}>
-            {meetup.status !== '신청가능' ? '신청기간이 아니에요' : '참가 신청하기'}
+          <Button
+            size="lg"
+            disabled={buttonState.disabled}
+            onClick={handleApplyClick}
+          >
+            {buttonState.text}
           </Button>
         </div>
       </div>
+
+      <AlertDialog
+        open={isJoinClubDialogOpen}
+        onOpenChange={setIsJoinClubDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>클럽 가입 필요</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 모임에 참가하려면 먼저 &apos;{meetup.clubs?.name}&apos; 클럽에
+              가입해야 합니다. 클럽 페이지로 이동하여 가입하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Link href={`/socialing/club/${meetup.club_id}`}>
+                클럽으로 이동
+              </Link>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

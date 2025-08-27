@@ -43,7 +43,19 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ m
   const { data: { user } } = await supabase.auth.getUser();
   const isOrganizer = user?.id === meetup.organizer_id;
 
+  let joinedClubIds: string[] = [];
+  if (user) {
+    const { data: joinedClubsData } = await supabase
+      .from('club_members')
+      .select('club_id')
+      .eq('user_id', user.id);
+
+    if (joinedClubsData) {
+      joinedClubIds = joinedClubsData.map(item => item.club_id);
+    }
+  }
+
   return (
-    <MeetupDetailClient meetup={meetup as Meetup} isOrganizer={isOrganizer} />
+    <MeetupDetailClient meetup={meetup as Meetup} isOrganizer={isOrganizer} user={user} joinedClubIds={joinedClubIds} />
   );
 }
