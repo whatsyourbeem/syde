@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { User } from "@supabase/supabase-js";
-import { joinMeetup } from "@/app/socialing/meetup/actions";
+import { joinMeetup, approveMeetupParticipant } from "@/app/socialing/meetup/actions";
 import { toast } from "sonner";
 
 // 날짜 포맷 헬퍼 함수 (page.tsx에서 복사)
@@ -85,9 +85,9 @@ function getStatusBadgeClass(status: string) {
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
   organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
-  meetup_participants: {
+  meetup_participants: (Database["public"]["Tables"]["meetup_participants"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
-  }[];
+  })[];
 };
 
 interface MeetupDetailClientProps {
@@ -114,12 +114,27 @@ export default function MeetupDetailClient({
     };
   }, []);
 
-  const isAlreadyParticipant = user
-    ? meetup.meetup_participants.some((p) => p.profiles?.id === user.id)
+  const isApprovedParticipant = user
+    ? meetup.meetup_participants.some(
+        (p) => p.profiles?.id === user.id && p.status === "approved"
+      )
+    : false;
+
+  const isPendingParticipant = user
+    ? meetup.meetup_participants.some(
+        (p) => p.profiles?.id === user.id && p.status === "pending"
+      )
     : false;
   const isMeetupFull = meetup.max_participants
     ? meetup.meetup_participants.length >= meetup.max_participants
     : false;
+
+  const approvedParticipants = meetup.meetup_participants.filter(
+    (p) => p.status === "approved"
+  );
+  const pendingParticipants = meetup.meetup_participants.filter(
+    (p) => p.status === "pending"
+  );
 
   const handleApplyClick = () => {
     if (!user) {
@@ -147,17 +162,41 @@ export default function MeetupDetailClient({
               full_name: user.user_metadata.full_name || null,
               username: user.user_metadata.user_name || null,
               avatar_url: user.user_metadata.avatar_url || null,
-              bio: null, // Added missing field
-              link: null, // Added missing field
-              tagline: null, // Added missing field
-              updated_at: null, // Added missing field
+              bio: null,
+              link: null,
+              tagline: null,
+              updated_at: null,
             },
+            status: "pending" as Database["public"]["Enums"]["meetup_participant_status_enum"], // Added status
+            joined_at: new Date().toISOString(), // Add joined_at for optimistic update
+            meetup_id: meetup.id, // Add meetup_id
+            user_id: user.id, // Add user_id
           };
           setMeetup((prev) => ({
             ...prev,
             meetup_participants: [...prev.meetup_participants, newParticipant],
           }));
         }
+      }
+    });
+  };
+
+  const handleApproveParticipant = async (participantUserId: string) => {
+    startTransition(async () => {
+      const result = await approveMeetupParticipant(meetup.id, participantUserId);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("참가자가 승인되었습니다!");
+        // Optimistic UI update: Move participant from pending to approved
+        setMeetup((prev) => {
+          const updatedParticipants = prev.meetup_participants.map((p) =>
+            p.user_id === participantUserId
+              ? { ...p, status: "approved" as Database["public"]["Enums"]["meetup_participant_status_enum"] }
+              : p
+          );
+          return { ...prev, meetup_participants: updatedParticipants };
+        });
       }
     });
   };
@@ -169,8 +208,11 @@ export default function MeetupDetailClient({
     if (meetup.status !== "신청가능") {
       return { disabled: true, text: "신청기간이 아니에요" };
     }
-    if (isAlreadyParticipant) {
+    if (isApprovedParticipant) {
       return { disabled: true, text: "참가중" };
+    }
+    if (isPendingParticipant) {
+      return { disabled: true, text: "참가대기중" };
     }
     if (isMeetupFull) {
       return { disabled: true, text: "정원 마감" };
@@ -275,10 +317,10 @@ export default function MeetupDetailClient({
           <TiptapViewer content={meetup.description} />
         </div>
 
-        {/* 참가자 목록 */}
-        <div className="bg-white rounded-lg p-6">
+        {/* 참가자 (확정) 목록 */}
+        <div className="bg-white rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-3">
-            참가자 ({meetup.meetup_participants.length}명)
+            참가자 ({approvedParticipants.length}명)
           </h2>
           {meetup.max_participants && (
             <p className="text-sm text-gray-600 mb-3">
@@ -286,35 +328,73 @@ export default function MeetupDetailClient({
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            {meetup.meetup_participants.length > 0 ? (
-              meetup.meetup_participants.map(
-                (participant: {
-                  profiles:
-                    | Database["public"]["Tables"]["profiles"]["Row"]
-                    | null;
-                }) => (
-                  <div
-                    key={participant.profiles?.id}
-                    className="flex items-center gap-2"
-                  >
-                    <Avatar className="size-6">
-                      <AvatarImage
-                        src={participant.profiles?.avatar_url || undefined}
-                      />
-                      <AvatarFallback>
-                        {participant.profiles?.username?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p>
-                      {participant.profiles?.full_name ||
-                        participant.profiles?.username ||
-                        "알 수 없음"}
-                    </p>
-                  </div>
-                )
-              )
+            {approvedParticipants.length > 0 ? (
+              approvedParticipants.map((participant) => (
+                <div
+                  key={participant.profiles?.id}
+                  className="flex items-center gap-2"
+                >
+                  <Avatar className="size-6">
+                    <AvatarImage
+                      src={participant.profiles?.avatar_url || undefined}
+                    />
+                    <AvatarFallback>
+                      {participant.profiles?.username?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p>
+                    {participant.profiles?.full_name ||
+                      participant.profiles?.username ||
+                      "알 수 없음"}
+                  </p>
+                </div>
+              ))
             ) : (
-              <p className="text-gray-500">아직 참가자가 없습니다.</p>
+              <p className="text-gray-500">아직 확정된 참가자가 없습니다.</p>
+            )}
+          </div>
+        </div>
+
+        {/* 참가 대기중인 멤버 목록 */}
+        <div className="bg-white rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-3">
+            참가 대기중 ({pendingParticipants.length}명)
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {pendingParticipants.length > 0 ? (
+              pendingParticipants.map((participant) => (
+                <div
+                  key={participant.profiles?.id}
+                  className="flex items-center gap-2"
+                >
+                  <Avatar className="size-6">
+                    <AvatarImage
+                      src={participant.profiles?.avatar_url || undefined}
+                    />
+                    <AvatarFallback>
+                      {participant.profiles?.username?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p>
+                    {participant.profiles?.full_name ||
+                      participant.profiles?.username ||
+                      "알 수 없음"}
+                  </p>
+                  {isOrganizer && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleApproveParticipant(participant.user_id)}
+                    >
+                      승인
+                    </Button>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">
+                현재 참가 대기중인 멤버가 없습니다.
+              </p>
             )}
           </div>
         </div>
@@ -327,7 +407,7 @@ export default function MeetupDetailClient({
             <p className="text-sm flex items-center gap-2">
               <Users className="size-5 text-gray-500" />
               <span className="font-bold text-lg">
-                {meetup.meetup_participants.length}명
+                {approvedParticipants.length}명
               </span>
               {meetup.max_participants && (
                 <span className="text-gray-500 text-sm">

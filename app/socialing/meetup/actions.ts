@@ -56,11 +56,51 @@ export async function joinMeetup(meetupId: string) {
   // 5. 참가자 추가
   const { error } = await supabase
     .from('meetup_participants')
-    .insert({ meetup_id: meetupId, user_id: user.id });
+    .insert({ meetup_id: meetupId, user_id: user.id, status: 'pending' });
 
   if (error) {
     console.error('Error inserting participant:', error);
     return { error: '모임 참가에 실패했습니다. 다시 시도해주세요.' };
+  }
+
+  revalidatePath(`/socialing/meetup/${meetupId}`);
+  return { success: true };
+}
+
+export async function approveMeetupParticipant(meetupId: string, userId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'User not found' };
+  }
+
+  // Verify that the current user is the organizer of the meetup
+  const { data: meetup, error: meetupError } = await supabase
+    .from('meetups')
+    .select('organizer_id')
+    .eq('id', meetupId)
+    .single();
+
+  if (meetupError || !meetup) {
+    console.error('Error fetching meetup for approval:', meetupError);
+    return { error: '모임 정보를 찾을 수 없습니다.' };
+  }
+
+  if (meetup.organizer_id !== user.id) {
+    return { error: '모임장만 참가자를 승인할 수 있습니다.' };
+  }
+
+  // Update the participant\'s status to 'approved'
+  const { error } = await supabase
+    .from('meetup_participants')
+    .update({ status: 'approved' })
+    .eq('meetup_id', meetupId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error approving participant:', error);
+    return { error: '참가자 승인에 실패했습니다. 다시 시도해주세요.' };
   }
 
   revalidatePath(`/socialing/meetup/${meetupId}`);

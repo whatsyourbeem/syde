@@ -386,16 +386,19 @@ export type Database = {
         Row: {
           joined_at: string;
           meetup_id: string;
+          status: Database["public"]["Enums"]["meetup_participant_status_enum"];
           user_id: string;
         };
         Insert: {
           joined_at?: string;
           meetup_id: string;
+          status?: Database["public"]["Enums"]["meetup_participant_status_enum"];
           user_id: string;
         };
         Update: {
           joined_at?: string;
           meetup_id?: string;
+          status?: Database["public"]["Enums"]["meetup_participant_status_enum"];
           user_id?: string;
         };
         Relationships: [
@@ -599,6 +602,7 @@ export type Database = {
         | "LEADER";
       meetup_category_enum: "스터디" | "챌린지" | "네트워킹" | "기타";
       meetup_location_type_enum: "온라인" | "오프라인";
+      meetup_participant_status_enum: "pending" | "approved" | "rejected";
       meetup_status_enum: "오픈예정" | "신청가능" | "신청마감" | "종료";
     };
     CompositeTypes: {
@@ -734,6 +738,7 @@ export const Constants = {
       club_permission_level_enum: ["PUBLIC", "MEMBER", "FULL_MEMBER", "LEADER"],
       meetup_category_enum: ["스터디", "챌린지", "네트워킹", "기타"],
       meetup_location_type_enum: ["온라인", "오프라인"],
+      meetup_participant_status_enum: ["pending", "approved", "rejected"],
       meetup_status_enum: ["오픈예정", "신청가능", "신청마감", "종료"],
     },
   },
