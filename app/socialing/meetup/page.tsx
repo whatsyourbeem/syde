@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Database, Enums } from "@/types/database.types";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
   organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -164,69 +164,35 @@ export default async function MeetupPage({
                     {meetup.location_type}
                   </Badge>
                 </div>
-                <HoverCard openDelay={350}>
+                {meetup.organizer_profile && (
+                <ProfileHoverCard userId={meetup.organizer_profile.id} profileData={meetup.organizer_profile}>
                   <div className="text-sm text-gray-500 flex items-center gap-2">
-                    <HoverCardTrigger asChild>
-                      <Link href={`/${meetup.organizer_profile?.username}`}>
-                        <Avatar className="size-5">
-                          <AvatarImage
-                            src={
-                              meetup.organizer_profile?.avatar_url || undefined
-                            }
-                          />
-                          <AvatarFallback>
-                            {meetup.organizer_profile?.username?.charAt(0) ||
-                              "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Link>
-                    </HoverCardTrigger>
+                    <Link href={`/${meetup.organizer_profile?.username}`}>
+                      <Avatar className="size-5">
+                        <AvatarImage
+                          src={
+                            meetup.organizer_profile?.avatar_url || undefined
+                          }
+                        />
+                        <AvatarFallback>
+                          {meetup.organizer_profile?.username?.charAt(0) ||
+                            "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
                     <p>
-                      <HoverCardTrigger asChild>
-                        <Link href={`/${meetup.organizer_profile?.username}`}>
-                          <span className="font-semibold text-black hover:underline">
-                            {meetup.organizer_profile?.full_name ||
-                              meetup.organizer_profile?.username ||
-                              "알 수 없음"}
-                          </span>
-                        </Link>
-                      </HoverCardTrigger>
+                      <Link href={`/${meetup.organizer_profile?.username}`}>
+                        <span className="font-semibold text-black hover:underline">
+                          {meetup.organizer_profile?.full_name ||
+                            meetup.organizer_profile?.username ||
+                            "알 수 없음"}
+                        </span>
+                      </Link>
                       <span className="ml-1">모임장</span>
                     </p>
                   </div>
-                  <HoverCardContent className="w-80" align="start" alignOffset={-28}>
-                    {meetup.organizer_profile && (
-                      <Link href={`/${meetup.organizer_profile.username}`}>
-                        <div className="flex justify-start space-x-4">
-                          {meetup.organizer_profile.avatar_url ? (
-                            <Image
-                              src={meetup.organizer_profile.avatar_url}
-                              alt={`${meetup.organizer_profile.username || "User"}'s avatar`}
-                              width={64}
-                              height={64}
-                              className="rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="size-16 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-2xl font-semibold">
-                                {meetup.organizer_profile.username?.charAt(0) || "U"}
-                              </span>
-                            </div>
-                          )}
-                          <div className="space-y-1">
-                            <h4 className="text-base font-semibold">
-                              {meetup.organizer_profile.full_name || ""}
-                            </h4>
-                            <p className="text-sm">@{meetup.organizer_profile.username || "Anonymous"}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {meetup.organizer_profile.tagline || ""}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    )}
-                  </HoverCardContent>
-                </HoverCard>
+                </ProfileHoverCard>
+                )}
                 <div className="text-sm text-gray-500 mt-2 flex-grow">
                   {meetup.max_participants && (
                     <p className="flex items-center gap-1 mb-1">

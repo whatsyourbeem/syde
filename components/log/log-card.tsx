@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 
 import { toast } from "sonner";
@@ -25,7 +25,7 @@ import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 
 import { useRouter } from "next/navigation";
-import { linkifyMentions, formatRelativeTime } from "@/lib/utils"; // Only linkifyMentions is needed
+import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -38,8 +38,8 @@ interface LogCardProps {
   initialHasLiked: boolean;
   initialCommentsCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
-  searchQuery?: string; // New prop
-  isDetailPage?: boolean; // Add this line
+  searchQuery?: string;
+  isDetailPage?: boolean;
 }
 
 export function LogCard({
@@ -49,18 +49,18 @@ export function LogCard({
   initialHasLiked,
   initialCommentsCount,
   mentionedProfiles,
-  searchQuery, // Destructure searchQuery
-  isDetailPage = false, // Default to false
+  searchQuery,
+  isDetailPage = false,
 }: LogCardProps) {
   const supabase = createClient();
   const router = useRouter();
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
-  const [commentsCount, setCommentsCount] = useState(initialCommentsCount); // Added commentsCount state
+  const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
   const [loading, setLoading] = useState(false);
-  const [showComments, setShowComments] = useState(false); // State to toggle comments
+  const [showComments, setShowComments] = useState(false);
   
-  const [showReadMore, setShowReadMore] = useState(false); // State for "Read More" button
+  const [showReadMore, setShowReadMore] = useState(false);
   const [imageStyle, setImageStyle] = useState<{
     width?: string;
     height?: string;
@@ -68,15 +68,13 @@ export function LogCard({
     objectFit: "cover" | "contain";
     margin?: string;
   } | null>(null);
-  const contentRef = useRef<HTMLParagraphElement>(null); // Ref for content paragraph
+  const contentRef = useRef<HTMLParagraphElement>(null);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
 
   useEffect(() => {
     if (contentRef.current) {
-      // Approximate line height for 12 lines (e.g., 1.5rem * 12 = 18rem = 288px)
-      // Adjust max-height based on your actual line height and font size
-      const maxHeight = 12 * 24; // Assuming ~24px per line (text-base is usually 16px, plus line-height)
+      const maxHeight = 12 * 24;
       if (contentRef.current.scrollHeight > maxHeight) {
         setShowReadMore(true);
       } else {
@@ -92,18 +90,16 @@ export function LogCard({
       img.onload = () => {
         if (img.naturalHeight > 0) {
           const originalAspectRatio = img.naturalWidth / img.naturalHeight;
-          const targetAspectRatio = 3 / 4; // width:height = 3:4
+          const targetAspectRatio = 3 / 4;
 
           if (originalAspectRatio < targetAspectRatio) {
-            // If original image is taller than 3:4, fix container to 300px width and 400px height, and cover
             setImageStyle({
               width: "300px",
               height: "400px",
               objectFit: "cover",
-              margin: "0 auto", // Add this line for center alignment
+              margin: "0 auto",
             });
           } else {
-            // If original image is wider or equal to 3:4, maintain original aspect ratio, and contain
             setImageStyle({
               aspectRatio: `${originalAspectRatio}`,
               objectFit: "contain",
@@ -122,7 +118,7 @@ export function LogCard({
   useEffect(() => {
     setLikesCount(initialLikesCount);
     setHasLiked(initialHasLiked);
-    setCommentsCount(initialCommentsCount); // Update commentsCount on prop change
+    setCommentsCount(initialCommentsCount);
   }, [initialLikesCount, initialHasLiked, initialCommentsCount]);
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
@@ -136,7 +132,6 @@ export function LogCard({
 
     setLoading(true);
     if (hasLiked) {
-      // Unlike
       const { error } = await supabase
         .from("log_likes")
         .delete()
@@ -150,7 +145,6 @@ export function LogCard({
         console.error("Error unliking log:", error);
       }
     } else {
-      // Like
       const { error } = await supabase
         .from("log_likes")
         .insert({ log_id: log.id, user_id: currentUserId });
@@ -167,7 +161,7 @@ export function LogCard({
 
   const handleCommentAdded = () => {
     setCommentsCount((prev) => prev + 1);
-    setShowComments(true); // Show comments after adding one
+    setShowComments(true);
   };
 
   const handleDelete = async () => {
@@ -180,7 +174,6 @@ export function LogCard({
 
     setLoading(true);
     try {
-      // Delete image from storage if it exists
       if (log.image_url) {
         const url = new URL(log.image_url);
         const path = url.pathname.split("/logimages/")[1];
@@ -190,12 +183,10 @@ export function LogCard({
             .remove([path]);
           if (storageError) {
             console.error("Error deleting image from storage:", storageError);
-            // Continue with log deletion even if image deletion fails
           }
         }
       }
 
-      // Delete the log itself
       const { error: dbError } = await supabase
         .from("logs")
         .delete()
@@ -204,8 +195,6 @@ export function LogCard({
       if (dbError) {
         throw dbError;
       }
-
-      // No need to update state, realtime will handle it
     } catch (error: unknown) {
       console.error("Error deleting log:", error);
       if (error instanceof Error) {
@@ -255,17 +244,17 @@ export function LogCard({
   };
 
   const handleCardClick = () => {
-    if (isDetailPage) return; // Don't navigate if already on the detail page
+    if (isDetailPage) return;
     router.push(`/log/${log.id}`);
   };
 
   return (
-    <HoverCard openDelay={350}>
-      <div className="rounded-lg bg-card flex flex-col">
-        {/* Section 1: Profile Header (Not clickable as a block) */}
-        <div className="flex items-start">
-          {avatarUrlWithCacheBuster && (
-            <HoverCardTrigger asChild>
+    <div className="rounded-lg bg-card flex flex-col">
+      {/* Section 1: Profile Header */}
+      <div className="flex items-start justify-between">
+        <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
+          <div className="flex items-start">
+            {avatarUrlWithCacheBuster && (
               <Link href={`/${log.profiles?.username || log.user_id}`}>
                 <Image
                   src={avatarUrlWithCacheBuster}
@@ -275,11 +264,9 @@ export function LogCard({
                   className="rounded-full object-cover mr-2"
                 />
               </Link>
-            </HoverCardTrigger>
-          )}
-          <div className="flex-grow">
-            <div className="flex items-baseline gap-1">
-              <HoverCardTrigger asChild>
+            )}
+            <div className="flex-grow">
+              <div className="flex items-baseline gap-1">
                 <Link href={`/${log.profiles?.username || log.user_id}`}>
                   <p className="font-semibold hover:underline text-log-content">
                     {log.profiles?.full_name ||
@@ -287,193 +274,168 @@ export function LogCard({
                       "Anonymous"}
                   </p>
                 </Link>
-              </HoverCardTrigger>
-              
-              {log.profiles?.tagline && (
-                <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
-              )}
-              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedLogDate}</p>
+                {log.profiles?.tagline && (
+                  <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
+                )}
+                <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedLogDate}</p>
+              </div>
             </div>
-            
           </div>
-          <div className="flex items-center gap-2 ml-auto">
-            {currentUserId === log.user_id && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 text-muted-foreground rounded-full hover:bg-secondary">
-                    <MoreHorizontal size={16} />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <LogEditDialog
-                    userId={currentUserId}
-                    avatarUrl={log.profiles?.avatar_url || null}
-                    username={log.profiles?.username || null}
-                    full_name={log.profiles?.full_name || null}
-                    initialLogData={log}
-                    onSuccess={() => router.refresh()}
-                  >
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                      <Edit className="mr-2 h-4 w-4" />
-                      <span>수정</span>
-                    </DropdownMenuItem>
-                  </LogEditDialog>
-                  <DropdownMenuItem onClick={handleDelete} className="text-red-500 cursor-pointer">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>삭제</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-
-        {/* Section 2: Content (Clickable block) */}
-        <div onClick={handleCardClick} className={`${!isDetailPage ? 'cursor-pointer' : ''} py-1 pl-[44px] relative`} style={{ marginTop: '-12px' }}>
-          <p ref={contentRef} className={`mb-3 text-log-content whitespace-pre-wrap ${!isDetailPage ? 'overflow-hidden max-h-72' : ''}`}>
-            {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
-          </p>
-          {showReadMore && !isDetailPage && (
-            <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-5 pt-2 pb-3">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent card click
-                  router.push(`/log/${log.id}`);
-                }}
-                className="text-blue-500 hover:underline text-sm font-semibold"
-              >
-                ... 더보기
-              </button>
-            </div>
-          )}
-          {log.image_url && (
-            <div
-              className="relative w-full mt-3 rounded-md overflow-hidden max-h-[400px]"
-              style={imageStyle ? { ...imageStyle } : {}}
-            >
-              <Image
-                src={log.image_url}
-                alt="Log image"
-                fill
-                style={{ objectFit: imageStyle?.objectFit || "contain" }}
-                sizes="(max-width: 768px) 100vw, 672px"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Section 3: Actions (Independent buttons) */}
-        <div className="flex justify-between items-center text-sm text-muted-foreground px-[44px] pt-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleLike}
-                  className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
-                >
-                  <HeartIcon
-                    className={
-                      hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
-                    }
-                    size={18}
-                  />
-                  <span className="group-hover:text-red-500">{likesCount}</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>좋아요</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => {
-                    setShowComments(!showComments);
-                  }}
-                  className={`flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20 ${showComments ? 'text-green-500' : ''}`}>
-                  <MessageCircle size={18} />
-                  <span>{commentsCount}</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>댓글</p>
-              </TooltipContent>
-            </Tooltip>
+        </ProfileHoverCard>
+        
+        <div className="flex items-center gap-2">
+          {currentUserId === log.user_id && (
             <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20">
-                      <Share2 size={18} />
-                    </button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>공유</p>
-                </TooltipContent>
-              </Tooltip>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 text-muted-foreground rounded-full hover:bg-secondary">
+                  <MoreHorizontal size={16} />
+                </button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
-                  <Link2 className="mr-2 h-4 w-4" />
-                  <span>링크 복사하기</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleShareAll} className="cursor-pointer">
-                  <span>모두 보기</span>
+                <LogEditDialog
+                  userId={currentUserId}
+                  avatarUrl={log.profiles?.avatar_url || null}
+                  username={log.profiles?.username || null}
+                  full_name={log.profiles?.full_name || null}
+                  initialLogData={log}
+                  onSuccess={() => router.refresh()}
+                >
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>수정</span>
+                  </DropdownMenuItem>
+                </LogEditDialog>
+                <DropdownMenuItem onClick={handleDelete} className="text-red-500 cursor-pointer">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>삭제</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => console.log("Save button clicked!")}
-                  className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
-                >
-                  <Bookmark size={18} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>저장</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          )}
         </div>
+      </div>
 
-        {/* Section 4: Comments (Shown conditionally) */}
-        {showComments && (
-          <div className="mt-4 border-t">
-            <CommentList logId={log.id} currentUserId={currentUserId} />
-            <CommentForm
-              logId={log.id}
-              currentUserId={currentUserId}
-              onCommentAdded={handleCommentAdded}
+      {/* Section 2: Content (Clickable block) */}
+      <div onClick={handleCardClick} className={`${!isDetailPage ? 'cursor-pointer' : ''} py-1 pl-[44px] relative`} style={{ marginTop: '-12px' }}>
+        <p ref={contentRef} className={`mb-3 text-log-content whitespace-pre-wrap ${!isDetailPage ? 'overflow-hidden max-h-72' : ''}`}>
+          {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
+        </p>
+        {showReadMore && !isDetailPage && (
+          <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-5 pt-2 pb-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/log/${log.id}`);
+              }}
+              className="text-blue-500 hover:underline text-sm font-semibold"
+            >
+              ... 더보기
+            </button>
+          </div>
+        )}
+        {log.image_url && (
+          <div
+            className="relative w-full mt-3 rounded-md overflow-hidden max-h-[400px]"
+            style={imageStyle ? { ...imageStyle } : {}}
+          >
+            <Image
+              src={log.image_url}
+              alt="Log image"
+              fill
+              style={{ objectFit: imageStyle?.objectFit || "contain" }}
+              sizes="(max-width: 768px) 100vw, 672px"
             />
           </div>
         )}
       </div>
-      <HoverCardContent className="w-80" align="start" alignOffset={-48}>
-        <Link href={`/${log.profiles?.username || log.user_id}`}>
-          <div className="flex justify-start space-x-4">
-            {avatarUrlWithCacheBuster && (
-              <Image
-                src={avatarUrlWithCacheBuster}
-                alt={`${log.profiles?.username || "User"}'s avatar`}
-                width={64}
-                height={64}
-                className="rounded-full object-cover"
-              />
-            )}
-            <div className="space-y-1">
-              <h4 className="text-base font-semibold">
-                {log.profiles?.full_name || ""}
-              </h4>
-              <p className="text-sm">@{log.profiles?.username || "Anonymous"}</p>
-              <p className="text-xs text-muted-foreground">
-                {log.profiles?.tagline || ""}
-              </p>
-            </div>
-          </div>
-        </Link>
-      </HoverCardContent>
+
+      {/* Section 3: Actions (Independent buttons) */}
+      <div className="flex justify-between items-center text-sm text-muted-foreground px-[44px] pt-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
+              >
+                <HeartIcon
+                  className={
+                    hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                  }
+                  size={18}
+                />
+                <span className="group-hover:text-red-500">{likesCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>좋아요</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {
+                  setShowComments(!showComments);
+                }}
+                className={`flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20 ${showComments ? 'text-green-500' : ''}`}>
+                <MessageCircle size={18} />
+                <span>{commentsCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>댓글</p>
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20">
+                    <Share2 size={18} />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>공유</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+                <Link2 className="mr-2 h-4 w-4" />
+                <span>링크 복사하기</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShareAll} className="cursor-pointer">
+                <span>모두 보기</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => console.log("Save button clicked!")}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+              >
+                <Bookmark size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>저장</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {/* Section 4: Comments (Shown conditionally) */}
+      {showComments && (
+        <div className="mt-4 border-t">
+          <CommentList logId={log.id} currentUserId={currentUserId} />
+          <CommentForm
+            logId={log.id}
+            currentUserId={currentUserId}
+            onCommentAdded={handleCommentAdded}
+          />
+        </div>
+      )}
       <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
         <AlertDialogContent className="w-[350px] rounded-lg">
           <AlertDialogHeader>
@@ -516,6 +478,6 @@ export function LogCard({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </HoverCard>
+    </div>
   );
 }

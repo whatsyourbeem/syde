@@ -425,7 +425,7 @@ export async function fetchClubPostComments(
     .select(
       `
       *,
-      author:profiles(id, username, full_name, avatar_url)
+      author:profiles(*)
     `
     )
     .eq("post_id", postId)
@@ -446,7 +446,7 @@ export async function fetchClubPostComments(
         .select(
           `
           *,
-          author:profiles(id, username, full_name, avatar_url)
+          author:profiles(*)
         `
         )
         .eq("parent_comment_id", comment.id)

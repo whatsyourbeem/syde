@@ -36,11 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
@@ -243,32 +239,28 @@ export function LogDetail({ log, user }: LogDetailProps) {
       <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header (Not clickable as a block) */}
       <div className="flex items-center justify-between">
-        <HoverCard openDelay={350}>
+        <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
           <div className="flex items-center">
-            <HoverCardTrigger asChild>
-              <Link href={`/${log.profiles?.username || log.user_id}`}>
-                {avatarUrlWithCacheBuster && (
-                  <Image
-                    src={avatarUrlWithCacheBuster}
-                    alt={`${log.profiles?.username || "User"}'s avatar`}
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover mr-3"
-                  />
-                )}
-              </Link>
-            </HoverCardTrigger>
+            <Link href={`/${log.profiles?.username || log.user_id}`}>
+              {avatarUrlWithCacheBuster && (
+                <Image
+                  src={avatarUrlWithCacheBuster}
+                  alt={`${log.profiles?.username || "User"}'s avatar`}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover mr-3"
+                />
+              )}
+            </Link>
             <div className="flex-grow">
               <div className="flex items-baseline gap-2">
-                <HoverCardTrigger asChild>
-                  <Link href={`/${log.profiles?.username || log.user_id}`}>
-                    <p className="font-semibold hover:underline">
-                      {log.profiles?.full_name ||
-                        log.profiles?.username ||
-                        "Anonymous"}
-                    </p>
-                  </Link>
-                </HoverCardTrigger>
+                <Link href={`/${log.profiles?.username || log.user_id}`}>
+                  <p className="font-semibold hover:underline">
+                    {log.profiles?.full_name ||
+                      log.profiles?.username ||
+                      "Anonymous"}
+                  </p>
+                </Link>
                 {log.profiles?.tagline && (
                   <p className="text-xs text-muted-foreground">
                     {log.profiles.tagline}
@@ -280,31 +272,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
               </div>
             </div>
           </div>
-          <HoverCardContent className="w-80" align="start" alignOffset={-52}>
-            <Link href={`/${log.profiles?.username || log.user_id}`}>
-              <div className="flex justify-start space-x-4">
-                {avatarUrlWithCacheBuster && (
-                  <Image
-                    src={avatarUrlWithCacheBuster}
-                    alt={`${log.profiles?.username || "User"}'s avatar`}
-                    width={64}
-                    height={64}
-                    className="rounded-full object-cover"
-                  />
-                )}
-                <div className="space-y-1">
-                  <h4 className="text-base font-semibold">
-                    {log.profiles?.full_name || ""}
-                  </h4>
-                  <p className="text-sm">@{log.profiles?.username || "Anonymous"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {log.profiles?.tagline || ""}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          </HoverCardContent>
-        </HoverCard>
+        </ProfileHoverCard>
         {user?.id === log.user_id && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

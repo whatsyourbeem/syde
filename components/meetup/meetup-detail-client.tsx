@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { User } from "@supabase/supabase-js";
 import { joinMeetup, approveMeetupParticipant } from "@/app/socialing/meetup/actions";
+import ProfileHoverCard from "@/components/common/profile-hover-card"; // New import
 import { toast } from "sonner";
 
 // 날짜 포맷 헬퍼 함수 (page.tsx에서 복사)
@@ -220,6 +221,51 @@ export default function MeetupDetailClient({
     return { disabled: false, text: "참가 신청하기" };
   };
 
+  const ParticipantCard = ({ participant, isOrganizer, onApprove }: {
+    participant: Database["public"]["Tables"]["meetup_participants"]["Row"] & {
+      profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    };
+    isOrganizer: boolean;
+    onApprove: (userId: string) => void;
+  }) => {
+    const profile = participant.profiles;
+    if (!profile) return null; // Should not happen if RLS is set up correctly, but good for safety
+
+    return (
+      <ProfileHoverCard userId={profile.id}>
+        <div className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer"> {/* Adjusted width and layout */}
+          <div className="flex items-center gap-2 w-full"> {/* First row */}
+            <Avatar className="size-10">
+              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarFallback>{profile.username?.charAt(0) || "U"}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm truncate">
+                {profile.full_name || "알 수 없음"}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                @{profile.username || "알 수 없음"}
+              </p>
+            </div>
+          </div>
+          {profile.tagline && ( /* Second row */
+            <p className="text-xs text-gray-500 w-full truncate">{profile.tagline}</p>
+          )}
+          {isOrganizer && participant.status === "pending" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onApprove(participant.user_id)}
+              className="w-full mt-2" // Button takes full width and has top margin
+            >
+              승인
+            </Button>
+          )}
+        </div>
+      </ProfileHoverCard>
+    );
+  };
+
   const buttonState = getButtonState();
 
   return (
@@ -330,24 +376,12 @@ export default function MeetupDetailClient({
           <div className="flex flex-wrap gap-3">
             {approvedParticipants.length > 0 ? (
               approvedParticipants.map((participant) => (
-                <div
+                <ParticipantCard
                   key={participant.profiles?.id}
-                  className="flex items-center gap-2"
-                >
-                  <Avatar className="size-6">
-                    <AvatarImage
-                      src={participant.profiles?.avatar_url || undefined}
-                    />
-                    <AvatarFallback>
-                      {participant.profiles?.username?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p>
-                    {participant.profiles?.full_name ||
-                      participant.profiles?.username ||
-                      "알 수 없음"}
-                  </p>
-                </div>
+                  participant={participant}
+                  isOrganizer={isOrganizer}
+                  onApprove={handleApproveParticipant}
+                />
               ))
             ) : (
               <p className="text-gray-500">아직 확정된 참가자가 없습니다.</p>
@@ -363,33 +397,12 @@ export default function MeetupDetailClient({
           <div className="flex flex-wrap gap-3">
             {pendingParticipants.length > 0 ? (
               pendingParticipants.map((participant) => (
-                <div
+                <ParticipantCard
                   key={participant.profiles?.id}
-                  className="flex items-center gap-2"
-                >
-                  <Avatar className="size-6">
-                    <AvatarImage
-                      src={participant.profiles?.avatar_url || undefined}
-                    />
-                    <AvatarFallback>
-                      {participant.profiles?.username?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p>
-                    {participant.profiles?.full_name ||
-                      participant.profiles?.username ||
-                      "알 수 없음"}
-                  </p>
-                  {isOrganizer && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleApproveParticipant(participant.user_id)}
-                    >
-                      승인
-                    </Button>
-                  )}
-                </div>
+                  participant={participant}
+                  isOrganizer={isOrganizer}
+                  onApprove={handleApproveParticipant}
+                />
               ))
             ) : (
               <p className="text-gray-500">
