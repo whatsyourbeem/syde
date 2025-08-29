@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
+import { OgPreviewCard } from "@/components/common/og-preview-card";
 
 type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -72,6 +73,15 @@ export function LogDetail({ log, user }: LogDetailProps) {
   } | null>(null);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
+  const [ogUrl, setOgUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const urlRegex = /(https?:\/\/[^\s]+)/;
+    const match = log.content.match(urlRegex);
+    if (match) {
+      setOgUrl(match[0]);
+    }
+  }, [log.content]);
 
   useEffect(() => {
     if (log.image_url) {
@@ -345,6 +355,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
               />
             </div>
           )}
+          {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
         </div>
       {/* Image Modal */}
       {showImageModal && (

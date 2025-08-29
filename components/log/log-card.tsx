@@ -26,6 +26,7 @@ import { Database } from "@/types/database.types";
 
 import { useRouter } from "next/navigation";
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
+import { OgPreviewCard } from "@/components/common/og-preview-card";
 
 interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -71,6 +72,15 @@ export function LogCard({
   const contentRef = useRef<HTMLParagraphElement>(null);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
+  const [ogUrl, setOgUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const urlRegex = /(https?:\/\/[^\s]+)/;
+    const match = log.content.match(urlRegex);
+    if (match) {
+      setOgUrl(match[0]);
+    }
+  }, [log.content]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -331,6 +341,11 @@ export function LogCard({
             >
               ... 더보기
             </button>
+          </div>
+        )}
+        {ogUrl && !log.image_url && (
+          <div className="mt-3">
+            <OgPreviewCard url={ogUrl} />
           </div>
         )}
         {log.image_url && (
