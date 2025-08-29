@@ -1,12 +1,14 @@
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import { LinkPreview } from "./tiptap-link-preview";
 
 import TextAlign from "@tiptap/extension-text-align";
 import ResizeImage from "tiptap-extension-resize-image"; // Import ResizeImage
 
 export const commonTiptapExtensions = [
   StarterKit,
+  LinkPreview,
   TextAlign.configure({
     types: ["heading", "paragraph"], // Keep this for text alignment
   }),

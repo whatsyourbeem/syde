@@ -74,6 +74,10 @@
   }
 }
 
+.no-footer footer {
+  display: none;
+}
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
     height: 6px;

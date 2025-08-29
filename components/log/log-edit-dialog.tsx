@@ -29,6 +29,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
+import { OgPreviewCard } from "@/components/common/og-preview-card";
+
 interface MentionSuggestion {
   id: string;
   username: string | null;
@@ -112,6 +114,7 @@ function LogForm({
   handleImageChange,
   onCancel,
   setOpen,
+  ogUrl,
 }: {
   clientAction: (formData: FormData) => Promise<void>;
   initialLogData?: LogEditDialogProps["initialLogData"];
@@ -136,6 +139,7 @@ function LogForm({
   handleImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCancel?: () => void;
   setOpen: (open: boolean) => void;
+  ogUrl: string | null;
 }) {
   return (
     <form
@@ -232,6 +236,12 @@ function LogForm({
             </div>
           </>
         )}
+        {ogUrl && !imagePreviewUrl && (
+          <>
+            <div className="border-t my-4" />
+            <OgPreviewCard url={ogUrl} />
+          </>
+        )}
       </div>
 
       <div className="flex justify-between items-center w-full p-4 border-t flex-shrink-0">
@@ -314,6 +324,24 @@ export function LogEditDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { openLoginDialog } = useLoginDialog();
+  const [ogUrl, setOgUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const urlRegex = /(https?:\/\/[^\s]+)/;
+      const match = content.match(urlRegex);
+      // Check if the found URL is different to avoid unnecessary state updates
+      if (match && match[0] !== ogUrl) {
+        setOgUrl(match[0]);
+      } else if (!match && ogUrl) {
+        setOgUrl(null);
+      }
+    }, 500); // 500ms debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [content, ogUrl]);
   
 
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -524,6 +552,7 @@ export function LogEditDialog({
     handleImageChange,
     onCancel,
     setOpen,
+    ogUrl,
   };
 
   const triggerContent = children || (

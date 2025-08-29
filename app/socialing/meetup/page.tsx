@@ -6,12 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Database, Enums } from "@/types/database.types";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  MEETUP_CATEGORIES,
+  MEETUP_LOCATION_TYPES,
+  MEETUP_STATUSES,
+  MEETUP_STATUS_DISPLAY_NAMES,
+  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
+  MEETUP_CATEGORY_DISPLAY_NAMES,
+} from "@/lib/constants";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
-type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
-  organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
-  clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
-};
+type MeetupWithOrganizerProfile =
+  Database["public"]["Tables"]["meetups"]["Row"] & {
+    organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
+  };
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -30,13 +39,13 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 
 function getCategoryBadgeClass(category: string) {
   switch (category) {
-    case "스터디":
+    case MEETUP_CATEGORIES.STUDY:
       return "border border-orange-500 bg-orange-50 text-orange-700 hover:bg-orange-50 hover:text-orange-700";
-    case "챌린지":
+    case MEETUP_CATEGORIES.CHALLENGE:
       return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
-    case "네트워킹":
+    case MEETUP_CATEGORIES.NETWORKING:
       return "border border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-50 hover:text-purple-700";
-    case "기타":
+    case MEETUP_CATEGORIES.ETC:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
@@ -45,9 +54,9 @@ function getCategoryBadgeClass(category: string) {
 
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
-    case "온라인":
+    case MEETUP_LOCATION_TYPES.ONLINE:
       return "border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-50 hover:text-blue-700";
-    case "오프라인":
+    case MEETUP_LOCATION_TYPES.OFFLINE:
       return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
@@ -56,13 +65,13 @@ function getLocationTypeBadgeClass(locationType: string) {
 
 function getStatusBadgeClass(status: string) {
   switch (status) {
-    case "오픈예정":
+    case MEETUP_STATUSES.UPCOMING:
       return "border border-gray-400 bg-gray-100 text-gray-700 hover:bg-gray-100 hover:text-gray-700";
-    case "신청가능":
+    case MEETUP_STATUSES.APPLY_AVAILABLE:
       return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
-    case "신청마감":
+    case MEETUP_STATUSES.APPLY_CLOSED:
       return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
-    case "종료":
+    case MEETUP_STATUSES.ENDED:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
@@ -88,9 +97,12 @@ export default async function MeetupPage({
     .order("created_at", { ascending: false });
 
   if (selectedStatus && selectedStatus !== "전체") {
-    const validStatuses: Enums<"meetup_status_enum">[] = ["오픈예정", "신청가능", "신청마감", "종료"];
-    if (validStatuses.includes(selectedStatus as Enums<"meetup_status_enum">)) {
-      meetupQuery = meetupQuery.eq("status", selectedStatus as Enums<"meetup_status_enum">);
+    const meetupStatus = Object.entries(MEETUP_STATUS_DISPLAY_NAMES).find(
+      (entry) => entry[1] === selectedStatus
+    )?.[0] as Enums<"meetup_status_enum"> | undefined;
+
+    if (meetupStatus) {
+      meetupQuery = meetupQuery.eq("status", meetupStatus);
     }
   }
 
@@ -116,7 +128,10 @@ export default async function MeetupPage({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {typedMeetups.map((meetup) => (
-            <div key={meetup.id} className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col">
+            <div
+              key={meetup.id}
+              className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col"
+            >
               <Link href={`/socialing/meetup/${meetup.id}`}>
                 <div className="relative">
                   <Image
@@ -128,12 +143,14 @@ export default async function MeetupPage({
                     width={300}
                     height={200}
                     className={`w-full h-48 object-cover rounded-t-lg ${
-                      meetup.status === "종료" ? "grayscale opacity-50" : ""
+                      meetup.status === MEETUP_STATUSES.ENDED
+                        ? "grayscale opacity-50"
+                        : ""
                     }`}
                   />
                   <div className="absolute top-3 left-3 flex gap-1">
                     <Badge className={getStatusBadgeClass(meetup.status)}>
-                      {meetup.status}
+                      {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
                   </div>
                 </div>
@@ -145,28 +162,30 @@ export default async function MeetupPage({
                   </h2>
                 </Link>
                 {meetup.clubs && (
-                  <Link href={`/socialing/club/${meetup.clubs.id}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2">
+                  <Link
+                    href={`/socialing/club/${meetup.clubs.id}`}
+                    className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2"
+                  >
                     <Network className="size-4" />
                     <span>{meetup.clubs.name}</span>
                   </Link>
                 )}
-                <div className="flex gap-1 mb-2">
-                  <Badge
-                    className={getCategoryBadgeClass(meetup.category)}
-                  >
-                    {meetup.category}
+                <div className="flex gap-1 mb-4">
+                  <Badge className={getCategoryBadgeClass(meetup.category)}>
+                    {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
                   </Badge>
                   <Badge
-                    className={getLocationTypeBadgeClass(
-                      meetup.location_type
-                    )}
+                    className={getLocationTypeBadgeClass(meetup.location_type)}
                   >
-                    {meetup.location_type}
+                    {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
                   </Badge>
                 </div>
-                <HoverCard openDelay={350}>
-                  <div className="text-sm text-gray-500 flex items-center gap-2 ">
-                    <HoverCardTrigger asChild>
+                {meetup.organizer_profile && (
+                  <ProfileHoverCard
+                    userId={meetup.organizer_profile.id}
+                    profileData={meetup.organizer_profile}
+                  >
+                    <div className="text-sm text-gray-500 flex items-center gap-2">
                       <Link href={`/${meetup.organizer_profile?.username}`}>
                         <Avatar className="size-5">
                           <AvatarImage
@@ -180,9 +199,7 @@ export default async function MeetupPage({
                           </AvatarFallback>
                         </Avatar>
                       </Link>
-                    </HoverCardTrigger>
-                    <p>
-                      <HoverCardTrigger asChild>
+                      <p>
                         <Link href={`/${meetup.organizer_profile?.username}`}>
                           <span className="font-semibold text-black hover:underline">
                             {meetup.organizer_profile?.full_name ||
@@ -190,43 +207,11 @@ export default async function MeetupPage({
                               "알 수 없음"}
                           </span>
                         </Link>
-                      </HoverCardTrigger>
-                      <span className="ml-1">모임장</span>
-                    </p>
-                  </div>
-                  <HoverCardContent className="w-80" align="start" alignOffset={-28}>
-                    {meetup.organizer_profile && (
-                      <Link href={`/${meetup.organizer_profile.username}`}>
-                        <div className="flex justify-start space-x-4">
-                          {meetup.organizer_profile.avatar_url ? (
-                            <Image
-                              src={meetup.organizer_profile.avatar_url}
-                              alt={`${meetup.organizer_profile.username || "User"}'s avatar`}
-                              width={64}
-                              height={64}
-                              className="rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="size-16 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-2xl font-semibold">
-                                {meetup.organizer_profile.username?.charAt(0) || "U"}
-                              </span>
-                            </div>
-                          )}
-                          <div className="space-y-1">
-                            <h4 className="text-base font-semibold">
-                              {meetup.organizer_profile.full_name || ""}
-                            </h4>
-                            <p className="text-sm">@{meetup.organizer_profile.username || "Anonymous"}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {meetup.organizer_profile.tagline || ""}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    )}
-                  </HoverCardContent>
-                </HoverCard>
+                        <span className="ml-1">모임장</span>
+                      </p>
+                    </div>
+                  </ProfileHoverCard>
+                )}
                 <div className="text-sm text-gray-500 mt-2 flex-grow">
                   {meetup.max_participants && (
                     <p className="flex items-center gap-1 mb-1">

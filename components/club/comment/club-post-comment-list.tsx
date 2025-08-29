@@ -3,9 +3,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { ClubPostCommentCard } from "./club-post-comment-card";
+import { ClubPostCommentCard, ProcessedClubPostComment } from "./club-post-comment-card";
 import { Button } from "@/components/ui/button";
-import { Database } from "@/types/database.types";
+
 import { fetchClubPostComments } from "@/app/socialing/club/actions";
 
 interface ClubPostCommentListProps {
@@ -14,21 +14,6 @@ interface ClubPostCommentListProps {
   pageSize?: number;
   showPaginationButtons?: boolean;
 }
-
-type CommentRow = Database['public']['Tables']['club_forum_post_comments']['Row'];
-type ProfileRow = Database['public']['Tables']['profiles']['Row'];
-
-type AuthorProfile = Pick<ProfileRow, 'id' | 'username' | 'full_name' | 'avatar_url'>; // Define a specific type for fetched author profile
-
-type CommentWithRelations = CommentRow & {
-  author: AuthorProfile | null; // Use the specific type
-  replies?: CommentWithRelations[];
-};
-
-type ProcessedComment = CommentRow & {
-  author: AuthorProfile | null; // Use the specific type
-  replies?: ProcessedComment[];
-};
 
 export function ClubPostCommentList({
   postId,
@@ -74,20 +59,8 @@ export function ClubPostCommentList({
         }
       }
 
-      const processComment = (comment: CommentWithRelations): ProcessedComment => {
-        return {
-          ...comment,
-          author: Array.isArray(comment.author)
-            ? comment.author[0]
-            : comment.author,
-          replies: comment.replies ? comment.replies.map(processComment) : [],
-        };
-      };
-
-      const commentsWithProcessedData: ProcessedComment[] = comments.map(processComment) || [];
-
       return {
-        comments: commentsWithProcessedData || [],
+        comments: (comments as ProcessedClubPostComment[]) || [],
         count: count || 0,
         mentionedProfiles,
       };
@@ -99,7 +72,7 @@ export function ClubPostCommentList({
   const mentionedProfiles = data?.mentionedProfiles || [];
 
   // Helper component for recursive rendering of comments
-  const renderComment = (comment: ProcessedComment, level: number = 0) => (
+  const renderComment = (comment: ProcessedClubPostComment, level: number = 0) => (
     <div key={comment.id} className={level > 0 ? "ml-8 mt-2" : ""}> {/* Indent replies */}
       <ClubPostCommentCard
         comment={comment}

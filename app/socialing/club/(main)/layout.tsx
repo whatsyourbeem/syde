@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
@@ -63,30 +63,8 @@ export default async function ClubMainLayout({
       <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
         {user && profile ? (
           <div className="bg-white rounded-lg">
-            <div className="flex flex-col items-center p-4">
-              <Link href={`/${profile.username}`}>
-                <Avatar className="size-16 mb-4">
-                  <AvatarImage
-                    src={profile.avatar_url || undefined}
-                    alt={`${profile.username}'s avatar`}
-                  />
-                  <AvatarFallback>
-                    {profile.username?.charAt(0).toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
-              <Link href={`/${profile.username}`}>
-                <p className="text-base font-bold hover:underline">
-                  {profile.full_name}
-                </p>
-              </Link>
-              <Link href={`/${profile.username}`}>
-                <p className="text-sm text-gray-500 hover:underline">
-                  @{profile.username}
-                </p>
-              </Link>
-            </div>
-                        <div className="p-4 border-t border-gray-100">
+            
+                        <div className="p-4">
               <h3 className="text-sm font-semibold mb-3 text-gray-700">
                 내가 가입한 클럽 ({joinedClubs.length})
               </h3>

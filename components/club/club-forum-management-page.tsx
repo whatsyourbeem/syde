@@ -32,6 +32,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { CLUB_PERMISSION_LEVEL_DISPLAY_NAMES } from "@/lib/constants";
 
 type Forum = Tables<"club_forums">;
 type Club = Tables<"clubs">;
@@ -48,13 +49,6 @@ const permissionLevels: PermissionLevel[] = [
   "FULL_MEMBER",
   "LEADER",
 ];
-
-const permissionKorean: Record<PermissionLevel, string> = {
-  PUBLIC: "전체 공개",
-  MEMBER: "멤버 공개",
-  FULL_MEMBER: "정회원",
-  LEADER: "클럽장",
-};
 
 export default function ClubForumManagementPage({
   club,
@@ -282,7 +276,7 @@ export default function ClubForumManagementPage({
                   <SelectContent>
                     {permissionLevels.map((level) => (
                       <SelectItem key={`read-${level}`} value={level}>
-                        {permissionKorean[level]}
+                        {CLUB_PERMISSION_LEVEL_DISPLAY_NAMES[level]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -303,7 +297,7 @@ export default function ClubForumManagementPage({
                   <SelectContent>
                     {permissionLevels.map((level) => (
                       <SelectItem key={`write-${level}`} value={level}>
-                        {permissionKorean[level]}
+                        {CLUB_PERMISSION_LEVEL_DISPLAY_NAMES[level]}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -162,11 +162,21 @@ export async function createMeetup(formData: FormData) {
     max_participants: maxParticipants ? parseInt(maxParticipants, 10) : null,
   };
 
-  const { error } = await supabase.from("meetups").insert(meetupData);
+  const { data: newMeetup, error } = await supabase.from("meetups").insert(meetupData).select('id').single();
 
-  if (error) {
+  if (error || !newMeetup) {
     console.error("Error creating meetup:", error);
     return { error: error.message };
+  }
+
+  // 모임 생성자를 참가자로 자동 추가
+  const { error: participantError } = await supabase
+    .from('meetup_participants')
+    .insert({ meetup_id: newMeetup.id, user_id: user.id });
+
+  if (participantError) {
+    console.error('Error adding organizer as participant:', participantError);
+    // 이 에러는 모임 생성 자체를 막지는 않지만, 로깅은 필요
   }
 
   revalidatePath("/socialing");

@@ -34,6 +34,25 @@ export default function TiptapEditorWrapper({
         class:
           "prose max-w-none focus:outline-none p-4",
       },
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData("text/plain");
+        if (text) {
+          try {
+            const url = new URL(text);
+            if (url.protocol === "http:" || url.protocol === "https:") {
+              view.dispatch(
+                view.state.tr.replaceSelectionWith(
+                  view.state.schema.nodes.linkPreview.create({ src: text })
+                )
+              );
+              return true; // Mark as handled
+            }
+          } catch {
+            // Not a valid URL, fall back to default paste behavior
+          }
+        }
+        return false; // Use default paste behavior
+      },
     },
     content: initialContent || { type: 'doc', content: [] },
     editable,
