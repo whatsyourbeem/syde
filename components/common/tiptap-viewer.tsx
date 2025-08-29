@@ -27,13 +27,20 @@ export default function TiptapViewer({ content, placeholder = "작성된 내용�
   useEffect(() => {
     if (!editor) return;
 
-    if (content && JSON.stringify(editor.getJSON()) !== JSON.stringify(content)) {
-      editor.commands.setContent(content as object | null);
-    } else if (!content || isTiptapJsonEmpty(content)) {
-      if (!isTiptapJsonEmpty(editor.getJSON())) {
-        editor.commands.setContent("");
+    // Using setTimeout to defer the command and avoid the flushSync error.
+    setTimeout(() => {
+      if (!editor.isDestroyed) {
+        const isContentSame = content && JSON.stringify(editor.getJSON()) === JSON.stringify(content);
+        const isEditorEmpty = isTiptapJsonEmpty(editor.getJSON());
+        const isContentEmpty = !content || isTiptapJsonEmpty(content);
+
+        if (!isContentSame && !isContentEmpty) {
+          editor.commands.setContent(content as object, false);
+        } else if (isContentEmpty && !isEditorEmpty) {
+          editor.commands.setContent("", false);
+        }
       }
-    }
+    }, 0);
   }, [editor, content]);
 
   if (!editor) {
