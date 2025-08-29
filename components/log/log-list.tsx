@@ -203,18 +203,26 @@ export function LogList({
       // --- End of new logic ---
 
       const logsWithProcessedData: ProcessedLog[] =
-        logsData?.map((log: LogRow & { profiles: ProfileRow | null; log_likes: Array<{ user_id: string }>; log_comments: Array<{ id: string }>; }) => ({
-          ...log,
-          profiles: Array.isArray(log.profiles)
-            ? log.profiles[0]
-            : log.profiles,
-          likesCount: log.log_likes?.length || 0,
-          hasLiked: currentUserId
-            ? log.log_likes?.some(
-                (like: { user_id: string }) => like.user_id === currentUserId
-              ) || false
-            : false,
-        })) || [];
+        logsData?.map(
+          (
+            log: LogRow & {
+              profiles: ProfileRow | null;
+              log_likes: Array<{ user_id: string }>;
+              log_comments: Array<{ id: string }>;
+            }
+          ) => ({
+            ...log,
+            profiles: Array.isArray(log.profiles)
+              ? log.profiles[0]
+              : log.profiles,
+            likesCount: log.log_likes?.length || 0,
+            hasLiked: currentUserId
+              ? log.log_likes?.some(
+                  (like: { user_id: string }) => like.user_id === currentUserId
+                ) || false
+              : false,
+          })
+        ) || [];
 
       return {
         logs: logsWithProcessedData || [],
@@ -222,6 +230,7 @@ export function LogList({
         mentionedProfiles,
       }; // Return mentionedProfiles
     },
+    staleTime: 1000, // Data is considered fresh for 1 second
   });
 
   const logs: ProcessedLog[] = useMemo(() => data?.logs || [], [data?.logs]);
@@ -253,7 +262,10 @@ export function LogList({
         (payload) => {
           // Invalidate only if the change is relevant to the current page's logs
           const changedLogId =
-            (payload.new as Database['public']['Tables']['log_likes']['Row']).log_id || (payload.old as Database['public']['Tables']['log_likes']['Row']).log_id;
+            (payload.new as Database["public"]["Tables"]["log_likes"]["Row"])
+              .log_id ||
+            (payload.old as Database["public"]["Tables"]["log_likes"]["Row"])
+              .log_id;
           if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
@@ -269,7 +281,10 @@ export function LogList({
         },
         (payload) => {
           const changedLogId =
-            (payload.new as Database['public']['Tables']['log_comments']['Row']).log_id || (payload.old as Database['public']['Tables']['log_comments']['Row']).log_id;
+            (payload.new as Database["public"]["Tables"]["log_comments"]["Row"])
+              .log_id ||
+            (payload.old as Database["public"]["Tables"]["log_comments"]["Row"])
+              .log_id;
           if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
