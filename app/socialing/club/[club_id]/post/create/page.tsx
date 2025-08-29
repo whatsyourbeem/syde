@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import ClubPostForm from "@/components/club/club-post-form";
+import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 interface ClubPostCreatePageProps {
   params: Promise<{
@@ -59,7 +60,7 @@ export default async function ClubPostCreatePage({ params, searchParams }: ClubP
       .eq("user_id", user.id)
       .single();
 
-    if (!memberError && member && (member.role === 'LEADER' || member.role === 'FULL_MEMBER' || member.role === 'GENERAL_MEMBER')) {
+    if (!memberError && member && (member.role === CLUB_MEMBER_ROLES.LEADER || member.role === CLUB_MEMBER_ROLES.FULL_MEMBER || member.role === CLUB_MEMBER_ROLES.GENERAL_MEMBER)) {
       // Also check write permission of the specific forum
       const { data: forumPermissions, error: permError } = await supabase
         .from("club_forums")
@@ -69,11 +70,11 @@ export default async function ClubPostCreatePage({ params, searchParams }: ClubP
 
       if (!permError && forumPermissions) {
         const writePermission = forumPermissions.write_permission;
-        if (writePermission === 'MEMBER' && (member.role === 'GENERAL_MEMBER' || member.role === 'FULL_MEMBER' || member.role === 'LEADER')) {
+        if (writePermission === CLUB_PERMISSION_LEVELS.MEMBER && (member.role === CLUB_MEMBER_ROLES.GENERAL_MEMBER || member.role === CLUB_MEMBER_ROLES.FULL_MEMBER || member.role === CLUB_MEMBER_ROLES.LEADER)) {
           canCreatePost = true;
-        } else if (writePermission === 'FULL_MEMBER' && (member.role === 'FULL_MEMBER' || member.role === 'LEADER')) {
+        } else if (writePermission === CLUB_PERMISSION_LEVELS.FULL_MEMBER && (member.role === CLUB_MEMBER_ROLES.FULL_MEMBER || member.role === CLUB_MEMBER_ROLES.LEADER)) {
           canCreatePost = true;
-        } else if (writePermission === 'LEADER' && member.role === 'LEADER') {
+        } else if (writePermission === CLUB_PERMISSION_LEVELS.LEADER && member.role === CLUB_MEMBER_ROLES.LEADER) {
           canCreatePost = true;
         }
       }

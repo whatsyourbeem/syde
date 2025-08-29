@@ -11,6 +11,7 @@ import Link from "next/link";
 
 import { Clock, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 import ClubPostList from "./club-post-list"; // Import ClubPostList
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -100,17 +101,17 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
 
   const canReadForum = (forum: ForumWithPosts) => {
     const permission = forum.read_permission;
-    if (permission === 'PUBLIC') {
+    if (permission === CLUB_PERMISSION_LEVELS.PUBLIC) {
       return true;
     }
-    if (permission === 'MEMBER') {
+    if (permission === CLUB_PERMISSION_LEVELS.MEMBER) {
       return isMember;
     }
-    if (permission === 'FULL_MEMBER') {
-      return userRole === 'FULL_MEMBER' || userRole === 'LEADER';
+    if (permission === CLUB_PERMISSION_LEVELS.FULL_MEMBER) {
+      return userRole === CLUB_MEMBER_ROLES.FULL_MEMBER || userRole === CLUB_MEMBER_ROLES.LEADER;
     }
-    if (permission === 'LEADER') {
-      return userRole === 'LEADER';
+    if (permission === CLUB_PERMISSION_LEVELS.LEADER) {
+      return userRole === CLUB_MEMBER_ROLES.LEADER;
     }
     return false;
   };
@@ -118,14 +119,14 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
   const canWriteForum = (forum: ForumWithPosts | undefined) => {
     if (!forum || !isMember) return false;
     const permission = forum.write_permission;
-    if (permission === 'MEMBER') {
+    if (permission === CLUB_PERMISSION_LEVELS.MEMBER) {
       return true;
     }
-    if (permission === 'FULL_MEMBER') {
-      return userRole === 'FULL_MEMBER' || userRole === 'LEADER';
+    if (permission === CLUB_PERMISSION_LEVELS.FULL_MEMBER) {
+      return userRole === CLUB_MEMBER_ROLES.FULL_MEMBER || userRole === CLUB_MEMBER_ROLES.LEADER;
     }
-    if (permission === 'LEADER') {
-      return userRole === 'LEADER';
+    if (permission === CLUB_PERMISSION_LEVELS.LEADER) {
+      return userRole === CLUB_MEMBER_ROLES.LEADER;
     }
     return false;
   };

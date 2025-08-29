@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form";
 import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list";
 import { ClubPostDetailHeader } from "@/components/club/club-post-detail-header";
+import { CLUB_MEMBER_ROLES } from "@/lib/constants";
 
 interface ClubPostDetailPageProps {
   params: Promise<{
@@ -66,7 +67,7 @@ export default async function ClubPostDetailPage({ params }: ClubPostDetailPageP
     }
   }
 
-  const isAuthorized = memberRole === 'LEADER' || memberRole === 'FULL_MEMBER';
+  const isAuthorized = memberRole === CLUB_MEMBER_ROLES.LEADER || memberRole === CLUB_MEMBER_ROLES.FULL_MEMBER;
 
   const author = post.profiles;
 

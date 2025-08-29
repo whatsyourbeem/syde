@@ -1,12 +1,11 @@
 'use client'
 
 import React from 'react'
-import { NodeViewWrapper } from '@tiptap/react'
+import { NodeViewWrapper, ReactNodeViewProps } from '@tiptap/react'
 import { OgPreviewCard } from './og-preview-card'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const LinkPreviewNodeView = ({ node }: { node: any }) => {
-  const url = node.attrs.src
+export const LinkPreviewNodeView = (props: ReactNodeViewProps) => {
+  const url = props.node.attrs.src as string
 
   return (
     <NodeViewWrapper className="react-component">

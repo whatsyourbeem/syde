@@ -47,7 +47,7 @@ export default function TiptapEditorWrapper({
               );
               return true; // Mark as handled
             }
-          } catch (error) {
+          } catch {
             // Not a valid URL, fall back to default paste behavior
           }
         }

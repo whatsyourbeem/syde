@@ -4,14 +4,15 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, UserPlus, LogOut, Edit, Settings, CalendarPlus } from "lucide-react";
-import { joinClub, leaveClub } from "@/app/socialing/club/actions";
+import { Loader2, UserPlus, Edit, Settings, CalendarPlus } from "lucide-react";
+import { joinClub } from "@/app/socialing/club/actions";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import Image from "next/image";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { Database } from "@/types/database.types";
+import { CLUB_MEMBER_ROLE_DISPLAY_NAMES, ClubMemberRole } from "@/lib/constants";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -63,28 +64,6 @@ export default function ClubSidebarInfo({
     }
   };
 
-  const handleLeaveClub = async () => {
-    if (!currentUserId) {
-      openLoginDialog();
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await leaveClub(clubId);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("클럽에서 탈퇴했습니다.");
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("클럽 탈퇴 중 예기치 않은 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="p-4 rounded-lg bg-white">
       <Link href={`/socialing/club/${clubId}`}>
@@ -122,7 +101,7 @@ export default function ClubSidebarInfo({
           </ProfileHoverCard>
         )}
 
-        {userRole && <Badge variant="secondary" className="w-fit">내 등급: {userRole}</Badge>}
+        {userRole && <Badge variant="secondary" className="w-fit">내 등급: {CLUB_MEMBER_ROLE_DISPLAY_NAMES[userRole as ClubMemberRole]}</Badge>}
 
         <div className="flex flex-col gap-2 mt-4">
           {isOwner && (

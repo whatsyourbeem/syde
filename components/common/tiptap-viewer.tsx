@@ -35,9 +35,9 @@ export default function TiptapViewer({ content, placeholder = "작성된 내용�
         const isContentEmpty = !content || isTiptapJsonEmpty(content);
 
         if (!isContentSame && !isContentEmpty) {
-          editor.commands.setContent(content as object, false);
+          editor.commands.setContent(content as object, { emitUpdate: false });
         } else if (isContentEmpty && !isEditorEmpty) {
-          editor.commands.setContent("", false);
+          editor.commands.setContent("", { emitUpdate: false });
         }
       }
     }, 0);

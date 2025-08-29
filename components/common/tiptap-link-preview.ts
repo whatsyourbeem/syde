@@ -3,7 +3,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { LinkPreviewNodeView } from './link-preview-node-view'
 
 export interface LinkPreviewOptions {
-  HTMLAttributes: Record<string, any>
+  HTMLAttributes: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export const LinkPreview = Node.create<LinkPreviewOptions>({

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Json, Enums } from "@/types/database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 export async function joinClub(clubId: string) {
   const supabase = await createClient();
@@ -19,7 +20,7 @@ export async function joinClub(clubId: string) {
     club_id: clubId,
     user_id: user.id,
     // TODO: Make role dynamic based on club settings
-    role: "GENERAL_MEMBER",
+    role: CLUB_MEMBER_ROLES.GENERAL_MEMBER,
   });
 
   if (error) {
@@ -627,8 +628,8 @@ export async function createForum(clubId: string, forumName: string) {
     club_id: clubId,
     name: forumName,
     description: "", // Default empty description
-    read_permission: "MEMBER", // Default permission
-    write_permission: "MEMBER", // Default permission
+    read_permission: CLUB_PERMISSION_LEVELS.MEMBER, // Default permission
+    write_permission: CLUB_PERMISSION_LEVELS.MEMBER, // Default permission
   });
 
   if (error) {
