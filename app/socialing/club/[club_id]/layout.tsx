@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import ClubMembersList from "@/components/club/club-members-list";
 import ClubSidebarInfo from "@/components/club/club-sidebar-info";
 import { notFound } from "next/navigation";
-import ClubActionsDropdown from "@/components/club/club-actions-dropdown";
 
 export default async function ClubDetailLayout({
   children,
@@ -66,21 +65,16 @@ export default async function ClubDetailLayout({
           clubThumbnailUrl={club.thumbnail_url || undefined}
           ownerProfile={club.owner_profile}
           isMember={isMember}
+          isOwner={isOwner}
           currentUserId={currentUserId}
           userRole={userRole}
         />
       </div>
       <div className="w-auto flex-1 border-x border-gray-200 min-w-0">
-        <ClubActionsDropdown
-          clubId={club.id}
-          isOwner={isOwner}
-          isMember={isMember}
-          currentUserId={currentUserId || undefined}
-        />
         {children}
       </div>
       <div className="hidden lg:block w-[160px] sticky top-[70px] self-start">
-        <ClubMembersList members={members || []} />
+        <ClubMembersList members={members || []} clubId={club_id} currentUserId={currentUserId} clubOwnerId={club.owner_id} />
       </div>
     </main>
   );

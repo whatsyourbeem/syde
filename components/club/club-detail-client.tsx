@@ -39,6 +39,7 @@ interface ClubDetailClientProps {
   isMember: boolean;
   currentUserId?: string;
   userRole: string | null;
+  isOwner: boolean;
 }
 
 // Helper Functions for Meetup Card
@@ -90,14 +91,12 @@ function getLocationTypeBadgeClass(locationType: Enums<"meetup_location_type_enu
 }
 
 // Main Component
-export default function ClubDetailClient({ club, isMember, currentUserId, userRole }: ClubDetailClientProps) {
+export default function ClubDetailClient({ club, isMember, currentUserId, userRole, isOwner }: ClubDetailClientProps) {
   
   const [activeForumId, setActiveForumId] = useState(club.forums[0]?.id || "");
   
 
   
-
-  const isOwner = currentUserId === club.owner_id;
 
   const canReadForum = (forum: ForumWithPosts) => {
     const permission = forum.read_permission;
@@ -145,6 +144,7 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
           isMember={isMember}
           currentUserId={currentUserId}
           userRole={userRole}
+          isOwner={isOwner}
         />
       </div>
 {/* 
@@ -192,11 +192,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
             <Link href={`/socialing/club/${club.id}/meetup`}>
               <Button variant="outline" size="sm">모두 보기</Button>
             </Link>
-            {isOwner && (
-              <Link href={`/socialing/meetup/create?club_id=${club.id}`}>
-                <Button size="sm">모임 만들기</Button>
-              </Link>
-            )}
           </div>
         </div>
         {club.meetups.length > 0 ? (
@@ -270,11 +265,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
                 ))}
               </TabsList>
               <div className="flex items-center gap-2">
-                {isOwner && (
-                   <Link href={`/socialing/club/${club.id}/manage`}>
-                      <Button variant="outline" size="sm">게시판 관리</Button>
-                   </Link>
-                )}
                 {canWriteForum(activeForum) && (
                   <Link href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}>
                     <Button size="sm">새 게시글 작성</Button>
@@ -300,11 +290,6 @@ export default function ClubDetailClient({ club, isMember, currentUserId, userRo
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p>이 클럽에는 아직 게시판이 없습니다.</p>
-            {isOwner && (
-               <Link href={`/socialing/club/${club.id}/manage`}>
-                  <Button className="mt-4">게시판 관리하기</Button>
-                </Link>
-            )}
           </div>
         )}
       </div>

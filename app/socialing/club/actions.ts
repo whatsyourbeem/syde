@@ -785,3 +785,52 @@ export async function updateForumOrder(
   revalidatePath(`/socialing/club/${clubId}`); // Revalidate club detail page as well
   return { success: true };
 }
+
+export async function deleteClubPost(postId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  // First, get the post to verify ownership and get associated info for revalidation
+  const { data: post, error: fetchError } = await supabase
+    .from("club_forum_posts")
+    .select("user_id, forum_id")
+    .eq("id", postId)
+    .single();
+
+  if (fetchError || !post) {
+    return { error: "게시글을 찾을 수 없습니다." };
+  }
+  
+  // TODO: Add club owner/admin check in the future
+  if (post.user_id !== user.id) {
+    return { error: "작성자만 삭제할 수 있습니다." };
+  }
+
+  // Delete the post
+  const { error: deleteError } = await supabase
+    .from("club_forum_posts")
+    .delete()
+    .eq("id", postId);
+
+  if (deleteError) {
+    console.error("Error deleting post:", deleteError);
+    return { error: "게시글 삭제 중 오류가 발생했습니다." };
+  }
+
+  // Revalidate the club's main page
+  const { data: forum } = await supabase
+    .from("club_forums")
+    .select("club_id")
+    .eq("id", post.forum_id)
+    .single();
+  
+  if (forum?.club_id) {
+      revalidatePath(`/socialing/club/${forum.club_id}`);
+  }
+
+  return { success: true };
+}

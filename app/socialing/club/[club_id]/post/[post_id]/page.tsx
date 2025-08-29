@@ -5,6 +5,7 @@ import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form";
 import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list";
+import { ClubPostDetailHeader } from "@/components/club/club-post-detail-header";
 
 interface ClubPostDetailPageProps {
   params: Promise<{
@@ -42,6 +43,16 @@ export default async function ClubPostDetailPage({ params }: ClubPostDetailPageP
     notFound();
   }
 
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", club_id)
+    .single();
+
+  if (!club) {
+    notFound();
+  }
+
   let memberRole = null;
   if (user) {
     const { data: member } = await supabase
@@ -61,6 +72,7 @@ export default async function ClubPostDetailPage({ params }: ClubPostDetailPageP
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <ClubPostDetailHeader post={post} clubId={club_id} clubOwnerId={club.owner_id} user={user} />
       <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
       <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
         <Avatar className="size-8">

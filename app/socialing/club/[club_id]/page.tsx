@@ -90,6 +90,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const currentUserMembership = user ? members?.find(member => member.profiles?.id === user.id) : undefined;
   const isMember = !!currentUserMembership;
   const userRole = currentUserMembership?.role || null;
+  const isOwner = user?.id === club.owner_id;
 
   const fullClubData = {
     ...club,
@@ -98,5 +99,5 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     forums: forumsWithPosts,
   };
 
-  return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} userRole={userRole} />;
+  return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} userRole={userRole} isOwner={isOwner} />;
 }
