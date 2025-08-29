@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createMeetup, updateMeetup, uploadMeetupThumbnail } from "@/app/socialing/actions";
+import {
+  createMeetup,
+  updateMeetup,
+  uploadMeetupThumbnail,
+} from "@/app/socialing/actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
@@ -34,6 +38,11 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { format } from "date-fns";
 import { JSONContent } from "@tiptap/react";
 import { v4 as uuidv4 } from "uuid";
+import {
+  MEETUP_CATEGORIES,
+  MEETUP_LOCATION_TYPES,
+  MEETUP_STATUSES,
+} from "@/lib/constants";
 
 type Meetup = Tables<"meetups">;
 
@@ -42,7 +51,10 @@ interface MeetupEditFormProps {
   clubId?: string;
 }
 
-export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) {
+export default function MeetupEditForm({
+  meetup,
+  clubId,
+}: MeetupEditFormProps) {
   const router = useRouter();
   const formRef = React.useRef<HTMLFormElement>(null);
   const isEditMode = !!meetup;
@@ -52,31 +64,43 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
 
   const [title, setTitle] = useState(meetup?.title || "");
   const [description, setDescription] = useState<JSONContent | null>(() => {
-      if (meetup?.description) {
-          try {
-              // Type assertion to treat it as a string first
-              const parsed = JSON.parse(meetup.description as unknown as string);
-              return parsed;
-          } catch (e) {
-              console.error("Failed to parse description JSON:", e);
-              return { type: 'doc', content: [] };
-          }
+    if (meetup?.description) {
+      try {
+        // Type assertion to treat it as a string first
+        const parsed = JSON.parse(meetup.description as unknown as string);
+        return parsed;
+      } catch (e) {
+        console.error("Failed to parse description JSON:", e);
+        return { type: "doc", content: [] };
       }
-      return { type: 'doc', content: [] };
+    }
+    return { type: "doc", content: [] };
   });
-  const [category, setCategory] = useState<Enums<"meetup_category_enum"> | undefined>(meetup?.category);
-  const [locationType, setLocationType] = useState<Enums<"meetup_location_type_enum"> | undefined>(meetup?.location_type);
-  const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(meetup?.status);
+  const [category, setCategory] = useState<
+    Enums<"meetup_category_enum"> | undefined
+  >(meetup?.category);
+  const [locationType, setLocationType] = useState<
+    Enums<"meetup_location_type_enum"> | undefined
+  >(meetup?.location_type);
+  const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(
+    meetup?.status
+  );
   const [startDatetime, setStartDatetime] = useState<Date | undefined>(
     meetup?.start_datetime ? new Date(meetup.start_datetime) : undefined
   );
   const [endDatetime, setEndDatetime] = useState<Date | undefined>(
     meetup?.end_datetime ? new Date(meetup.end_datetime) : undefined
   );
-  const [locationDescription, setLocationDescription] = useState(meetup?.location_description || "");
-  const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
+  const [locationDescription, setLocationDescription] = useState(
+    meetup?.location_description || ""
+  );
+  const [maxParticipants, setMaxParticipants] = useState<number | string>(
+    meetup?.max_participants || ""
+  );
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(meetup?.thumbnail_url || null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+    meetup?.thumbnail_url || null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -108,9 +132,9 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     setIsSubmitting(true);
 
     if (!category || !locationType || !status) {
-        toast.error("카테고리, 진행 방식, 상태를 모두 선택해주세요.");
-        setIsSubmitting(false);
-        return;
+      toast.error("카테고리, 진행 방식, 상태를 모두 선택해주세요.");
+      setIsSubmitting(false);
+      return;
     }
 
     let finalThumbnailUrl = meetup?.thumbnail_url;
@@ -141,15 +165,23 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
     formData.append("locationDescription", locationDescription);
     formData.append("maxParticipants", maxParticipants.toString());
     if (clubId) {
-        formData.append("clubId", clubId);
+      formData.append("clubId", clubId);
     }
 
-    const result = isEditMode ? await updateMeetup(formData) : await createMeetup(formData);
+    const result = isEditMode
+      ? await updateMeetup(formData)
+      : await createMeetup(formData);
 
     if (result?.error) {
-      toast.error(`모임 ${isEditMode ? '업데이트' : '생성'} 실패: ${result.error}`);
+      toast.error(
+        `모임 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error}`
+      );
     } else {
-      toast.success(`모임이 성공적으로 ${isEditMode ? '업데이트되었습니다' : '생성되었습니다'}.`);
+      toast.success(
+        `모임이 성공적으로 ${
+          isEditMode ? "업데이트되었습니다" : "생성되었습니다"
+        }.`
+      );
       router.push(`/socialing/meetup/${id}`);
     }
     setIsSubmitting(false);
@@ -164,16 +196,16 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       const form = formRef.current;
       if (!form) return;
 
       const focusable = Array.from(
-        form.querySelectorAll('input, button, select, textarea')
+        form.querySelectorAll("input, button, select, textarea")
       ).filter(
         (el) =>
-          !el.hasAttribute('disabled') && !el.hasAttribute('data-readonly')
+          !el.hasAttribute("disabled") && !el.hasAttribute("data-readonly")
       ) as HTMLElement[];
 
       const index = focusable.indexOf(e.currentTarget as HTMLElement);
@@ -186,14 +218,27 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
+        <label
+          htmlFor="title"
+          className="block text-sm font-semibold text-gray-700 mb-1"
+        >
           모임 제목 <span className="text-red-500">*</span>
         </label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required className="text-sm" onKeyDown={handleKeyDown}/>
+        <Input
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          className="text-sm"
+          onKeyDown={handleKeyDown}
+        />
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
+        <label
+          htmlFor="description"
+          className="block text-sm font-semibold text-gray-700 mb-1"
+        >
           모임 상세 설명
         </label>
         <MeetupDescriptionEditor
@@ -204,7 +249,10 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div>
-        <Label htmlFor="thumbnailFile" className="text-sm font-semibold text-gray-700 mb-1">
+        <Label
+          htmlFor="thumbnailFile"
+          className="text-sm font-semibold text-gray-700 mb-1"
+        >
           썸네일 이미지
         </Label>
         <div className="flex items-center gap-4">
@@ -215,14 +263,14 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
             onClick={() => document.getElementById("thumbnailFile")?.click()}
           >
             <Image
-                src={thumbnailPreview || "/default_club_thumbnail.png"}
-                alt="썸네일 미리보기"
-                width={192}
-                height={128}
-                className={`object-cover w-full h-full transition-opacity duration-300 ${
-                  isHovered ? "opacity-50" : "opacity-100"
-                }`}
-              />
+              src={thumbnailPreview || "/default_club_thumbnail.png"}
+              alt="썸네일 미리보기"
+              width={192}
+              height={128}
+              className={`object-cover w-full h-full transition-opacity duration-300 ${
+                isHovered ? "opacity-50" : "opacity-100"
+              }`}
+            />
             <div
               className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${
                 isHovered ? "opacity-30" : "opacity-0"
@@ -250,7 +298,9 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex gap-2"> {/* Row for Start Date and Time */}
+        <div className="flex gap-2">
+          {" "}
+          {/* Row for Start Date and Time */}
           <DatePicker
             label="시작 날짜"
             date={startDatetime}
@@ -278,7 +328,9 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
             required
           />
         </div>
-        <div className="flex gap-2"> {/* Row for End Date and Time */}
+        <div className="flex gap-2">
+          {" "}
+          {/* Row for End Date and Time */}
           <DatePicker
             label="종료 날짜"
             date={endDatetime}
@@ -307,79 +359,145 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
           />
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
+          <label
+            htmlFor="category"
+            className="block text-sm font-semibold text-gray-700 mb-1"
+          >
             카테고리 <span className="text-red-500">*</span>
           </label>
-          <Select value={category} onValueChange={(value: Enums<"meetup_category_enum">) => setCategory(value)} required>
+          <Select
+            value={category}
+            onValueChange={(value: Enums<"meetup_category_enum">) =>
+              setCategory(value)
+            }
+            required
+          >
             <SelectTrigger>
               <SelectValue placeholder="카테고리 선택" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="스터디">스터디</SelectItem>
-              <SelectItem value="챌린지">챌린지</SelectItem>
-              <SelectItem value="네트워킹">네트워킹</SelectItem>
-              <SelectItem value="기타">기타</SelectItem>
+              <SelectItem value={MEETUP_CATEGORIES.STUDY}>스터디</SelectItem>
+              <SelectItem value={MEETUP_CATEGORIES.CHALLENGE}>
+                챌린지
+              </SelectItem>
+              <SelectItem value={MEETUP_CATEGORIES.NETWORKING}>
+                네트워킹
+              </SelectItem>
+              <SelectItem value={MEETUP_CATEGORIES.ETC}>기타</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <label htmlFor="locationType" className="block text-sm font-semibold text-gray-700 mb-1">
+          <label
+            htmlFor="locationType"
+            className="block text-sm font-semibold text-gray-700 mb-1"
+          >
             진행 방식 <span className="text-red-500">*</span>
           </label>
-          <Select value={locationType} onValueChange={(value: Enums<"meetup_location_type_enum">) => setLocationType(value)} required>
+          <Select
+            value={locationType}
+            onValueChange={(value: Enums<"meetup_location_type_enum">) =>
+              setLocationType(value)
+            }
+            required
+          >
             <SelectTrigger>
               <SelectValue placeholder="진행 방식 선택" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="온라인">온라인</SelectItem>
-              <SelectItem value="오프라인">오프라인</SelectItem>
+              <SelectItem value={MEETUP_LOCATION_TYPES.ONLINE}>
+                온라인
+              </SelectItem>
+              <SelectItem value={MEETUP_LOCATION_TYPES.OFFLINE}>
+                오프라인
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-1">
+        <label
+          htmlFor="status"
+          className="block text-sm font-semibold text-gray-700 mb-1"
+        >
           상태 <span className="text-red-500">*</span>
         </label>
-        <Select value={status} onValueChange={(value: Enums<"meetup_status_enum">) => setStatus(value)} required>
+        <Select
+          value={status}
+          onValueChange={(value: Enums<"meetup_status_enum">) =>
+            setStatus(value)
+          }
+          required
+        >
           <SelectTrigger>
             <SelectValue placeholder="상태 선택" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="오픈예정">오픈예정</SelectItem>
-            <SelectItem value="신청가능">신청가능</SelectItem>
-            <SelectItem value="신청마감">신청마감</SelectItem>
-            <SelectItem value="종료">종료</SelectItem>
+            <SelectItem value={MEETUP_STATUSES.UPCOMING}>오픈예정</SelectItem>
+            <SelectItem value={MEETUP_STATUSES.APPLY_AVAILABLE}>
+              신청가능
+            </SelectItem>
+            <SelectItem value={MEETUP_STATUSES.APPLY_CLOSED}>
+              신청마감
+            </SelectItem>
+            <SelectItem value={MEETUP_STATUSES.ENDED}>종료</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-
       <div>
-        <label htmlFor="locationDescription" className="block text-sm font-semibold text-gray-700 mb-1">
+        <label
+          htmlFor="locationDescription"
+          className="block text-sm font-semibold text-gray-700 mb-1"
+        >
           장소 상세 설명
         </label>
-        <Input id="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} onKeyDown={handleKeyDown} />
+        <Input
+          id="locationDescription"
+          value={locationDescription}
+          onChange={(e) => setLocationDescription(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
       </div>
 
       <div>
-        <label htmlFor="maxParticipants" className="block text-sm font-semibold text-gray-700 mb-1">
+        <label
+          htmlFor="maxParticipants"
+          className="block text-sm font-semibold text-gray-700 mb-1"
+        >
           최대 인원 (비워두면 무제한)
         </label>
-        <Input id="maxParticipants" type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} min="1" />
+        <Input
+          id="maxParticipants"
+          type="number"
+          value={maxParticipants}
+          onChange={(e) => setMaxParticipants(e.target.value)}
+          min="1"
+        />
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
+          {isSubmitting
+            ? isEditMode
+              ? "저장 중..."
+              : "생성 중..."
+            : isEditMode
+            ? "저장"
+            : "생성"}
         </Button>
       </div>
 
@@ -393,7 +511,9 @@ export default function MeetupEditForm({ meetup, clubId }: MeetupEditFormProps) 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSave}>확인</AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmSave}>
+              확인
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

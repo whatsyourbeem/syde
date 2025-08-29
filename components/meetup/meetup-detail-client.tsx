@@ -8,6 +8,7 @@ import { Clock, MapPin, Network, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
+import { MEETUP_CATEGORIES, MEETUP_LOCATION_TYPES, MEETUP_STATUSES, MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import {
   AlertDialog,
@@ -42,13 +43,13 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 // 카테고리 배지 클래스 헬퍼 함수 (page.tsx에서 복사)
 function getCategoryBadgeClass(category: string) {
   switch (category) {
-    case "스터디":
+    case MEETUP_CATEGORIES.STUDY:
       return "border border-orange-500 bg-orange-50 text-orange-700";
-    case "챌린지":
+    case MEETUP_CATEGORIES.CHALLENGE:
       return "border border-red-500 bg-red-50 text-red-700";
-    case "네트워킹":
+    case MEETUP_CATEGORIES.NETWORKING:
       return "border border-purple-500 bg-purple-50 text-purple-700";
-    case "기타":
+    case MEETUP_CATEGORIES.ETC:
       return "border border-gray-500 bg-gray-50 text-gray-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700";
@@ -58,9 +59,9 @@ function getCategoryBadgeClass(category: string) {
 // 진행 방식 배지 클래스 헬퍼 함수 (page.tsx에서 복사)
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
-    case "온라인":
+    case MEETUP_LOCATION_TYPES.ONLINE:
       return "border border-blue-500 bg-blue-50 text-blue-700";
-    case "오프라인":
+    case MEETUP_LOCATION_TYPES.OFFLINE:
       return "border border-green-500 bg-green-50 text-green-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700";
@@ -70,13 +71,13 @@ function getLocationTypeBadgeClass(locationType: string) {
 // 상태 배지 클래스 헬퍼 함수 (page.tsx에서 복사)
 function getStatusBadgeClass(status: string) {
   switch (status) {
-    case "오픈예정":
+    case MEETUP_STATUSES.UPCOMING:
       return "border border-gray-400 bg-gray-100 text-gray-700";
-    case "신청가능":
+    case MEETUP_STATUSES.APPLY_AVAILABLE:
       return "border border-green-500 bg-green-50 text-green-700";
-    case "신청마감":
+    case MEETUP_STATUSES.APPLY_CLOSED:
       return "border border-red-500 bg-red-50 text-red-700";
-    case "종료":
+    case MEETUP_STATUSES.ENDED:
       return "border border-gray-500 bg-gray-50 text-gray-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700";
@@ -117,13 +118,13 @@ export default function MeetupDetailClient({
 
   const isApprovedParticipant = user
     ? meetup.meetup_participants.some(
-        (p) => p.profiles?.id === user.id && p.status === "approved"
+        (p) => p.profiles?.id === user.id && p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
       )
     : false;
 
   const isPendingParticipant = user
     ? meetup.meetup_participants.some(
-        (p) => p.profiles?.id === user.id && p.status === "pending"
+        (p) => p.profiles?.id === user.id && p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
       )
     : false;
   const isMeetupFull = meetup.max_participants
@@ -168,7 +169,7 @@ export default function MeetupDetailClient({
               tagline: null,
               updated_at: null,
             },
-            status: "pending" as Database["public"]["Enums"]["meetup_participant_status_enum"], // Added status
+            status: MEETUP_PARTICIPANT_STATUSES.PENDING, // Added status
             joined_at: new Date().toISOString(), // Add joined_at for optimistic update
             meetup_id: meetup.id, // Add meetup_id
             user_id: user.id, // Add user_id
@@ -193,7 +194,7 @@ export default function MeetupDetailClient({
         setMeetup((prev) => {
           const updatedParticipants = prev.meetup_participants.map((p) =>
             p.user_id === participantUserId
-              ? { ...p, status: "approved" as Database["public"]["Enums"]["meetup_participant_status_enum"] }
+              ? { ...p, status: MEETUP_PARTICIPANT_STATUSES.APPROVED }
               : p
           );
           return { ...prev, meetup_participants: updatedParticipants };
@@ -206,7 +207,7 @@ export default function MeetupDetailClient({
     if (isOrganizer) {
       return { disabled: true, text: "내가 만든 모임" };
     }
-    if (meetup.status !== "신청가능") {
+    if (meetup.status !== MEETUP_STATUSES.APPLY_AVAILABLE) {
       return { disabled: true, text: "신청기간이 아니에요" };
     }
     if (isApprovedParticipant) {

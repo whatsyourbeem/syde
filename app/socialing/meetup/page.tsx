@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Database, Enums } from "@/types/database.types";
+import { MEETUP_CATEGORIES, MEETUP_LOCATION_TYPES, MEETUP_STATUSES } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
@@ -30,13 +31,13 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 
 function getCategoryBadgeClass(category: string) {
   switch (category) {
-    case "스터디":
+    case MEETUP_CATEGORIES.STUDY:
       return "border border-orange-500 bg-orange-50 text-orange-700 hover:bg-orange-50 hover:text-orange-700";
-    case "챌린지":
+    case MEETUP_CATEGORIES.CHALLENGE:
       return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
-    case "네트워킹":
+    case MEETUP_CATEGORIES.NETWORKING:
       return "border border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-50 hover:text-purple-700";
-    case "기타":
+    case MEETUP_CATEGORIES.ETC:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
@@ -45,9 +46,9 @@ function getCategoryBadgeClass(category: string) {
 
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
-    case "온라인":
+    case MEETUP_LOCATION_TYPES.ONLINE:
       return "border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-50 hover:text-blue-700";
-    case "오프라인":
+    case MEETUP_LOCATION_TYPES.OFFLINE:
       return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
@@ -56,13 +57,13 @@ function getLocationTypeBadgeClass(locationType: string) {
 
 function getStatusBadgeClass(status: string) {
   switch (status) {
-    case "오픈예정":
+    case MEETUP_STATUSES.UPCOMING:
       return "border border-gray-400 bg-gray-100 text-gray-700 hover:bg-gray-100 hover:text-gray-700";
-    case "신청가능":
+    case MEETUP_STATUSES.APPLY_AVAILABLE:
       return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
-    case "신청마감":
+    case MEETUP_STATUSES.APPLY_CLOSED:
       return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
-    case "종료":
+    case MEETUP_STATUSES.ENDED:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
     default:
       return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";

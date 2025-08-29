@@ -600,10 +600,10 @@ export type Database = {
         | "MEMBER"
         | "FULL_MEMBER"
         | "LEADER";
-      meetup_category_enum: "스터디" | "챌린지" | "네트워킹" | "기타";
-      meetup_location_type_enum: "온라인" | "오프라인";
+      meetup_category_enum: "STUDY" | "CHALLENGE" | "NETWORKING" | "ETC";
+      meetup_location_type_enum: "ONLINE" | "OFFLINE";
       meetup_participant_status_enum: "pending" | "approved" | "rejected";
-      meetup_status_enum: "오픈예정" | "신청가능" | "신청마감" | "종료";
+      meetup_status_enum: "UPCOMING" | "OPEN" | "CLOSED" | "FINISHED";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -736,10 +736,10 @@ export const Constants = {
     Enums: {
       club_member_role_enum: ["LEADER", "FULL_MEMBER", "GENERAL_MEMBER"],
       club_permission_level_enum: ["PUBLIC", "MEMBER", "FULL_MEMBER", "LEADER"],
-      meetup_category_enum: ["스터디", "챌린지", "네트워킹", "기타"],
-      meetup_location_type_enum: ["온라인", "오프라인"],
+      meetup_category_enum: ["STUDY", "CHALLENGE", "NETWORKING", "ETC"],
+      meetup_location_type_enum: ["ONLINE", "OFFLINE"],
       meetup_participant_status_enum: ["pending", "approved", "rejected"],
-      meetup_status_enum: ["오픈예정", "신청가능", "신청마감", "종료"],
+      meetup_status_enum: ["UPCOMING", "OPEN", "CLOSED", "FINISHED"],
     },
   },
 } as const;

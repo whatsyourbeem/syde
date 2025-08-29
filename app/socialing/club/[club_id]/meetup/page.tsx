@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Tables, Enums } from "@/types/database.types";
+import { MEETUP_CATEGORIES, MEETUP_LOCATION_TYPES, MEETUP_STATUSES } from "@/lib/constants";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,28 +39,28 @@ function formatDate(dateString: string | null) {
 
 function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
   switch (status) {
-    case "오픈예정": return "border-gray-400 bg-gray-100 text-gray-700 px-1 ";
-    case "신청가능": return "border-green-500 bg-green-50 text-green-700 px-1";
-    case "신청마감": return "border-red-500 bg-red-50 text-red-700 px-1 ";
-    case "종료": return "border-gray-500 bg-gray-50 text-gray-700 px-2 ";
+    case MEETUP_STATUSES.UPCOMING: return "border-gray-400 bg-gray-100 text-gray-700 px-1 ";
+    case MEETUP_STATUSES.APPLY_AVAILABLE: return "border-green-500 bg-green-50 text-green-700 px-1";
+    case MEETUP_STATUSES.APPLY_CLOSED: return "border-red-500 bg-red-50 text-red-700 px-1 ";
+    case MEETUP_STATUSES.ENDED: return "border-gray-500 bg-gray-50 text-gray-700 px-2 ";
     default: return "border-gray-500 bg-gray-50 text-gray-700";
   }
 }
 
 function getCategoryBadgeClass(category: Enums<"meetup_category_enum">) {
   switch (category) {
-    case "스터디": return "bg-blue-100 text-blue-800 px-1";
-    case "챌린지": return "bg-purple-100 text-purple-800 px-1";
-    case "네트워킹": return "bg-yellow-100 text-yellow-800 px-1";
-    case "기타": return "bg-gray-100 text-gray-800 px-2";
+    case MEETUP_CATEGORIES.STUDY: return "bg-blue-100 text-blue-800 px-1";
+    case MEETUP_CATEGORIES.CHALLENGE: return "bg-purple-100 text-purple-800 px-1";
+    case MEETUP_CATEGORIES.NETWORKING: return "bg-yellow-100 text-yellow-800 px-1";
+    case MEETUP_CATEGORIES.ETC: return "bg-gray-100 text-gray-800 px-2";
     default: return "bg-gray-100 text-gray-800";
   }
 }
 
 function getLocationTypeBadgeClass(locationType: Enums<"meetup_location_type_enum">) {
   switch (locationType) {
-    case "온라인": return "bg-green-100 text-green-800 px-1";
-    case "오프라인": return "bg-red-100 text-red-800 px-1";
+    case MEETUP_LOCATION_TYPES.ONLINE: return "bg-green-100 text-green-800 px-1";
+    case MEETUP_LOCATION_TYPES.OFFLINE: return "bg-red-100 text-red-800 px-1";
     default: return "bg-gray-100 text-gray-800";
   }
 }
