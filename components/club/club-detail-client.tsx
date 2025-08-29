@@ -13,6 +13,14 @@ import {
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
@@ -194,14 +202,38 @@ export default function ClubDetailClient({
           <h2 className="text-2xl font-bold">
             👥<span className="font-extrabold pl-2">멤버</span>
           </h2>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700">
+                                  모두보기
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="h-full w-full">
+              <DrawerHeader>
+                <DrawerTitle>클럽 멤버 전체 보기</DrawerTitle>
+                <DrawerDescription>
+                  이 클럽의 모든 멤버 목록입니다.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="p-4">
+                <ClubMembersList
+                  clubId={club.id}
+                  members={club.members}
+                  clubOwnerId={club.owner_id}
+                  currentUserId={currentUserId}
+                  direction="vertical"
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
         <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <ClubMembersList
             clubId={club.id}
-            members={club.members} // Corrected prop name
-            clubOwnerId={club.owner_id} // Corrected prop name
+            members={club.members.length > 6 ? club.members.slice(0, 6) : club.members}
+            clubOwnerId={club.owner_id}
             currentUserId={currentUserId}
-            direction="horizontal" // New prop for horizontal layout
+            direction="horizontal"
           />
         </div>
       </div>

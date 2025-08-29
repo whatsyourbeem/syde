@@ -128,35 +128,72 @@ export default function ClubMembersList({
       >
         {direction === "horizontal" ? (
           // Horizontal display for mobile
-          members.map((member) => (
-            <ProfileHoverCard
-              key={member.profiles?.id}
-              userId={member.user_id}
-              profileData={member.profiles}
-            >
-              <div className="flex flex-col items-center flex-shrink-0 w-16">
-                <Link href={`/${member.profiles?.username}`}>
-                  <Avatar className="size-12">
-                    <AvatarImage
-                      src={member.profiles?.avatar_url || undefined}
-                    />
-                    <AvatarFallback>
-                      {member.profiles?.username?.charAt(0).toUpperCase() ||
-                        "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-                <Link href={`/${member.profiles?.username}`}>
-                  <p className="font-semibold text-xs text-center mt-1 line-clamp-1 flex items-center justify-center">
-                    {member.profiles?.full_name || member.profiles?.username}
-                    {member.user_id === clubOwnerId && (
-                      <Crown className="ml-1 size-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                    )}
-                  </p>
-                </Link>
-              </div>
-            </ProfileHoverCard>
-          ))
+          (() => {
+            const MAX_HORIZONTAL_DISPLAY = 10;
+            let tempMembers = [...members];
+            const displayMembers: ClubMember[] = [];
+
+            const currentUser = tempMembers.find(
+              (member) => member.user_id === currentUserId
+            );
+            const ownerUser = tempMembers.find(
+              (member) => member.user_id === clubOwnerId
+            );
+
+            // 1. Add current user first
+            if (currentUser) {
+              displayMembers.push(currentUser);
+              tempMembers = tempMembers.filter(
+                (member) => member.user_id !== currentUser.user_id
+              );
+            }
+
+            // 2. Add owner second (if not current user)
+            if (ownerUser && ownerUser.user_id !== currentUser?.user_id) {
+              displayMembers.push(ownerUser);
+              tempMembers = tempMembers.filter(
+                (member) => member.user_id !== ownerUser.user_id
+              );
+            }
+
+            // 3. Add remaining members up to MAX_HORIZONTAL_DISPLAY
+            let count = displayMembers.length;
+            for (const member of tempMembers) {
+              if (count >= MAX_HORIZONTAL_DISPLAY) break;
+              displayMembers.push(member);
+              count++;
+            }
+
+            return displayMembers.map((member) => (
+              <ProfileHoverCard
+                key={member.profiles?.id}
+                userId={member.user_id}
+                profileData={member.profiles}
+              >
+                <div className="flex flex-col items-center flex-shrink-0 w-16">
+                  <Link href={`/${member.profiles?.username}`}>
+                    <Avatar className="size-12">
+                      <AvatarImage
+                        src={member.profiles?.avatar_url || undefined}
+                      />
+                      <AvatarFallback>
+                        {member.profiles?.username?.charAt(0).toUpperCase() ||
+                          "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                  <Link href={`/${member.profiles?.username}`}>
+                    <p className="font-semibold text-xs text-center mt-1 line-clamp-1 flex items-center justify-center">
+                      {member.profiles?.full_name || member.profiles?.username}
+                      {member.user_id === clubOwnerId && (
+                        <Crown className="ml-1 size-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                      )}
+                    </p>
+                  </Link>
+                </div>
+              </ProfileHoverCard>
+            ));
+          })()
         ) : (
           // Original vertical display for desktop
           <>
@@ -261,7 +298,9 @@ export default function ClubMembersList({
                                 <Link href={`/${member.profiles?.username}`}>
                                   <Avatar className="size-7">
                                     <AvatarImage
-                                      src={member.profiles?.avatar_url || undefined}
+                                      src={
+                                        member.profiles?.avatar_url || undefined
+                                      }
                                     />
                                     <AvatarFallback>
                                       {member.profiles?.username
@@ -291,7 +330,8 @@ export default function ClubMembersList({
                               </div>
                             </div>
                           </ProfileHoverCard>
-                        ))}n                      </div>
+                        ))}
+                      </div>
                     </AccordionContent>
                   </AccordionItem>
                 );
