@@ -73,27 +73,29 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
       rel="noopener noreferrer"
       className="not-prose block"
     >
-      <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50">
+      <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50 h-24 md:h-32">
         {ogData.image && (
-          <div className="w-44 h-32 flex-shrink-0 bg-muted">
+          <div className="w-20 h-24 md:w-32 md:h-32 flex-shrink-0 bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ogData.image}
               alt={ogData.title || "OG Image"}
-              className="h-full w-full object-cover"
+              className="h-full object-cover"
             />
           </div>
         )}
-        <div className="p-4 flex flex-col justify-center">
+        <div className="px-3 md:px-4 flex flex-col justify-center">
           {ogData.title && (
-            <div className="font-semibold line-clamp-1">{ogData.title}</div>
+            <div className="text-xs md:text-sm font-semibold line-clamp-1">
+              {ogData.title}
+            </div>
           )}
           {ogData.description && (
-            <div className="text-sm text-muted-foreground line-clamp-2 mt-1">
+            <div className="text-[0.7rem] md:text-xs text-muted-foreground line-clamp-2 mt-1">
               {ogData.description}
             </div>
           )}
-          <div className="text-xs text-muted-foreground mt-2 line-clamp-1">
+          <div className="text-[0.7rem] md:text-xs text-xs text-muted-foreground mt-1 line-clamp-1">
             {ogData.url}
           </div>
         </div>
