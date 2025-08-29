@@ -11,6 +11,8 @@ import {
   MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
   MEETUP_STATUS_DISPLAY_NAMES,
+  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
+  MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 
@@ -148,7 +150,7 @@ export default async function MeetupPage({
                   />
                   <div className="absolute top-3 left-3 flex gap-1">
                     <Badge className={getStatusBadgeClass(meetup.status)}>
-                      {meetup.status}
+                      {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
                   </div>
                 </div>
@@ -170,12 +172,12 @@ export default async function MeetupPage({
                 )}
                 <div className="flex gap-1 mb-4">
                   <Badge className={getCategoryBadgeClass(meetup.category)}>
-                    {meetup.category}
+                    {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
                   </Badge>
                   <Badge
                     className={getLocationTypeBadgeClass(meetup.location_type)}
                   >
-                    {meetup.location_type}
+                    {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
                   </Badge>
                 </div>
                 {meetup.organizer_profile && (

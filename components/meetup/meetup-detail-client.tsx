@@ -13,6 +13,9 @@ import {
   MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
   MEETUP_PARTICIPANT_STATUSES,
+  MEETUP_STATUS_DISPLAY_NAMES,
+  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
+  MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import {
@@ -324,13 +327,13 @@ export default function MeetupDetailClient({
         {/* 카테고리, 형태, 상태 배지 */}
         <div className="flex gap-2 mb-4">
           <Badge className={getStatusBadgeClass(meetup.status)}>
-            {meetup.status}
+            {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
           </Badge>
           <Badge className={getCategoryBadgeClass(meetup.category)}>
-            {meetup.category}
+            {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
           </Badge>
           <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>
-            {meetup.location_type}
+            {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
           </Badge>
         </div>
 
