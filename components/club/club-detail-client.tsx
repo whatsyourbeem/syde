@@ -6,6 +6,9 @@ import {
   MEETUP_CATEGORIES,
   MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
+  MEETUP_CATEGORY_DISPLAY_NAMES,
+  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
+  MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -261,21 +264,21 @@ export default function ClubDetailClient({
                                   meetup.status
                                 )} text-xs`}
                               >
-                                {meetup.status}
+                                {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                               </Badge>
                               <Badge
                                 className={`${getCategoryBadgeClass(
                                   meetup.category
                                 )} text-xs`}
                               >
-                                {meetup.category}
+                                {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
                               </Badge>
                               <Badge
                                 className={`${getLocationTypeBadgeClass(
                                   meetup.location_type
                                 )} text-xs`}
                               >
-                                {meetup.location_type}
+                                {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
                               </Badge>
                             </div>
                             <h3 className="font-semibold line-clamp-2 mb-2">
