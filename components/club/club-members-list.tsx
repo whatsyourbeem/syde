@@ -70,7 +70,7 @@ export default function ClubMembersList({ members, clubId, currentUserId, clubOw
     <div>
       <div className="flex items-center justify-between my-4">
         <h3 className="font-bold">멤버 ({members.length})</h3>
-        {currentMember && (
+        {currentMember && currentUserId !== clubOwnerId && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
