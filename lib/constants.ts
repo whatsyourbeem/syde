@@ -26,28 +26,28 @@ export const CLUB_PERMISSION_LEVELS = {
 } as const;
 
 export const MEETUP_CATEGORIES = {
-  STUDY: "스터디",
-  CHALLENGE: "챌린지",
-  NETWORKING: "네트워킹",
-  ETC: "기타",
+  STUDY: "STUDY",
+  CHALLENGE: "CHALLENGE",
+  NETWORKING: "NETWORKING",
+  ETC: "ETC",
 } as const;
 
 export const MEETUP_LOCATION_TYPES = {
-  ONLINE: "온라인",
-  OFFLINE: "오프라인",
+  ONLINE: "ONLINE",
+  OFFLINE: "OFFLINE",
 } as const;
 
 export const MEETUP_PARTICIPANT_STATUSES = {
-  PENDING: "pending",
-  APPROVED: "approved",
-  REJECTED: "rejected",
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
 } as const;
 
 export const MEETUP_STATUSES = {
-  UPCOMING: "오픈예정",
-  APPLY_AVAILABLE: "신청가능",
-  APPLY_CLOSED: "신청마감",
-  ENDED: "종료",
+  UPCOMING: "UPCOMING",
+  APPLY_AVAILABLE: "APPLY_AVAILABLE",
+  APPLY_CLOSED: "APPLY_CLOSED",
+  ENDED: "ENDED",
 } as const;
 
 export const CLUB_MEMBER_ROLE_DISPLAY_NAMES: Record<ClubMemberRole, string> = {
@@ -60,8 +60,8 @@ export const CLUB_PERMISSION_LEVEL_DISPLAY_NAMES: Record<
   ClubPermissionLevel,
   string
 > = {
-  PUBLIC: "전체공개",
-  MEMBER: "전체멤버",
+  PUBLIC: "전체 공개",
+  MEMBER: "모든 멤버",
   FULL_MEMBER: "정회원",
   LEADER: "클럽장",
 };
@@ -85,14 +85,14 @@ export const MEETUP_PARTICIPANT_STATUS_DISPLAY_NAMES: Record<
   MeetupParticipantStatus,
   string
 > = {
-  pending: "대기중",
-  approved: "승인됨",
-  rejected: "거절됨",
+  PENDING: "대기중",
+  APPROVED: "승인됨",
+  REJECTED: "거절됨",
 };
 
 export const MEETUP_STATUS_DISPLAY_NAMES: Record<MeetupStatus, string> = {
   UPCOMING: "오픈예정",
-  OPEN: "신청가능",
-  CLOSED: "신청마감",
-  FINISHED: "종료",
+  APPLY_AVAILABLE: "신청가능",
+  APPLY_CLOSED: "신청마감",
+  ENDED: "종료",
 };

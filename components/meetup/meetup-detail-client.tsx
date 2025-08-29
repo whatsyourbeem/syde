@@ -8,7 +8,12 @@ import { Clock, MapPin, Network, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
-import { MEETUP_CATEGORIES, MEETUP_LOCATION_TYPES, MEETUP_STATUSES, MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
+import {
+  MEETUP_CATEGORIES,
+  MEETUP_LOCATION_TYPES,
+  MEETUP_STATUSES,
+  MEETUP_PARTICIPANT_STATUSES,
+} from "@/lib/constants";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import {
   AlertDialog,
@@ -21,7 +26,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { User } from "@supabase/supabase-js";
-import { joinMeetup, approveMeetupParticipant } from "@/app/socialing/meetup/actions";
+import {
+  joinMeetup,
+  approveMeetupParticipant,
+} from "@/app/socialing/meetup/actions";
 import ProfileHoverCard from "@/components/common/profile-hover-card"; // New import
 import { toast } from "sonner";
 
@@ -118,13 +126,17 @@ export default function MeetupDetailClient({
 
   const isApprovedParticipant = user
     ? meetup.meetup_participants.some(
-        (p) => p.profiles?.id === user.id && p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
+        (p) =>
+          p.profiles?.id === user.id &&
+          p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
       )
     : false;
 
   const isPendingParticipant = user
     ? meetup.meetup_participants.some(
-        (p) => p.profiles?.id === user.id && p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
+        (p) =>
+          p.profiles?.id === user.id &&
+          p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
       )
     : false;
   const isMeetupFull = meetup.max_participants
@@ -132,10 +144,10 @@ export default function MeetupDetailClient({
     : false;
 
   const approvedParticipants = meetup.meetup_participants.filter(
-    (p) => p.status === "approved"
+    (p) => p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
   );
   const pendingParticipants = meetup.meetup_participants.filter(
-    (p) => p.status === "pending"
+    (p) => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
   );
 
   const handleApplyClick = () => {
@@ -185,7 +197,10 @@ export default function MeetupDetailClient({
 
   const handleApproveParticipant = async (participantUserId: string) => {
     startTransition(async () => {
-      const result = await approveMeetupParticipant(meetup.id, participantUserId);
+      const result = await approveMeetupParticipant(
+        meetup.id,
+        participantUserId
+      );
       if (result.error) {
         toast.error(result.error);
       } else {
@@ -222,7 +237,11 @@ export default function MeetupDetailClient({
     return { disabled: false, text: "참가 신청하기" };
   };
 
-  const ParticipantCard = ({ participant, isOrganizer, onApprove }: {
+  const ParticipantCard = ({
+    participant,
+    isOrganizer,
+    onApprove,
+  }: {
     participant: Database["public"]["Tables"]["meetup_participants"]["Row"] & {
       profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
     };
@@ -234,11 +253,17 @@ export default function MeetupDetailClient({
 
     return (
       <ProfileHoverCard userId={profile.id}>
-        <div className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer"> {/* Adjusted width and layout */}
-          <div className="flex items-center gap-2 w-full"> {/* First row */}
+        <div className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
+          {" "}
+          {/* Adjusted width and layout */}
+          <div className="flex items-center gap-2 w-full">
+            {" "}
+            {/* First row */}
             <Avatar className="size-10">
               <AvatarImage src={profile.avatar_url || undefined} />
-              <AvatarFallback>{profile.username?.charAt(0) || "U"}</AvatarFallback>
+              <AvatarFallback>
+                {profile.username?.charAt(0) || "U"}
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">
@@ -249,19 +274,22 @@ export default function MeetupDetailClient({
               </p>
             </div>
           </div>
-          {profile.tagline && ( /* Second row */
-            <p className="text-xs text-gray-500 w-full truncate">{profile.tagline}</p>
+          {profile.tagline /* Second row */ && (
+            <p className="text-xs text-gray-500 w-full truncate">
+              {profile.tagline}
+            </p>
           )}
-          {isOrganizer && participant.status === "pending" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onApprove(participant.user_id)}
-              className="w-full mt-2" // Button takes full width and has top margin
-            >
-              승인
-            </Button>
-          )}
+          {isOrganizer &&
+            participant.status === MEETUP_PARTICIPANT_STATUSES.PENDING && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onApprove(participant.user_id)}
+                className="w-full mt-2" // Button takes full width and has top margin
+              >
+                승인
+              </Button>
+            )}
         </div>
       </ProfileHoverCard>
     );

@@ -6,13 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Database, Enums } from "@/types/database.types";
-import { MEETUP_CATEGORIES, MEETUP_LOCATION_TYPES, MEETUP_STATUSES } from "@/lib/constants";
+import {
+  MEETUP_CATEGORIES,
+  MEETUP_LOCATION_TYPES,
+  MEETUP_STATUSES,
+  MEETUP_STATUS_DISPLAY_NAMES,
+} from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 
-type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
-  organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
-  clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
-};
+type MeetupWithOrganizerProfile =
+  Database["public"]["Tables"]["meetups"]["Row"] & {
+    organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
+  };
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -89,9 +95,12 @@ export default async function MeetupPage({
     .order("created_at", { ascending: false });
 
   if (selectedStatus && selectedStatus !== "전체") {
-    const validStatuses: Enums<"meetup_status_enum">[] = ["오픈예정", "신청가능", "신청마감", "종료"];
-    if (validStatuses.includes(selectedStatus as Enums<"meetup_status_enum">)) {
-      meetupQuery = meetupQuery.eq("status", selectedStatus as Enums<"meetup_status_enum">);
+    const meetupStatus = Object.entries(MEETUP_STATUS_DISPLAY_NAMES).find(
+      (entry) => entry[1] === selectedStatus
+    )?.[0] as Enums<"meetup_status_enum"> | undefined;
+
+    if (meetupStatus) {
+      meetupQuery = meetupQuery.eq("status", meetupStatus);
     }
   }
 
@@ -117,7 +126,10 @@ export default async function MeetupPage({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {typedMeetups.map((meetup) => (
-            <div key={meetup.id} className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col">
+            <div
+              key={meetup.id}
+              className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col"
+            >
               <Link href={`/socialing/meetup/${meetup.id}`}>
                 <div className="relative">
                   <Image
@@ -129,7 +141,9 @@ export default async function MeetupPage({
                     width={300}
                     height={200}
                     className={`w-full h-48 object-cover rounded-t-lg ${
-                      meetup.status === "종료" ? "grayscale opacity-50" : ""
+                      meetup.status === MEETUP_STATUSES.ENDED
+                        ? "grayscale opacity-50"
+                        : ""
                     }`}
                   />
                   <div className="absolute top-3 left-3 flex gap-1">
@@ -146,53 +160,55 @@ export default async function MeetupPage({
                   </h2>
                 </Link>
                 {meetup.clubs && (
-                  <Link href={`/socialing/club/${meetup.clubs.id}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2">
+                  <Link
+                    href={`/socialing/club/${meetup.clubs.id}`}
+                    className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2"
+                  >
                     <Network className="size-4" />
                     <span>{meetup.clubs.name}</span>
                   </Link>
                 )}
                 <div className="flex gap-1 mb-4">
-                  <Badge
-                    className={getCategoryBadgeClass(meetup.category)}
-                  >
+                  <Badge className={getCategoryBadgeClass(meetup.category)}>
                     {meetup.category}
                   </Badge>
                   <Badge
-                    className={getLocationTypeBadgeClass(
-                      meetup.location_type
-                    )}
+                    className={getLocationTypeBadgeClass(meetup.location_type)}
                   >
                     {meetup.location_type}
                   </Badge>
                 </div>
                 {meetup.organizer_profile && (
-                <ProfileHoverCard userId={meetup.organizer_profile.id} profileData={meetup.organizer_profile}>
-                  <div className="text-sm text-gray-500 flex items-center gap-2">
-                    <Link href={`/${meetup.organizer_profile?.username}`}>
-                      <Avatar className="size-5">
-                        <AvatarImage
-                          src={
-                            meetup.organizer_profile?.avatar_url || undefined
-                          }
-                        />
-                        <AvatarFallback>
-                          {meetup.organizer_profile?.username?.charAt(0) ||
-                            "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Link>
-                    <p>
+                  <ProfileHoverCard
+                    userId={meetup.organizer_profile.id}
+                    profileData={meetup.organizer_profile}
+                  >
+                    <div className="text-sm text-gray-500 flex items-center gap-2">
                       <Link href={`/${meetup.organizer_profile?.username}`}>
-                        <span className="font-semibold text-black hover:underline">
-                          {meetup.organizer_profile?.full_name ||
-                            meetup.organizer_profile?.username ||
-                            "알 수 없음"}
-                        </span>
+                        <Avatar className="size-5">
+                          <AvatarImage
+                            src={
+                              meetup.organizer_profile?.avatar_url || undefined
+                            }
+                          />
+                          <AvatarFallback>
+                            {meetup.organizer_profile?.username?.charAt(0) ||
+                              "U"}
+                          </AvatarFallback>
+                        </Avatar>
                       </Link>
-                      <span className="ml-1">모임장</span>
-                    </p>
-                  </div>
-                </ProfileHoverCard>
+                      <p>
+                        <Link href={`/${meetup.organizer_profile?.username}`}>
+                          <span className="font-semibold text-black hover:underline">
+                            {meetup.organizer_profile?.full_name ||
+                              meetup.organizer_profile?.username ||
+                              "알 수 없음"}
+                          </span>
+                        </Link>
+                        <span className="ml-1">모임장</span>
+                      </p>
+                    </div>
+                  </ProfileHoverCard>
                 )}
                 <div className="text-sm text-gray-500 mt-2 flex-grow">
                   {meetup.max_participants && (

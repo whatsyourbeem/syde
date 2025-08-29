@@ -602,8 +602,12 @@ export type Database = {
         | "LEADER";
       meetup_category_enum: "STUDY" | "CHALLENGE" | "NETWORKING" | "ETC";
       meetup_location_type_enum: "ONLINE" | "OFFLINE";
-      meetup_participant_status_enum: "pending" | "approved" | "rejected";
-      meetup_status_enum: "UPCOMING" | "OPEN" | "CLOSED" | "FINISHED";
+      meetup_participant_status_enum: "PENDING" | "APPROVED" | "REJECTED";
+      meetup_status_enum:
+        | "UPCOMING"
+        | "APPLY_AVAILABLE"
+        | "APPLY_CLOSED"
+        | "ENDED";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -738,8 +742,13 @@ export const Constants = {
       club_permission_level_enum: ["PUBLIC", "MEMBER", "FULL_MEMBER", "LEADER"],
       meetup_category_enum: ["STUDY", "CHALLENGE", "NETWORKING", "ETC"],
       meetup_location_type_enum: ["ONLINE", "OFFLINE"],
-      meetup_participant_status_enum: ["pending", "approved", "rejected"],
-      meetup_status_enum: ["UPCOMING", "OPEN", "CLOSED", "FINISHED"],
+      meetup_participant_status_enum: ["PENDING", "APPROVED", "REJECTED"],
+      meetup_status_enum: [
+        "UPCOMING",
+        "APPLY_AVAILABLE",
+        "APPLY_CLOSED",
+        "ENDED",
+      ],
     },
   },
 } as const;
