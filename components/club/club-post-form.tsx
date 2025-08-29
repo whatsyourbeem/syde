@@ -135,11 +135,16 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
           disabled={isLoading}
         />
       </div>
-      <TiptapEditorWrapper
-        initialContent={content}
-        onContentChange={setContent}
-        placeholder="클럽 멤버들과 나눌 이야기를 작성해보세요..."
-      />
+      <div className="grid w-full items-center gap-1.5">
+        <Label htmlFor="content">내용</Label>
+        <div className="border border-input rounded-md p-4 min-h-[400px]">
+          <TiptapEditorWrapper
+            initialContent={content}
+            onContentChange={setContent}
+            placeholder="클럽 멤버들과 나눌 이야기를 작성해보세요..."
+          />
+        </div>
+      </div>
       <div className="flex justify-end">
         <Button onClick={handleSubmit} disabled={isLoading || !hasWritableForums || !selectedForumId || !canWriteForum(forums.find(f => f.id === selectedForumId) || {} as Forum)}>
           {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
