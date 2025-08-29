@@ -215,7 +215,7 @@ export default function ClubDetailClient({
             showDetailText={true}
           >
             <h2 className="flex items-baseline gap-1">
-              💬<span className="font-extrabold pl-1">{club.name}</span>의 소개
+              💬<span className="font-extrabold pl-1">소개</span>
             </h2>
           </AccordionTrigger>
           <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-6">
@@ -278,7 +278,11 @@ export default function ClubDetailClient({
                                   meetup.location_type
                                 )} text-xs`}
                               >
-                                {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+                                {
+                                  MEETUP_LOCATION_TYPE_DISPLAY_NAMES[
+                                    meetup.location_type
+                                  ]
+                                }
                               </Badge>
                             </div>
                             <h3 className="font-semibold line-clamp-2 mb-2">
