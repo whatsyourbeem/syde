@@ -17,12 +17,14 @@ interface ProfileHoverCardProps {
   userId: string;
   children: React.ReactNode;
   profileData?: Profile | null;
+  disableHover?: boolean; // New prop
 }
 
 export default function ProfileHoverCard({
   userId,
   children,
   profileData,
+  disableHover = false, // Default to false
 }: ProfileHoverCardProps) {
   const [profile, setProfile] = useState<Profile | null>(profileData || null);
   const [isLoading, setIsLoading] = useState(!profileData);
@@ -51,8 +53,8 @@ export default function ProfileHoverCard({
     }
   }, [userId, profileData, supabase]);
 
-  if (!profile && !isLoading) {
-    return <>{children}</>; // Render children without hover card if profile not found
+  if (!profile && !isLoading || disableHover) {
+    return <>{children}</>; // Render children without hover card if profile not found or hover is disabled
   }
 
   return (
@@ -65,7 +67,7 @@ export default function ProfileHoverCard({
           </div>
         ) : (
           <Link href={`/${profile?.username || profile?.id}`}>
-            <div className="flex justify-start space-x-4">
+            <div className="flex justify-start space-x-2">
               <Avatar className="size-16">
                 <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback>{profile?.username?.charAt(0) || "U"}</AvatarFallback>

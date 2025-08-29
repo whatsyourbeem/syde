@@ -1,19 +1,48 @@
 "use client";
 
 import { useState } from "react";
-import { Tables } from "@/types/database.types";
+import { Tables, Enums } from "@/types/database.types";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Loader2, LogOut, Crown } from "lucide-react";
+import { Loader2, LogOut, Crown, EllipsisVertical } from "lucide-react";
 import { toast } from "sonner";
 import { leaveClub } from "@/app/socialing/club/actions";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  CLUB_MEMBER_ROLES,
+  CLUB_MEMBER_ROLE_DISPLAY_NAMES,
+} from "@/lib/constants";
 
-type Profile = Tables<'profiles'>;
-type ClubMember = Tables<'club_members'> & { profiles: Profile | null };
+type Profile = Tables<"profiles">;
+type ClubMember = Tables<"club_members"> & { profiles: Profile | null };
+
+const ROLE_ORDER: Record<Enums<"club_member_role_enum">, number> = {
+  [CLUB_MEMBER_ROLES.LEADER]: 0,
+  [CLUB_MEMBER_ROLES.FULL_MEMBER]: 1,
+  [CLUB_MEMBER_ROLES.GENERAL_MEMBER]: 2,
+};
 
 interface ClubMembersListProps {
   members: ClubMember[];
@@ -22,29 +51,47 @@ interface ClubMembersListProps {
   clubOwnerId: string;
 }
 
-export default function ClubMembersList({ members, clubId, currentUserId, clubOwnerId }: ClubMembersListProps) {
+export default function ClubMembersList({
+  members,
+  clubId,
+  currentUserId,
+  clubOwnerId,
+}: ClubMembersListProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const currentMember = members.find(member => member.user_id === currentUserId);
+  const currentMember = members.find(
+    (member) => member.user_id === currentUserId
+  );
 
-  const sortedMembers = [...members].sort((a, b) => {
-    const aId = a.user_id;
-    const bId = b.user_id;
+  const groupedMembers: Record<Enums<"club_member_role_enum">, ClubMember[]> = {
+    [CLUB_MEMBER_ROLES.LEADER]: [],
+    [CLUB_MEMBER_ROLES.FULL_MEMBER]: [],
+    [CLUB_MEMBER_ROLES.GENERAL_MEMBER]: [],
+  };
 
-    // Current user first
-    if (aId === currentUserId) return -1;
-    if (bId === currentUserId) return 1;
-
-    // Owner second (if not current user)
-    if (aId === clubOwnerId) return -1;
-    if (bId === clubOwnerId) return 1;
-
-    // Alphabetical by full_name or username for others
-    const aName = a.profiles?.full_name || a.profiles?.username || '';
-    const bName = b.profiles?.full_name || b.profiles?.username || '';
-    return aName.localeCompare(bName);
+  members.forEach((member) => {
+    if (member.role) {
+      groupedMembers[member.role].push(member);
+    }
   });
+
+  // Sort members within each group alphabetically
+  Object.values(groupedMembers).forEach((group) => {
+    group.sort((a, b) => {
+      const aName = a.profiles?.full_name || a.profiles?.username || "";
+      const bName = b.profiles?.full_name || b.profiles?.username || "";
+      return aName.localeCompare(bName);
+    });
+  });
+
+  // Sort groups by ROLE_ORDER
+  const sortedRoles = Object.keys(groupedMembers).sort((a, b) => {
+    return (
+      ROLE_ORDER[a as Enums<"club_member_role_enum">] -
+      ROLE_ORDER[b as Enums<"club_member_role_enum">]
+    );
+  }) as Enums<"club_member_role_enum">[];
 
   const handleLeaveClub = async () => {
     setIsLoading(true);
@@ -69,58 +116,147 @@ export default function ClubMembersList({ members, clubId, currentUserId, clubOw
     <div>
       <div className="flex items-center justify-between my-4">
         <h3 className="font-bold">멤버 ({members.length})</h3>
-        {currentMember && currentUserId !== clubOwnerId && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowConfirmDialog(true)} disabled={isLoading} className="text-red-500">
-                {isLoading ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : (
-                  <LogOut className="mr-2 size-4" />
-                )}
-                <span>{isLoading ? "탈퇴 처리 중..." : "탈퇴하기"}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
       </div>
-      {members.length > 0 ? (
-        <div className="flex flex-col gap-4">
-          {sortedMembers.map((member) => (
-            <ProfileHoverCard key={member.profiles?.id} userId={member.user_id} profileData={member.profiles}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-x-3">
-                  <Link href={`/${member.profiles?.username}`}>
-                    <Avatar className="size-7">
-                      <AvatarImage src={member.profiles?.avatar_url || undefined} />
-                      <AvatarFallback>{member.profiles?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
+      <div className="flex flex-col gap-4">
+        {currentMember && (
+          <ProfileHoverCard
+            key={currentMember.profiles?.id}
+            userId={currentMember.user_id}
+            profileData={currentMember.profiles}
+            disableHover={true}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-x-2">
+                <Link href={`/${currentMember.profiles?.username}`}>
+                  <Avatar className="size-7">
+                    <AvatarImage
+                      src={currentMember.profiles?.avatar_url || undefined}
+                    />
+                    <AvatarFallback>
+                      {currentMember.profiles?.username
+                        ?.charAt(0)
+                        .toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+                <div className="text-left">
+                  <Link href={`/${currentMember.profiles?.username}`}>
+                    <p className="font-semibold text-sm hover:underline flex items-center">
+                      <span>
+                        {currentMember.profiles?.full_name ||
+                          currentMember.profiles?.username}
+                      </span>
+                      {currentMember.user_id === clubOwnerId && (
+                        <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                      )}
+                      <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
+                        (me)
+                      </span>
+                    </p>
                   </Link>
-                  <div className="text-left">
-                    <Link href={`/${member.profiles?.username}`}>
-                      <p className="font-semibold text-sm hover:underline flex items-center">
-                        <span>{member.profiles?.full_name || member.profiles?.username}</span>
-                        {member.user_id === clubOwnerId && <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
-                        {member.user_id === currentUserId && <span className="ml-1 text-muted-foreground flex-shrink-0">(me)</span>}
-                      </p>
-                    </Link>
-                  </div>
                 </div>
-                {/* Removed individual member dropdown */}
               </div>
-            </ProfileHoverCard>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8 text-muted-foreground">
-          <p>클럽 멤버가 아직 없습니다.</p>
-        </div>
-      )}
+              {currentUserId === currentMember.user_id &&
+                currentUserId !== clubOwnerId && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <EllipsisVertical className="size-2 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setShowConfirmDialog(true)}
+                        disabled={isLoading}
+                        className="text-red-500"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                        ) : (
+                          <LogOut className="mr-2 size-4" />
+                        )}
+                        <span>
+                          {isLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+            </div>
+          </ProfileHoverCard>
+        )}
+
+        <Accordion
+          type="multiple"
+          className="w-full"
+          defaultValue={sortedRoles}
+        >
+          {sortedRoles.map((role) => {
+            const membersInRole = groupedMembers[role];
+            if (membersInRole.length === 0) return null;
+
+            return (
+              <AccordionItem value={role} key={role}>
+                <AccordionTrigger className="text-xs font-semibold">
+                  <div className="flex items-center gap-1 flex-grow">
+                    {CLUB_MEMBER_ROLE_DISPLAY_NAMES[role]}
+                    <span className="text-muted-foreground">
+                      ({membersInRole.length})
+                    </span>
+                    <div className="flex-grow border-b border-gray-300 ml-2"></div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-4 py-2">
+                    {membersInRole.map((member) => (
+                      <ProfileHoverCard
+                        key={member.profiles?.id}
+                        userId={member.user_id}
+                        profileData={member.profiles}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-x-2">
+                            <Link href={`/${member.profiles?.username}`}>
+                              <Avatar className="size-7">
+                                <AvatarImage
+                                  src={member.profiles?.avatar_url || undefined}
+                                />
+                                <AvatarFallback>
+                                  {member.profiles?.username
+                                    ?.charAt(0)
+                                    .toUpperCase() || "U"}
+                                </AvatarFallback>
+                              </Avatar>
+                            </Link>
+                            <div className="text-left">
+                              <Link href={`/${member.profiles?.username}`}>
+                                <p className="font-semibold text-sm hover:underline flex items-center">
+                                  <span>
+                                    {member.profiles?.full_name ||
+                                      member.profiles?.username}
+                                  </span>
+                                  {member.user_id === clubOwnerId && (
+                                    <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                                  )}
+                                  {member.user_id === currentUserId && (
+                                    <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
+                                      (me)
+                                    </span>
+                                  )}
+                                </p>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </ProfileHoverCard>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </div>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
@@ -131,11 +267,23 @@ export default function ClubMembersList({ members, clubId, currentUserId, clubOw
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={isLoading}>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              disabled={isLoading}
+            >
               취소
             </Button>
-            <AlertDialogAction onClick={handleLeaveClub} disabled={isLoading} className="bg-red-500 hover:bg-red-600 text-white">
-              {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : "탈퇴하기"}
+            <AlertDialogAction
+              onClick={handleLeaveClub}
+              disabled={isLoading}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                "탈퇴하기"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
