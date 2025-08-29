@@ -49,6 +49,7 @@ interface ClubMembersListProps {
   clubId: string;
   currentUserId?: string;
   clubOwnerId: string;
+  direction?: "vertical" | "horizontal"; // Added new prop
 }
 
 export default function ClubMembersList({
@@ -56,6 +57,7 @@ export default function ClubMembersList({
   clubId,
   currentUserId,
   clubOwnerId,
+  direction = "vertical", // Default to vertical
 }: ClubMembersListProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -114,148 +116,189 @@ export default function ClubMembersList({
 
   return (
     <div>
-      <div className="flex items-center justify-between my-4">
-        <h3 className="font-bold">멤버 ({members.length})</h3>
-      </div>
-      <div className="flex flex-col gap-4">
-        {currentMember && (
-          <ProfileHoverCard
-            key={currentMember.profiles?.id}
-            userId={currentMember.user_id}
-            profileData={currentMember.profiles}
-            disableHover={true}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-x-2">
-                <Link href={`/${currentMember.profiles?.username}`}>
-                  <Avatar className="size-7">
+      {direction === "vertical" && (
+        <div className="flex items-center justify-between my-4">
+          <h3 className="font-bold">멤버 ({members.length})</h3>
+        </div>
+      )}
+      <div
+        className={`flex ${
+          direction === "vertical" ? "flex-col gap-4" : "flex-row gap-4"
+        }`}
+      >
+        {direction === "horizontal" ? (
+          // Horizontal display for mobile
+          members.map((member) => (
+            <ProfileHoverCard
+              key={member.profiles?.id}
+              userId={member.user_id}
+              profileData={member.profiles}
+            >
+              <div className="flex flex-col items-center flex-shrink-0 w-16">
+                <Link href={`/${member.profiles?.username}`}>
+                  <Avatar className="size-12">
                     <AvatarImage
-                      src={currentMember.profiles?.avatar_url || undefined}
+                      src={member.profiles?.avatar_url || undefined}
                     />
                     <AvatarFallback>
-                      {currentMember.profiles?.username
-                        ?.charAt(0)
-                        .toUpperCase() || "U"}
+                      {member.profiles?.username?.charAt(0).toUpperCase() ||
+                        "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Link>
-                <div className="text-left">
-                  <Link href={`/${currentMember.profiles?.username}`}>
-                    <p className="font-semibold text-sm hover:underline flex items-center">
-                      <span>
-                        {currentMember.profiles?.full_name ||
-                          currentMember.profiles?.username}
-                      </span>
-                      {currentMember.user_id === clubOwnerId && (
-                        <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                      )}
-                      <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
-                        (me)
-                      </span>
-                    </p>
-                  </Link>
-                </div>
+                <Link href={`/${member.profiles?.username}`}>
+                  <p className="font-semibold text-xs text-center mt-1 line-clamp-1 flex items-center justify-center">
+                    {member.profiles?.full_name || member.profiles?.username}
+                    {member.user_id === clubOwnerId && (
+                      <Crown className="ml-1 size-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                    )}
+                  </p>
+                </Link>
               </div>
-              {currentUserId === currentMember.user_id &&
-                currentUserId !== clubOwnerId && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <EllipsisVertical className="size-2 text-muted-foreground" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => setShowConfirmDialog(true)}
-                        disabled={isLoading}
-                        className="text-red-500"
-                      >
-                        {isLoading ? (
-                          <Loader2 className="mr-2 size-4 animate-spin" />
-                        ) : (
-                          <LogOut className="mr-2 size-4" />
-                        )}
-                        <span>
-                          {isLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
+            </ProfileHoverCard>
+          ))
+        ) : (
+          // Original vertical display for desktop
+          <>
+            {currentMember && (
+              <ProfileHoverCard
+                key={currentMember.profiles?.id}
+                userId={currentMember.user_id}
+                profileData={currentMember.profiles}
+                disableHover={true}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-x-2">
+                    <Link href={`/${currentMember.profiles?.username}`}>
+                      <Avatar className="size-7">
+                        <AvatarImage
+                          src={currentMember.profiles?.avatar_url || undefined}
+                        />
+                        <AvatarFallback>
+                          {currentMember.profiles?.username
+                            ?.charAt(0)
+                            .toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
+                    <div className="text-left">
+                      <Link href={`/${currentMember.profiles?.username}`}>
+                        <p className="font-semibold text-sm hover:underline flex items-center">
+                          <span>
+                            {currentMember.profiles?.full_name ||
+                              currentMember.profiles?.username}
+                          </span>
+                          {currentMember.user_id === clubOwnerId && (
+                            <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                          )}
+                          <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
+                            (me)
+                          </span>
+                        </p>
+                      </Link>
+                    </div>
+                  </div>
+                  {currentUserId === currentMember.user_id &&
+                    currentUserId !== clubOwnerId && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <EllipsisVertical className="size-2 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setShowConfirmDialog(true)}
+                            disabled={isLoading}
+                            className="text-red-500"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="mr-2 size-4 animate-spin" />
+                            ) : (
+                              <LogOut className="mr-2 size-4" />
+                            )}
+                            <span>
+                              {isLoading ? "탈퇴 처리 중..." : "탈퇴하기"}
+                            </span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                </div>
+              </ProfileHoverCard>
+            )}
+
+            <Accordion
+              type="multiple"
+              className="w-full"
+              defaultValue={sortedRoles}
+            >
+              {sortedRoles.map((role) => {
+                const membersInRole = groupedMembers[role];
+                if (membersInRole.length === 0) return null;
+
+                return (
+                  <AccordionItem value={role} key={role}>
+                    <AccordionTrigger className="text-xs font-semibold">
+                      <div className="flex items-center gap-1 flex-grow">
+                        {CLUB_MEMBER_ROLE_DISPLAY_NAMES[role]}
+                        <span className="text-muted-foreground">
+                          ({membersInRole.length})
                         </span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-            </div>
-          </ProfileHoverCard>
-        )}
-
-        <Accordion
-          type="multiple"
-          className="w-full"
-          defaultValue={sortedRoles}
-        >
-          {sortedRoles.map((role) => {
-            const membersInRole = groupedMembers[role];
-            if (membersInRole.length === 0) return null;
-
-            return (
-              <AccordionItem value={role} key={role}>
-                <AccordionTrigger className="text-xs font-semibold">
-                  <div className="flex items-center gap-1 flex-grow">
-                    {CLUB_MEMBER_ROLE_DISPLAY_NAMES[role]}
-                    <span className="text-muted-foreground">
-                      ({membersInRole.length})
-                    </span>
-                    <div className="flex-grow border-b border-gray-300 ml-2"></div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="flex flex-col gap-4 py-2">
-                    {membersInRole.map((member) => (
-                      <ProfileHoverCard
-                        key={member.profiles?.id}
-                        userId={member.user_id}
-                        profileData={member.profiles}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-x-2">
-                            <Link href={`/${member.profiles?.username}`}>
-                              <Avatar className="size-7">
-                                <AvatarImage
-                                  src={member.profiles?.avatar_url || undefined}
-                                />
-                                <AvatarFallback>
-                                  {member.profiles?.username
-                                    ?.charAt(0)
-                                    .toUpperCase() || "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                            </Link>
-                            <div className="text-left">
-                              <Link href={`/${member.profiles?.username}`}>
-                                <p className="font-semibold text-sm hover:underline flex items-center">
-                                  <span>
-                                    {member.profiles?.full_name ||
-                                      member.profiles?.username}
-                                  </span>
-                                  {member.user_id === clubOwnerId && (
-                                    <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                                  )}
-                                  {member.user_id === currentUserId && (
-                                    <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
-                                      (me)
-                                    </span>
-                                  )}
-                                </p>
-                              </Link>
+                        <div className="flex-grow border-b border-gray-300 ml-2"></div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex flex-col gap-4 py-2">
+                        {membersInRole.map((member) => (
+                          <ProfileHoverCard
+                            key={member.profiles?.id}
+                            userId={member.user_id}
+                            profileData={member.profiles}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-x-2">
+                                <Link href={`/${member.profiles?.username}`}>
+                                  <Avatar className="size-7">
+                                    <AvatarImage
+                                      src={member.profiles?.avatar_url || undefined}
+                                    />
+                                    <AvatarFallback>
+                                      {member.profiles?.username
+                                        ?.charAt(0)
+                                        .toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </Link>
+                                <div className="text-left">
+                                  <Link href={`/${member.profiles?.username}`}>
+                                    <p className="font-semibold text-sm hover:underline flex items-center">
+                                      <span>
+                                        {member.profiles?.full_name ||
+                                          member.profiles?.username}
+                                      </span>
+                                      {member.user_id === clubOwnerId && (
+                                        <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                                      )}
+                                      {member.user_id === currentUserId && (
+                                        <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
+                                          (me)
+                                        </span>
+                                      )}
+                                    </p>
+                                  </Link>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </ProfileHoverCard>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            );
-          })}
-        </Accordion>
+                          </ProfileHoverCard>
+                        ))}n                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </>
+        )}
       </div>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

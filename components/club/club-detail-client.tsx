@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
+import ClubMembersList from "./club-members-list"; // Import ClubMembersList
 
 // Type Definitions
 type Profile = Tables<"profiles">;
@@ -186,6 +187,23 @@ export default function ClubDetailClient({
           userRole={userRole}
           isOwner={isOwner}
         />
+      </div>
+      {/* Mobile-only horizontal scrollable member list */}
+      <div className="block md:hidden w-full py-8"> {/* Added w-full py-8 for consistent spacing */}
+        <div className="flex justify-between items-center mb-4 px-4">
+          <h2 className="text-2xl font-bold">
+            👥<span className="font-extrabold pl-2">멤버</span>
+          </h2>
+        </div>
+        <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <ClubMembersList
+            clubId={club.id}
+            members={club.members} // Corrected prop name
+            clubOwnerId={club.owner_id} // Corrected prop name
+            currentUserId={currentUserId}
+            direction="horizontal" // New prop for horizontal layout
+          />
+        </div>
       </div>
       {/* 
       // More button dropdown 
