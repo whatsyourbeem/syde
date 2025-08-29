@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import ClubPostForm from "@/components/club/club-post-form";
-import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 interface ClubPostCreatePageProps {
   params: Promise<{
@@ -15,80 +14,53 @@ export default async function ClubPostCreatePage({ params, searchParams }: ClubP
   const awaitedSearchParams = await searchParams;
   const forumIdFromQuery = awaitedSearchParams?.forum_id as string | undefined;
   const supabase = await createClient();
-
-  let forum;
-  let forumError;
-
-  if (forumIdFromQuery) {
-    // Fetch the specific forum using forumId from query params
-    const { data, error } = await supabase
-      .from("club_forums")
-      .select("*")
-      .eq("id", forumIdFromQuery)
-      .eq("club_id", club_id) // Ensure forum belongs to this club
-      .single();
-    forum = data;
-    forumError = error;
-  } else {
-    // If no forum_id is provided, fetch the first forum (fallback or error)
-    // This case should ideally not happen if the button always passes forum_id
-    const { data, error } = await supabase
-      .from("club_forums")
-      .select("*")
-      .eq("club_id", club_id)
-      .order("position", { ascending: true })
-      .limit(1)
-      .single();
-    forum = data;
-    forumError = error;
-  }
-
-  if (forumError || !forum) {
-    console.error("Error fetching forum or forum not found:", forumError);
-    // Redirect to club page with an error message or show notFound
-    redirect(`/socialing/club/${club_id}?error=forum_not_found`);
-  }
-
-  // Check if the user is a member with LEADER or FULL_MEMBER role
   const { data: { user } } = await supabase.auth.getUser();
-  let canCreatePost = false;
-  if (user) {
-    const { data: member, error: memberError } = await supabase
-      .from("club_members")
-      .select("role")
-      .eq("club_id", club_id)
-      .eq("user_id", user.id)
-      .single();
 
-    if (!memberError && member && (member.role === CLUB_MEMBER_ROLES.LEADER || member.role === CLUB_MEMBER_ROLES.FULL_MEMBER || member.role === CLUB_MEMBER_ROLES.GENERAL_MEMBER)) {
-      // Also check write permission of the specific forum
-      const { data: forumPermissions, error: permError } = await supabase
-        .from("club_forums")
-        .select("write_permission")
-        .eq("id", forum.id)
-        .single();
-
-      if (!permError && forumPermissions) {
-        const writePermission = forumPermissions.write_permission;
-        if (writePermission === CLUB_PERMISSION_LEVELS.MEMBER && (member.role === CLUB_MEMBER_ROLES.GENERAL_MEMBER || member.role === CLUB_MEMBER_ROLES.FULL_MEMBER || member.role === CLUB_MEMBER_ROLES.LEADER)) {
-          canCreatePost = true;
-        } else if (writePermission === CLUB_PERMISSION_LEVELS.FULL_MEMBER && (member.role === CLUB_MEMBER_ROLES.FULL_MEMBER || member.role === CLUB_MEMBER_ROLES.LEADER)) {
-          canCreatePost = true;
-        } else if (writePermission === CLUB_PERMISSION_LEVELS.LEADER && member.role === CLUB_MEMBER_ROLES.LEADER) {
-          canCreatePost = true;
-        }
-      }
-    }
+  if (!user) {
+    redirect(`/socialing/club/${club_id}?error=not_logged_in`);
   }
 
-  if (!canCreatePost) {
-    redirect(`/socialing/club/${club_id}?error=unauthorized_to_post`);
+  // Fetch all forums for the club, including write permissions
+  const { data: forums, error: forumsError } = await supabase
+    .from("club_forums")
+    .select("*, write_permission")
+    .eq("club_id", club_id)
+    .order("position", { ascending: true });
+
+  if (forumsError || !forums) {
+    console.error("Error fetching forums:", forumsError);
+    redirect(`/socialing/club/${club_id}?error=forums_not_found`);
+  }
+
+  // Check if the current user is a member and get their role
+  const { data: members } = await supabase
+    .from("club_members")
+    .select("role")
+    .eq("club_id", club_id)
+    .eq("user_id", user.id)
+    .single();
+
+  const currentUserMembership = members;
+  const isMember = !!currentUserMembership;
+  const userRole = currentUserMembership?.role || null;
+
+  // Fetch club owner to determine isOwner
+  const { data: clubData } = await supabase
+    .from("clubs")
+    .select("owner_id")
+    .eq("id", club_id)
+    .single();
+
+  const actualIsOwner = user.id === clubData?.owner_id;
+
+  if (!isMember) {
+    redirect(`/socialing/club/${club_id}?error=not_a_member`);
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">새 게시글 작성</h1>
-      <ClubPostForm forumId={forum.id} clubId={club_id} />
+      <ClubPostForm clubId={club_id} forums={forums} userRole={userRole} isOwner={actualIsOwner} initialForumId={forumIdFromQuery} />
     </div>
   );
 }

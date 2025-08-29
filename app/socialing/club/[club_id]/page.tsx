@@ -51,7 +51,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   // Fetch all forums for the club
   const { data: forums, error: forumsError } = await supabase
     .from("club_forums")
-    .select("*")
+    .select("*, write_permission") // Fetch write_permission
     .eq("club_id", club_id)
     .order("position", { ascending: true });
 
