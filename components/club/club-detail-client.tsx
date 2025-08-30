@@ -409,7 +409,7 @@ export default function ClubDetailClient({
                   <Link
                     href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}
                   >
-                    <Button size="sm">새 게시글 작성</Button>
+                    <Button variant="outline" size="sm">새 글 작성</Button>
                   </Link>
                 )}
               </div>
