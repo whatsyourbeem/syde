@@ -20,9 +20,10 @@ type Post = Database["public"]["Tables"]["club_forum_posts"]["Row"];
 interface ClubPostActionsDropdownProps {
   post: Post;
   clubId: string;
+  onEditClick: () => void; // Added prop
 }
 
-export function ClubPostActionsDropdown({ post, clubId }: ClubPostActionsDropdownProps) {
+export function ClubPostActionsDropdown({ post, clubId, onEditClick }: ClubPostActionsDropdownProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -45,9 +46,7 @@ export function ClubPostActionsDropdown({ post, clubId }: ClubPostActionsDropdow
   };
 
   const handleEdit = () => {
-    // TODO: Implement edit functionality
-    toast.info("게시글 수정 기능은 현재 준비 중입니다.");
-    // router.push(`/socialing/club/${clubId}/post/${post.id}/edit`);
+    onEditClick(); // Call the prop function
   };
 
   return (

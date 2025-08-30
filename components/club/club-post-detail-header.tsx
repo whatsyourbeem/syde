@@ -15,9 +15,10 @@ interface ClubPostDetailHeaderProps {
   clubId: string;
   clubOwnerId: string;
   user: User | null;
+  onEditClick: () => void; // Added prop
 }
 
-export function ClubPostDetailHeader({ post, clubId, clubOwnerId, user }: ClubPostDetailHeaderProps) {
+export function ClubPostDetailHeader({ post, clubId, clubOwnerId, user, onEditClick }: ClubPostDetailHeaderProps) {
   const router = useRouter();
 
   const isAuthor = user?.id === post.user_id;
@@ -32,7 +33,7 @@ export function ClubPostDetailHeader({ post, clubId, clubOwnerId, user }: ClubPo
       </Button>
       
       {canManage && (
-        <ClubPostActionsDropdown post={post} clubId={clubId} />
+        <ClubPostActionsDropdown post={post} clubId={clubId} onEditClick={onEditClick} />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Tables } from "@/types/database.types";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPlainTextFromTiptapJson } from "@/lib/utils";
 

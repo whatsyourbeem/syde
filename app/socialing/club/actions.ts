@@ -284,6 +284,52 @@ export async function createClubPost(
   return { success: true, postId: post.id };
 }
 
+export async function updateClubPost(
+  postId: string,
+  title: string,
+  content: Json
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "User not authenticated" };
+  }
+
+  // Verify user is the author of the post
+  const { data: existingPost, error: fetchError } = await supabase
+    .from("club_forum_posts")
+    .select("user_id")
+    .eq("id", postId)
+    .single();
+
+  if (fetchError || !existingPost) {
+    console.error("Error fetching existing post:", fetchError);
+    return { error: "게시글을 찾을 수 없습니다." };
+  }
+
+  if (existingPost.user_id !== user.id) {
+    return { error: "게시글을 수정할 권한이 없습니다." };
+  }
+
+  const { data, error } = await supabase
+    .from("club_forum_posts")
+    .update({ title, content })
+    .eq("id", postId)
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Error updating club post:", error);
+    return { error: error.message };
+  }
+
+  revalidatePath(`/socialing/club/[club_id]/post/${postId}`);
+  return { postId: data.id };
+}
+
 export async function createClubPostComment(
   postId: string,
   content: string, // Assuming content is plain text for now, similar to log_comments
