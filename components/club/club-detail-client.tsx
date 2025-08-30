@@ -181,7 +181,7 @@ export default function ClubDetailClient({
     <div className="relative">
       {" "}
       {/* Added relative positioning */}
-      <div className="block md:hidden mb-4">
+      <div className="block md:hidden mb-16">
         {" "}
         {/* Visible only on mobile */}
         <ClubSidebarInfo
@@ -197,7 +197,7 @@ export default function ClubDetailClient({
         />
       </div>
       {/* Mobile-only horizontal scrollable member list */}
-      <div className="block md:hidden w-full py-8">
+      <div className="block md:hidden w-full mb-16">
         {" "}
         {/* Added w-full py-8 for consistent spacing */}
         <div className="flex justify-between items-center mb-4 px-4">
@@ -245,28 +245,8 @@ export default function ClubDetailClient({
           />
         </div>
       </div>
-      {/* 
-      // More button dropdown 
-      {isMember && !isOwner && (
-        <div className="absolute top-0 right-0 mt-4 mr-4"> //Positioned top right
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleLeaveClub}>
-                {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <LogOut className="mr-2 size-4" />}
-                {isLoading ? "처리 중..." : "클럽 탈퇴"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )} 
-      */}
       {/* Description Section */}
-      <Accordion type="single" collapsible className="w-full">
+      <Accordion type="single" collapsible className="w-full mb-16">
         <AccordionItem value="description">
           <AccordionTrigger
             className="text-2xl font-bold px-4 py-4"
@@ -288,7 +268,7 @@ export default function ClubDetailClient({
         </AccordionItem>
       </Accordion>
       {/* Meetups Section */}
-      <div className="w-full py-8">
+      <div className="w-full  mb-16">
         <div className="flex justify-between items-center mb-4 px-4">
           <h2 className="text-2xl font-bold">
             🤝<span className="font-extrabold pl-2">모임</span>
@@ -406,7 +386,7 @@ export default function ClubDetailClient({
         )}
       </div>
       {/* Board Section */}
-      <div className="w-full px-4 py-8">
+      <div className="w-full px-4 mb-16">
         <h2 className="text-2xl font-bold mb-4">
           📌<span className="font-extrabold pl-2">게시판</span>
         </h2>

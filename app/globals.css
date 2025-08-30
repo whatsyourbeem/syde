@@ -80,19 +80,26 @@
 
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
+    height: 8px; /* height of horizontal scrollbar */
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-secondary rounded-full;
+    background: #f1f1f1; /* Light gray track */
+    border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-primary rounded-full;
+    background: #888; /* Darker gray thumb */
+    border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary/80;
+    background: #555; /* Even darker gray on hover */
+  }
+
+  /* For Firefox */
+  .custom-scrollbar {
+    scrollbar-width: thin; /* "auto" or "thin" */
+    scrollbar-color: #888 #f1f1f1; /* thumb color track color */
   }
 }
