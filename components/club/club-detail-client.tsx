@@ -396,7 +396,7 @@ export default function ClubDetailClient({
             className="w-full"
             onValueChange={setActiveForumId}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center">
               <TabsList>
                 {club.forums.map((forum) => (
                   <TabsTrigger key={forum.id} value={forum.id}>
