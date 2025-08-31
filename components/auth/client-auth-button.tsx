@@ -41,7 +41,7 @@ export function ClientAuthButton({
                         alt="User Avatar"
                         width={36}
                         height={36}
-                        className="rounded-full object-cover"
+                        className="rounded-full object-cover aspect-square"
                       />
                     ) : (
                       <div className="w-9 h-9 bg-gray-200 rounded-full" />
@@ -83,7 +83,7 @@ export function ClientAuthButton({
                   alt="User Avatar"
                   width={36}
                   height={36}
-                  className="rounded-full object-cover"
+                  className="rounded-full object-cover aspect-square"
                 />
               ) : (
                 <div className="w-9 h-9 bg-gray-200 rounded-full" />
