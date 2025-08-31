@@ -142,7 +142,7 @@ export default async function MeetupPage({
                     alt={meetup.title}
                     width={300}
                     height={200}
-                    className={`w-full h-48 object-cover rounded-t-lg ${
+                    className={`w-full h-48 object-cover object-center rounded-t-lg ${
                       meetup.status === MEETUP_STATUSES.ENDED
                         ? "grayscale opacity-50"
                         : ""

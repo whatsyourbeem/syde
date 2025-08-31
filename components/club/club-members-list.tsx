@@ -170,8 +170,8 @@ export default function ClubMembersList({
                 userId={member.user_id}
                 profileData={member.profiles}
               >
-                <div className="flex flex-col items-center flex-shrink-0 w-16">
-                  <Link href={`/${member.profiles?.username}`}>
+                <Link href={`/${member.profiles?.username}`} className="block">
+                  <div className="flex flex-col items-center flex-shrink-0 w-16 border rounded-md p-2">
                     <Avatar className="size-12">
                       <AvatarImage
                         src={member.profiles?.avatar_url || undefined}
@@ -181,16 +181,20 @@ export default function ClubMembersList({
                           "U"}
                       </AvatarFallback>
                     </Avatar>
-                  </Link>
-                  <Link href={`/${member.profiles?.username}`}>
                     <p className="font-semibold text-xs text-center mt-1 line-clamp-1 flex items-center justify-center">
                       {member.profiles?.full_name || member.profiles?.username}
                       {member.user_id === clubOwnerId && (
                         <Crown className="ml-1 size-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />
                       )}
                     </p>
-                  </Link>
-                </div>
+                    <p className="text-xs text-muted-foreground text-center line-clamp-1">
+                      @{member.profiles?.username || member.user_id}
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center line-clamp-1 h-[1rem]">
+                      {member.profiles?.tagline || " "}
+                    </p>
+                  </div>
+                </Link>
               </ProfileHoverCard>
             ));
           })()
@@ -293,9 +297,9 @@ export default function ClubMembersList({
                             userId={member.user_id}
                             profileData={member.profiles}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-x-2">
-                                <Link href={`/${member.profiles?.username}`}>
+                            <Link href={`/${member.profiles?.username}`} className="block">
+                              <div className="flex items-center justify-between border rounded-md p-2">
+                                <div className="flex items-center gap-x-2">
                                   <Avatar className="size-7">
                                     <AvatarImage
                                       src={
@@ -308,9 +312,7 @@ export default function ClubMembersList({
                                         .toUpperCase() || "U"}
                                     </AvatarFallback>
                                   </Avatar>
-                                </Link>
-                                <div className="text-left">
-                                  <Link href={`/${member.profiles?.username}`}>
+                                  <div className="text-left">
                                     <p className="font-semibold text-sm hover:underline flex items-center">
                                       <span>
                                         {member.profiles?.full_name ||
@@ -325,10 +327,16 @@ export default function ClubMembersList({
                                         </span>
                                       )}
                                     </p>
-                                  </Link>
+                                    <p className="text-xs text-muted-foreground">
+                                      @{member.profiles?.username || member.user_id}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground line-clamp-1">
+                                      {member.profiles?.tagline || " "}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            </Link>
                           </ProfileHoverCard>
                         ))}
                       </div>

@@ -92,7 +92,7 @@ export default function MeetupSidebarInfo({
 
 
   return (
-    <div className="md:block md:border-l pl-6 pt-4 flex-grow">
+    <div className="md:block md:border-l pl-6 pt-4 flex-grow pb-16">
       {meetup.clubs && (
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">주최 클럽</h2>
@@ -105,7 +105,7 @@ export default function MeetupSidebarInfo({
               alt={meetup.clubs.name || "Club Thumbnail"}
               width={36}
               height={36}
-              className="rounded-md"
+              className="rounded-md aspect-square object-cover"
             />
             {meetup.clubs.name}
           </Link>
@@ -113,7 +113,7 @@ export default function MeetupSidebarInfo({
       )}
 
       <div className="bg-white rounded-lg p-0 mb-6">
-        <h2 className="text-xl font-semibold mb-3">
+        <h2 className="text-xl font-semibold mb-2">
           참가자 ({meetup.meetup_participants.filter(p => p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED).length}명)
         </h2>
         {meetup.max_participants && (
@@ -141,11 +141,9 @@ export default function MeetupSidebarInfo({
                     </p>
                   </div>
                 </div>
-                {participant.profiles?.tagline && (
-                  <p className="text-xs text-gray-500 w-full truncate">
+                <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
                     {participant.profiles?.tagline}
                   </p>
-                )}
               </div>
             ))
           ) : (
@@ -178,11 +176,9 @@ export default function MeetupSidebarInfo({
                     </p>
                   </div>
                 </div>
-                {participant.profiles?.tagline && (
-                  <p className="text-xs text-gray-500 w-full truncate">
+                <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
                     {participant.profiles?.tagline}
                   </p>
-                )}
               </div>
             ))
           ) : (

@@ -133,7 +133,7 @@ export default async function ClubMeetupListPage({
                     src={meetup.thumbnail_url || "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"}
                     alt={meetup.title}
                     fill
-                    className="object-cover rounded-l-md"
+                    className="object-cover object-center rounded-l-md"
                   />
                 </div>
                 <Link

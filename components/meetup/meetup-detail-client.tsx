@@ -365,7 +365,7 @@ export default function MeetupDetailClient({
           alt={meetup.title}
           width={800} // Adjust as needed
           height={400} // Adjust as needed
-          className="w-full h-64 object-cover rounded-lg mb-6"
+          className="w-full h-64 object-cover object-center rounded-lg mb-6"
         />
 
         {/* 모임 상세 설명 */}

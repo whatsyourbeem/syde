@@ -72,7 +72,7 @@ export default function ClubSidebarInfo({
             src={clubThumbnailUrl || "/default_club_thumbnail.png"}
             alt={`${clubName} thumbnail`}
             fill
-            className="rounded-full object-cover"
+            className="rounded-md"
           />
         </div>
       </Link>
@@ -101,7 +101,7 @@ export default function ClubSidebarInfo({
           </ProfileHoverCard>
         )}
 
-        {userRole && <Badge variant="secondary" className="w-fit">내 등급: {CLUB_MEMBER_ROLE_DISPLAY_NAMES[userRole as ClubMemberRole]}</Badge>}
+        {userRole && <Badge variant="secondary" className="w-fit mt-2">내 등급: {CLUB_MEMBER_ROLE_DISPLAY_NAMES[userRole as ClubMemberRole]}</Badge>}
 
         <div className="flex flex-col gap-2 mt-4">
           {isOwner && (

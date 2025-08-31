@@ -267,7 +267,7 @@ export default function MeetupEditForm({
               alt="썸네일 미리보기"
               width={192}
               height={128}
-              className={`object-cover w-full h-full transition-opacity duration-300 ${
+              className={`object-cover object-center w-full h-full transition-opacity duration-300 ${
                 isHovered ? "opacity-50" : "opacity-100"
               }`}
             />
