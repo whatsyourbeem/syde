@@ -109,7 +109,7 @@ export default function ClubPostDetailClient({
       )}
 
       {isAuthorized && !isEditing && ( // Only show comments if authorized and not editing
-        <div className="mt-8 border-t pt-8">
+        <div className="mt-8 border-t pt-4">
           <h2 className="text-2xl font-bold mb-4">댓글</h2>
           <ClubPostCommentForm
             postId={post.id}
