@@ -37,6 +37,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 import ClubMembersList from "./club-members-list"; // Import ClubMembersList
 
@@ -246,7 +247,7 @@ export default function ClubDetailClient({
         </div>
       </div>
       {/* Description Section */}
-      <Accordion type="single" collapsible className="w-full mb-16">
+      <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="description">
           <AccordionTrigger
             className="text-2xl font-bold px-4 py-4"
@@ -267,8 +268,11 @@ export default function ClubDetailClient({
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      <Separator className="mb-4" />
+
       {/* Meetups Section */}
-      <div className="w-full  mb-16">
+      <div className="w-full">
         <div className="flex justify-between items-center mb-4 px-4">
           <h2 className="text-2xl font-bold">
             🤝<span className="font-extrabold pl-2">모임</span>
@@ -385,8 +389,11 @@ export default function ClubDetailClient({
           </div>
         )}
       </div>
+
+      <Separator className="mb-4" />
+
       {/* Board Section */}
-      <div className="w-full px-4 mb-16">
+      <div className="w-full px-4">
         <h2 className="text-2xl font-bold mb-4">
           📌<span className="font-extrabold pl-2">게시판</span>
         </h2>

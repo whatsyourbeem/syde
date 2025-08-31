@@ -23,7 +23,7 @@ export default function ClubPostList({ posts, clubId }: ClubPostListProps) {
     <div>
       <ul>
         {posts.map((post) => (
-          <li key={post.id} className="py-6 px-4 hover:bg-gray-50 border-b">
+          <li key={post.id} className="py-4 px-4 hover:bg-gray-50 border-b">
             <Link
               href={`/socialing/club/${clubId}/post/${post.id}`}
               className="block"

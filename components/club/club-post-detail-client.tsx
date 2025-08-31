@@ -10,6 +10,7 @@ import { ClubPostDetailHeader } from "@/components/club/club-post-detail-header"
 import { CLUB_PERMISSION_LEVEL_DISPLAY_NAMES, CLUB_PERMISSION_LEVELS } from "@/lib/constants"; // Added import
 import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form";
 import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list";
+import { Separator } from "@/components/ui/separator";
 
 type Profile = Tables<"profiles">;
 // Define a more specific type for the author profile fetched in the post detail
@@ -57,7 +58,7 @@ export default function ClubPostDetailClient({
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-4 max-w-3xl">
       <ClubPostDetailHeader
         post={post}
         clubId={clubId}
@@ -87,6 +88,8 @@ export default function ClubPostDetailClient({
             <span className="text-xs">•</span>
             <span className="text-xs">{formatDate(post.created_at)}</span>
           </div>
+
+          <Separator className="my-4" />
 
           <div className="prose prose-sm dark:prose-invert max-w-none mb-8">
             {isAuthorized ? (
