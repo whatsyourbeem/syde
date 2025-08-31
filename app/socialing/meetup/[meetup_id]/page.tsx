@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import MeetupDetailClient from "@/components/meetup/meetup-detail-client";
 import { Database } from "@/types/database.types";
+import MeetupDetailClient from "@/components/meetup/meetup-detail-client"; // Import MeetupDetailClient
 
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
@@ -40,6 +40,7 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ m
     }
   }
 
+  // Fetch user and joinedClubIds here, as MeetupDetailClient needs them
   const { data: { user } } = await supabase.auth.getUser();
   const isOrganizer = user?.id === meetup.organizer_id;
 
@@ -56,6 +57,11 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ m
   }
 
   return (
-    <MeetupDetailClient meetup={meetup as Meetup} isOrganizer={isOrganizer} user={user} joinedClubIds={joinedClubIds} />
+    <MeetupDetailClient
+      meetup={meetup as Meetup}
+      isOrganizer={isOrganizer}
+      user={user}
+      joinedClubIds={joinedClubIds}
+    />
   );
 }

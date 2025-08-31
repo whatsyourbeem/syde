@@ -2,12 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Network, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
+import TiptapViewer from "@/components/common/tiptap-viewer";
+
 import {
   MEETUP_CATEGORIES,
   MEETUP_LOCATION_TYPES,
@@ -17,7 +16,10 @@ import {
   MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
   MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Clock, MapPin, Network, Users } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,9 +36,8 @@ import {
   approveMeetupParticipant,
 } from "@/app/socialing/meetup/actions";
 import ProfileHoverCard from "@/components/common/profile-hover-card"; // New import
-import { toast } from "sonner";
 
-// 날짜 포맷 헬퍼 함수 (page.tsx에서 복사)
+// Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
   const date = new Date(dateString);
   const year = date.getFullYear().toString().slice(-2);
@@ -51,7 +52,6 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   }
 }
 
-// 카테고리 배지 클래스 헬퍼 함수 (page.tsx에서 복사)
 function getCategoryBadgeClass(category: string) {
   switch (category) {
     case MEETUP_CATEGORIES.STUDY:
@@ -67,7 +67,6 @@ function getCategoryBadgeClass(category: string) {
   }
 }
 
-// 진행 방식 배지 클래스 헬퍼 함수 (page.tsx에서 복사)
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
     case MEETUP_LOCATION_TYPES.ONLINE:
@@ -79,7 +78,6 @@ function getLocationTypeBadgeClass(locationType: string) {
   }
 }
 
-// 상태 배지 클래스 헬퍼 함수 (page.tsx에서 복사)
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case MEETUP_STATUSES.UPCOMING:
@@ -155,7 +153,6 @@ export default function MeetupDetailClient({
 
   const handleApplyClick = () => {
     if (!user) {
-      // TODO: 로그인 다이얼로그 띄우기
       toast.error("로그인이 필요합니다.");
       return;
     }
@@ -171,7 +168,6 @@ export default function MeetupDetailClient({
         toast.error(result.error);
       } else {
         toast.success("모임에 참가했습니다!");
-        // Optimistic update: Add the current user's profile to the participants list
         if (user) {
           const newParticipant = {
             profiles: {
@@ -184,10 +180,10 @@ export default function MeetupDetailClient({
               tagline: null,
               updated_at: null,
             },
-            status: MEETUP_PARTICIPANT_STATUSES.PENDING, // Added status
-            joined_at: new Date().toISOString(), // Add joined_at for optimistic update
-            meetup_id: meetup.id, // Add meetup_id
-            user_id: user.id, // Add user_id
+            status: MEETUP_PARTICIPANT_STATUSES.PENDING,
+            joined_at: new Date().toISOString(),
+            meetup_id: meetup.id,
+            user_id: user.id,
           };
           setMeetup((prev) => ({
             ...prev,
@@ -208,7 +204,6 @@ export default function MeetupDetailClient({
         toast.error(result.error);
       } else {
         toast.success("참가자가 승인되었습니다!");
-        // Optimistic UI update: Move participant from pending to approved
         setMeetup((prev) => {
           const updatedParticipants = prev.meetup_participants.map((p) =>
             p.user_id === participantUserId
@@ -252,16 +247,12 @@ export default function MeetupDetailClient({
     onApprove: (userId: string) => void;
   }) => {
     const profile = participant.profiles;
-    if (!profile) return null; // Should not happen if RLS is set up correctly, but good for safety
+    if (!profile) return null;
 
     return (
       <ProfileHoverCard userId={profile.id}>
         <div className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
-          {" "}
-          {/* Adjusted width and layout */}
           <div className="flex items-center gap-2 w-full">
-            {" "}
-            {/* First row */}
             <Avatar className="size-10">
               <AvatarImage src={profile.avatar_url || undefined} />
               <AvatarFallback>
@@ -277,7 +268,7 @@ export default function MeetupDetailClient({
               </p>
             </div>
           </div>
-          {profile.tagline /* Second row */ && (
+          {profile.tagline && (
             <p className="text-xs text-gray-500 w-full truncate">
               {profile.tagline}
             </p>
@@ -288,7 +279,7 @@ export default function MeetupDetailClient({
                 variant="outline"
                 size="sm"
                 onClick={() => onApprove(participant.user_id)}
-                className="w-full mt-2" // Button takes full width and has top margin
+                className="w-full mt-2"
               >
                 승인
               </Button>
@@ -394,8 +385,10 @@ export default function MeetupDetailClient({
           <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
           <TiptapViewer content={meetup.description} />
         </div>
+      </div>
 
-        {/* 참가자 (확정) 목록 */}
+      {/* Mobile Sidebar Content (remaining parts) */}
+      <div className="md:hidden">
         <div className="bg-white rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-3">
             참가자 ({approvedParticipants.length}명)
@@ -421,7 +414,6 @@ export default function MeetupDetailClient({
           </div>
         </div>
 
-        {/* 참가 대기중인 멤버 목록 */}
         <div className="bg-white rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-3">
             참가 대기중 ({pendingParticipants.length}명)
