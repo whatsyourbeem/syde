@@ -57,7 +57,7 @@ export default async function UserProfilePage({
                 alt="Avatar"
                 fill
                 sizes="96px"
-                className="rounded-full object-cover"
+                className="rounded-full object-cover aspect-square"
               />
             ) : (
               <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground text-4xl font-bold">

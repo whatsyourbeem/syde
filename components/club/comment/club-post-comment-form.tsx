@@ -229,7 +229,7 @@ export function ClubPostCommentForm({
                         alt={`${suggestion.username}'s avatar`}
                         width={24}
                         height={24}
-                        className="rounded-full object-cover mr-2"
+                        className="rounded-full object-cover aspect-square mr-2"
                       />
                     )}
                     <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>

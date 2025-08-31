@@ -271,7 +271,7 @@ export function LogCard({
                   alt={`${log.profiles?.username || "User"}'s avatar`}
                   width={36}
                   height={36}
-                  className="rounded-full object-cover mr-2"
+                  className="rounded-full object-cover aspect-square mr-2"
                 />
               </Link>
             )}

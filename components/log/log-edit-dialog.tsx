@@ -159,7 +159,7 @@ function LogForm({
               alt="User Avatar"
               width={40}
               height={40}
-              className="rounded-full object-cover self-start"
+              className="rounded-full object-cover aspect-square self-start"
             />
           )}
           <div className="relative flex-grow h-full">
@@ -193,7 +193,7 @@ function LogForm({
                           alt={`${suggestion.username}'s avatar`}
                           width={24}
                           height={24}
-                          className="rounded-full object-cover mr-2"
+                          className="rounded-full object-cover aspect-square mr-2"
                         />
                       )}
                       <span className="font-semibold">
@@ -563,7 +563,7 @@ export function LogEditDialog({
           alt="User Avatar"
           width={60}
           height={60}
-          className="rounded-full object-cover mb-4"
+          className="rounded-full object-cover aspect-square mb-4"
         />
       )}
       {full_name && <p className="text-base font-bold">{full_name}</p>}

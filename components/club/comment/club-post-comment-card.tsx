@@ -76,7 +76,7 @@ export function ClubPostCommentCard({
                   alt={`${comment.author?.username || "User"}'s avatar`}
                   width={32}
                   height={32}
-                  className="rounded-full object-cover flex-shrink-0"
+                  className="rounded-full object-cover aspect-square flex-shrink-0"
                 />
               </Link>
             )}

@@ -28,7 +28,7 @@ export function LogCreateButton({
         alt="User Avatar"
         width={36}
         height={36}
-        className="rounded-full object-cover mr-3"
+        className="rounded-full object-cover aspect-square mr-3"
       />
       <div className="text-gray-500">무슨 생각을 하고 계신가요?</div>
     </div>

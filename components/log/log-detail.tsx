@@ -258,7 +258,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                   alt={`${log.profiles?.username || "User"}'s avatar`}
                   width={40}
                   height={40}
-                  className="rounded-full object-cover mr-3"
+                  className="rounded-full object-cover aspect-square mr-3"
                 />
               )}
             </Link>

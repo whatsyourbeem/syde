@@ -82,7 +82,7 @@ export function UserList({ searchQuery }: UserListProps) {
                   alt={`${userProfile.username || 'User'}'s avatar`}
                   width={60}
                   height={60}
-                  className="rounded-full object-cover"
+                  className="rounded-full object-cover aspect-square"
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-2xl font-bold">

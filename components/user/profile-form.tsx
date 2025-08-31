@@ -273,7 +273,7 @@ export default function ProfileForm({
                 <Image
                   src={avatarPreviewUrl}
                   alt="Avatar"
-                  className={`rounded-full object-cover w-full h-full transition-opacity duration-300 ${
+                  className={`rounded-full object-cover aspect-square w-full h-full transition-opacity duration-300 ${
                     isHovered ? "opacity-50" : "opacity-100"
                   }`}
                   width={96}
