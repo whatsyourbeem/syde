@@ -10,6 +10,7 @@ import {
   MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -120,21 +121,27 @@ export default async function ClubMeetupListPage({
         &apos;{club.name}&apos; 클럽 모임
       </h1>
       {meetups && meetups.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {(meetups as Meetup[]).map((meetup) => (
             <Card
               key={meetup.id}
               className="h-full transition-shadow hover:shadow-lg"
             >
-              <CardContent className="flex flex-col items-start p-3 h-full">
+              <CardContent className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center p-0">
+                <div className="relative aspect-square h-full hidden sm:block">
+                  <Image
+                    src={meetup.thumbnail_url || "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"}
+                    alt={meetup.title}
+                    fill
+                    className="object-cover rounded-l-md"
+                  />
+                </div>
                 <Link
                   href={`/socialing/meetup/${meetup.id}`}
-                  className="w-full flex flex-col flex-grow"
+                  className="flex flex-col flex-grow p-4"
                 >
                   <div className="flex-grow">
-                    <div className="flex items-center gap-2 mb-4">
-                      {" "}
-                      {/* New row for badges */}
+                    <div className="flex items-center gap-2 mb-2">
                       <Badge
                         className={`${getStatusBadgeClass(
                           meetup.status
@@ -157,10 +164,10 @@ export default async function ClubMeetupListPage({
                         {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
                       </Badge>
                     </div>
-                    <h3 className="font-semibold line-clamp-2 mb-2">
+                    <h3 className="font-semibold line-clamp-2">
                       {meetup.title}
                     </h3>
-                    <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                    <div className="text-xs text-muted-foreground space-y-1 mt-1">
                       {meetup.start_datetime && (
                         <p className="flex items-center gap-1.5">
                           <Clock className="size-3" />{" "}
@@ -175,7 +182,7 @@ export default async function ClubMeetupListPage({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t">
                     <div className="flex items-center gap-2">
                       <Avatar className="size-5">
                         <AvatarImage
