@@ -11,9 +11,9 @@ export default async function MeetupDetailLayout({
   params: { meetup_id: string };
 }) {
   return (
-    <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 md:space-x-2">
+    <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 md:space-x-2 min-h-screen">
       <div className="w-full md:w-3/4">{children}</div>
-      <div className="w-full md:w-1/4 mt-4 md:mt-0">
+      <div className="w-full md:w-1/4 mt-4 md:mt-0 flex flex-col h-full">
         <MeetupSidebarInfo
           meetupId={params.meetup_id}
         />

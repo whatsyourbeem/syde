@@ -295,25 +295,13 @@ export default function MeetupDetailClient({
     <div>
       <div className="max-w-3xl mx-auto p-4 pb-20">
         <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-bold">{meetup.title}</h1>
+          <h1 className="text-3xl font-bold pb-2">{meetup.title}</h1>
           {isOrganizer && (
             <Link href={`/socialing/meetup/${meetup.id}/edit`}>
               <Button>수정</Button>
             </Link>
           )}
         </div>
-
-        {meetup.clubs && (
-          <div className="mb-4">
-            <Link
-              href={`/socialing/club/${meetup.clubs.id}`}
-              className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline"
-            >
-              <Network className="size-5" />
-              {meetup.clubs.name}
-            </Link>
-          </div>
-        )}
 
         {/* 카테고리, 형태, 상태 배지 */}
         <div className="flex gap-2 mb-4">
@@ -387,55 +375,7 @@ export default function MeetupDetailClient({
         </div>
       </div>
 
-      {/* Mobile Sidebar Content (remaining parts) */}
-      <div className="md:hidden">
-        <div className="bg-white rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-3">
-            참가자 ({approvedParticipants.length}명)
-          </h2>
-          {meetup.max_participants && (
-            <p className="text-sm text-gray-600 mb-3">
-              최대 인원: {meetup.max_participants}명
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            {approvedParticipants.length > 0 ? (
-              approvedParticipants.map((participant) => (
-                <ParticipantCard
-                  key={participant.profiles?.id}
-                  participant={participant}
-                  isOrganizer={isOrganizer}
-                  onApprove={handleApproveParticipant}
-                />
-              ))
-            ) : (
-              <p className="text-gray-500">아직 확정된 참가자가 없습니다.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-3">
-            참가 대기중 ({pendingParticipants.length}명)
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            {pendingParticipants.length > 0 ? (
-              pendingParticipants.map((participant) => (
-                <ParticipantCard
-                  key={participant.profiles?.id}
-                  participant={participant}
-                  isOrganizer={isOrganizer}
-                  onApprove={handleApproveParticipant}
-                />
-              ))
-            ) : (
-              <p className="text-gray-500">
-                현재 참가 대기중인 멤버가 없습니다.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+      
 
       {/* 고정 하단 바 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t z-10">

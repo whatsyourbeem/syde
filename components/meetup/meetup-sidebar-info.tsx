@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import Image from "next/image";
 import { Database } from "@/types/database.types";
 
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
@@ -22,8 +23,6 @@ import {
   MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Network, Users } from "lucide-react";
 
 
 interface MeetupSidebarInfoProps {
@@ -93,21 +92,27 @@ export default function MeetupSidebarInfo({
 
 
   return (
-    <div className="md:block md:border-l pl-4 pt-4">
+    <div className="md:block md:border-l pl-6 pt-4 flex-grow">
       {meetup.clubs && (
-        <div className="mb-4">
+        <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">주최 클럽</h2>
           <Link
             href={`/socialing/club/${meetup.clubs.id}`}
             className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline"
           >
-            <Network className="size-5" />
+            <Image
+              src={meetup.clubs.thumbnail_url || "/default_club_thumbnail.png"}
+              alt={meetup.clubs.name || "Club Thumbnail"}
+              width={36}
+              height={36}
+              className="rounded-md"
+            />
             {meetup.clubs.name}
           </Link>
         </div>
       )}
 
-      <div className="bg-white rounded-lg p-6 mb-6">
+      <div className="bg-white rounded-lg p-0 mb-6">
         <h2 className="text-xl font-semibold mb-3">
           참가자 ({meetup.meetup_participants.filter(p => p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED).length}명)
         </h2>
@@ -149,7 +154,7 @@ export default function MeetupSidebarInfo({
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-6">
+      <div className="bg-white rounded-lg p-0 mb-6">
         <h2 className="text-xl font-semibold mb-3">
           참가 대기중 ({meetup.meetup_participants.filter(p => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING).length}명)
         </h2>
