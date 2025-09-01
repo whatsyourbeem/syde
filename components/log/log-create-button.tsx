@@ -5,25 +5,20 @@ import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { Database } from "@/types/database.types";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
-
 interface LogCreateButtonProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
   avatarUrl: string | null;
 }
 
-export function LogCreateButton({
-  user,
-  avatarUrl,
-}: LogCreateButtonProps) {
+export function LogCreateButton({ user, avatarUrl }: LogCreateButtonProps) {
   const { openLoginDialog } = useLoginDialog();
-  
 
   const buttonContent = (
     <div className="flex items-center cursor-pointer">
       <Image
         src={
           avatarUrl ||
-          "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/avatars/default_avatar.png"
+          "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/profiles/default_avatar.png"
         }
         alt="User Avatar"
         width={36}
