@@ -9,11 +9,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -27,6 +29,7 @@ import { Database } from "@/types/database.types";
 import { useRouter } from "next/navigation";
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
+import { deleteLog } from "@/app/log/actions"; // Import the centralized server action
 
 interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -176,42 +179,17 @@ export function LogCard({
 
   const handleDelete = async () => {
     if (currentUserId !== log.user_id) return;
-
-    const isConfirmed = window.confirm(
-      "정말로 이 로그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-    );
-    if (!isConfirmed) return;
-
     setLoading(true);
     try {
-      if (log.image_url) {
-        const url = new URL(log.image_url);
-        const path = url.pathname.split("/logimages/")[1];
-        if (path) {
-          const { error: storageError } = await supabase.storage
-            .from("logimages")
-            .remove([path]);
-          if (storageError) {
-            console.error("Error deleting image from storage:", storageError);
-          }
-        }
-      }
-
-      const { error: dbError } = await supabase
-        .from("logs")
-        .delete()
-        .eq("id", log.id);
-
-      if (dbError) {
-        throw dbError;
-      }
-    } catch (error: unknown) {
-      console.error("Error deleting log:", error);
-      if (error instanceof Error) {
-        alert(`로그 삭제 중 오류가 발생했습니다: ${error.message}`);
+      const result = await deleteLog(log.id);
+      if (result?.error) {
+        toast.error('로그 삭제 실패', { description: result.error });
       } else {
-        alert("알 수 없는 오류가 발생했습니다.");
+        toast.success('로그가 삭제되었습니다.');
+        router.refresh(); // Refresh the page to reflect the deletion
       }
+    } catch (error) {
+      toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -295,32 +273,50 @@ export function LogCard({
         
         <div className="flex items-center gap-2">
           {currentUserId === log.user_id && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 text-muted-foreground rounded-full hover:bg-secondary">
-                  <MoreHorizontal size={16} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <LogEditDialog
-                  userId={currentUserId}
-                  avatarUrl={log.profiles?.avatar_url || null}
-                  username={log.profiles?.username || null}
-                  full_name={log.profiles?.full_name || null}
-                  initialLogData={log}
-                  onSuccess={() => router.refresh()}
-                >
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>수정</span>
-                  </DropdownMenuItem>
-                </LogEditDialog>
-                <DropdownMenuItem onClick={handleDelete} className="text-red-500 cursor-pointer">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>삭제</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AlertDialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 text-muted-foreground rounded-full hover:bg-secondary">
+                    <MoreHorizontal size={16} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <LogEditDialog
+                    userId={currentUserId}
+                    avatarUrl={log.profiles?.avatar_url || null}
+                    username={log.profiles?.username || null}
+                    full_name={log.profiles?.full_name || null}
+                    initialLogData={log}
+                    onSuccess={() => router.refresh()}
+                  >
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>수정</span>
+                    </DropdownMenuItem>
+                  </LogEditDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-500 cursor-pointer">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>삭제</span>
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고 스토리지에서 관련 이미지도 함께 삭제합니다.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} disabled={loading}>
+                    {loading ? '삭제 중...' : '삭제'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
