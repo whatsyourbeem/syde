@@ -171,7 +171,7 @@ export default function ClubMembersList({
                 profileData={member.profiles}
               >
                 <Link href={`/${member.profiles?.username}`} className="block">
-                  <div className="flex flex-col items-center flex-shrink-0 w-16 border rounded-md p-2">
+                  <div className={`flex flex-col items-center flex-shrink-0 w-16 border rounded-md p-2 ${member.user_id === currentUserId ? "bg-secondary" : ""}`}>
                     <Avatar className="size-12">
                       <AvatarImage
                         src={member.profiles?.avatar_url || undefined}
@@ -208,7 +208,7 @@ export default function ClubMembersList({
                 profileData={currentMember.profiles}
                 disableHover={true}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between rounded-md p-2 bg-secondary">
                   <div className="flex items-center gap-x-2">
                     <Link href={`/${currentMember.profiles?.username}`}>
                       <Avatar className="size-7">
@@ -224,17 +224,12 @@ export default function ClubMembersList({
                     </Link>
                     <div className="text-left">
                       <Link href={`/${currentMember.profiles?.username}`}>
-                        <p className="font-semibold text-sm hover:underline flex items-center">
-                          <span>
+                        <p className="font-semibold text-sm hover:underline items-center line-clamp-1">
                             {currentMember.profiles?.full_name ||
                               currentMember.profiles?.username}
-                          </span>
                           {currentMember.user_id === clubOwnerId && (
                             <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
                           )}
-                          <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
-                            (me)
-                          </span>
                         </p>
                       </Link>
                     </div>
@@ -298,7 +293,7 @@ export default function ClubMembersList({
                             profileData={member.profiles}
                           >
                             <Link href={`/${member.profiles?.username}`} className="block">
-                              <div className="flex items-center justify-between border rounded-md p-2">
+                              <div className={`flex items-center justify-between border rounded-md p-2 ${member.user_id === currentUserId ? "bg-secondary" : ""}`}>
                                 <div className="flex items-center gap-x-2">
                                   <Avatar className="size-7">
                                     <AvatarImage
@@ -313,19 +308,12 @@ export default function ClubMembersList({
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="text-left">
-                                    <p className="font-semibold text-sm hover:underline flex items-center">
-                                      <span>
+                                    <p>{member.user_id === clubOwnerId && (
+                                        <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                                      )}</p>
+                                    <p className="font-semibold text-sm hover:underline items-center line-clamp-1">
                                         {member.profiles?.full_name ||
                                           member.profiles?.username}
-                                      </span>
-                                      {member.user_id === clubOwnerId && (
-                                        <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                                      )}
-                                      {member.user_id === currentUserId && (
-                                        <span className="ml-1 text-muted-foreground flex-shrink-0 text-xs">
-                                          (me)
-                                        </span>
-                                      )}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                       @{member.profiles?.username || member.user_id}
