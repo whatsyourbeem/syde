@@ -182,7 +182,7 @@ export default function ClubDetailClient({
     <div className="relative">
       {" "}
       {/* Added relative positioning */}
-      <div className="block md:hidden mb-16">
+      <div className="block md:hidden">
         {" "}
         {/* Visible only on mobile */}
         <ClubSidebarInfo
@@ -197,8 +197,9 @@ export default function ClubDetailClient({
           isOwner={isOwner}
         />
       </div>
+      <Separator className="mb-4 md:hidden" />
       {/* Mobile-only horizontal scrollable member list */}
-      <div className="block md:hidden w-full mb-16">
+      <div className="block md:hidden w-full">
         {" "}
         {/* Added w-full py-8 for consistent spacing */}
         <div className="flex justify-between items-center mb-4 px-4">
@@ -246,6 +247,7 @@ export default function ClubDetailClient({
           />
         </div>
       </div>
+      <Separator className="m-0 md:hidden" />
       {/* Description Section */}
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="description">

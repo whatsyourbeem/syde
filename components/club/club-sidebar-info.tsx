@@ -103,9 +103,9 @@ export default function ClubSidebarInfo({
 
         {userRole && <Badge variant="secondary" className="w-fit mt-2">내 등급: {CLUB_MEMBER_ROLE_DISPLAY_NAMES[userRole as ClubMemberRole]}</Badge>}
 
-        <div className="flex flex-col gap-2 mt-4">
+        <div className="flex flex-col gap-2">
           {isOwner && (
-            <>
+            <div className="flex flex-col gap-2 mt-4">
               <Button asChild variant="outline">
                 <Link href={`/socialing/club/${clubId}/edit`}>
                   <Edit className="mr-2 size-4" /> 클럽 정보 수정
@@ -121,10 +121,10 @@ export default function ClubSidebarInfo({
                   <Settings className="mr-2 size-4" /> 게시판 관리
                 </Link>
               </Button>
-            </>
+            </div>
           )}
           {!isMember && (
-            <Button onClick={handleJoinClub} disabled={isLoading} className="w-full">
+            <Button onClick={handleJoinClub} disabled={isLoading} className="w-full mt-2">
               {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <UserPlus className="mr-2 size-4" />}
               {isLoading ? "처리 중..." : "클럽 가입"}
             </Button>

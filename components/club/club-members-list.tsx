@@ -167,7 +167,7 @@ export default function ClubMembersList({
                 profileData={member.profiles}
               >
                 <Link href={`/${member.profiles?.username}`} className="block">
-                  <div className={`flex flex-col items-center flex-shrink-0 w-32 border rounded-md p-2 ${member.user_id === currentUserId ? "bg-muted" : ""}`}>
+                  <div className={`flex flex-col items-center flex-shrink-0 w-32 border rounded-md p-2 ${member.user_id === currentUserId ? "bg-gray-50" : ""}`}>
                     <div className="relative">
                       <Avatar className="size-12">
                         <AvatarImage
@@ -206,7 +206,7 @@ export default function ClubMembersList({
                 profileData={currentMember.profiles}
                 disableHover={true}
               >
-                <div className="flex items-center justify-between rounded-md p-2 bg-muted">
+                <div className="flex items-center justify-between rounded-md p-2 bg-gray-50 mt-4">
                   <div className="flex items-center gap-x-2">
                     <Link href={`/${currentMember.profiles?.username}`}>
                       <div className="relative">
@@ -264,8 +264,8 @@ export default function ClubMembersList({
               </ProfileHoverCard>
             )}
 
-            <div className="flex items-center justify-between my-2">
-              <h3 className="font-bold">멤버 ({members.length})</h3>
+            <div className="flex items-center justify-between mt-2">
+              <h3 className="font-bold">멤버 {members.length}</h3>
             </div>
 
             <Accordion
@@ -279,7 +279,7 @@ export default function ClubMembersList({
 
                 return (
                   <AccordionItem value={role} key={role}>
-                    <AccordionTrigger className="text-xs font-semibold">
+                    <AccordionTrigger className="text-xs font-semibold pt-2">
                       <div className="flex items-center gap-1 flex-grow">
                         {CLUB_MEMBER_ROLE_DISPLAY_NAMES[role]}
                         <span className="text-muted-foreground">
@@ -297,7 +297,7 @@ export default function ClubMembersList({
                             profileData={member.profiles}
                           >
                             <Link href={`/${member.profiles?.username}`} className="block">
-                              <div className={`border rounded-md p-2 ${member.user_id === currentUserId ? "bg-muted" : ""}`}>
+                              <div className={`border rounded-md p-2 ${member.user_id === currentUserId ? "bg-gray-50" : ""}`}>
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-x-2">
                                     <div className="relative">
