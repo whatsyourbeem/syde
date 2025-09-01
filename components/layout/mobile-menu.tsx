@@ -37,20 +37,8 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
           <SheetClose asChild>
             <Link href="/socialing" className={`p-2 ${pathname.startsWith("/socialing") ? "font-bold text-primary" : ""}`}>소셜링</Link>
           </SheetClose>
-          <Link
-            href="https://open.kakao.com/o/gduSGmtf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:bg-[#FEE500]/20 p-2 rounded-md"
-          >
-            <Image
-              src="/kakao-talk.png"
-              alt="Kakao"
-              width={24}
-              height={24}
-            />
-            <span>SYDE 오픈채팅</span>
-          </Link>
+          
+          
         </div>
         {user && (
             <div className="py-2 px-0 border-t">
@@ -64,6 +52,50 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
                 </form>
             </div>
         )}
+        <div className="py-2 px-0 border-t">
+          <Link
+            href="https://open.kakao.com/o/gduSGmtf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md"
+          >
+            <Image
+              src="/kakao-talk-bw.png"
+              alt="Kakao"
+              width={24}
+              height={24}
+            />
+            <span>SYDE 오픈채팅</span>
+          </Link>
+          <Link
+            href="https://www.instagram.com/syde.official/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md"
+          >
+            <Image
+              src="/instagram.png"
+              alt="Instagram"
+              width={24}
+              height={24}
+            />
+            <span>Instagram</span>
+          </Link>
+          <Link
+            href="https://www.threads.net/@syde.official"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md"
+          >
+            <Image
+              src="/threads.png"
+              alt="Threads"
+              width={24}
+              height={24}
+            />
+            <span>Threads</span>
+          </Link>
+        </div>
       </SheetContent>
     </Sheet>
   );
