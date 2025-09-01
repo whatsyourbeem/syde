@@ -8,6 +8,7 @@ import Image from "next/image";
 import { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/auth/actions";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 interface MobileMenuProps {
   user: User | null;
@@ -32,11 +33,21 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             {authButton}
           </div>
           <SheetClose asChild>
-            <Link href="/" className={`mt-2 p-2 ${pathname === "/" ? "font-bold text-primary" : ""}`}>HOME</Link>
+            <Link href="/" className={`mt-2 p-2 hover:bg-secondary rounded-md transition-all ${pathname === "/" ? "font-bold text-primary" : ""}`}>HOME</Link>
           </SheetClose>
-          <SheetClose asChild>
-            <Link href="/socialing" className={`p-2 ${pathname.startsWith("/socialing") ? "font-bold text-primary" : ""}`}>소셜링</Link>
-          </SheetClose>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="socialing">
+              <AccordionTrigger className={`p-2 text-base font-normal hover:bg-secondary ${pathname.startsWith("/socialing") ? "font-bold text-primary" : ""}`}>소셜링</AccordionTrigger>
+              <AccordionContent>
+                <SheetClose asChild>
+                  <Link href="/socialing/meetup" className={`block p-2 pl-6 hover:bg-secondary rounded-md transition-all ${pathname.startsWith("/socialing/meetup") ? "font-bold text-primary" : ""}`}>밋업</Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link href="/socialing/club" className={`block p-2 pl-6 hover:bg-secondary rounded-md transition-all ${pathname.startsWith("/socialing/club") ? "font-bold text-primary" : ""}`}>클럽</Link>
+                </SheetClose>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
           
           
         </div>
