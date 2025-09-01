@@ -18,6 +18,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
+import { useLoginDialog } from '@/context/LoginDialogContext';
 
 import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
@@ -137,8 +138,14 @@ export function LogCard({
 
   const formattedLogDate = log.created_at ? formatRelativeTime(log.created_at) : '';
 
+  const { openLoginDialog } = useLoginDialog();
+
   const handleLike = async () => {
-    if (!currentUserId || loading) return;
+    if (!currentUserId) {
+      openLoginDialog();
+      return;
+    }
+    if (loading) return;
 
     setLoading(true);
     if (hasLiked) {

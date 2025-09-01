@@ -9,6 +9,7 @@ import { CommentForm } from "@/components/comment/comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { useLoginDialog } from '@/context/LoginDialogContext';
 
 import { useRouter } from "next/navigation";
 
@@ -67,8 +68,14 @@ export function CommentCard({
 
   
 
+  const { openLoginDialog } = useLoginDialog();
+
   const handleLike = async () => {
-    if (!currentUserId || loading) return;
+    if (!currentUserId) {
+      openLoginDialog();
+      return;
+    }
+    if (loading) return;
 
     setLoading(true);
     let newLikesCount = likesCount;

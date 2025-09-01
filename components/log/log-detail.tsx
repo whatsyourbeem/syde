@@ -40,6 +40,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
+import { useLoginDialog } from '@/context/LoginDialogContext';
 
 import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
@@ -147,8 +148,13 @@ export function LogDetail({ log, user }: LogDetailProps) {
       : false
   );
 
+  const { openLoginDialog } = useLoginDialog();
+
   const handleLike = async () => {
-    if (!user?.id) return; // User must be logged in to like
+    if (!user?.id) {
+      openLoginDialog();
+      return;
+    }
 
     // setLoading(true); // Consider adding a loading state if needed
     if (currentHasLiked) {

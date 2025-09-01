@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { HeartIcon, Trash2, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Database } from "@/types/database.types";
+import { useLoginDialog } from '@/context/LoginDialogContext';
 
 interface LogActionsProps {
   log: Database['public']['Tables']['logs']['Row'];
@@ -30,8 +31,14 @@ export function LogActions({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  const { openLoginDialog } = useLoginDialog();
+
   const handleLike = async () => {
-    if (!currentUserId || loading) return;
+    if (!currentUserId) {
+      openLoginDialog();
+      return;
+    }
+    if (loading) return;
 
     setLoading(true);
     let newLikesCount = likesCount;
