@@ -13,7 +13,7 @@ import { useLoginDialog } from '@/context/LoginDialogContext';
 
 import { useRouter } from "next/navigation";
 
-import { linkifyMentions } from "@/lib/utils";
+import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
 
@@ -65,6 +65,8 @@ export function CommentCard({
   const avatarUrlWithCacheBuster = comment.profiles?.avatar_url
     ? `${comment.profiles.avatar_url}?t=${comment.profiles.updated_at ? new Date(comment.profiles.updated_at).getTime() : ''}`
     : null;
+
+  const formattedCommentDate = comment.created_at ? formatRelativeTime(comment.created_at) : '';
 
   
 
@@ -159,7 +161,7 @@ export function CommentCard({
         </ProfileHoverCard>
         <div className="flex-grow">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-baseline gap-1">
                 <Link href={`/${comment.profiles?.username || comment.user_id}`}>
                   <p className="font-semibold text-sm hover:underline">
                     {comment.profiles?.full_name ||
@@ -167,9 +169,10 @@ export function CommentCard({
                       "Anonymous"}
                   </p>
                 </Link>
-              <p className="text-xs text-muted-foreground">
-                @{comment.profiles?.username || comment.user_id}
-              </p>
+              {comment.profiles?.tagline && (
+                <p className="text-xs text-muted-foreground">{comment.profiles.tagline}</p>
+              )}
+              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedCommentDate}</p>
             </div>
           </ProfileHoverCard>
           {isEditing ? (

@@ -67,7 +67,7 @@ export default function ProfileHoverCard({
           </div>
         ) : (
           <Link href={`/${profile?.username || profile?.id}`}>
-            <div className="flex justify-start space-x-2">
+            <div className="flex justify-start space-x-3">
               <Avatar className="size-16">
                 <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback>{profile?.username?.charAt(0) || "U"}</AvatarFallback>
