@@ -70,7 +70,7 @@ export default async function ClubDetailLayout({
           userRole={userRole}
         />
       </div>
-      <div className="w-auto flex-1 border-x border-gray-200 min-w-0">
+      <div className="w-auto flex-1 border-x border-gray-200 min-w-0 min-h-screen">
         {children}
       </div>
       <div className="hidden lg:block w-[160px] sticky top-[70px] self-start">

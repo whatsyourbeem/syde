@@ -92,7 +92,7 @@ export default function MeetupSidebarInfo({
 
 
   return (
-    <div className="md:block md:border-l pl-6 pt-4 flex-grow pb-16">
+    <div className="md:block pl-6 pt-4 flex-grow pb-16">
       {meetup.clubs && (
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">주최 클럽</h2>
