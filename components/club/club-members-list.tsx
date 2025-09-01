@@ -116,11 +116,7 @@ export default function ClubMembersList({
 
   return (
     <div>
-      {direction === "vertical" && (
-        <div className="flex items-center justify-between my-4">
-          <h3 className="font-bold">멤버 ({members.length})</h3>
-        </div>
-      )}
+      
       <div
         className={`flex ${
           direction === "vertical" ? "flex-col gap-4" : "flex-row gap-4"
@@ -171,26 +167,28 @@ export default function ClubMembersList({
                 profileData={member.profiles}
               >
                 <Link href={`/${member.profiles?.username}`} className="block">
-                  <div className={`flex flex-col items-center flex-shrink-0 w-16 border rounded-md p-2 ${member.user_id === currentUserId ? "bg-secondary" : ""}`}>
-                    <Avatar className="size-12">
-                      <AvatarImage
-                        src={member.profiles?.avatar_url || undefined}
-                      />
-                      <AvatarFallback>
-                        {member.profiles?.username?.charAt(0).toUpperCase() ||
-                          "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="font-semibold text-xs text-center mt-1 line-clamp-1 flex items-center justify-center">
-                      {member.profiles?.full_name || member.profiles?.username}
+                  <div className={`flex flex-col items-center flex-shrink-0 w-32 border rounded-md p-2 ${member.user_id === currentUserId ? "bg-muted" : ""}`}>
+                    <div className="relative">
+                      <Avatar className="size-12">
+                        <AvatarImage
+                          src={member.profiles?.avatar_url || undefined}
+                        />
+                        <AvatarFallback>
+                          {member.profiles?.username?.charAt(0).toUpperCase() ||
+                            "U"}
+                        </AvatarFallback>
+                      </Avatar>
                       {member.user_id === clubOwnerId && (
-                        <Crown className="ml-1 size-3 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                        <Crown className="absolute -top-1 -left-1 size-6 text-yellow-500 fill-yellow-500 bg-white rounded-full p-0.5" />
                       )}
+                    </div>
+                    <p className="font-semibold text-xs text-center mt-1 w-full truncate items-center justify-center">
+                      {member.profiles?.full_name || member.profiles?.username}
                     </p>
-                    <p className="text-xs text-muted-foreground text-center line-clamp-1">
+                    <p className="text-xs text-muted-foreground text-center w-full truncate">
                       @{member.profiles?.username || member.user_id}
                     </p>
-                    <p className="text-xs text-muted-foreground text-center line-clamp-1 h-[1rem]">
+                    <p className="text-xs text-muted-foreground text-center w-full truncate h-[1rem]">
                       {member.profiles?.tagline || " "}
                     </p>
                   </div>
@@ -208,28 +206,30 @@ export default function ClubMembersList({
                 profileData={currentMember.profiles}
                 disableHover={true}
               >
-                <div className="flex items-center justify-between rounded-md p-2 bg-secondary">
+                <div className="flex items-center justify-between rounded-md p-2 bg-muted">
                   <div className="flex items-center gap-x-2">
                     <Link href={`/${currentMember.profiles?.username}`}>
-                      <Avatar className="size-7">
-                        <AvatarImage
-                          src={currentMember.profiles?.avatar_url || undefined}
-                        />
-                        <AvatarFallback>
-                          {currentMember.profiles?.username
-                            ?.charAt(0)
-                            .toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="size-7">
+                          <AvatarImage
+                            src={currentMember.profiles?.avatar_url || undefined}
+                          />
+                          <AvatarFallback>
+                            {currentMember.profiles?.username
+                              ?.charAt(0)
+                              .toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        {currentMember.user_id === clubOwnerId && (
+                          <Crown className="absolute -top-1 -left-1 size-4 text-yellow-500 fill-yellow-500 bg-white rounded-full p-0.5" />
+                        )}
+                      </div>
                     </Link>
                     <div className="text-left">
                       <Link href={`/${currentMember.profiles?.username}`}>
-                        <p className="font-semibold text-sm hover:underline items-center line-clamp-1">
-                            {currentMember.profiles?.full_name ||
-                              currentMember.profiles?.username}
-                          {currentMember.user_id === clubOwnerId && (
-                            <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                          )}
+                        <p className="font-semibold text-sm hover:underline line-clamp-1">
+                          {currentMember.profiles?.full_name ||
+                            currentMember.profiles?.username}
                         </p>
                       </Link>
                     </div>
@@ -264,6 +264,10 @@ export default function ClubMembersList({
               </ProfileHoverCard>
             )}
 
+            <div className="flex items-center justify-between my-2">
+              <h3 className="font-bold">멤버 ({members.length})</h3>
+            </div>
+
             <Accordion
               type="multiple"
               className="w-full"
@@ -285,7 +289,7 @@ export default function ClubMembersList({
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="flex flex-col gap-4 py-2">
+                      <div className="flex flex-col gap-2 py-2">
                         {membersInRole.map((member) => (
                           <ProfileHoverCard
                             key={member.profiles?.id}
@@ -293,36 +297,40 @@ export default function ClubMembersList({
                             profileData={member.profiles}
                           >
                             <Link href={`/${member.profiles?.username}`} className="block">
-                              <div className={`flex items-center justify-between border rounded-md p-2 ${member.user_id === currentUserId ? "bg-secondary" : ""}`}>
-                                <div className="flex items-center gap-x-2">
-                                  <Avatar className="size-7">
-                                    <AvatarImage
-                                      src={
-                                        member.profiles?.avatar_url || undefined
-                                      }
-                                    />
-                                    <AvatarFallback>
-                                      {member.profiles?.username
-                                        ?.charAt(0)
-                                        .toUpperCase() || "U"}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="text-left">
-                                    <p>{member.user_id === clubOwnerId && (
-                                        <Crown className="ml-2 size-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                                      )}</p>
-                                    <p className="font-semibold text-sm hover:underline items-center line-clamp-1">
+                              <div className={`border rounded-md p-2 ${member.user_id === currentUserId ? "bg-muted" : ""}`}>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-x-2">
+                                    <div className="relative">
+                                      <Avatar className="size-7">
+                                        <AvatarImage
+                                          src={
+                                            member.profiles?.avatar_url || undefined
+                                          }
+                                        />
+                                        <AvatarFallback>
+                                          {member.profiles?.username
+                                            ?.charAt(0)
+                                            .toUpperCase() || "U"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      {member.user_id === clubOwnerId && (
+                                        <Crown className="absolute -top-1 -left-1 size-4 text-yellow-500 fill-yellow-500 bg-white rounded-full p-0.5" />
+                                      )}
+                                    </div>
+                                    <div className="text-left">
+                                      <p className="font-semibold text-sm hover:underline line-clamp-1">
                                         {member.profiles?.full_name ||
                                           member.profiles?.username}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      @{member.profiles?.username || member.user_id}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground line-clamp-1">
-                                      {member.profiles?.tagline || " "}
-                                    </p>
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        @{member.profiles?.username || member.user_id}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
+                                <p className="text-xs text-muted-foreground line-clamp-1 h-[1rem] mt-1">
+                                  {member.profiles?.tagline || " "}
+                                </p>
                               </div>
                             </Link>
                           </ProfileHoverCard>
