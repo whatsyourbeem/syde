@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -94,12 +93,10 @@ function SubmitButton({
 function LogForm({
   clientAction,
   initialLogData,
-  imageUrlForForm,
   avatarUrl,
   content,
   handleContentChange,
   handleKeyDown,
-  isUploading,
   isSubmitting,
   userId,
   openLoginDialog,
@@ -118,16 +115,13 @@ function LogForm({
 }: {
   clientAction: (formData: FormData) => Promise<void>;
   initialLogData?: LogEditDialogProps["initialLogData"];
-  imageUrlForForm: string | null;
   avatarUrl: string | null;
   content: string;
   handleContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  isUploading: boolean;
   isSubmitting: boolean;
   userId: string | null;
   openLoginDialog: () => void;
-  
   textareaRef: React.Ref<HTMLTextAreaElement>;
   showSuggestions: boolean;
   mentionSuggestions: MentionSuggestion[];
@@ -150,7 +144,9 @@ function LogForm({
         {initialLogData && (
           <input type="hidden" name="logId" value={initialLogData.id} />
         )}
-        <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} />
+        
+        {/* This hidden input is no longer needed as the file itself will be appended to FormData */}
+        {/* <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} /> */}
 
         <div className="flex gap-4 flex-grow min-h-0">
           {avatarUrl && (
@@ -169,7 +165,7 @@ function LogForm({
               value={content}
               onChange={handleContentChange}
               onKeyDown={handleKeyDown}
-              disabled={isUploading || !userId || isSubmitting}
+              disabled={!userId || isSubmitting}
               onClick={() => {
                 if (!userId) openLoginDialog();
               }}
@@ -229,7 +225,7 @@ function LogForm({
                 size="icon"
                 className="absolute top-2 right-2 h-6 w-6"
                 onClick={removeImage}
-                disabled={isUploading || isSubmitting}
+                disabled={isSubmitting}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -252,7 +248,7 @@ function LogForm({
             accept="image/*"
             onChange={handleImageChange}
             className="hidden"
-            disabled={isUploading || isSubmitting}
+            disabled={isSubmitting}
             ref={fileInputRef}
           />
           <Button
@@ -260,7 +256,7 @@ function LogForm({
             variant="link"
             size="icon"
             onClick={() => document.getElementById("log-image-input")?.click()}
-            disabled={isUploading || isSubmitting}
+            disabled={isSubmitting}
             className="hover:bg-secondary"
           >
             <ImagePlus className="h-4 w-4 text-muted-foreground" />
@@ -275,7 +271,7 @@ function LogForm({
                 setOpen(false);
                 onCancel();
               }}
-              disabled={isUploading || isSubmitting}
+              disabled={isSubmitting}
             >
               취소
             </Button>
@@ -311,38 +307,42 @@ export function LogEditDialog({
 
   const dialogTitle = initialLogData ? "로그 수정" : "새 로그 작성";
 
-  const supabase = createClient();
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
     initialLogData?.image_url || null
   );
-  const [imageUrlForForm, setImageUrlForForm] = useState<string | null>(
-    initialLogData?.image_url || null
-  );
-  const [isUploading, setIsUploading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { openLoginDialog } = useLoginDialog();
   const [ogUrl, setOgUrl] = useState<string | null>(null);
 
+  // Reset state when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      setContent(initialLogData?.content || "");
+      setImagePreviewUrl(initialLogData?.image_url || null);
+      setImageFile(null);
+      setIsSubmitting(false);
+    }
+  }, [open, initialLogData]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       const urlRegex = /(https?:\/\/[^\s]+)/;
       const match = content.match(urlRegex);
-      // Check if the found URL is different to avoid unnecessary state updates
       if (match && match[0] !== ogUrl) {
         setOgUrl(match[0]);
       } else if (!match && ogUrl) {
         setOgUrl(null);
       }
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => {
       clearTimeout(handler);
     };
   }, [content, ogUrl]);
-  
 
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<
@@ -359,6 +359,9 @@ export function LogEditDialog({
         setShowSuggestions(false);
         return;
       }
+      // This requires a client-side supabase instance
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
@@ -373,7 +376,7 @@ export function LogEditDialog({
       setMentionSuggestions(data || []);
       setShowSuggestions(true);
     },
-    [supabase]
+    []
   );
 
   useEffect(() => {
@@ -450,94 +453,74 @@ export function LogEditDialog({
     }
   };
 
-  const handleImageChange = async (
+  const handleImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
-      if (!userId) return;
-      setIsUploading(true);
+      setImageFile(file);
       setImagePreviewUrl(URL.createObjectURL(file));
-      try {
-        const publicUrl = await uploadImage(file, userId);
-        setImageUrlForForm(publicUrl);
-      } catch (error) {
-        console.error("Error uploading image:", error);
-      } finally {
-        setIsUploading(false);
-      }
     }
   };
 
   const removeImage = () => {
     setImagePreviewUrl(null);
-    setImageUrlForForm(null);
+    setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const uploadImage = useCallback(
-    async (file: File, userId: string) => {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
-      const { error: uploadError } = await supabase.storage
-        .from("logimages")
-        .upload(filePath, file, { cacheControl: "3600", upsert: false });
-      if (uploadError) throw uploadError;
-      const { data: publicUrlData } = supabase.storage
-        .from("logimages")
-        .getPublicUrl(filePath);
-      return publicUrlData.publicUrl;
-    },
-    [supabase]
-  );
-
   const router = useRouter();
 
-  const clientAction = useCallback(
-    async (formData: FormData) => {
-      if (!userId) {
-        openLoginDialog();
-        return;
-      }
-      setIsSubmitting(true);
-      formData.set("content", content);
-      const action = initialLogData ? updateLog : createLog;
-      const result = await action(formData);
-      if (result?.error) {
-        alert(`Error: ${result.error}`);
-      } else {
-        if (!initialLogData) {
-          setContent("");
-          setImagePreviewUrl(null);
-          setImageUrlForForm(null);
-          if (fileInputRef.current) fileInputRef.current.value = "";
-          setOpen(false);
-          if (result?.logId) {
-            router.push(`/log/${result.logId}`);
-          } else {
-            router.refresh();
-          }
+  const clientAction = async (formData: FormData) => {
+    if (!userId) {
+      openLoginDialog();
+      return;
+    }
+    setIsSubmitting(true);
+    
+    formData.set("content", content);
+    if (imageFile) {
+      formData.append("imageFile", imageFile);
+    } else if (!imagePreviewUrl && initialLogData?.image_url) {
+      // This indicates the user removed the existing image
+      formData.append("imageRemoved", "true");
+    }
+
+    const action = initialLogData ? updateLog : createLog;
+    const result = await action(formData);
+
+    if (result?.error) {
+      alert(`Error: ${result.error}`);
+    } else {
+      if (!initialLogData) {
+        // Reset form for creation
+        setContent("");
+        setImagePreviewUrl(null);
+        setImageFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setOpen(false);
+        if (result?.logId) {
+          router.push(`/log/${result.logId}`);
         } else {
-          if (onSuccess) onSuccess();
-          setOpen(false);
           router.refresh();
         }
+      } else {
+        // Handle success for update
+        if (onSuccess) onSuccess();
+        setOpen(false);
+        router.refresh();
       }
-      setIsSubmitting(false);
-    },
-    [userId, content, initialLogData, openLoginDialog, router, onSuccess]
-  );
+    }
+    setIsSubmitting(false);
+  };
 
   const formProps = {
     clientAction,
     initialLogData,
-    imageUrlForForm,
     avatarUrl,
     content,
     handleContentChange,
     handleKeyDown,
-    isUploading,
     isSubmitting,
     userId,
     openLoginDialog,

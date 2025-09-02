@@ -93,10 +93,10 @@ export async function uploadBioImage(formData: FormData): Promise<{ publicUrl?: 
 
   const fileExt = file.name.split(".").pop();
   const fileName = `${Math.random()}.${fileExt}`;
-  const filePath = `${user.id}/${fileName}`; // Store images under user's ID
+  const filePath = `${user.id}/bio/${fileName}`;
 
   const { error } = await supabase.storage
-    .from("avatars") // Using the 'avatars' bucket for now, can be changed to a dedicated 'bio-images' bucket later
+    .from("profiles")
     .upload(filePath, file, {
       cacheControl: "3600",
       upsert: false,
@@ -108,7 +108,7 @@ export async function uploadBioImage(formData: FormData): Promise<{ publicUrl?: 
   }
 
   const { data: { publicUrl } } = supabase.storage
-    .from("avatars")
+    .from("profiles")
     .getPublicUrl(filePath);
 
   return { publicUrl };

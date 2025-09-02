@@ -1,20 +1,18 @@
 "use client";
 
-import { uploadMeetupDescriptionImage } from "@/app/socialing/actions";
-import { toast } from "sonner";
 import { JSONContent } from "@tiptap/react";
 import TiptapEditorWrapper from "@/components/common/tiptap-editor-wrapper";
 
 interface MeetupDescriptionEditorProps {
   initialDescription: JSONContent | null;
   onDescriptionChange: (json: JSONContent) => void;
-  meetupId: string;
+  onImageAdded: (file: File, blobUrl: string) => void;
 }
 
 export default function MeetupDescriptionEditor({
   initialDescription,
   onDescriptionChange,
-  meetupId,
+  onImageAdded,
 }: MeetupDescriptionEditorProps) {
 
   return (
@@ -25,15 +23,12 @@ export default function MeetupDescriptionEditor({
         placeholder="모임 상세 설명을 작성해주세요."
         editable={true}
         onImageUpload={async (file) => {
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("meetupId", meetupId);
-          const result = await uploadMeetupDescriptionImage(formData);
-          if (result.error) {
-            toast.error("이미지 업로드 실패: " + result.error);
-            return null;
-          }
-          return result.publicUrl || null;
+          // Don't upload here. Create a local URL for preview.
+          const blobUrl = URL.createObjectURL(file);
+          // Pass the file and its blob URL to the parent component.
+          onImageAdded(file, blobUrl);
+          // Return the blob URL to Tiptap for display.
+          return blobUrl;
         }}
       />
     </div>

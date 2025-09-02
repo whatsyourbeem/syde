@@ -17,10 +17,10 @@ export async function uploadAvatarFromUrl(userId: string, imageUrl: string) {
 
     // 2. Upload to Supabase Storage
     const fileExt = imageBlob.type.split('/')[1]; // e.g., 'jpeg', 'png'
-    const filePath = `avatars/${userId}/${uuidv4()}.${fileExt}`;
+    const filePath = `${userId}/avatar/${uuidv4()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('avatars') // Assuming you have an 'avatars' bucket
+      .from('profiles') // Use the 'profiles' bucket
       .upload(filePath, imageBlob, {
         cacheControl: '3600',
         upsert: true, // Overwrite if file exists (though UUID should prevent this)
@@ -32,7 +32,7 @@ export async function uploadAvatarFromUrl(userId: string, imageUrl: string) {
 
     // 3. Get public URL
     const { data: publicUrlData } = supabase.storage
-      .from('avatars')
+      .from('profiles')
       .getPublicUrl(filePath);
 
     return publicUrlData.publicUrl;

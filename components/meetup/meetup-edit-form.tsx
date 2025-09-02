@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
@@ -15,6 +15,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Select,
@@ -25,11 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  createMeetup,
-  updateMeetup,
-  uploadMeetupThumbnail,
-} from "@/app/socialing/actions";
+import { createMeetup, updateMeetup } from "@/app/socialing/actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
@@ -37,7 +34,6 @@ import { DatePicker } from "@/components/ui/date-picker-with-time";
 import { TimePicker } from "@/components/ui/time-picker";
 import { format } from "date-fns";
 import { JSONContent } from "@tiptap/react";
-import { v4 as uuidv4 } from "uuid";
 import {
   MEETUP_CATEGORIES,
   MEETUP_LOCATION_TYPES,
@@ -59,63 +55,50 @@ export default function MeetupEditForm({
   const formRef = React.useRef<HTMLFormElement>(null);
   const isEditMode = !!meetup;
 
-  // Use state to hold the ID, generating a new one only for create mode.
-  const [id] = useState(meetup?.id || uuidv4());
-
   const [title, setTitle] = useState(meetup?.title || "");
   const [description, setDescription] = useState<JSONContent | null>(() => {
     if (meetup?.description) {
       try {
-        // Type assertion to treat it as a string first
-        const parsed = JSON.parse(meetup.description as unknown as string);
-        return parsed;
+        return JSON.parse(meetup.description as unknown as string);
       } catch (e) {
-        console.error("Failed to parse description JSON:", e);
-        return { type: "doc", content: [] };
+        return null;
       }
     }
-    return { type: "doc", content: [] };
+    return null;
   });
-  const [category, setCategory] = useState<
-    Enums<"meetup_category_enum"> | undefined
-  >(meetup?.category);
-  const [locationType, setLocationType] = useState<
-    Enums<"meetup_location_type_enum"> | undefined
-  >(meetup?.location_type);
-  const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(
-    meetup?.status
-  );
+  const [category, setCategory] = useState<Enums<"meetup_category_enum"> | undefined>(meetup?.category);
+  const [locationType, setLocationType] = useState<Enums<"meetup_location_type_enum"> | undefined>(meetup?.location_type);
+  const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(meetup?.status);
   const [startDatetime, setStartDatetime] = useState<Date | undefined>(
     meetup?.start_datetime ? new Date(meetup.start_datetime) : undefined
   );
   const [endDatetime, setEndDatetime] = useState<Date | undefined>(
     meetup?.end_datetime ? new Date(meetup.end_datetime) : undefined
   );
-  const [locationDescription, setLocationDescription] = useState(
-    meetup?.location_description || ""
-  );
-  const [maxParticipants, setMaxParticipants] = useState<number | string>(
-    meetup?.max_participants || ""
-  );
+  const [locationDescription, setLocationDescription] = useState(meetup?.location_description || "");
+  const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
+  
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
-    meetup?.thumbnail_url || null
-  );
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(meetup?.thumbnail_url || null);
+  const [descriptionImages, setDescriptionImages] = useState<{ file: File; blobUrl: string }[]>([]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
+  useEffect(() => {
+    // Clean up blob URLs on unmount
+    return () => {
+      descriptionImages.forEach(({ blobUrl }) => URL.revokeObjectURL(blobUrl));
+    };
+  }, [descriptionImages]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setThumbnailFile(file);
+      if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(thumbnailPreview);
+      }
       setThumbnailPreview(URL.createObjectURL(file));
     } else {
       setThumbnailFile(null);
@@ -123,158 +106,106 @@ export default function MeetupEditForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsConfirmOpen(true);
+  const handleDescriptionImageAdded = (file: File, blobUrl: string) => {
+    setDescriptionImages((prev) => [...prev, { file, blobUrl }]);
   };
 
-  const handleConfirmSave = async () => {
+  const clientAction = async (formData: FormData) => {
     setIsSubmitting(true);
 
-    if (!category || !locationType || !status) {
-      toast.error("카테고리, 진행 방식, 상태를 모두 선택해주세요.");
+    if (!category || !locationType || !status || !startDatetime || !endDatetime) {
+      toast.error("필수 항목을 모두 입력해주세요.");
       setIsSubmitting(false);
       return;
     }
 
-    let finalThumbnailUrl = meetup?.thumbnail_url;
-    if (thumbnailFile) {
-      const thumbnailFormData = new FormData();
-      thumbnailFormData.append("file", thumbnailFile);
-      thumbnailFormData.append("meetupId", id); // Use the state ID
-
-      const uploadResult = await uploadMeetupThumbnail(thumbnailFormData);
-      if (uploadResult?.error) {
-        toast.error("썸네일 이미지 업로드 실패: " + uploadResult.error);
-        setIsSubmitting(false);
-        return;
-      }
-      finalThumbnailUrl = uploadResult.publicUrl;
-    }
-
-    const formData = new FormData();
-    formData.append("id", id);
     formData.append("title", title);
     formData.append("description", JSON.stringify(description));
-    formData.append("thumbnailUrl", finalThumbnailUrl || "");
     formData.append("category", category);
     formData.append("locationType", locationType);
     formData.append("status", status);
-    formData.append("startDatetime", startDatetime?.toISOString() || "");
-    formData.append("endDatetime", endDatetime?.toISOString() || "");
+    formData.append("startDatetime", startDatetime.toISOString());
+    formData.append("endDatetime", endDatetime.toISOString());
     formData.append("locationDescription", locationDescription);
     formData.append("maxParticipants", maxParticipants.toString());
+
+    if (isEditMode && meetup) {
+      formData.append("id", meetup.id);
+    }
     if (clubId) {
       formData.append("clubId", clubId);
     }
+    if (thumbnailFile) {
+      formData.append("thumbnailFile", thumbnailFile);
+    }
+
+    descriptionImages.forEach((img, index) => {
+      formData.append("descriptionImageFiles", img.file);
+      formData.append(`descriptionImageBlobUrl_${index}`, img.blobUrl);
+    });
 
     const result = isEditMode
       ? await updateMeetup(formData)
       : await createMeetup(formData);
 
     if (result?.error) {
-      toast.error(
-        `모임 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error}`
-      );
+      toast.error(`모임 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error}`);
     } else {
-      toast.success(
-        `모임이 성공적으로 ${
-          isEditMode ? "업데이트되었습니다" : "생성되었습니다"
-        }.`
-      );
-      router.push(`/socialing/meetup/${id}`);
+      toast.success(`모임이 성공적으로 ${isEditMode ? "업데이트되었습니다" : "생성되었습니다"}.`);
+      const meetupId = isEditMode ? meetup.id : result.meetupId;
+      router.push(`/socialing/meetup/${meetupId}`);
     }
     setIsSubmitting(false);
   };
 
-  const handleCancel = () => {
-    if (isEditMode) {
-      router.push(`/socialing/meetup/${meetup.id}`);
-    } else {
-      router.back();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const form = formRef.current;
-      if (!form) return;
-
-      const focusable = Array.from(
-        form.querySelectorAll("input, button, select, textarea")
-      ).filter(
-        (el) =>
-          !el.hasAttribute("disabled") && !el.hasAttribute("data-readonly")
-      ) as HTMLElement[];
-
-      const index = focusable.indexOf(e.currentTarget as HTMLElement);
-      if (index > -1 && index < focusable.length - 1) {
-        focusable[index + 1].focus();
-      }
-    }
-  };
-
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} action={clientAction} className="space-y-6">
       <div>
-        <label
-          htmlFor="title"
-          className="block text-sm font-semibold text-gray-700 mb-1"
-        >
+        <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 제목 <span className="text-red-500">*</span>
         </label>
         <Input
           id="title"
+          name="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
           className="text-sm"
-          onKeyDown={handleKeyDown}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-semibold text-gray-700 mb-1"
-        >
+        <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 상세 설명
         </label>
         <MeetupDescriptionEditor
           initialDescription={description}
           onDescriptionChange={setDescription}
-          meetupId={id} // Pass the consistent ID
+          onImageAdded={handleDescriptionImageAdded}
         />
       </div>
 
       <div>
-        <Label
-          htmlFor="thumbnailFile"
-          className="text-sm font-semibold text-gray-700 mb-1"
-        >
+        <Label htmlFor="thumbnailFile" className="text-sm font-semibold text-gray-700 mb-1">
           썸네일 이미지
         </Label>
         <div className="flex items-center gap-4">
           <div
-            className="relative w-48 h-32 rounded-md overflow-hidden cursor-pointer"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            className="relative w-48 h-32 rounded-md overflow-hidden cursor-pointer bg-gray-100"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             onClick={() => document.getElementById("thumbnailFile")?.click()}
           >
             <Image
               src={thumbnailPreview || "/default_club_thumbnail.png"}
               alt="썸네일 미리보기"
-              width={192}
-              height={128}
+              fill
               className={`object-cover object-center w-full h-full transition-opacity duration-300 ${
-                isHovered ? "opacity-50" : "opacity-100"
-              }`}
+                isHovered ? "opacity-50" : "opacity-100"}`}
             />
             <div
-              className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${
-                isHovered ? "opacity-30" : "opacity-0"
-              }`}
+              className={`absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-300 z-10 ${
+                isHovered ? "opacity-50" : "opacity-0"}`}
             >
               <Plus className="w-12 h-12" color="white" />
             </div>
@@ -282,15 +213,13 @@ export default function MeetupEditForm({
           <div className="space-y-2">
             <Input
               id="thumbnailFile"
+              name="thumbnailFile"
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="opacity-0 max-w-0 max-h-0 my-0 py-0"
+              className="hidden"
             />
-            <Button
-              type="button"
-              onClick={() => document.getElementById("thumbnailFile")?.click()}
-            >
+            <Button type="button" onClick={() => document.getElementById("thumbnailFile")?.click()}>
               파일 선택
             </Button>
           </div>
@@ -299,224 +228,110 @@ export default function MeetupEditForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex gap-2">
-          {" "}
-          {/* Row for Start Date and Time */}
-          <DatePicker
-            label="시작 날짜"
-            date={startDatetime}
-            setDate={setStartDatetime}
-            required
-          />
+          <DatePicker label="시작 날짜" date={startDatetime} setDate={setStartDatetime} required />
           <TimePicker
             label="시작 시간"
-            time={startDatetime ? format(startDatetime, "HH:mm") : "00:00"}
-            setTime={(newTime) => {
-              if (startDatetime) {
-                const [hours, minutes] = newTime.split(":").map(Number);
-                const newDate = new Date(startDatetime);
-                newDate.setHours(hours, minutes);
-                setStartDatetime(newDate);
-              } else {
-                // If no date is selected, set a default date (e.g., today) with the selected time
-                const today = new Date();
-                const [hours, minutes] = newTime.split(":").map(Number);
-                today.setHours(hours, minutes);
-                setStartDatetime(today);
-              }
-            }}
+            date={startDatetime}
+            setDate={setStartDatetime}
             className="w-42"
             required
           />
         </div>
         <div className="flex gap-2">
-          {" "}
-          {/* Row for End Date and Time */}
-          <DatePicker
-            label="종료 날짜"
-            date={endDatetime}
-            setDate={setEndDatetime}
-            required
-          />
+          <DatePicker label="종료 날짜" date={endDatetime} setDate={setEndDatetime} required />
           <TimePicker
             label="종료 시간"
-            time={endDatetime ? format(endDatetime, "HH:mm") : "00:00"}
-            setTime={(newTime) => {
-              if (endDatetime) {
-                const [hours, minutes] = newTime.split(":").map(Number);
-                const newDate = new Date(endDatetime);
-                newDate.setHours(hours, minutes);
-                setEndDatetime(newDate);
-              } else {
-                // If no date is selected, set a default date (e.g., today) with the selected time
-                const today = new Date();
-                const [hours, minutes] = newTime.split(":").map(Number);
-                today.setHours(hours, minutes);
-                setEndDatetime(today);
-              }
-            }}
+            date={endDatetime}
+            setDate={setEndDatetime}
             className="w-42"
-            required // Add required prop
+            required
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
+          <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
             카테고리 <span className="text-red-500">*</span>
           </label>
-          <Select
-            value={category}
-            onValueChange={(value: Enums<"meetup_category_enum">) =>
-              setCategory(value)
-            }
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="카테고리 선택" />
-            </SelectTrigger>
+          <Select value={category} onValueChange={(value: Enums<"meetup_category_enum">) => setCategory(value)} required>
+            <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value={MEETUP_CATEGORIES.STUDY}>스터디</SelectItem>
-              <SelectItem value={MEETUP_CATEGORIES.CHALLENGE}>
-                챌린지
-              </SelectItem>
-              <SelectItem value={MEETUP_CATEGORIES.NETWORKING}>
-                네트워킹
-              </SelectItem>
-              <SelectItem value={MEETUP_CATEGORIES.ETC}>기타</SelectItem>
+              {Object.entries(MEETUP_CATEGORIES).map(([key, value]) => (
+                <SelectItem key={key} value={value}>{key}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
-
         <div>
-          <label
-            htmlFor="locationType"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
+          <label htmlFor="locationType" className="block text-sm font-semibold text-gray-700 mb-1">
             진행 방식 <span className="text-red-500">*</span>
           </label>
-          <Select
-            value={locationType}
-            onValueChange={(value: Enums<"meetup_location_type_enum">) =>
-              setLocationType(value)
-            }
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="진행 방식 선택" />
-            </SelectTrigger>
+          <Select value={locationType} onValueChange={(value: Enums<"meetup_location_type_enum">) => setLocationType(value)} required>
+            <SelectTrigger><SelectValue placeholder="진행 방식 선택" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value={MEETUP_LOCATION_TYPES.ONLINE}>
-                온라인
-              </SelectItem>
-              <SelectItem value={MEETUP_LOCATION_TYPES.OFFLINE}>
-                오프라인
-              </SelectItem>
+              {Object.entries(MEETUP_LOCATION_TYPES).map(([key, value]) => (
+                <SelectItem key={key} value={value}>{key}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <label
-          htmlFor="status"
-          className="block text-sm font-semibold text-gray-700 mb-1"
-        >
+        <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-1">
           상태 <span className="text-red-500">*</span>
         </label>
-        <Select
-          value={status}
-          onValueChange={(value: Enums<"meetup_status_enum">) =>
-            setStatus(value)
-          }
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="상태 선택" />
-          </SelectTrigger>
+        <Select value={status} onValueChange={(value: Enums<"meetup_status_enum">) => setStatus(value)} required>
+          <SelectTrigger><SelectValue placeholder="상태 선택" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value={MEETUP_STATUSES.UPCOMING}>오픈예정</SelectItem>
-            <SelectItem value={MEETUP_STATUSES.APPLY_AVAILABLE}>
-              신청가능
-            </SelectItem>
-            <SelectItem value={MEETUP_STATUSES.APPLY_CLOSED}>
-              신청마감
-            </SelectItem>
-            <SelectItem value={MEETUP_STATUSES.ENDED}>종료</SelectItem>
+            {Object.entries(MEETUP_STATUSES).map(([key, value]) => (
+              <SelectItem key={key} value={value}>{key}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <label
-          htmlFor="locationDescription"
-          className="block text-sm font-semibold text-gray-700 mb-1"
-        >
+        <label htmlFor="locationDescription" className="block text-sm font-semibold text-gray-700 mb-1">
           장소 상세 설명
         </label>
-        <Input
-          id="locationDescription"
-          value={locationDescription}
-          onChange={(e) => setLocationDescription(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
+        <Input id="locationDescription" name="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} />
       </div>
 
       <div>
-        <label
-          htmlFor="maxParticipants"
-          className="block text-sm font-semibold text-gray-700 mb-1"
-        >
+        <label htmlFor="maxParticipants" className="block text-sm font-semibold text-gray-700 mb-1">
           최대 인원 (비워두면 무제한)
         </label>
-        <Input
-          id="maxParticipants"
-          type="number"
-          value={maxParticipants}
-          onChange={(e) => setMaxParticipants(e.target.value)}
-          min="1"
-        />
+        <Input id="maxParticipants" name="maxParticipants" type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} min="1" />
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleCancel}
-          disabled={isSubmitting}
-        >
+        <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
           취소
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? isEditMode
-              ? "저장 중..."
-              : "생성 중..."
-            : isEditMode
-            ? "저장"
-            : "생성"}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button type="button" disabled={isSubmitting}>
+              {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>저장하시겠습니까?</AlertDialogTitle>
+              <AlertDialogDescription>
+                입력한 내용으로 모임을 {isEditMode ? "수정" : "생성"}합니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+                확인
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription>
-              입력한 내용으로 모임을 {isEditMode ? "수정" : "생성"}합니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSave}>
-              확인
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </form>
   );
 }

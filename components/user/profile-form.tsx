@@ -10,6 +10,7 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 import { updateProfile } from "@/app/[username]/actions"; // Import the server action
 import { useFormStatus } from "react-dom";
+import { v4 as uuidv4 } from "uuid";
 
 interface ProfileFormProps {
   userId: string;
@@ -161,8 +162,8 @@ export default function ProfileForm({
   const uploadAvatar = useCallback(
     async (file: File) => {
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`; // Store in a user-specific folder
+      const fileName = `${uuidv4()}.${fileExt}`; // Use UUID for unique file name
+      const filePath = `${userId}/avatar/${fileName}`; // New path structure
 
       // Resize image before upload
       const resizedBlob = await resizeImage(file, 300, 300, 0.7); // Max 300x300, 70% quality
@@ -171,18 +172,18 @@ export default function ProfileForm({
       });
 
       const { error: uploadError } = await supabase.storage
-        .from("avatars")
+        .from("profiles") // Use the 'profiles' bucket
         .upload(filePath, resizedFile, {
           cacheControl: "3600",
-          upsert: true, // Overwrite existing file
+          upsert: false, // No need for upsert with UUID
         });
 
       if (uploadError) {
         throw uploadError;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("avatars")
+      const { data: publicUrlData } = await supabase.storage
+        .from("profiles") // Use the 'profiles' bucket
         .getPublicUrl(filePath);
 
       return publicUrlData.publicUrl;
