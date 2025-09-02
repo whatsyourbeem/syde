@@ -11,10 +11,12 @@ import { CLUB_PERMISSION_LEVEL_DISPLAY_NAMES, CLUB_PERMISSION_LEVELS } from "@/l
 import { ClubPostCommentForm } from "@/components/club/comment/club-post-comment-form";
 import { ClubPostCommentList } from "@/components/club/comment/club-post-comment-list";
 import { Separator } from "@/components/ui/separator";
+import { formatRelativeTime } from "@/lib/utils";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 type Profile = Tables<"profiles">;
 // Define a more specific type for the author profile fetched in the post detail
-type PostAuthorProfile = Pick<Profile, "username" | "avatar_url" | "full_name">;
+type PostAuthorProfile = Tables<"profiles">;
 type ClubForumPost = Tables<"club_forum_posts"> & {
   author: PostAuthorProfile | null;
   club_forums?: { read_permission: Enums<"club_permission_level_enum"> } | null; // Added back
@@ -29,19 +31,6 @@ interface ClubPostDetailClientProps {
   clubOwnerId: string;
 }
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-    hour: "numeric",
-    minute: "numeric",
-  }).format(date);
-}
-
 export default function ClubPostDetailClient({
   post,
   clubId,
@@ -50,6 +39,7 @@ export default function ClubPostDetailClient({
   clubOwnerId,
 }: ClubPostDetailClientProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const formattedPostDate = post.created_at ? formatRelativeTime(post.created_at) : '';
 
   const handleEditSuccess = () => {
     setIsEditing(false);
@@ -78,15 +68,23 @@ export default function ClubPostDetailClient({
         <>
           <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
-            <Avatar className="size-8">
-              <AvatarImage src={post.author?.avatar_url || undefined} />
-              <AvatarFallback>{post.author?.username?.charAt(0) || "U"}</AvatarFallback>
-            </Avatar>
-            <span className="font-semibold">
-              {post.author?.full_name || post.author?.username || "Unknown User"}
-            </span>
-            <span className="text-xs">•</span>
-            <span className="text-xs">{formatDate(post.created_at)}</span>
+            <ProfileHoverCard userId={post.author?.id} profileData={post.author}>
+              <Avatar className="size-8">
+                <AvatarImage src={post.author?.avatar_url || undefined} />
+                <AvatarFallback>{post.author?.username?.charAt(0) || "U"}</AvatarFallback>
+              </Avatar>
+            </ProfileHoverCard>
+            <ProfileHoverCard userId={post.author?.id} profileData={post.author}>
+              <div className="flex items-baseline gap-1">
+                <span className="font-semibold">
+                  {post.author?.full_name || post.author?.username || "Unknown User"}
+                </span>
+                {post.author?.tagline && (
+                  <p className="text-xs text-muted-foreground">{post.author.tagline}</p>
+                )}
+                <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedPostDate}</p>
+              </div>
+            </ProfileHoverCard>
           </div>
 
           <Separator className="my-4" />
