@@ -11,15 +11,19 @@ import { fetchClubPostComments } from "@/app/socialing/club/actions";
 interface ClubPostCommentListProps {
   postId: string;
   currentUserId: string | null;
+  clubId: string;
   pageSize?: number;
   showPaginationButtons?: boolean;
+  isDetailPage?: boolean;
 }
 
 export function ClubPostCommentList({
   postId,
   currentUserId,
+  clubId,
   pageSize = 5,
-  showPaginationButtons = false
+  showPaginationButtons = false,
+  isDetailPage = false,
 }: ClubPostCommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -80,9 +84,12 @@ export function ClubPostCommentList({
         mentionedProfiles={mentionedProfiles}
         postId={postId}
         level={level}
+        clubId={clubId}
+        isDetailPage={isDetailPage}
       />
     </div>
   );
+
 
   // Handle real-time updates for comments
   useEffect(() => {

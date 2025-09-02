@@ -118,6 +118,8 @@ export default function ClubPostDetailClient({
           <ClubPostCommentList
             postId={post.id}
             currentUserId={user?.id || null}
+            clubId={clubId}
+            isDetailPage={true}
           />
         </div>
       )}

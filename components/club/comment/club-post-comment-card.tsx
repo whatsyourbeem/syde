@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -7,8 +5,10 @@ import { ClubPostCommentForm } from "./club-post-comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { MessageCircle } from 'lucide-react';
+import { useRouter } from "next/navigation";
 
-import { linkifyMentions } from "@/lib/utils";
+import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { Database } from "@/types/database.types";
 import { deleteClubPostComment } from "@/app/socialing/club/actions";
 
@@ -25,6 +25,8 @@ interface ClubPostCommentCardProps {
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   postId: string;
   level: number;
+  clubId: string;
+  isDetailPage?: boolean;
 }
 
 export function ClubPostCommentCard({
@@ -33,14 +35,18 @@ export function ClubPostCommentCard({
   mentionedProfiles,
   postId,
   level,
+  clubId,
+  isDetailPage = false,
 }: ClubPostCommentCardProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [showReplyForm, setShowReplyForm] = useState(false);
-  const [showReplies, setShowReplies] = useState(level === 0 ? false : true);
+  const [showReplies, setShowReplies] = useState(false);
+  const [displayReplyCount, setDisplayReplyCount] = useState(5);
 
   const avatarUrlWithCacheBuster = comment.author?.avatar_url || null;
+  const formattedCommentDate = comment.created_at ? formatRelativeTime(comment.created_at) : '';
 
   const handleDelete = async () => {
     if (currentUserId !== comment.user_id) return;
@@ -83,7 +89,7 @@ export function ClubPostCommentCard({
         </ProfileHoverCard>
         <div className="flex-grow">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-baseline gap-1">
                 <Link href={`/${comment.author?.username || comment.user_id}`}>
                   <p className="font-semibold text-sm hover:underline">
                     {comment.author?.full_name ||
@@ -91,9 +97,10 @@ export function ClubPostCommentCard({
                       "Anonymous"}
                   </p>
                 </Link>
-              <p className="text-xs text-muted-foreground">
-                @{comment.author?.username || comment.user_id}
-              </p>
+              {comment.author?.tagline && (
+                <p className="text-xs text-muted-foreground">{comment.author.tagline}</p>
+              )}
+              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedCommentDate}</p>
             </div>
           </ProfileHoverCard>
           {isEditing ? (
@@ -109,14 +116,14 @@ export function ClubPostCommentCard({
               <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
               <div className="flex items-center gap-2 mt-2">
                 {level < 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowReplyForm(!showReplyForm)}
-                    className="text-xs text-muted-foreground hover:text-blue-500"
+                  <button
+                    onClick={() => setShowReplies(!showReplies)}
+                    className={`p-1 text-muted-foreground hover:text-green-500 flex items-center gap-1 ${showReplies ? 'text-green-500' : ''}`}
+                    aria-label="Reply to comment"
                   >
-                    답글 달기
-                  </Button>
+                    <MessageCircle size={14} />
+                    <span className="text-xs">{comment.replies?.length || 0}</span>
+                  </button>
                 )}
                 {currentUserId === comment.user_id && (
                   <>
@@ -141,32 +148,10 @@ export function ClubPostCommentCard({
                   </>
                 )}
               </div>
-              {showReplyForm && (
-                <div className="mt-2 ml-4">
-                  <ClubPostCommentForm
-                    postId={postId}
-                    currentUserId={currentUserId}
-                    parentCommentId={comment.id}
-                    onCommentAdded={() => setShowReplyForm(false)}
-                    onCancel={() => setShowReplyForm(false)}
-                  />
-                </div>
-              )}
-              {comment.replies && comment.replies.length > 0 && level === 0 && (
-                <div className="mt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowReplies(!showReplies)}
-                    className="text-xs text-muted-foreground"
-                  >
-                    {showReplies ? "답글 숨기기" : `답글 ${comment.replies.length}개 보기`}
-                  </Button>
-                </div>
-              )}
+
               {showReplies && comment.replies && comment.replies.length > 0 && (
                 <div className="mt-2 space-y-2 border-l pl-4">
-                  {comment.replies.map((reply) => (
+                  {comment.replies.slice(0, displayReplyCount).map((reply) => (
                     <ClubPostCommentCard
                       key={reply.id}
                       comment={reply}
@@ -174,8 +159,54 @@ export function ClubPostCommentCard({
                       mentionedProfiles={mentionedProfiles}
                       postId={postId}
                       level={level + 1}
+                      clubId={clubId}
+                      isDetailPage={isDetailPage}
                     />
                   ))}
+                  {comment.replies.length > displayReplyCount && (
+                    <div className="flex justify-start mt-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (isDetailPage) {
+                            setDisplayReplyCount(prevCount => prevCount + 5);
+                          } else {
+                            router.push(`/socialing/club/${clubId}/post/${postId}`);
+                          }
+                        }}
+                        className="text-xs text-muted-foreground"
+                      >
+                        {isDetailPage
+                          ? `답글 ${Math.max(0, comment.replies.length - displayReplyCount)}개 더보기...`
+                          : `답글 ${comment.replies.length-5}개 더보기...`}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
+                <div className="flex justify-start mt-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowReplies(false)}
+                    className="text-xs text-muted-foreground"
+                  >
+                    답글 숨기기
+                  </Button>
+                </div>
+              )}
+
+              {showReplies && (
+                <div className="mt-2 ml-4">
+                  <ClubPostCommentForm
+                    postId={postId}
+                    currentUserId={currentUserId}
+                    parentCommentId={comment.id}
+                    onCommentAdded={() => {}}
+                    onCancel={() => setShowReplies(false)}
+                  />
                 </div>
               )}
             </>
