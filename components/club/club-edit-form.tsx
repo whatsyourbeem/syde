@@ -90,11 +90,17 @@ export default function ClubEditForm({ club }: ClubFormProps) {
       ? await updateClub(formData)
       : await createClub(formData);
 
-    if (!result.success) {
+    if ('error' in result && result.error) {
+      toast.error(`클럽 ${isEditMode ? '업데이트' : '생성'} 실패: ${result.error}`);
+    } else if ('success' in result && !result.success) {
       toast.error(`클럽 ${isEditMode ? '업데이트' : '생성'} 실패: ${result.error.message}`);
     } else {
       toast.success(`클럽이 성공적으로 ${isEditMode ? '업데이트되었습니다' : '생성되었습니다'}.`);
-      const clubId = isEditMode ? club.id : result.data.id;
+      const clubId = isEditMode 
+        ? club!.id 
+        : ('data' in result && result.data && typeof result.data === 'object' && 'id' in result.data 
+          ? (result.data as { id: string }).id 
+          : (result as { clubId?: string }).clubId);
       router.push(`/socialing/club/${clubId}`);
       router.refresh();
     }

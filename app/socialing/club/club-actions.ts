@@ -6,10 +6,10 @@ import { Enums } from "@/types/database.types";
 import { SupabaseClient, createClient as createAdminClient } from "@supabase/supabase-js";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
-import { redirect } from "next/navigation";
 import { uploadAndGetUrl, getFileExtension } from "@/lib/storage";
 import {
   CreateResponse,
+  UpdateResponse,
   createSuccessResponse
 } from "@/lib/types/api";
 import {
@@ -97,108 +97,103 @@ export async function createClub(formData: FormData): Promise<CreateResponse> {
   });
 }
 
-export async function updateClub(formData: FormData): Promise<{ error?: string }> {
+export async function updateClub(formData: FormData): Promise<UpdateResponse> {
+  return withErrorHandling(async () => {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "로그인이 필요합니다." };
+    const userId = requireAuth(user?.id);
 
-    const clubId = formData.get("id") as string;
-    if (!clubId) return { error: "클럽 ID가 필요합니다." };
+    const clubId = validateRequired(formData.get("id") as string, "클럽 ID");
 
     const adminClient = createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    try {
-        const { data: existingClub, error: fetchError } = await supabase
-            .from("clubs")
-            .select("owner_id, thumbnail_url")
-            .eq("id", clubId)
-            .single();
+    const { data: existingClub, error: fetchError } = await supabase
+        .from("clubs")
+        .select("owner_id, thumbnail_url")
+        .eq("id", clubId)
+        .single();
 
-        if (fetchError || !existingClub) {
-            return { error: "클럽을 찾을 수 없거나 권한이 없습니다." };
-        }
-
-        if (existingClub.owner_id !== user.id) {
-            return { error: "클럽을 수정할 권한이 없습니다." };
-        }
-
-        const thumbnailFile = formData.get("thumbnailFile") as File | null;
-        let newThumbnailUrl = existingClub.thumbnail_url;
-
-        if (thumbnailFile && thumbnailFile.size > 0) {
-            const fileExt = getFileExtension(thumbnailFile.type);
-            const thumbnailPath = `${clubId}/thumbnail/${uuidv4()}.${fileExt}`;
-            newThumbnailUrl = await uploadAndGetUrl(
-                adminClient,
-                "clubs",
-                thumbnailPath,
-                thumbnailFile
-            );
-            
-            if (existingClub.thumbnail_url) {
-                const oldThumbnailPath = existingClub.thumbnail_url.split('/clubs/')[1];
-                await adminClient.storage.from('clubs').remove([oldThumbnailPath]);
-            }
-        }
-        
-        const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
-        const descriptionJSON = formData.get("description") as string;
-        let descriptionContent = JSON.parse(descriptionJSON);
-
-        if (descriptionImageFiles.length > 0) {
-            const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-                if (file.size === 0) return null;
-                const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
-                const fileExt = getFileExtension(file.type);
-                const descriptionPath = `${clubId}/description/${uuidv4()}.${fileExt}`;
-                const publicUrl = await uploadAndGetUrl(
-                    adminClient,
-                    "clubs",
-                    descriptionPath,
-                    file
-                );
-                return { blobUrl, publicUrl };
-            });
-
-            const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as { blobUrl: string, publicUrl: string }[];
-            let descriptionString = JSON.stringify(descriptionContent);
-            uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-                if (blobUrl && publicUrl) {
-                    descriptionString = descriptionString.replace(new RegExp(blobUrl, "g"), publicUrl);
-                }
-            });
-            descriptionContent = JSON.parse(descriptionString);
-        }
-
-        const updateData = {
-            name: formData.get("name") as string,
-            tagline: formData.get("tagline") as string,
-            description: descriptionContent,
-            thumbnail_url: newThumbnailUrl,
-        };
-
-        const { error: updateError } = await supabase
-            .from("clubs")
-            .update(updateData)
-            .eq("id", clubId);
-
-        if (updateError) {
-            throw new Error(updateError.message);
-        }
-
-        revalidatePath(`/socialing/club`);
-        revalidatePath(`/socialing/club/${clubId}`);
-        revalidatePath(`/socialing/club/${clubId}/edit`);
-
-    } catch (e) {
-        console.error("Update club error:", (e as Error).message);
-        return { error: (e as Error).message };
+    if (fetchError || !existingClub) {
+        throw new Error("클럽을 찾을 수 없거나 권한이 없습니다.");
     }
 
-    redirect(`/socialing/club/${clubId}`);
+    if (existingClub.owner_id !== userId) {
+        throw new Error("클럽을 수정할 권한이 없습니다.");
+    }
+
+    const thumbnailFile = formData.get("thumbnailFile") as File | null;
+    let newThumbnailUrl = existingClub.thumbnail_url;
+
+    if (thumbnailFile && thumbnailFile.size > 0) {
+        const fileExt = getFileExtension(thumbnailFile.type);
+        const thumbnailPath = `${clubId}/thumbnail/${uuidv4()}.${fileExt}`;
+        newThumbnailUrl = await uploadAndGetUrl(
+            adminClient,
+            "clubs",
+            thumbnailPath,
+            thumbnailFile
+        );
+        
+        if (existingClub.thumbnail_url) {
+            const oldThumbnailPath = existingClub.thumbnail_url.split('/clubs/')[1];
+            await adminClient.storage.from('clubs').remove([oldThumbnailPath]);
+        }
+    }
+    
+    const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
+    const descriptionJSON = formData.get("description") as string;
+    let descriptionContent = JSON.parse(descriptionJSON);
+
+    if (descriptionImageFiles.length > 0) {
+        const uploadPromises = descriptionImageFiles.map(async (file, index) => {
+            if (file.size === 0) return null;
+            const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
+            const fileExt = getFileExtension(file.type);
+            const descriptionPath = `${clubId}/description/${uuidv4()}.${fileExt}`;
+            const publicUrl = await uploadAndGetUrl(
+                adminClient,
+                "clubs",
+                descriptionPath,
+                file
+            );
+            return { blobUrl, publicUrl };
+        });
+
+        const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as { blobUrl: string, publicUrl: string }[];
+        let descriptionString = JSON.stringify(descriptionContent);
+        uploadedImages.forEach(({ blobUrl, publicUrl }) => {
+            if (blobUrl && publicUrl) {
+                descriptionString = descriptionString.replace(new RegExp(blobUrl, "g"), publicUrl);
+            }
+        });
+        descriptionContent = JSON.parse(descriptionString);
+    }
+
+    const updateData = {
+        name: formData.get("name") as string,
+        tagline: formData.get("tagline") as string,
+        description: descriptionContent,
+        thumbnail_url: newThumbnailUrl,
+    };
+
+    const { error: updateError } = await supabase
+        .from("clubs")
+        .update(updateData)
+        .eq("id", clubId);
+
+    if (updateError) {
+        throw new Error(updateError.message);
+    }
+
+    revalidatePath(`/socialing/club`);
+    revalidatePath(`/socialing/club/${clubId}`);
+    revalidatePath(`/socialing/club/${clubId}/edit`);
+
+    return createSuccessResponse(undefined);
+  });
 }
 
 export async function joinClub(clubId: string) {
