@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Tables } from '@/types/database.types';
 import { Input } from '@/components/ui/input';
@@ -10,16 +10,19 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
 import { JSONContent } from '@tiptap/react';
-import { updateClub, uploadClubThumbnail, uploadClubDescriptionImage } from '@/app/socialing/club/actions';
+import { createClub, updateClub } from '@/app/socialing/club/actions';
 
-interface ClubEditFormProps {
-  club: Tables<'clubs'>;
+interface ClubFormProps {
+  club?: Tables<'clubs'>;
 }
 
-export default function ClubEditForm({ club }: ClubEditFormProps) {
+export default function ClubEditForm({ club }: ClubFormProps) {
   const router = useRouter();
-  const [name, setName] = useState(club.name);
-  const [tagline, setTagline] = useState(club.tagline || '');
+  const formRef = useRef<HTMLFormElement>(null);
+  const isEditMode = !!club;
+
+  const [name, setName] = useState(club?.name || '');
+  const [tagline, setTagline] = useState(club?.tagline || '');
   const [description, setDescription] = useState<JSONContent | null>(() => {
     if (club?.description) {
       if (typeof club.description === 'object' && club.description !== null) {
@@ -29,69 +32,82 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
         try {
           return JSON.parse(club.description);
         } catch (e) {
-          console.error("Failed to parse club description JSON string:", e);
-          return { type: 'doc', content: [] };
+          return null;
         }
       }
     }
-    return { type: 'doc', content: [] };
+    return null;
   });
-  const [thumbnailUrl] = useState(club.thumbnail_url || '');
+
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(club.thumbnail_url);
-  const [isLoading, setIsLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(club?.thumbnail_url || null);
+  const [descriptionImages, setDescriptionImages] = useState<{ file: File; blobUrl: string }[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      descriptionImages.forEach(({ blobUrl }) => URL.revokeObjectURL(blobUrl));
+    };
+  }, [descriptionImages]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setThumbnailFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const newPreviewUrl = URL.createObjectURL(file);
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(newPreviewUrl);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleDescriptionImageAdded = (file: File, blobUrl: string) => {
+    setDescriptionImages((prev) => [...prev, { file, blobUrl }]);
+  };
 
-    let finalThumbnailUrl = thumbnailUrl;
+  const clientAction = async (formData: FormData) => {
+    setIsSubmitting(true);
 
+    formData.append('name', name);
+    formData.append('tagline', tagline);
+    formData.append('description', JSON.stringify(description));
+
+    if (isEditMode && club) {
+      formData.append('id', club.id);
+    }
     if (thumbnailFile) {
-      const formData = new FormData();
-      formData.append('thumbnail', thumbnailFile);
-
-      const uploadResult = await uploadClubThumbnail(club.id, formData);
-
-      if (uploadResult.error || !uploadResult.url) {
-        toast.error(uploadResult.error || '썸네일 업로드에 실패했습니다.');
-        setIsLoading(false);
-        return;
-      }
-      finalThumbnailUrl = uploadResult.url;
+      formData.append('thumbnailFile', thumbnailFile);
     }
 
-    const result = await updateClub(club.id, name, tagline, JSON.stringify(description), finalThumbnailUrl);
+    descriptionImages.forEach((img, index) => {
+      formData.append('descriptionImageFiles', img.file);
+      formData.append(`descriptionImageBlobUrl_${index}`, img.blobUrl);
+    });
 
-    if (result.error) {
-      toast.error(result.error);
+    const result = isEditMode
+      ? await updateClub(formData)
+      : await createClub(formData);
+
+    if (result?.error) {
+      toast.error(`클럽 ${isEditMode ? '업데이트' : '생성'} 실패: ${result.error}`);
     } else {
-      toast.success('클럽 정보가 성공적으로 업데이트되었습니다.');
-      router.push(`/socialing/club/${club.id}`);
+      toast.success(`클럽이 성공적으로 ${isEditMode ? '업데이트되었습니다' : '생성되었습니다'}.`);
+      const clubId = isEditMode ? club.id : result.clubId;
+      router.push(`/socialing/club/${clubId}`);
       router.refresh();
     }
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6 p-4 bg-white rounded-lg shadow-md">
-      <div>
+    <form action={clientAction} ref={formRef} className="w-full max-w-2xl space-y-6 p-4 bg-white rounded-lg shadow-md">
+       <div>
         <Label htmlFor="name">클럽 이름</Label>
         <Input
           id="name"
+          name="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -104,6 +120,7 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
         <Label htmlFor="tagline">한 줄 소개</Label>
         <Input
           id="tagline"
+          name="tagline"
           type="text"
           value={tagline}
           onChange={(e) => setTagline(e.target.value)}
@@ -119,15 +136,9 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
           onContentChange={(json) => setDescription(json)}
           placeholder="클럽 설명을 입력하세요..."
           onImageUpload={async (file) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            const result = await uploadClubDescriptionImage(club.id, formData);
-            if (result.error || !result.url) {
-              // The toast is already handled in the wrapper, but you could log here
-              console.error(result.error || 'Upload failed');
-              return null;
-            }
-            return result.url;
+            const blobUrl = URL.createObjectURL(file);
+            handleDescriptionImageAdded(file, blobUrl);
+            return blobUrl;
           }}
         />
       </div>
@@ -146,7 +157,8 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
             </div>
           )}
           <Input
-            id="thumbnail"
+            id="thumbnailFile"
+            name="thumbnailFile"
             type="file"
             accept="image/*"
             onChange={handleFileChange}
@@ -163,8 +175,8 @@ export default function ClubEditForm({ club }: ClubEditFormProps) {
         </div>
       </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? '저장 중...' : '정보 저장'}
+      <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? (isEditMode ? '저장 중...' : '생성 중...') : (isEditMode ? '정보 저장' : '클럽 생성')}
       </Button>
     </form>
   );
