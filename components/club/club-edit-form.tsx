@@ -31,7 +31,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
       if (typeof club.description === 'string') {
         try {
           return JSON.parse(club.description);
-        } catch (e) {
+        } catch {
           return null;
         }
       }
@@ -94,7 +94,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
       toast.error(`클럽 ${isEditMode ? '업데이트' : '생성'} 실패: ${result.error}`);
     } else {
       toast.success(`클럽이 성공적으로 ${isEditMode ? '업데이트되었습니다' : '생성되었습니다'}.`);
-      const clubId = isEditMode ? club.id : result.clubId;
+      const clubId = isEditMode ? club.id : (result as { clubId: string }).clubId;
       router.push(`/socialing/club/${clubId}`);
       router.refresh();
     }

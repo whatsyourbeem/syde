@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Json, Enums } from "@/types/database.types";
+import { Enums } from "@/types/database.types";
 import { SupabaseClient, createClient as createAdminClient } from "@supabase/supabase-js";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
@@ -98,15 +98,15 @@ export async function createClub(formData: FormData): Promise<{ error?: string, 
       throw new Error(error?.message || "Failed to create club");
     }
 
-    await supabase.from('club_members').insert({ club_id: newClub.id, user_id: user.id, role: CLUB_MEMBER_ROLES.OWNER });
+    await supabase.from('club_members').insert({ club_id: newClub.id, user_id: user.id, role: CLUB_MEMBER_ROLES.LEADER });
 
     revalidatePath("/socialing/club");
     
     return { clubId: newClub.id };
 
-  } catch (e: any) {
-    console.error("Create club error:", e.message);
-    return { error: e.message };
+  } catch (e) {
+    console.error("Create club error:", (e as Error).message);
+    return { error: (e as Error).message };
   }
 }
 
@@ -206,9 +206,9 @@ export async function updateClub(formData: FormData): Promise<{ error?: string }
         revalidatePath(`/socialing/club/${clubId}`);
         revalidatePath(`/socialing/club/${clubId}/edit`);
 
-    } catch (e: any) {
-        console.error("Update club error:", e.message);
-        return { error: e.message };
+    } catch (e) {
+        console.error("Update club error:", (e as Error).message);
+        return { error: (e as Error).message };
     }
 
     redirect(`/socialing/club/${clubId}`);
@@ -331,9 +331,9 @@ export async function createClubPost(formData: FormData): Promise<{ error?: stri
 
     return { postId };
 
-  } catch (e: any) {
-    console.error("Create club post error:", e.message);
-    return { error: e.message };
+  } catch (e) {
+    console.error("Create club post error:", (e as Error).message);
+    return { error: (e as Error).message };
   }
 }
 
@@ -401,9 +401,9 @@ export async function updateClubPost(formData: FormData): Promise<{ error?: stri
 
     return { postId };
 
-  } catch (e: any) {
-    console.error("Update club post error:", e.message);
-    return { error: e.message };
+  } catch (e) {
+    console.error("Update club post error:", (e as Error).message);
+    return { error: (e as Error).message };
   }
 }
 

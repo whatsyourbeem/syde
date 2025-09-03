@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
+import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
 
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
@@ -13,15 +14,6 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
   })[];
 };
-import {
-  MEETUP_CATEGORIES,
-  MEETUP_LOCATION_TYPES,
-  MEETUP_STATUSES,
-  MEETUP_PARTICIPANT_STATUSES,
-  MEETUP_STATUS_DISPLAY_NAMES,
-  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
-  MEETUP_CATEGORY_DISPLAY_NAMES,
-} from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 

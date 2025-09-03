@@ -195,7 +195,7 @@ export function LogCard({
         toast.success('로그가 삭제되었습니다.');
         router.refresh(); // Refresh the page to reflect the deletion
       }
-    } catch (error) {
+    } catch {
       toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
     } finally {
       setLoading(false);

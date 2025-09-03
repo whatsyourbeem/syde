@@ -32,7 +32,6 @@ import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
 import { DatePicker } from "@/components/ui/date-picker-with-time";
 import { TimePicker } from "@/components/ui/time-picker";
-import { format } from "date-fns";
 import { JSONContent } from "@tiptap/react";
 import {
   MEETUP_CATEGORIES,
@@ -145,7 +144,7 @@ export default function MeetupEditForm({
       toast.error(`모임 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error}`);
     } else {
       toast.success(`모임이 성공적으로 ${isEditMode ? "업데이트되었습니다" : "생성되었습니다"}.`);
-      const meetupId = isEditMode ? meetup.id : result.meetupId;
+      const meetupId = isEditMode ? meetup.id : (result as { meetupId: string }).meetupId;
       router.push(`/socialing/meetup/${meetupId}`);
     }
     setIsSubmitting(false);
@@ -224,8 +223,15 @@ export default function MeetupEditForm({
           <DatePicker label="시작 날짜" date={startDatetime} setDate={setStartDatetime} required />
           <TimePicker
             label="시작 시간"
-            date={startDatetime}
-            setDate={setStartDatetime}
+            time={startDatetime ? startDatetime.toTimeString().slice(0, 5) : "09:00"}
+            setTime={(time) => {
+              if (startDatetime) {
+                const [hours, minutes] = time.split(':');
+                const newDate = new Date(startDatetime);
+                newDate.setHours(parseInt(hours), parseInt(minutes));
+                setStartDatetime(newDate);
+              }
+            }}
             className="w-42"
             required
           />
@@ -234,8 +240,15 @@ export default function MeetupEditForm({
           <DatePicker label="종료 날짜" date={endDatetime} setDate={setEndDatetime} required />
           <TimePicker
             label="종료 시간"
-            date={endDatetime}
-            setDate={setEndDatetime}
+            time={endDatetime ? endDatetime.toTimeString().slice(0, 5) : "18:00"}
+            setTime={(time) => {
+              if (endDatetime) {
+                const [hours, minutes] = time.split(':');
+                const newDate = new Date(endDatetime);
+                newDate.setHours(parseInt(hours), parseInt(minutes));
+                setEndDatetime(newDate);
+              }
+            }}
             className="w-42"
             required
           />

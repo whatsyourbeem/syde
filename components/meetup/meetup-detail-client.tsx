@@ -18,7 +18,7 @@ import {
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Network, Users } from "lucide-react";
+import { Clock, MapPin, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -33,9 +33,8 @@ import {
 import { User } from "@supabase/supabase-js";
 import {
   joinMeetup,
-  approveMeetupParticipant,
 } from "@/app/socialing/meetup/actions";
-import ProfileHoverCard from "@/components/common/profile-hover-card"; // New import
+
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -147,9 +146,7 @@ export default function MeetupDetailClient({
   const approvedParticipants = meetup.meetup_participants.filter(
     (p) => p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
   );
-  const pendingParticipants = meetup.meetup_participants.filter(
-    (p) => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
-  );
+  
 
   const handleApplyClick = () => {
     if (!user) {
@@ -194,27 +191,7 @@ export default function MeetupDetailClient({
     });
   };
 
-  const handleApproveParticipant = async (participantUserId: string) => {
-    startTransition(async () => {
-      const result = await approveMeetupParticipant(
-        meetup.id,
-        participantUserId
-      );
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("참가자가 승인되었습니다!");
-        setMeetup((prev) => {
-          const updatedParticipants = prev.meetup_participants.map((p) =>
-            p.user_id === participantUserId
-              ? { ...p, status: MEETUP_PARTICIPANT_STATUSES.APPROVED }
-              : p
-          );
-          return { ...prev, meetup_participants: updatedParticipants };
-        });
-      }
-    });
-  };
+  
 
   const getButtonState = () => {
     if (isOrganizer) {
@@ -235,59 +212,7 @@ export default function MeetupDetailClient({
     return { disabled: false, text: "참가 신청하기" };
   };
 
-  const ParticipantCard = ({
-    participant,
-    isOrganizer,
-    onApprove,
-  }: {
-    participant: Database["public"]["Tables"]["meetup_participants"]["Row"] & {
-      profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
-    };
-    isOrganizer: boolean;
-    onApprove: (userId: string) => void;
-  }) => {
-    const profile = participant.profiles;
-    if (!profile) return null;
-
-    return (
-      <ProfileHoverCard userId={profile.id}>
-        <div className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
-          <div className="flex items-center gap-2 w-full">
-            <Avatar className="size-10">
-              <AvatarImage src={profile.avatar_url || undefined} />
-              <AvatarFallback>
-                {profile.username?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">
-                {profile.full_name || "알 수 없음"}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                @{profile.username || "알 수 없음"}
-              </p>
-            </div>
-          </div>
-          {profile.tagline && (
-            <p className="text-xs text-gray-500 w-full truncate">
-              {profile.tagline}
-            </p>
-          )}
-          {isOrganizer &&
-            participant.status === MEETUP_PARTICIPANT_STATUSES.PENDING && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onApprove(participant.user_id)}
-                className="w-full mt-2"
-              >
-                승인
-              </Button>
-            )}
-        </div>
-      </ProfileHoverCard>
-    );
-  };
+  
 
   const buttonState = getButtonState();
 

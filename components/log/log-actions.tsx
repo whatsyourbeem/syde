@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Database } from "@/types/database.types";
 import { deleteLog } from '@/app/log/actions'; // Import the server action
 import { toast } from 'sonner';
+import { createClient } from "@/lib/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +26,7 @@ interface LogActionsProps {
   likesCount: number;
   hasLiked: boolean;
   onEditClick: () => void;
-  onLike: () => void;
+  onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
 }
 
 export function LogActions({
@@ -34,8 +35,9 @@ export function LogActions({
   likesCount,
   hasLiked,
   onEditClick,
-  onLike,
+  onLikeStatusChange,
 }: LogActionsProps) {
+  const supabase = createClient();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -98,7 +100,7 @@ export function LogActions({
         // but it's better handled by the parent component.
         router.push('/'); // Simple redirect to home for now
       }
-    } catch (error) {
+    } catch {
       toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
     } finally {
       setIsDeleting(false);
@@ -108,8 +110,8 @@ export function LogActions({
   return (
     <div className="flex justify-between items-center text-sm text-muted-foreground mt-4">
       <button
-        onClick={onLike}
-        disabled={isDeleting}
+        onClick={handleLike}
+        disabled={isDeleting || loading}
         className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
         <HeartIcon

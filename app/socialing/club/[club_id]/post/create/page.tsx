@@ -2,15 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import ClubPostForm from "@/components/club/club-post-form";
 
-interface ClubPostCreatePageProps {
-  params: { club_id: string };
-  searchParams: { forum_id?: string };
-}
-
-export default async function ClubPostCreatePage({ params, searchParams }: ClubPostCreatePageProps) {
+export default async function ClubPostCreatePage({ params, searchParams }: { params: Promise<{ club_id: string }>; searchParams: Promise<{ forum_id?: string }>; }) {
   const supabase = await createClient();
-  const { club_id } = params;
-  const { forum_id: initialForumId } = searchParams;
+  const { club_id } = await params;
+  const { forum_id: initialForumId } = await searchParams;
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -27,7 +22,7 @@ export default async function ClubPostCreatePage({ params, searchParams }: ClubP
     notFound();
   }
 
-  const { data: member, error: memberError } = await supabase
+  const { data: member } = await supabase
     .from("club_members")
     .select("role")
     .eq("club_id", club_id)

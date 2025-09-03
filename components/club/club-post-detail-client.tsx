@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatRelativeTime } from "@/lib/utils";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 
-type Profile = Tables<"profiles">;
+
 // Define a more specific type for the author profile fetched in the post detail
 type PostAuthorProfile = Tables<"profiles">;
 type ClubForumPost = Tables<"club_forum_posts"> & {
@@ -68,13 +68,13 @@ export default function ClubPostDetailClient({
         <>
           <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
-            <ProfileHoverCard userId={post.author?.id} profileData={post.author}>
+            <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author}>
               <Avatar className="size-8">
                 <AvatarImage src={post.author?.avatar_url || undefined} />
                 <AvatarFallback>{post.author?.username?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
             </ProfileHoverCard>
-            <ProfileHoverCard userId={post.author?.id} profileData={post.author}>
+            <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author}>
               <div className="flex items-baseline gap-1">
                 <span className="font-semibold">
                   {post.author?.full_name || post.author?.username || "Unknown User"}

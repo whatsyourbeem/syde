@@ -158,7 +158,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
       return;
     }
 
-    // setLoading(true); // Consider adding a loading state if needed
     if (currentHasLiked) {
       const { error } = await supabase
         .from("log_likes")
@@ -197,7 +196,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
         toast.success('로그가 삭제되었습니다.');
         router.push('/'); // Redirect to home after deletion
       }
-    } catch (error) {
+    } catch {
       toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
     } finally {
       setIsDeleting(false);

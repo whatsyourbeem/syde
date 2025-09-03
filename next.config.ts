@@ -2,11 +2,23 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "wdtkwfgmsbtjkraxzazx.supabase.co",
-      "img1.kakaocdn.net",
-      "t1.kakaocdn.net",
-      "k.kakaocdn.net",
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'wdtkwfgmsbtjkraxzazx.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img1.kakaocdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 't1.kakaocdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'k.kakaocdn.net',
+      },
     ],
   },
   experimental: {
