@@ -358,10 +358,7 @@ export default function MeetupDetailClient({
 
         {/* 썸네일 이미지 */}
         <Image
-          src={
-            meetup.thumbnail_url ||
-            "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
-          }
+          src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
           alt={meetup.title}
           width={800} // Adjust as needed
           height={400} // Adjust as needed
@@ -374,8 +371,6 @@ export default function MeetupDetailClient({
           <TiptapViewer content={meetup.description} />
         </div>
       </div>
-
-      
 
       {/* 고정 하단 바 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t z-10">

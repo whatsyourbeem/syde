@@ -16,10 +16,7 @@ export function LogCreateButton({ user, avatarUrl }: LogCreateButtonProps) {
   const buttonContent = (
     <div className="flex items-center cursor-pointer">
       <Image
-        src={
-          avatarUrl ||
-          "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/profiles/default_avatar.png"
-        }
+        src={avatarUrl || "/default_avatar.png"}
         alt="User Avatar"
         width={36}
         height={36}

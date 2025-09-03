@@ -136,8 +136,7 @@ export default async function MeetupPage({
                 <div className="relative">
                   <Image
                     src={
-                      meetup.thumbnail_url ||
-                      "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
+                      meetup.thumbnail_url || "/default_meetup_thumbnail.png"
                     }
                     alt={meetup.title}
                     width={300}

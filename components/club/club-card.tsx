@@ -31,10 +31,7 @@ export default function ClubCard({ club }: ClubCardProps) {
     >
       <div className="flex-shrink-0">
         <Image
-          src={
-            club.thumbnail_url ||
-            "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"
-          }
+          src={club.thumbnail_url || "/default_club_thumbnail.png"}
           alt={club.name}
           width={128}
           height={128}
@@ -56,30 +53,33 @@ export default function ClubCard({ club }: ClubCardProps) {
         <div className="flex items-center justify-between text-xs md:text-sm text-gray-500 py-2">
           <div onClick={(e) => e.stopPropagation()}>
             {club.owner_profile && (
-            <ProfileHoverCard userId={club.owner_id} profileData={club.owner_profile}>
-              <div className="flex items-center gap-2">
-                <Link href={`/${club.owner_profile?.username}`}>
-                  <Avatar className="size-5 md:size-6">
-                    <AvatarImage
-                      src={club.owner_profile?.avatar_url || undefined}
-                    />
-                    <AvatarFallback>
-                      {club.owner_profile?.username?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-                <p>
+              <ProfileHoverCard
+                userId={club.owner_id}
+                profileData={club.owner_profile}
+              >
+                <div className="flex items-center gap-2">
                   <Link href={`/${club.owner_profile?.username}`}>
-                    <span className="font-semibold text-black hover:underline">
-                      {club.owner_profile?.full_name ||
-                        club.owner_profile?.username ||
-                        "알 수 없음"}
-                    </span>
+                    <Avatar className="size-5 md:size-6">
+                      <AvatarImage
+                        src={club.owner_profile?.avatar_url || undefined}
+                      />
+                      <AvatarFallback>
+                        {club.owner_profile?.username?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
                   </Link>
-                  <span className="ml-1">클럽장</span>
-                </p>
-              </div>
-            </ProfileHoverCard>
+                  <p>
+                    <Link href={`/${club.owner_profile?.username}`}>
+                      <span className="font-semibold text-black hover:underline">
+                        {club.owner_profile?.full_name ||
+                          club.owner_profile?.username ||
+                          "알 수 없음"}
+                      </span>
+                    </Link>
+                    <span className="ml-1">클럽장</span>
+                  </p>
+                </div>
+              </ProfileHoverCard>
             )}
           </div>
           <div className="flex items-center gap-1">

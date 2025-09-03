@@ -130,7 +130,9 @@ export default async function ClubMeetupListPage({
               <CardContent className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center p-0">
                 <div className="relative aspect-square h-full hidden sm:block">
                   <Image
-                    src={meetup.thumbnail_url || "https://wdtkwfgmsbtjkraxzazx.supabase.co/storage/v1/object/public/meetup-images//default_thumbnail.png"}
+                    src={
+                      meetup.thumbnail_url || "/default_meetup_thumbnail.png"
+                    }
                     alt={meetup.title}
                     fill
                     className="object-cover object-center rounded-l-md"
@@ -161,7 +163,11 @@ export default async function ClubMeetupListPage({
                           meetup.location_type
                         )} text-xs`}
                       >
-                        {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+                        {
+                          MEETUP_LOCATION_TYPE_DISPLAY_NAMES[
+                            meetup.location_type
+                          ]
+                        }
                       </Badge>
                     </div>
                     <h3 className="font-semibold line-clamp-2">
