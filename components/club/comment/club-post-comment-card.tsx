@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { Database } from "@/types/database.types";
-import { deleteClubPostComment } from "@/app/socialing/club/actions";
+import { deleteClubPostComment } from "@/app/socialing/club/club-actions";
 
 type AuthorProfile = Database['public']['Tables']['profiles']['Row'];
 

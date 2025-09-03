@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteClubPost } from "@/app/socialing/club/actions";
+import { deleteClubPost } from "@/app/socialing/club/club-actions";
 import { Database } from "@/types/database.types";
 
 type Post = Database["public"]["Tables"]["club_forum_posts"]["Row"];

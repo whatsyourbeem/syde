@@ -30,7 +30,7 @@ import { Database } from "@/types/database.types";
 import { useRouter } from "next/navigation";
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
-import { deleteLog } from "@/app/log/actions"; // Import the centralized server action
+import { deleteLog } from "@/app/log/log-actions"; // Import the centralized server action
 
 interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {

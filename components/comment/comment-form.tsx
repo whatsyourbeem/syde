@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
-import { createComment, updateComment } from "@/app/log/actions";
+import { createComment, updateComment } from "@/app/log/log-actions";
 import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";

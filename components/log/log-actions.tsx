@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { HeartIcon, Trash2, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Database } from "@/types/database.types";
-import { deleteLog } from '@/app/log/actions'; // Import the server action
+import { deleteLog } from '@/app/log/log-actions'; // Import the server action
 import { toast } from 'sonner';
 import { createClient } from "@/lib/supabase/client";
 import {

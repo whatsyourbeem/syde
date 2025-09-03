@@ -7,24 +7,7 @@ import { SupabaseClient, createClient as createAdminClient } from "@supabase/sup
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
 import { redirect } from "next/navigation";
-
-async function uploadAndGetUrl(
-  adminClient: SupabaseClient,
-  bucket: string,
-  path: string,
-  file: File,
-) {
-  const { data: uploadData, error: uploadError } = await adminClient.storage
-    .from(bucket)
-    .upload(path, file);
-  if (uploadError) {
-    throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
-  }
-  const { data: urlData } = adminClient.storage
-    .from(bucket)
-    .getPublicUrl(uploadData.path);
-  return urlData.publicUrl;
-}
+import { uploadAndGetUrl, getFileExtension } from "@/lib/storage";
 
 export async function createClub(formData: FormData): Promise<{ error?: string, clubId?: string }> {
   const supabase = await createClient();
@@ -50,7 +33,7 @@ export async function createClub(formData: FormData): Promise<{ error?: string, 
 
   try {
     if (thumbnailFile && thumbnailFile.size > 0) {
-      const fileExt = thumbnailFile.type.split('/')[1];
+      const fileExt = getFileExtension(thumbnailFile.type);
       const thumbnailPath = `${id}/thumbnail/${uuidv4()}.${fileExt}`;
       finalThumbnailUrl = await uploadAndGetUrl(
         adminClient,
@@ -64,7 +47,7 @@ export async function createClub(formData: FormData): Promise<{ error?: string, 
       const uploadPromises = descriptionImageFiles.map(async (file, index) => {
         if (file.size === 0) return null;
         const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
-        const fileExt = file.type.split('/')[1];
+        const fileExt = getFileExtension(file.type);
         const descriptionPath = `${id}/description/${uuidv4()}.${fileExt}`;
         const publicUrl = await uploadAndGetUrl(
           adminClient,
@@ -142,7 +125,7 @@ export async function updateClub(formData: FormData): Promise<{ error?: string }
         let newThumbnailUrl = existingClub.thumbnail_url;
 
         if (thumbnailFile && thumbnailFile.size > 0) {
-            const fileExt = thumbnailFile.type.split('/')[1];
+            const fileExt = getFileExtension(thumbnailFile.type);
             const thumbnailPath = `${clubId}/thumbnail/${uuidv4()}.${fileExt}`;
             newThumbnailUrl = await uploadAndGetUrl(
                 adminClient,
@@ -165,7 +148,7 @@ export async function updateClub(formData: FormData): Promise<{ error?: string }
             const uploadPromises = descriptionImageFiles.map(async (file, index) => {
                 if (file.size === 0) return null;
                 const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
-                const fileExt = file.type.split('/')[1];
+                const fileExt = getFileExtension(file.type);
                 const descriptionPath = `${clubId}/description/${uuidv4()}.${fileExt}`;
                 const publicUrl = await uploadAndGetUrl(
                     adminClient,
@@ -302,7 +285,7 @@ export async function createClubPost(formData: FormData): Promise<{ error?: stri
       const uploadPromises = descriptionImageFiles.map(async (file, index) => {
         if (file.size === 0) return null;
         const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
-        const fileExt = file.type.split('/')[1];
+        const fileExt = getFileExtension(file.type);
         const path = `${clubId}/forums/${forumId}/posts/${postId}/${uuidv4()}.${fileExt}`;
         const publicUrl = await uploadAndGetUrl(adminClient, "clubs", path, file);
         return { blobUrl, publicUrl };
@@ -373,7 +356,7 @@ export async function updateClubPost(formData: FormData): Promise<{ error?: stri
       const uploadPromises = descriptionImageFiles.map(async (file, index) => {
         if (file.size === 0) return null;
         const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
-        const fileExt = file.type.split('/')[1];
+        const fileExt = getFileExtension(file.type);
         const path = `${clubId}/forums/${existingPost.forum_id}/posts/${postId}/${uuidv4()}.${fileExt}`;
         const publicUrl = await uploadAndGetUrl(adminClient, "clubs", path, file);
         return { blobUrl, publicUrl };

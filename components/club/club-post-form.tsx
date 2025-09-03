@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { createClubPost, updateClubPost } from '@/app/socialing/club/actions';
+import { createClubPost, updateClubPost } from '@/app/socialing/club/club-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';

@@ -51,7 +51,7 @@ import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
-import { deleteLog } from "@/app/log/actions"; // Import the centralized server action
+import { deleteLog } from "@/app/log/log-actions"; // Import the centralized server action
 
 type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;

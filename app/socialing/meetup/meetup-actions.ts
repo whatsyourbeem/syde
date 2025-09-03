@@ -5,34 +5,14 @@ import { revalidatePath } from "next/cache";
 import { Database, Enums } from "@/types/database.types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
-import {
-  createClient as createAdminClient,
-  SupabaseClient,
-} from "@supabase/supabase-js";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 import { redirect } from "next/navigation";
+import { uploadAndGetUrl, getFileExtension } from "@/lib/storage";
 
 type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
   meetup_participants: Database["public"]["Tables"]["meetup_participants"]["Row"][];
 };
-
-async function uploadAndGetUrl(
-  adminClient: SupabaseClient,
-  bucket: string,
-  path: string,
-  file: File
-) {
-  const { data: uploadData, error: uploadError } = await adminClient.storage
-    .from(bucket)
-    .upload(path, file);
-  if (uploadError) {
-    throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
-  }
-  const { data: urlData } = adminClient.storage
-    .from(bucket)
-    .getPublicUrl(uploadData.path);
-  return urlData.publicUrl;
-}
 
 export async function createMeetup(
   formData: FormData
@@ -63,7 +43,7 @@ export async function createMeetup(
   try {
     // 1. Upload thumbnail if it exists
     if (thumbnailFile && thumbnailFile.size > 0) {
-      const fileExt = thumbnailFile.type.split("/")[1];
+      const fileExt = getFileExtension(thumbnailFile.type);
       const thumbnailPath = `${id}/thumbnail/${uuidv4()}.${fileExt}`;
       finalThumbnailUrl = await uploadAndGetUrl(
         adminClient,
@@ -79,7 +59,7 @@ export async function createMeetup(
         const blobUrl = formData.get(
           `descriptionImageBlobUrl_${index}`
         ) as string;
-        const fileExt = file.type.split("/")[1];
+        const fileExt = getFileExtension(file.type);
         const descriptionPath = `${id}/description/${uuidv4()}.${fileExt}`;
         const publicUrl = await uploadAndGetUrl(
           adminClient,
@@ -216,7 +196,7 @@ export async function updateMeetup(
         const blobUrl = formData.get(
           `descriptionImageBlobUrl_${index}`
         ) as string;
-        const fileExt = file.type.split("/")[1];
+        const fileExt = getFileExtension(file.type);
         const descriptionPath = `${meetupId}/description/${uuidv4()}.${fileExt}`;
         const publicUrl = await uploadAndGetUrl(
           adminClient,

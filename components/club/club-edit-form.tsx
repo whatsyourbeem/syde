@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
 import { JSONContent } from '@tiptap/react';
-import { createClub, updateClub } from '@/app/socialing/club/actions';
+import { createClub, updateClub } from '@/app/socialing/club/club-actions';
 
 interface ClubFormProps {
   club?: Tables<'clubs'>;

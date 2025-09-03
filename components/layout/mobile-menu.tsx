@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
-import { logout } from "@/app/auth/actions";
+import { logout } from "@/app/auth/auth-actions";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 interface MobileMenuProps {

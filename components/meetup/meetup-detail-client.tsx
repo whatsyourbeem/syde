@@ -33,7 +33,7 @@ import {
 import { User } from "@supabase/supabase-js";
 import {
   joinMeetup,
-} from "@/app/socialing/meetup/actions";
+} from "@/app/socialing/meetup/meetup-actions";
 
 
 // Helper Functions (copied from meetup-detail-client.tsx)

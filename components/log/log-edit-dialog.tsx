@@ -9,7 +9,7 @@ import { ImagePlus, X } from "lucide-react";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
 import { Database } from "@/types/database.types";
-import { createLog, updateLog } from "@/app/log/actions";
+import { createLog, updateLog } from "@/app/log/log-actions";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import {

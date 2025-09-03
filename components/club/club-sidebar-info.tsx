@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, UserPlus, Edit, Settings, CalendarPlus } from "lucide-react";
-import { joinClub } from "@/app/socialing/club/actions";
+import { joinClub } from "@/app/socialing/club/club-actions";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";

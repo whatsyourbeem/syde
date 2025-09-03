@@ -18,7 +18,7 @@ import {
   updateForumPermissions,
   deleteForum,
   updateForumOrder,
-} from "@/app/socialing/club/actions";
+} from "@/app/socialing/club/club-actions";
 import { Loader2, Trash2, Edit, Save, PlusCircle, X } from "lucide-react";
 import {
   AlertDialog,
