@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserActivityLogList } from "@/components/user/user-activity-log-list";
 import BioEditor from "@/components/user/bio-editor";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -120,6 +121,12 @@ export default async function UserProfilePage({
             >
               작성한 로그
             </TabsTrigger>
+            <TabsTrigger
+              value="clubs"
+              className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
+            >
+              가입 클럽
+            </TabsTrigger>
             {isOwnProfile && (
               <TabsTrigger
                 value="comments"
@@ -140,6 +147,9 @@ export default async function UserProfilePage({
               currentUserId={currentUserId}
               filterByUserId={profile.id}
             />
+          </TabsContent>
+          <TabsContent value="clubs" className="pt-4">
+            <UserJoinedClubsList userId={profile.id} />
           </TabsContent>
           {isOwnProfile && (
             <TabsContent value="comments">
