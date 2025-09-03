@@ -37,6 +37,9 @@ import {
   MEETUP_CATEGORIES,
   MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
+  MEETUP_CATEGORY_DISPLAY_NAMES,
+  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
+  MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
 
 type Meetup = Tables<"meetups">;
@@ -264,7 +267,7 @@ export default function MeetupEditForm({
             <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
             <SelectContent>
               {Object.entries(MEETUP_CATEGORIES).map(([key, value]) => (
-                <SelectItem key={key} value={value}>{key}</SelectItem>
+                <SelectItem key={key} value={value}>{MEETUP_CATEGORY_DISPLAY_NAMES[value]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -277,7 +280,7 @@ export default function MeetupEditForm({
             <SelectTrigger><SelectValue placeholder="진행 방식 선택" /></SelectTrigger>
             <SelectContent>
               {Object.entries(MEETUP_LOCATION_TYPES).map(([key, value]) => (
-                <SelectItem key={key} value={value}>{key}</SelectItem>
+                <SelectItem key={key} value={value}>{MEETUP_LOCATION_TYPE_DISPLAY_NAMES[value]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -292,7 +295,7 @@ export default function MeetupEditForm({
           <SelectTrigger><SelectValue placeholder="상태 선택" /></SelectTrigger>
           <SelectContent>
             {Object.entries(MEETUP_STATUSES).map(([key, value]) => (
-              <SelectItem key={key} value={value}>{key}</SelectItem>
+              <SelectItem key={key} value={value}>{MEETUP_STATUS_DISPLAY_NAMES[value]}</SelectItem>
             ))}
           </SelectContent>
         </Select>
