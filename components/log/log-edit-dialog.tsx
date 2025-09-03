@@ -489,8 +489,8 @@ export function LogEditDialog({
     const action = initialLogData ? updateLog : createLog;
     const result = await action(formData);
 
-    if (result?.error) {
-      alert(`Error: ${result.error}`);
+    if (!result.success) {
+      alert(`Error: ${result.error.message}`);
     } else {
       if (!initialLogData) {
         // Reset form for creation
@@ -499,8 +499,8 @@ export function LogEditDialog({
         setImageFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
         setOpen(false);
-        if (result?.logId) {
-          router.push(`/log/${result.logId}`);
+        if (result.data.id) {
+          router.push(`/log/${result.data.id}`);
         } else {
           router.refresh();
         }

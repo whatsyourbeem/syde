@@ -87,82 +87,81 @@ export async function createLog(formData: FormData): Promise<CreateResponse> {
   });
 }
 
-export async function updateLog(formData: FormData): Promise<{ error?: string; logId?: string }> {
-  const supabase = await createClient();
+export async function updateLog(formData: FormData): Promise<CreateResponse> {
+  return withErrorHandling(async () => {
+    const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { error: "Authentication required." };
-  }
+    const userId = requireAuth(user?.id);
 
-  const logId = formData.get("logId") as string;
-  const content = formData.get("content") as string;
-  const imageFile = formData.get("imageFile") as File | null;
-  const imageRemoved = formData.get("imageRemoved") === "true";
+    const logId = validateRequired(formData.get("logId") as string, "로그 ID");
+    const content = validateRequired(formData.get("content") as string, "내용");
+    const imageFile = formData.get("imageFile") as File | null;
+    const imageRemoved = formData.get("imageRemoved") === "true";
 
-  let imageUrl: string | null | undefined = undefined; // undefined means no change
+    let imageUrl: string | null | undefined = undefined; // undefined means no change
 
-  if (imageFile) {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    if (imageFile) {
+      const supabaseAdmin = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
 
-    const { data: oldLogData } = await supabase.from("logs").select("image_url").eq("id", logId).single();
-    if (oldLogData?.image_url) {
-      const oldPath = oldLogData.image_url.split("/logs/").pop();
-      if (oldPath) await supabaseAdmin.storage.from("logs").remove([oldPath]);
+      const { data: oldLogData } = await supabase.from("logs").select("image_url").eq("id", logId).single();
+      if (oldLogData?.image_url) {
+        const oldPath = oldLogData.image_url.split("/logs/").pop();
+        if (oldPath) await supabaseAdmin.storage.from("logs").remove([oldPath]);
+      }
+
+      const fileName = `${uuidv4()}`;
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from("logs")
+        .upload(`${logId}/${fileName}`, imageFile);
+
+      if (uploadError) {
+        throw new Error(`이미지 업로드 실패: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabaseAdmin.storage.from("logs").getPublicUrl(uploadData.path);
+      imageUrl = publicUrlData.publicUrl;
+
+    } else if (imageRemoved) {
+      const supabaseAdmin = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: oldLogData } = await supabase.from("logs").select("image_url").eq("id", logId).single();
+      if (oldLogData?.image_url) {
+        const oldPath = oldLogData.image_url.split("/logs/").pop();
+        if (oldPath) await supabaseAdmin.storage.from("logs").remove([oldPath]);
+      }
+      imageUrl = null;
     }
 
-    const fileName = `${uuidv4()}`;
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from("logs")
-      .upload(`${logId}/${fileName}`, imageFile);
+    const processedContent = await processMentionsForSave(content, supabase);
 
-    if (uploadError) {
-      return { error: "Failed to upload new image." };
+    const updateData: { content: string; image_url?: string | null } = { content: processedContent };
+    if (imageUrl !== undefined) {
+      updateData.image_url = imageUrl;
     }
 
-    const { data: publicUrlData } = supabaseAdmin.storage.from("logs").getPublicUrl(uploadData.path);
-    imageUrl = publicUrlData.publicUrl;
+    const { error } = await supabase.from("logs").update(updateData).eq("id", logId).eq("user_id", userId);
 
-  } else if (imageRemoved) {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    const { data: oldLogData } = await supabase.from("logs").select("image_url").eq("id", logId).single();
-    if (oldLogData?.image_url) {
-      const oldPath = oldLogData.image_url.split("/logs/").pop();
-      if (oldPath) await supabaseAdmin.storage.from("logs").remove([oldPath]);
+    if (error) {
+      throw new Error(`로그 업데이트 실패: ${error.message}`);
     }
-    imageUrl = null;
-  }
 
-  const processedContent = await processMentionsForSave(content, supabase);
+    revalidatePath("/");
+    if (user?.user_metadata?.username) {
+      revalidatePath(`/${user.user_metadata.username}`);
+    }
+    revalidatePath(`/log/${logId}`);
 
-  const updateData: { content: string; image_url?: string | null } = { content: processedContent };
-  if (imageUrl !== undefined) {
-    updateData.image_url = imageUrl;
-  }
-
-  const { error } = await supabase.from("logs").update(updateData).eq("id", logId).eq("user_id", user.id);
-
-  if (error) {
-    console.error("Error updating log:", error);
-    return { error: error.message };
-  }
-
-  revalidatePath("/");
-  if (user.user_metadata.username) {
-    revalidatePath(`/${user.user_metadata.username}`);
-  }
-  revalidatePath(`/log/${logId}`);
-
-  return { logId: logId };
+    return createSuccessResponse({ id: logId });
+  });
 }
 
 export async function createComment(formData: FormData) {

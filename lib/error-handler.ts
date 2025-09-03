@@ -138,10 +138,15 @@ export async function withErrorHandling<T>(
     
     // Convert unknown errors to ActionError
     const handledError = handleGenericError(error);
-    throw new ActionError(
-      handledError.error.code as keyof typeof ERROR_CODES,
-      handledError.error.message,
-      handledError.error.details
-    );
+    if (!handledError.success) {
+      throw new ActionError(
+        handledError.error.code as keyof typeof ERROR_CODES,
+        handledError.error.message,
+        handledError.error.details
+      );
+    }
+    
+    // This should never be reached
+    throw new ActionError('UNKNOWN_ERROR', 'Unexpected error state');
   }
 }
