@@ -59,14 +59,16 @@ export default async function ClubPostDetailPage({
   const forumReadPermission = post.club_forums?.read_permission;
 
   let isAuthorized = false;
-  if (user) {
+  
+  // Check if forum is public - anyone can read public posts
+  if (forumReadPermission === CLUB_PERMISSION_LEVELS.PUBLIC) {
+    isAuthorized = true;
+  } else if (user) {
     const isClubOwner = club.owner_id === user.id;
     if (isClubOwner) {
       isAuthorized = true;
     } else if (memberRole) {
-      if (forumReadPermission === CLUB_PERMISSION_LEVELS.PUBLIC) {
-        isAuthorized = true;
-      } else if (
+      if (
         forumReadPermission === CLUB_PERMISSION_LEVELS.MEMBER &&
         (memberRole === CLUB_MEMBER_ROLES.GENERAL_MEMBER ||
           memberRole === CLUB_MEMBER_ROLES.FULL_MEMBER ||
