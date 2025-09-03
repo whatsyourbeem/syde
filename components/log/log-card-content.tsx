@@ -35,13 +35,13 @@ export function LogCardContent({
     objectFit: "cover" | "contain";
     margin?: string;
   } | null>(null);
-  const [ogUrl, setOgUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const urlRegex = /(https?:\/\/[^\s]+)/;
     const match = log.content.match(urlRegex);
     if (match) {
-      setOgUrl(match[0]);
+      setPreviewUrl(match[0]);
     }
   }, [log.content]);
 
@@ -99,9 +99,9 @@ export function LogCardContent({
           </button>
         </div>
       )}
-      {ogUrl && !log.image_url && (
+      {previewUrl && !log.image_url && (
         <div className="mt-3">
-          <OgPreviewCard url={ogUrl} />
+          <OgPreviewCard url={previewUrl} />
         </div>
       )}
       {log.image_url && (

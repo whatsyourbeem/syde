@@ -5,23 +5,23 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   className?: string;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = {
     hasError: false
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 

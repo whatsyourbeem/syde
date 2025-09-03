@@ -8,30 +8,38 @@ import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
 import { redirect } from "next/navigation";
 import { uploadAndGetUrl, getFileExtension } from "@/lib/storage";
+import {
+  CreateResponse,
+  createSuccessResponse
+} from "@/lib/types/api";
+import {
+  requireAuth,
+  validateRequired,
+  withErrorHandling
+} from "@/lib/error-handler";
 
-export async function createClub(formData: FormData): Promise<{ error?: string, clubId?: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "로그인이 필요합니다." };
+export async function createClub(formData: FormData): Promise<CreateResponse> {
+  return withErrorHandling(async () => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = requireAuth(user?.id);
 
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-  const id = uuidv4();
-  const name = formData.get("name") as string;
-  const tagline = formData.get("tagline") as string;
-  const descriptionJSON = formData.get("description") as string;
-  const thumbnailFile = formData.get("thumbnailFile") as File | null;
-  const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
+    const id = uuidv4();
+    const tagline = formData.get("tagline") as string;
+    const descriptionJSON = formData.get("description") as string;
+    const thumbnailFile = formData.get("thumbnailFile") as File | null;
+    const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
 
-  if (!name) return { error: "클럽 이름을 입력해주세요." };
+    const name = validateRequired(formData.get("name") as string, "클럽 이름");
 
-  let descriptionContent = JSON.parse(descriptionJSON);
-  let finalThumbnailUrl: string | null = null;
+    let descriptionContent = JSON.parse(descriptionJSON);
+    let finalThumbnailUrl: string | null = null;
 
-  try {
     if (thumbnailFile && thumbnailFile.size > 0) {
       const fileExt = getFileExtension(thumbnailFile.type);
       const thumbnailPath = `${id}/thumbnail/${uuidv4()}.${fileExt}`;
@@ -74,23 +82,19 @@ export async function createClub(formData: FormData): Promise<{ error?: string, 
       tagline,
       description: descriptionContent,
       thumbnail_url: finalThumbnailUrl,
-      owner_id: user.id,
+      owner_id: userId,
     }).select('id').single();
 
     if (error || !newClub) {
-      throw new Error(error?.message || "Failed to create club");
+      throw new Error(error?.message || "클럽 생성에 실패했습니다");
     }
 
-    await supabase.from('club_members').insert({ club_id: newClub.id, user_id: user.id, role: CLUB_MEMBER_ROLES.LEADER });
+    await supabase.from('club_members').insert({ club_id: newClub.id, user_id: userId, role: CLUB_MEMBER_ROLES.LEADER });
 
     revalidatePath("/socialing/club");
     
-    return { clubId: newClub.id };
-
-  } catch (e) {
-    console.error("Create club error:", (e as Error).message);
-    return { error: (e as Error).message };
-  }
+    return createSuccessResponse({ id: newClub.id });
+  });
 }
 
 export async function updateClub(formData: FormData): Promise<{ error?: string }> {
