@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createMeetup, updateMeetup } from "@/app/socialing/actions";
+import { createMeetup, updateMeetup } from "@/app/socialing/meetup/actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
