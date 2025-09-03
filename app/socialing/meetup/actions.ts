@@ -173,8 +173,35 @@ export async function updateMeetup(formData: FormData): Promise<{ error?: string
             }
         }
         
+        const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
         const descriptionJSON = formData.get("description") as string;
-        const descriptionContent = JSON.parse(descriptionJSON);
+        let descriptionContent = JSON.parse(descriptionJSON);
+
+        if (descriptionImageFiles.length > 0) {
+            const uploadPromises = descriptionImageFiles.map(async (file, index) => {
+                if (file.size === 0) return null;
+                const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
+                const fileExt = file.type.split('/')[1];
+                const descriptionPath = `${meetupId}/description/${uuidv4()}.${fileExt}`;
+                const publicUrl = await uploadAndGetUrl(
+                    adminClient,
+                    "meetups",
+                    descriptionPath,
+                    file
+                );
+                return { blobUrl, publicUrl };
+            });
+
+            const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean);
+            let descriptionString = JSON.stringify(descriptionContent);
+            uploadedImages.forEach(({ blobUrl, publicUrl }) => {
+                if (blobUrl && publicUrl) {
+                    descriptionString = descriptionString.replace(new RegExp(blobUrl, "g"), publicUrl);
+                }
+            });
+            descriptionContent = JSON.parse(descriptionString);
+        }
+
 
         const updateData = {
             title: formData.get("title") as string,
