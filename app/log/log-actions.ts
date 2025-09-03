@@ -5,74 +5,86 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
+import { 
+  createSuccessResponse, 
+  CreateResponse 
+} from "@/lib/types/api";
+import { 
+  requireAuth,
+  validateRequired,
+  withErrorHandling
+} from "@/lib/error-handler";
 
-export async function createLog(formData: FormData): Promise<{ error?: string; logId?: string }> {
-  const supabase = await createClient();
+export async function createLog(formData: FormData): Promise<CreateResponse> {
+  return withErrorHandling(async () => {
+    const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { error: "Authentication required." };
-  }
+    const userId = requireAuth(user?.id);
 
-  const content = formData.get("content") as string;
-  const imageFile = formData.get("imageFile") as File | null;
-  const processedContent = await processMentionsForSave(content, supabase);
+    const content = validateRequired(formData.get("content") as string, "내용");
+    const imageFile = formData.get("imageFile") as File | null;
+    const processedContent = await processMentionsForSave(content, supabase);
 
-  // 1. Create log entry first to get the log ID
-  const { data: log, error: createError } = await supabase
-    .from("logs")
-    .insert({ content: processedContent, user_id: user.id })
-    .select("id")
-    .single();
-
-  if (createError) {
-    console.error("Error creating log:", createError);
-    return { error: createError.message };
-  }
-
-  // 2. If an image was uploaded, upload it and update the log
-  if (imageFile && log) {
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    const fileName = `${uuidv4()}`;
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+    // 1. Create log entry first to get the log ID
+    const { data: log, error: createError } = await supabase
       .from("logs")
-      .upload(`${log.id}/${fileName}`, imageFile);
+      .insert({ content: processedContent, user_id: userId })
+      .select("id")
+      .single();
 
-    if (uploadError) {
-      console.error("Error uploading log image:", uploadError);
-      await supabase.from("logs").delete().eq("id", log.id);
-      return { error: "Failed to upload image." };
+    if (createError) {
+      throw new Error(`로그 생성 실패: ${createError.message}`);
     }
 
-    const { data: publicUrlData } = supabaseAdmin.storage
-      .from("logs")
-      .getPublicUrl(uploadData.path);
+    // 2. If an image was uploaded, upload it and update the log
+    if (imageFile && log) {
+      try {
+        const supabaseAdmin = createSupabaseClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const fileName = `${uuidv4()}`;
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from("logs")
+          .upload(`${log.id}/${fileName}`, imageFile);
 
-    const { error: updateError } = await supabase
-      .from("logs")
-      .update({ image_url: publicUrlData.publicUrl })
-      .eq("id", log.id);
+        if (uploadError) {
+          await supabase.from("logs").delete().eq("id", log.id);
+          throw new Error(`이미지 업로드 실패: ${uploadError.message}`);
+        }
 
-    if (updateError) {
-      console.error("Error updating log with image URL:", updateError);
-      await supabaseAdmin.storage.from("logs").remove([uploadData.path]);
-      await supabase.from("logs").delete().eq("id", log.id);
-      return { error: "Failed to finalize image processing." };
+        const { data: publicUrlData } = supabaseAdmin.storage
+          .from("logs")
+          .getPublicUrl(uploadData.path);
+
+        const { error: updateError } = await supabase
+          .from("logs")
+          .update({ image_url: publicUrlData.publicUrl })
+          .eq("id", log.id);
+
+        if (updateError) {
+          await supabaseAdmin.storage.from("logs").remove([uploadData.path]);
+          await supabase.from("logs").delete().eq("id", log.id);
+          throw new Error(`로그 업데이트 실패: ${updateError.message}`);
+        }
+      } catch (error) {
+        // Cleanup on any error
+        await supabase.from("logs").delete().eq("id", log.id);
+        throw error;
+      }
     }
-  }
 
-  revalidatePath("/");
-  if (user.user_metadata.username) {
-    revalidatePath(`/${user.user_metadata.username}`);
-  }
+    revalidatePath("/");
+    if (user?.user_metadata?.username) {
+      revalidatePath(`/${user.user_metadata.username}`);
+    }
 
-  return { logId: log.id };
+    return createSuccessResponse({ id: log.id });
+  });
 }
 
 export async function updateLog(formData: FormData): Promise<{ error?: string; logId?: string }> {
