@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
       "k.kakaocdn.net",
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
   /* config options here */
 };
 

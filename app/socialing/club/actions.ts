@@ -75,7 +75,7 @@ export async function createClub(formData: FormData): Promise<{ error?: string, 
         return { blobUrl, publicUrl };
       });
 
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean);
+      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as { blobUrl: string, publicUrl: string }[];
       let descriptionString = JSON.stringify(descriptionContent);
       uploadedImages.forEach(({ blobUrl, publicUrl }) => {
         if (blobUrl && publicUrl) {
@@ -176,7 +176,7 @@ export async function updateClub(formData: FormData): Promise<{ error?: string }
                 return { blobUrl, publicUrl };
             });
 
-            const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean);
+            const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as { blobUrl: string, publicUrl: string }[];
             let descriptionString = JSON.stringify(descriptionContent);
             uploadedImages.forEach(({ blobUrl, publicUrl }) => {
                 if (blobUrl && publicUrl) {
@@ -191,7 +191,6 @@ export async function updateClub(formData: FormData): Promise<{ error?: string }
             tagline: formData.get("tagline") as string,
             description: descriptionContent,
             thumbnail_url: newThumbnailUrl,
-            updated_at: new Date().toISOString(),
         };
 
         const { error: updateError } = await supabase
@@ -265,103 +264,147 @@ export async function leaveClub(clubId: string) {
   return { success: true };
 }
 
-export async function createClubPost(
-  forumId: string,
-  title: string,
-  content: Json
-) {
+export async function createClubPost(formData: FormData): Promise<{ error?: string, postId?: string }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
 
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
+  const title = formData.get('title') as string;
+  const contentJSON = formData.get('content') as string;
+  const forumId = formData.get('forumId') as string;
+  const clubId = formData.get('clubId') as string;
+  const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
+
+  if (!title.trim()) return { error: "제목을 입력해주세요." };
+  if (!contentJSON) return { error: "내용을 입력해주세요." };
+  if (!forumId) return { error: "게시판을 선택해주세요." };
+
+  let content = JSON.parse(contentJSON);
+
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  try {
+    // Insert post first to get an ID
+    const { data: newPost, error: insertError } = await supabase
+      .from("club_forum_posts")
+      .insert({ forum_id: forumId, user_id: user.id, title: title, content: content })
+      .select("id")
+      .single();
+
+    if (insertError) throw new Error(insertError.message);
+
+    const postId = newPost.id;
+
+    if (descriptionImageFiles.length > 0) {
+      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
+        if (file.size === 0) return null;
+        const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
+        const fileExt = file.type.split('/')[1];
+        const path = `${clubId}/forums/${forumId}/posts/${postId}/${uuidv4()}.${fileExt}`;
+        const publicUrl = await uploadAndGetUrl(adminClient, "clubs", path, file);
+        return { blobUrl, publicUrl };
+      });
+
+      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as { blobUrl: string, publicUrl: string }[];
+      let contentString = JSON.stringify(content);
+      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
+        if (blobUrl && publicUrl) {
+          contentString = contentString.replace(new RegExp(blobUrl, "g"), publicUrl);
+        }
+      });
+      content = JSON.parse(contentString);
+
+      // Update post with final content containing public URLs
+      const { error: updateError } = await supabase
+        .from("club_forum_posts")
+        .update({ content })
+        .eq('id', postId);
+
+      if (updateError) throw new Error(updateError.message);
+    }
+
+    revalidatePath(`/socialing/club/${clubId}`);
+    revalidatePath(`/socialing/club/${clubId}/post/${postId}`);
+
+    return { postId };
+
+  } catch (e: any) {
+    console.error("Create club post error:", e.message);
+    return { error: e.message };
   }
-
-  if (!title.trim()) {
-    return { error: "제목을 입력해주세요." };
-  }
-
-  if (!content) {
-    return { error: "내용을 입력해주세요." };
-  }
-
-  const { data: forum, error: forumError } = await supabase
-    .from("club_forums")
-    .select("club_id")
-    .eq("id", forumId)
-    .single();
-
-  if (forumError || !forum?.club_id) {
-    console.error("Error finding club for forum:", forumError);
-    return { error: "클럽 정보를 찾을 수 없습니다." };
-  }
-
-  const { data: post, error } = await supabase
-    .from("club_forum_posts")
-    .insert({
-      forum_id: forumId,
-      user_id: user.id,
-      title: title,
-      content: content,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    console.error("Error creating post:", error);
-    return { error: "게시글 작성 중 오류가 발생했습니다." };
-  }
-
-  revalidatePath(`/socialing/club/${forum.club_id}`);
-
-  return { success: true, postId: post.id };
 }
 
-export async function updateClubPost(
-  postId: string,
-  title: string,
-  content: Json
-) {
+export async function updateClubPost(formData: FormData): Promise<{ error?: string, postId?: string }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
 
-  if (!user) {
-    return { error: "User not authenticated" };
+  const postId = formData.get('postId') as string;
+  const title = formData.get('title') as string;
+  const contentJSON = formData.get('content') as string;
+  const clubId = formData.get('clubId') as string;
+  const descriptionImageFiles = formData.getAll("descriptionImageFiles") as File[];
+
+  if (!postId) return { error: "게시글 ID가 필요합니다." };
+  if (!title.trim()) return { error: "제목을 입력해주세요." };
+  if (!contentJSON) return { error: "내용을 입력해주세요." };
+
+  let content = JSON.parse(contentJSON);
+
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  try {
+    const { data: existingPost, error: fetchError } = await supabase
+      .from("club_forum_posts")
+      .select("user_id, forum_id")
+      .eq("id", postId)
+      .single();
+
+    if (fetchError || !existingPost) throw new Error("게시글을 찾을 수 없거나 수정할 권한이 없습니다.");
+    if (existingPost.user_id !== user.id) throw new Error("게시글을 수정할 권한이 없습니다.");
+
+    if (descriptionImageFiles.length > 0) {
+      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
+        if (file.size === 0) return null;
+        const blobUrl = formData.get(`descriptionImageBlobUrl_${index}`) as string;
+        const fileExt = file.type.split('/')[1];
+        const path = `${clubId}/forums/${existingPost.forum_id}/posts/${postId}/${uuidv4()}.${fileExt}`;
+        const publicUrl = await uploadAndGetUrl(adminClient, "clubs", path, file);
+        return { blobUrl, publicUrl };
+      });
+
+      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as { blobUrl: string, publicUrl: string }[];
+      let contentString = JSON.stringify(content);
+      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
+        if (blobUrl && publicUrl) {
+          contentString = contentString.replace(new RegExp(blobUrl, "g"), publicUrl);
+        }
+      });
+      content = JSON.parse(contentString);
+    }
+
+    const { error: updateError } = await supabase
+      .from("club_forum_posts")
+      .update({ title, content })
+      .eq("id", postId);
+
+    if (updateError) throw new Error(updateError.message);
+
+    revalidatePath(`/socialing/club/${clubId}`);
+    revalidatePath(`/socialing/club/${clubId}/post/${postId}`);
+
+    return { postId };
+
+  } catch (e: any) {
+    console.error("Update club post error:", e.message);
+    return { error: e.message };
   }
-
-  const { data: existingPost, error: fetchError } = await supabase
-    .from("club_forum_posts")
-    .select("user_id")
-    .eq("id", postId)
-    .single();
-
-  if (fetchError || !existingPost) {
-    console.error("Error fetching existing post:", fetchError);
-    return { error: "게시글을 찾을 수 없습니다." };
-  }
-
-  if (existingPost.user_id !== user.id) {
-    return { error: "게시글을 수정할 권한이 없습니다." };
-  }
-
-  const { data, error } = await supabase
-    .from("club_forum_posts")
-    .update({ title, content })
-    .eq("id", postId)
-    .select("id")
-    .single();
-
-  if (error) {
-    console.error("Error updating club post:", error);
-    return { error: error.message };
-  }
-
-  revalidatePath(`/socialing/club/[club_id]/post/${postId}`);
-  return { postId: data.id };
 }
 
 export async function createClubPostComment(
