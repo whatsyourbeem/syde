@@ -56,16 +56,9 @@ export default function MeetupEditForm({
   const isEditMode = !!meetup;
 
   const [title, setTitle] = useState(meetup?.title || "");
-  const [description, setDescription] = useState<JSONContent | null>(() => {
-    if (meetup?.description) {
-      try {
-        return JSON.parse(meetup.description as unknown as string);
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  });
+  const [description, setDescription] = useState<JSONContent | null>(
+    meetup?.description ? (meetup.description as JSONContent) : null
+  );
   const [category, setCategory] = useState<Enums<"meetup_category_enum"> | undefined>(meetup?.category);
   const [locationType, setLocationType] = useState<Enums<"meetup_location_type_enum"> | undefined>(meetup?.location_type);
   const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(meetup?.status);
