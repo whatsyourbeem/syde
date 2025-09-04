@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -29,7 +29,7 @@ interface LogCardActionsProps {
   onCommentsToggle: () => void;
 }
 
-export function LogCardActions({
+function LogCardActionsBase({
   logId,
   currentUserId,
   likesCount,
@@ -45,7 +45,7 @@ export function LogCardActions({
   const [copyUrl, setCopyUrl] = useState("");
   const { openLoginDialog } = useLoginDialog();
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     if (!currentUserId) {
       openLoginDialog();
       return;
@@ -77,9 +77,9 @@ export function LogCardActions({
       }
     }
     setLoading(false);
-  };
+  }, [currentUserId, logId, hasLiked, likesCount, loading, openLoginDialog, onLikeStatusChange, supabase]);
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = useCallback(async () => {
     const url = `${window.location.origin}/log/${logId}`;
     if (navigator.clipboard && window.isSecureContext) {
       try {
@@ -93,9 +93,9 @@ export function LogCardActions({
       setCopyUrl(url);
       setShowCopyDialog(true);
     }
-  };
+  }, [logId]);
 
-  const handleShareAll = async () => {
+  const handleShareAll = useCallback(async () => {
     const url = `${window.location.origin}/log/${logId}`;
     const text = "Check out this log on SYDE!";
     if (navigator.share) {
@@ -113,7 +113,7 @@ export function LogCardActions({
     } else {
       toast.info("Web Share is not supported on your browser.");
     }
-  };
+  }, [logId]);
 
   return (
     <>
@@ -240,3 +240,16 @@ export function LogCardActions({
     </>
   );
 }
+
+export const LogCardActions = memo(LogCardActionsBase, (prevProps, nextProps) => {
+  return (
+    prevProps.logId === nextProps.logId &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.likesCount === nextProps.likesCount &&
+    prevProps.hasLiked === nextProps.hasLiked &&
+    prevProps.commentsCount === nextProps.commentsCount &&
+    prevProps.showComments === nextProps.showComments
+  );
+});
+
+LogCardActions.displayName = 'LogCardActions';

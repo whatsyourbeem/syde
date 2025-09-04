@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { linkifyMentions } from "@/lib/utils";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 
@@ -19,7 +19,7 @@ interface LogCardContentProps {
   showReadMore: boolean;
 }
 
-export function LogCardContent({ 
+function LogCardContentBase({ 
   log, 
   mentionedProfiles, 
   searchQuery, 
@@ -115,9 +115,26 @@ export function LogCardContent({
             fill
             style={{ objectFit: imageStyle?.objectFit || "contain" }}
             sizes="(max-width: 768px) 100vw, 672px"
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSenFhJyKcNULi2YXKR0iOgzL2BPUv8ApK8/U5TK/vQNI/G6h+vp/n4NMgNS4i0HUk+y1xQ8cVc4LxstNu/WXWj0WLtNNPQGa3c3aSc="
           />
         </div>
       )}
     </div>
   );
 }
+
+export const LogCardContent = memo(LogCardContentBase, (prevProps, nextProps) => {
+  return (
+    prevProps.log.id === nextProps.log.id &&
+    prevProps.log.content === nextProps.log.content &&
+    prevProps.log.image_url === nextProps.log.image_url &&
+    prevProps.searchQuery === nextProps.searchQuery &&
+    prevProps.isDetailPage === nextProps.isDetailPage &&
+    prevProps.showReadMore === nextProps.showReadMore &&
+    JSON.stringify(prevProps.mentionedProfiles) === JSON.stringify(nextProps.mentionedProfiles)
+  );
+});
+
+LogCardContent.displayName = 'LogCardContent';

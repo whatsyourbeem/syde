@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
@@ -11,6 +11,7 @@ import { LogCardContent } from "./log-card-content";
 import { LogCardActions } from "./log-card-actions";
 import { LogCardComments } from "./log-card-comments";
 import { withErrorBoundary } from "@/components/error/with-error-boundary";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -45,6 +46,12 @@ function LogCardBase({
   const [showComments, setShowComments] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
   const contentRef = useRef<HTMLParagraphElement>(null);
+  
+  // Intersection observer for performance optimization
+  const { ref: cardRef, isVisible } = useIntersectionObserver({
+    threshold: 0.1,
+    rootMargin: '100px',
+  });
 
   useEffect(() => {
     if (contentRef.current) {
@@ -63,15 +70,15 @@ function LogCardBase({
     setCommentsCount(initialCommentsCount);
   }, [initialLikesCount, initialHasLiked, initialCommentsCount]);
 
-  const handleCommentAdded = () => {
+  const handleCommentAdded = useCallback(() => {
     setCommentsCount((prev) => prev + 1);
     setShowComments(true);
-  };
+  }, []);
 
-  const handleLikeStatusChange = (newLikesCount: number, newHasLiked: boolean) => {
+  const handleLikeStatusChange = useCallback((newLikesCount: number, newHasLiked: boolean) => {
     setLikesCount(newLikesCount);
     setHasLiked(newHasLiked);
-  };
+  }, []);
 
   const handleDelete = async () => {
     if (currentUserId !== log.user_id) return;
@@ -91,51 +98,73 @@ function LogCardBase({
     }
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     if (isDetailPage) return;
     router.push(`/log/${log.id}`);
-  };
+  }, [isDetailPage, log.id, router]);
 
   return (
-    <div className="rounded-lg bg-card flex flex-col">
-      <LogCardHeader 
-        log={log}
-        currentUserId={currentUserId}
-        onDelete={handleDelete}
-        loading={loading}
-      />
+    <div ref={cardRef} className="rounded-lg bg-card flex flex-col">
+      {isVisible ? (
+        <>
+          <LogCardHeader 
+            log={log}
+            currentUserId={currentUserId}
+            onDelete={handleDelete}
+            loading={loading}
+          />
 
-      <LogCardContent 
-        log={log}
-        mentionedProfiles={mentionedProfiles}
-        searchQuery={searchQuery}
-        isDetailPage={isDetailPage}
-        onCardClick={handleCardClick}
-        showReadMore={showReadMore}
-      />
+          <LogCardContent 
+            log={log}
+            mentionedProfiles={mentionedProfiles}
+            searchQuery={searchQuery}
+            isDetailPage={isDetailPage}
+            onCardClick={handleCardClick}
+            showReadMore={showReadMore}
+          />
 
-      <LogCardActions 
-        logId={log.id}
-        currentUserId={currentUserId}
-        likesCount={likesCount}
-        hasLiked={hasLiked}
-        commentsCount={commentsCount}
-        showComments={showComments}
-        onLikeStatusChange={handleLikeStatusChange}
-        onCommentsToggle={() => setShowComments(!showComments)}
-      />
+          <LogCardActions 
+            logId={log.id}
+            currentUserId={currentUserId}
+            likesCount={likesCount}
+            hasLiked={hasLiked}
+            commentsCount={commentsCount}
+            showComments={showComments}
+            onLikeStatusChange={handleLikeStatusChange}
+            onCommentsToggle={() => setShowComments(!showComments)}
+          />
 
-      <LogCardComments 
-        logId={log.id}
-        currentUserId={currentUserId}
-        showComments={showComments}
-        onCommentAdded={handleCommentAdded}
-      />
+          <LogCardComments 
+            logId={log.id}
+            currentUserId={currentUserId}
+            showComments={showComments}
+            onCommentAdded={handleCommentAdded}
+          />
+        </>
+      ) : (
+        <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />
+      )}
     </div>
   );
 }
 
-export const LogCard = withErrorBoundary(LogCardBase, {
+const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.log.id === nextProps.log.id &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.initialLikesCount === nextProps.initialLikesCount &&
+    prevProps.initialHasLiked === nextProps.initialHasLiked &&
+    prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
+    prevProps.searchQuery === nextProps.searchQuery &&
+    prevProps.isDetailPage === nextProps.isDetailPage &&
+    JSON.stringify(prevProps.log.profiles) === JSON.stringify(nextProps.log.profiles)
+  );
+});
+
+MemoizedLogCardBase.displayName = 'MemoizedLogCardBase';
+
+export const LogCard = withErrorBoundary(MemoizedLogCardBase, {
   fallback: (
     <div className="rounded-lg bg-card p-6 border border-red-200">
       <p className="text-center text-red-600">로그를 불러오는 중 오류가 발생했습니다.</p>

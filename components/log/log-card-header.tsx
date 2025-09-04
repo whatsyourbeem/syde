@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { memo } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +31,7 @@ interface LogCardHeaderProps {
   loading: boolean;
 }
 
-export function LogCardHeader({ log, currentUserId, onDelete, loading }: LogCardHeaderProps) {
+function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHeaderProps) {
   const router = useRouter();
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
@@ -51,6 +52,9 @@ export function LogCardHeader({ log, currentUserId, onDelete, loading }: LogCard
                 width={36}
                 height={36}
                 className="rounded-full object-cover aspect-square mr-2"
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNmMGYwZjAiLz4KPC9zdmc+"
               />
             </Link>
           )}
@@ -123,3 +127,14 @@ export function LogCardHeader({ log, currentUserId, onDelete, loading }: LogCard
     </div>
   );
 }
+
+export const LogCardHeader = memo(LogCardHeaderBase, (prevProps, nextProps) => {
+  return (
+    prevProps.log.id === nextProps.log.id &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.loading === nextProps.loading &&
+    JSON.stringify(prevProps.log.profiles) === JSON.stringify(nextProps.log.profiles)
+  );
+});
+
+LogCardHeader.displayName = 'LogCardHeader';

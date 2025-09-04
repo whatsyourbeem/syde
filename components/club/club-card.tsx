@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { memo, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Database } from "@/types/database.types";
@@ -17,12 +18,12 @@ interface ClubCardProps {
   club: Club;
 }
 
-export default function ClubCard({ club }: ClubCardProps) {
+function ClubCardBase({ club }: ClubCardProps) {
   const router = useRouter();
 
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     router.push(`/socialing/club/${club.id}`);
-  };
+  }, [club.id, router]);
 
   return (
     <div
@@ -103,3 +104,17 @@ export default function ClubCard({ club }: ClubCardProps) {
     </div>
   );
 }
+
+const ClubCard = memo(ClubCardBase, (prevProps, nextProps) => {
+  return (
+    prevProps.club.id === nextProps.club.id &&
+    prevProps.club.name === nextProps.club.name &&
+    prevProps.club.tagline === nextProps.club.tagline &&
+    prevProps.club.member_count === nextProps.club.member_count &&
+    prevProps.club.thumbnail_url === nextProps.club.thumbnail_url
+  );
+});
+
+ClubCard.displayName = 'ClubCard';
+
+export default ClubCard;
