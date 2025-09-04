@@ -303,6 +303,7 @@ export async function deleteLog(logId: string) {
   }
 
   revalidatePath("/");
+  revalidatePath("/log");
   if (user.user_metadata.username) {
     revalidatePath(`/${user.user_metadata.username}`);
   }

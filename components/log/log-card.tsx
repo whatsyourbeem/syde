@@ -51,6 +51,7 @@ function LogCardBase({
   const { ref: cardRef, isVisible } = useIntersectionObserver({
     threshold: 0.1,
     rootMargin: '100px',
+    enabled: !isDetailPage, // Disable on detail pages
   });
 
   useEffect(() => {
@@ -87,13 +88,13 @@ function LogCardBase({
       const result = await deleteLog(log.id);
       if (result?.error) {
         toast.error('로그 삭제 실패', { description: result.error });
+        setLoading(false);
       } else {
         toast.success('로그가 삭제되었습니다.');
         router.refresh();
       }
     } catch {
       toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
-    } finally {
       setLoading(false);
     }
   };
@@ -105,7 +106,7 @@ function LogCardBase({
 
   return (
     <div ref={cardRef} className="rounded-lg bg-card flex flex-col">
-      {isVisible ? (
+      {isDetailPage || isVisible ? (
         <>
           <LogCardHeader 
             log={log}
