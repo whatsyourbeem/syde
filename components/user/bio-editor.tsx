@@ -106,7 +106,7 @@ export default function BioEditor({
             <TiptapViewer content={initialBio} />
           )}
           {isOwnProfile && (
-            <div className="mt-4 flex justify-center">
+            <div className="mt-12 flex justify-center">
               <Button onClick={() => setIsEditing(true)}>수정</Button>
             </div>
           )}

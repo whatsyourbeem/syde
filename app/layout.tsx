@@ -93,133 +93,140 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${pretendard.className} antialiased`}>
+    <html lang="en" suppressHydrationWarning className="h-full">
+      <body className={`${pretendard.className} antialiased h-full`}>
         <Providers>
           <LoginDialogProvider>
-            <div className="w-full bg-background">
-              <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
-                {/* Mobile specific layout */}
-                <div className="flex md:hidden w-full justify-between items-center">
-                  <div className="flex items-center">
-                    <Link href={"/"} className="flex items-center gap-1">
-                      <Image
-                        src="/logo_no_bg.png"
-                        alt="SYDE"
-                        width={22}
-                        height={22}
-                        priority
-                      />
-                      <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
-                        SYDE
-                      </span>
-                    </Link>
-                  </div>
-                  <div className="flex justify-end items-center gap-4">
-                    <Link
-                      href="/search"
-                      className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                    >
-                      <Search size={20} />
-                    </Link>
-                    <Suspense
-                      fallback={
-                        <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                      }
-                    >
-                      <NotificationBell
-                        initialUnreadCount={unreadNotifCount}
-                        userId={user?.id || null}
-                      />
-                    </Suspense>
-                    <MobileMenu
-                      user={user}
-                      authButton={
+            <div className="flex flex-col h-full">
+              <header>
+                <div className="w-full bg-background">
+                  <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
+                    {/* Mobile specific layout */}
+                    <div className="flex md:hidden w-full justify-between items-center">
+                      <div className="flex items-center">
+                        <Link href={"/"} className="flex items-center gap-1">
+                          <Image
+                            src="/logo_no_bg.png"
+                            alt="SYDE"
+                            width={22}
+                            height={22}
+                            priority
+                          />
+                          <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
+                            SYDE
+                          </span>
+                        </Link>
+                      </div>
+                      <div className="flex justify-end items-center gap-4">
+                        <Link
+                          href="/search"
+                          className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
+                        >
+                          <Search size={20} />
+                        </Link>
+                        <Suspense
+                          fallback={
+                            <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                          }
+                        >
+                          <NotificationBell
+                            initialUnreadCount={unreadNotifCount}
+                            userId={user?.id || null}
+                          />
+                        </Suspense>
+                        <MobileMenu
+                          user={user}
+                          authButton={
+                            <AuthButton
+                              avatarUrl={avatarUrl}
+                              username={usernameForAuthButton}
+                              fullName={fullNameForAuthButton}
+                              sheetHeader={true}
+                            />
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Desktop specific layout */}
+                    <div className="hidden md:flex w-full justify-between items-center">
+                      <div className="w-1/3">
+                        <Link
+                          href="https://open.kakao.com/o/gduSGmtf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            variant="ghost"
+                            className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
+                          >
+                            <Image
+                              src="/kakao-talk.png"
+                              alt="Kakao"
+                              width={24}
+                              height={24}
+                            />
+                            <span className="hidden md:inline text-[#4B4737]">
+                              SYDE 오픈채팅
+                            </span>
+                          </Button>
+                        </Link>
+                      </div>
+                      <div className="w-1/3 flex justify-center items-center font-semibold">
+                        <Link href={"/"} className="flex items-center gap-1">
+                          <Image
+                            src="/logo_no_bg.png"
+                            alt="SYDE"
+                            width={44}
+                            height={44}
+                            priority
+                          />
+                          <span className="text-4xl font-extrabold tracking-tight text-sydenightblue">
+                            SYDE
+                          </span>
+                        </Link>
+                      </div>
+                      <div className="w-1/3 flex justify-end items-center gap-4">
+                        <Link
+                          href="/search"
+                          className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
+                        >
+                          <Search size={20} />
+                        </Link>
+                        <Suspense
+                          fallback={
+                            <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                          }
+                        >
+                          <NotificationBell
+                            initialUnreadCount={unreadNotifCount}
+                            userId={user?.id || null}
+                          />
+                        </Suspense>
                         <AuthButton
                           avatarUrl={avatarUrl}
                           username={usernameForAuthButton}
                           fullName={fullNameForAuthButton}
-                          sheetHeader={true}
+                          sheetHeader={false}
                         />
-                      }
-                    />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Desktop specific layout */}
-                <div className="hidden md:flex w-full justify-between items-center">
-                  <div className="w-1/3">
-                    <Link
-                      href="https://open.kakao.com/o/gduSGmtf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button
-                        variant="ghost"
-                        className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
-                      >
-                        <Image
-                          src="/kakao-talk.png"
-                          alt="Kakao"
-                          width={24}
-                          height={24}
-                        />
-                        <span className="hidden md:inline text-[#4B4737]">
-                          SYDE 오픈채팅
-                        </span>
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="w-1/3 flex justify-center items-center font-semibold">
-                    <Link href={"/"} className="flex items-center gap-1">
-                      <Image
-                        src="/logo_no_bg.png"
-                        alt="SYDE"
-                        width={44}
-                        height={44}
-                        priority
-                      />
-                      <span className="text-4xl font-extrabold tracking-tight text-sydenightblue">
-                        SYDE
-                      </span>
-                    </Link>
-                  </div>
-                  <div className="w-1/3 flex justify-end items-center gap-4">
-                    <Link
-                      href="/search"
-                      className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                    >
-                      <Search size={20} />
-                    </Link>
-                    <Suspense
-                      fallback={
-                        <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                      }
-                    >
-                      <NotificationBell
-                        initialUnreadCount={unreadNotifCount}
-                        userId={user?.id || null}
-                      />
-                    </Suspense>
-                    <AuthButton
-                      avatarUrl={avatarUrl}
-                      username={usernameForAuthButton}
-                      sheetHeader={false}
-                    />
-                  </div>
+                <div className="sticky top-0 z-40 w-full bg-background">
+                  <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
+                    <HeaderNavigation />
+                  </nav>
+                  <Separator />
                 </div>
-              </div>
+              </header>
+              <main className="flex-1">
+                <div className="max-w-6xl mx-auto h-full">{children}</div>
+              </main>
+              <Toaster />
+              <LoginDialog />
+              <Footer />
             </div>
-            <div className="sticky top-0 z-40 w-full bg-background">
-              <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
-                <HeaderNavigation />
-              </nav>
-              <Separator />
-            </div>
-            <div className="max-w-6xl mx-auto">{children}</div>
-            <Toaster />
-            <LoginDialog />
-            <Footer /> {/* Add the Footer component here */}
           </LoginDialogProvider>
         </Providers>
       </body>

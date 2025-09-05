@@ -3,12 +3,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { LogList } from "@/components/log/log-list";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
-import { UserActivityLogList } from "@/components/user/user-activity-log-list";
 import BioEditor from "@/components/user/bio-editor";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
+import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -48,9 +45,9 @@ export default async function UserProfilePage({
     : null;
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center p-5">
-      <div className="w-full max-w-2xl mx-auto space-y-8">
-        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card">
+    <div className="flex-1 w-full flex flex-col p-5 h-full">
+      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col">
+        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card mb-8">
           <div className="relative w-24 h-24 flex-shrink-0">
             {avatarUrlWithCacheBuster ? (
               <Image
@@ -71,11 +68,13 @@ export default async function UserProfilePage({
             )}
           </div>
           <div className="flex-grow">
-            <div className="flex items-baseline gap-2">
+            <div className="flex flex-col md:flex-row md:items-baseline gap-2">
               <h1 className="text-2xl font-bold leading-tight">
-                {profile.full_name || profile.username || "Anonymous"}
+                {profile.full_name
+                  ? profile.full_name
+                  : profile.username || "Anonymous"}
               </h1>
-              {profile.username && (
+              {profile.full_name && profile.username && (
                 <p className="text-muted-foreground text-sm">
                   @{profile.username}
                 </p>
@@ -86,7 +85,18 @@ export default async function UserProfilePage({
                 {profile.tagline}
               </p>
             )}
-            
+
+            {isOwnProfile && (
+              <div className="mt-4 flex gap-4 items-center">
+                <Button asChild size="sm">
+                  <Link href="/profile">프로필 편집</Link>
+                </Button>
+                <div className="md:hidden">
+                  <LogoutButton />
+                </div>
+              </div>
+            )}
+
             {profile.link && (
               <Link
                 href={profile.link}
@@ -97,69 +107,14 @@ export default async function UserProfilePage({
                 {profile.link}
               </Link>
             )}
-            {isOwnProfile && (
-              <div className="mt-4 flex gap-4">
-                <Button asChild size="sm">
-                  <Link href="/profile">프로필 편집</Link>
-                </Button>
-                <LogoutButton />
-              </div>
-            )}
           </div>
         </div>
-        <Tabs defaultValue="bio" className="w-full">
-          <TabsList className="flex w-full justify-center space-x-2">
-            <TabsTrigger
-              value="bio"
-              className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
-            >
-              자유 소개
-            </TabsTrigger>
-            <TabsTrigger
-              value="logs"
-              className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
-            >
-              작성한 로그
-            </TabsTrigger>
-            <TabsTrigger
-              value="clubs"
-              className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
-            >
-              가입 클럽
-            </TabsTrigger>
-            {isOwnProfile && (
-              <TabsTrigger
-                value="comments"
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-800 data-[state=active]:font-bold"
-              >
-                좋아요/댓글
-              </TabsTrigger>
-            )}
-          </TabsList>
-          <TabsContent value="bio">
-            <BioEditor
-              initialBio={profile.bio}
-              isOwnProfile={isOwnProfile}
-            />
-          </TabsContent>
-          <TabsContent value="logs" className="pt-4">
-            <LogList
-              currentUserId={currentUserId}
-              filterByUserId={profile.id}
-            />
-          </TabsContent>
-          <TabsContent value="clubs" className="pt-4">
-            <UserJoinedClubsList userId={profile.id} />
-          </TabsContent>
-          {isOwnProfile && (
-            <TabsContent value="comments">
-              <UserActivityLogList
-                currentUserId={currentUserId}
-                userId={profile.id}
-              />
-            </TabsContent>
-          )}
-        </Tabs>
+        <ProfileContentTabs
+          isOwnProfile={isOwnProfile}
+          profile={profile}
+          currentUserId={currentUserId}
+          className="flex-1"
+        />
       </div>
     </div>
   );
