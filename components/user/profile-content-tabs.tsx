@@ -8,8 +8,17 @@ import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { logout } from "@/app/auth/auth-actions";
-
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileContentTabsProps {
   isOwnProfile: boolean;
@@ -59,15 +68,31 @@ export function ProfileContentTabs({
             </TabsTrigger>
           )}
           {isOwnProfile && (
-            <form action={logout} className="hidden md:block w-full">
-              <Button
-                type="submit"
-                variant="ghost"
-                className="w-full justify-start rounded-md px-3 py-1.5 text-sm font-normal"
-              >
-                로그아웃
-              </Button>
-            </form>
+            <div className="hidden md:block w-full">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start rounded-md px-3 py-1.5 text-sm font-normal"
+                  >
+                    로그아웃
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>로그아웃 하시겠습니까?</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>취소</AlertDialogCancel>
+                    <form action={logout}>
+                      <AlertDialogAction asChild>
+                        <Button type="submit">로그아웃</Button>
+                      </AlertDialogAction>
+                    </form>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </TabsList>
       </div>
