@@ -12,6 +12,7 @@ interface ClientAuthButtonProps {
   user: User | null; // Supabase user object
   avatarUrl: string | null;
   username: string | null;
+  fullName: string | null;
   sheetHeader?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function ClientAuthButton({
   user,
   avatarUrl,
   username,
+  fullName,
   sheetHeader,
 }: ClientAuthButtonProps) {
   const { openLoginDialog } = useLoginDialog();
@@ -33,7 +35,10 @@ export function ClientAuthButton({
             // Logged-in mobile sheet: profile image + nickname
             <SheetClose asChild>
               <Link href={profileLink} className="justify-start w-full">
-                <Button variant="ghost" className="justify-start p-2 h-auto w-full">
+                <Button
+                  variant="ghost"
+                  className="justify-start p-2 h-auto w-full"
+                >
                   <div className="flex items-center gap-2">
                     {avatarUrl ? (
                       <Image
@@ -46,8 +51,13 @@ export function ClientAuthButton({
                     ) : (
                       <div className="w-9 h-9 bg-gray-200 rounded-full" />
                     )}
-                    <div className="flex flex-col items-start">
-                      <span className="text-base font-normal">{username || user.email}</span>
+                    <div className="flex flex-col overflow-hidden min-w-0 max-w-[150px]">
+                      <span className="text-base font-semibold truncate">
+                        {fullName || username}
+                      </span>
+                      <span className="text-sm text-gray-500 truncate">
+                        @{username || user.email}
+                      </span>
                     </div>
                   </div>
                 </Button>

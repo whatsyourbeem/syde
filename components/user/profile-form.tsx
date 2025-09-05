@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ export default function ProfileForm({
   tagline,
   className,
 }: ProfileFormProps) {
+  const router = useRouter();
   const supabase = createClient();
   const [currentUsername, setCurrentUsername] = useState<string | null>(
     username
@@ -136,6 +138,10 @@ export default function ProfileForm({
     const value = e.target.value;
     setCurrentFullName(value);
     setIsFullNameValid(value.length <= 20);
+  };
+
+  const handleCancel = () => {
+    router.back();
   };
 
   const resizeImage = useCallback(
@@ -383,13 +389,16 @@ export default function ProfileForm({
             </p>
           )}
         </div>
-        <div className="pt-4">
+        <div className="pt-4 flex space-x-2">
           <SubmitButton
             isLinkValid={isLinkValid}
             isUsernameValid={isUsernameValid}
             isFullNameValid={isFullNameValid}
             isUsernameLengthValid={isUsernameLengthValid}
           />
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            취소
+          </Button>
         </div>
       </form>
     </Card>

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ClientAuthButton } from "./client-auth-button"; // Import ClientAuthButton
 
-export async function AuthButton({ avatarUrl, username, sheetHeader }: { avatarUrl: string | null; username: string | null; sheetHeader?: boolean }) {
+export async function AuthButton({ avatarUrl, username, fullName, sheetHeader }: { avatarUrl: string | null; username: string | null; fullName: string | null; sheetHeader?: boolean }) {
   const supabase = await createClient();
 
   const {
@@ -9,6 +9,6 @@ export async function AuthButton({ avatarUrl, username, sheetHeader }: { avatarU
   } = await supabase.auth.getUser();
 
   return (
-    <ClientAuthButton user={user} avatarUrl={avatarUrl} username={username} sheetHeader={sheetHeader} />
+    <ClientAuthButton user={user} avatarUrl={avatarUrl} username={username} fullName={fullName} sheetHeader={sheetHeader} />
   );
 }

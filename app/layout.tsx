@@ -62,6 +62,7 @@ export default async function RootLayout({
 
   let avatarUrl = null;
   let usernameForAuthButton = null;
+  let fullNameForAuthButton = null;
   let unreadNotifCount = 0;
   if (user) {
     const { count } = await supabase
@@ -73,7 +74,7 @@ export default async function RootLayout({
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("avatar_url, updated_at, username")
+      .select("avatar_url, updated_at, username, full_name")
       .eq("id", user.id)
       .single();
 
@@ -87,6 +88,7 @@ export default async function RootLayout({
         : null;
       usernameForAuthButton =
         profile.username || user.email?.split("@")[0] || null;
+      fullNameForAuthButton = profile.full_name || usernameForAuthButton;
     }
   }
 
@@ -136,6 +138,7 @@ export default async function RootLayout({
                         <AuthButton
                           avatarUrl={avatarUrl}
                           username={usernameForAuthButton}
+                          fullName={fullNameForAuthButton}
                           sheetHeader={true}
                         />
                       }
