@@ -22,10 +22,29 @@ interface ProfileFormProps {
   className?: string;
 }
 
-function SubmitButton({ isLinkValid, isUsernameValid }: { isLinkValid: boolean; isUsernameValid: boolean }) {
+function SubmitButton({
+  isLinkValid,
+  isUsernameValid,
+  isFullNameValid,
+  isUsernameLengthValid,
+}: {
+  isLinkValid: boolean;
+  isUsernameValid: boolean;
+  isFullNameValid: boolean;
+  isUsernameLengthValid: boolean;
+}) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending || !isLinkValid || !isUsernameValid}>
+    <Button
+      type="submit"
+      disabled={
+        pending ||
+        !isLinkValid ||
+        !isUsernameValid ||
+        !isFullNameValid ||
+        !isUsernameLengthValid
+      }
+    >
       {pending ? "수정 중..." : "수정하기"}
     </Button>
   );
@@ -59,6 +78,8 @@ export default function ProfileForm({
   const [isHovered, setIsHovered] = useState(false);
   const [isLinkValid, setIsLinkValid] = useState(true);
   const [isUsernameValid, setIsUsernameValid] = useState(true);
+  const [isFullNameValid, setIsFullNameValid] = useState(true);
+  const [isUsernameLengthValid, setIsUsernameLengthValid] = useState(true);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -108,6 +129,13 @@ export default function ProfileForm({
     const value = e.target.value;
     setCurrentUsername(value);
     setIsUsernameValid(validateUsername(value));
+    setIsUsernameLengthValid(value.length <= 20);
+  };
+
+  const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCurrentFullName(value);
+    setIsFullNameValid(value.length <= 20);
   };
 
   const resizeImage = useCallback(
@@ -238,8 +266,15 @@ export default function ProfileForm({
             name="full_name"
             type="text"
             value={currentFullName || ""}
-            onChange={(e) => setCurrentFullName(e.target.value)}
+            onChange={handleFullNameChange}
+            className={!isFullNameValid ? "border-red-500" : ""}
           />
+          {!isFullNameValid && (
+            <p className="text-red-500 text-sm mt-1">
+              닉네임의 최대 길이는 20자입니다. ({currentFullName?.length || 0}
+              /20)
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="username" className="font-semibold">
@@ -251,7 +286,9 @@ export default function ProfileForm({
             type="text"
             value={currentUsername || ""}
             onChange={handleUsernameChange}
-            className={!isUsernameValid ? "border-red-500" : ""}
+            className={
+              !isUsernameValid || !isUsernameLengthValid ? "border-red-500" : ""
+            }
           />
           <p className="text-sm text-muted-foreground">
             프로필 네임은 프로필 페이지 링크와 연동돼요.
@@ -259,6 +296,14 @@ export default function ProfileForm({
           {!isUsernameValid && (
             <p className="text-red-500 text-sm mt-1">
               프로필 네임은 알파벳, 숫자, _ , - 만 사용할 수 있습니다.
+            </p>
+          )}
+          {!isUsernameLengthValid && (
+            <p className="text-red-500 text-sm mt-1">
+              프로필 네임의 최대 길이는 20자입니다. ({
+                currentUsername?.length || 0
+              }
+              /20)
             </p>
           )}
         </div>
@@ -339,7 +384,12 @@ export default function ProfileForm({
           )}
         </div>
         <div className="pt-4">
-          <SubmitButton isLinkValid={isLinkValid} isUsernameValid={isUsernameValid} />
+          <SubmitButton
+            isLinkValid={isLinkValid}
+            isUsernameValid={isUsernameValid}
+            isFullNameValid={isFullNameValid}
+            isUsernameLengthValid={isUsernameLengthValid}
+          />
         </div>
       </form>
     </Card>
