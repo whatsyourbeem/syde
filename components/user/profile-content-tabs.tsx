@@ -39,30 +39,30 @@ export function ProfileContentTabs({
       className={cn("w-full md:flex-row md:gap-8 h-full", className)}
     >
       {/* Left Sidebar */}
-      <div className="w-full md:w-1/4 md:border-r md:pr-8">
-        <TabsList className="flex w-full justify-center bg-muted p-1 rounded-lg space-x-2 md:flex-col md:items-stretch md:justify-start md:bg-transparent md:p-0 md:rounded-none md:space-y-1 md:space-x-0">
+      <div className="w-full md:w-1/4 md:border-r border-b md:border-b-0 md:pr-8">
+        <TabsList className="flex w-full justify-center p-1 rounded-lg space-x-2 md:flex-col md:items-stretch md:justify-start bg-transparent md:p-0 md:rounded-none md:space-y-1 md:space-x-0">
           <TabsTrigger
             value="bio"
-            className="justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
           >
             자유 소개
           </TabsTrigger>
           <TabsTrigger
             value="logs"
-            className="justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
           >
             작성한 로그
           </TabsTrigger>
           <TabsTrigger
             value="clubs"
-            className="justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
           >
             가입 클럽
           </TabsTrigger>
           {isOwnProfile && (
             <TabsTrigger
               value="comments"
-              className="justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+              className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
             >
               좋아요/댓글
             </TabsTrigger>
@@ -98,7 +98,7 @@ export function ProfileContentTabs({
       </div>
 
       {/* Right Content */}
-      <div className="w-full md:w-3/4 md:pl-8">
+      <div className="w-full md:w-3/4 px-4 md:pl-0">
         <TabsContent value="bio" className="mt-4 md:mt-0">
           <BioEditor initialBio={profile.bio} isOwnProfile={isOwnProfile} />
         </TabsContent>
