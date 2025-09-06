@@ -1,6 +1,6 @@
 export default function ClubPageLoading() {
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full p-4">
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <div

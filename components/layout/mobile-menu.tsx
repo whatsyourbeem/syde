@@ -30,7 +30,7 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="md:hidden rounded-full">
           <Menu />
         </Button>
       </SheetTrigger>
