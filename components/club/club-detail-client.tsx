@@ -281,7 +281,7 @@ export default function ClubDetailClient({
           </h2>
           <div className="flex items-center gap-2">
             <Link href={`/socialing/club/${club.id}/meetup`}>
-              <Button variant="outline" size="sm">
+              <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700">
                 모두 보기
               </Button>
             </Link>
@@ -429,8 +429,8 @@ export default function ClubDetailClient({
                 {canReadForum(forum) ? (
                   <ClubPostList posts={forum.posts} clubId={club.id} />
                 ) : (
-                  <div className="p-8 text-center bg-secondary rounded-lg">
-                    <p className="text-secondary-foreground">
+                  <div className="p-8 text-center rounded-lg">
+                    <p className="text-muted-foreground">
                       이 게시판의 글 목록을 볼 수 있는 권한이 없습니다.
                     </p>
                   </div>
