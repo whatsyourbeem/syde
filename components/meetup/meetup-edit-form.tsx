@@ -79,6 +79,7 @@ export default function MeetupEditForm({
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   useEffect(() => {
     // Clean up blob URLs on unmount
@@ -86,6 +87,16 @@ export default function MeetupEditForm({
       descriptionImages.forEach(({ blobUrl }) => URL.revokeObjectURL(blobUrl));
     };
   }, [descriptionImages]);
+
+  useEffect(() => {
+    if (!startDatetime || !endDatetime) {
+      setDateError("시작 날짜와 종료 날짜를 모두 선택해주세요.");
+    } else if (startDatetime.getTime() > endDatetime.getTime()) {
+      setDateError("종료 날짜는 시작 날짜보다 빠를 수 없습니다.");
+    } else {
+      setDateError(null);
+    }
+  }, [startDatetime, endDatetime]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -221,43 +232,48 @@ export default function MeetupEditForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex gap-2">
-          <DatePicker label="시작 날짜" date={startDatetime} setDate={setStartDatetime} required />
-          <TimePicker
-            label="시작 시간"
-            time={startDatetime ? startDatetime.toTimeString().slice(0, 5) : "09:00"}
-            setTime={(time) => {
-              if (startDatetime) {
-                const [hours, minutes] = time.split(':');
-                const newDate = new Date(startDatetime);
-                newDate.setHours(parseInt(hours), parseInt(minutes));
-                setStartDatetime(newDate);
-              }
-            }}
-            className="w-42"
-            required
-          />
+      <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex gap-2">
+            <DatePicker label="시작 날짜" date={startDatetime} setDate={setStartDatetime} required />
+            <TimePicker
+              label="시작 시간"
+              time={startDatetime ? startDatetime.toTimeString().slice(0, 5) : "09:00"}
+              setTime={(time) => {
+                if (startDatetime) {
+                  const [hours, minutes] = time.split(':');
+                  const newDate = new Date(startDatetime);
+                  newDate.setHours(parseInt(hours), parseInt(minutes));
+                  setStartDatetime(newDate);
+                }
+              }}
+              className="w-42"
+              required
+            />
+          </div>
+          <div className="flex gap-2">
+            <DatePicker label="종료 날짜" date={endDatetime} setDate={setEndDatetime} required />
+            <TimePicker
+              label="종료 시간"
+              time={endDatetime ? endDatetime.toTimeString().slice(0, 5) : "18:00"}
+              setTime={(time) => {
+                if (endDatetime) {
+                  const [hours, minutes] = time.split(':');
+                  const newDate = new Date(endDatetime);
+                  newDate.setHours(parseInt(hours), parseInt(minutes));
+                  setEndDatetime(newDate);
+                }
+              }}
+              className="w-42"
+              required
+            />
+          </div>
         </div>
-        <div className="flex gap-2">
-          <DatePicker label="종료 날짜" date={endDatetime} setDate={setEndDatetime} required />
-          <TimePicker
-            label="종료 시간"
-            time={endDatetime ? endDatetime.toTimeString().slice(0, 5) : "18:00"}
-            setTime={(time) => {
-              if (endDatetime) {
-                const [hours, minutes] = time.split(':');
-                const newDate = new Date(endDatetime);
-                newDate.setHours(parseInt(hours), parseInt(minutes));
-                setEndDatetime(newDate);
-              }
-            }}
-            className="w-42"
-            required
-          />
-        </div>
+        {dateError && (
+          <p className="text-red-500 text-sm pt-2">{dateError}</p>
+        )}
       </div>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
@@ -321,7 +337,7 @@ export default function MeetupEditForm({
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button type="button" disabled={isSubmitting}>
+            <Button type="button" disabled={isSubmitting || !!dateError}>
               {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
             </Button>
           </AlertDialogTrigger>
@@ -334,7 +350,7 @@ export default function MeetupEditForm({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || !!dateError}>
                 확인
               </AlertDialogAction>
             </AlertDialogFooter>
