@@ -13,6 +13,8 @@ import {
 import { cn } from "@/lib/utils";
 import React from "react";
 
+
+
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -34,10 +36,11 @@ export function HeaderNavigation() {
     if (!isMobile) {
       // On desktop, navigate to /socialing
       router.push("/socialing");
-      e.preventDefault(); // Prevent default trigger behavior
+      // Removed e.preventDefault() to allow dropdown to open
     }
     // On mobile, let the default behavior (open popover) happen
   };
+  
 
   return (
     <NavigationMenu className="w-full md:h-auto flex-grow flex justify-center items-center text-base font-semibold">
