@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import BioEditor from "@/components/user/bio-editor";
-import { LogoutButton } from "@/components/auth/logout-button";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 
 interface UserProfilePageProps {
@@ -91,9 +90,6 @@ export default async function UserProfilePage({
                 <Button asChild size="sm">
                   <Link href="/profile">프로필 편집</Link>
                 </Button>
-                <div className="md:hidden">
-                  <LogoutButton />
-                </div>
               </div>
             )}
 

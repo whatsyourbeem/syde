@@ -9,6 +9,16 @@ import { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/auth/auth-actions";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface MobileMenuProps {
   user: User | null;
@@ -52,16 +62,29 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
           
         </div>
         {user && (
-            <div className="py-2 px-0 border-t">
-                <form action={logout}>
-                    <SheetClose asChild>
-                      <Button type="submit" variant="ghost" className="w-full justify-start">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          로그아웃
-                      </Button>
-                    </SheetClose>
-                </form>
-            </div>
+          <div className="py-2 px-0 border-t">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  로그아웃
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>로그아웃 하시겠습니까?</AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <form action={logout}>
+                    <AlertDialogAction asChild>
+                      <Button type="submit">로그아웃</Button>
+                    </AlertDialogAction>
+                  </form>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         )}
         <div className="py-2 px-0 border-t">
           <Link
