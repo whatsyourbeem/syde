@@ -245,7 +245,7 @@ function LogForm({
           <Input
             id="log-image-input"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleImageChange}
             className="hidden"
             disabled={isSubmitting}

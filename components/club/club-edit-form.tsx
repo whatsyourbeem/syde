@@ -166,7 +166,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
             id="thumbnailFile"
             name="thumbnailFile"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleFileChange}
             className="hidden"
             ref={fileInputRef}

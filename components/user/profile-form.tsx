@@ -383,7 +383,7 @@ export default function ProfileForm({
               <Input
                 id="avatar"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif,image/webp"
                 onChange={handleAvatarChange}
                 className="opacity-0 max-w-0 max-h-0 my-0 py-0"
               />

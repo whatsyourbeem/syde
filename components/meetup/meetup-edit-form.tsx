@@ -221,7 +221,7 @@ export default function MeetupEditForm({
               id="thumbnailFile"
               name="thumbnailFile"
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/gif,image/webp"
               onChange={handleFileChange}
               className="hidden"
             />

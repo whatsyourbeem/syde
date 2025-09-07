@@ -120,7 +120,7 @@ export default function TiptapEditorWrapper({
         ref={fileInputRef}
         onChange={handleImageUpload}
         className="hidden"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/gif,image/webp"
       />
       <div className="max-h-[60vh] overflow-y-auto">
         <EditorContent editor={editor} />
