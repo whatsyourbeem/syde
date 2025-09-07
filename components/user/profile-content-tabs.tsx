@@ -41,7 +41,7 @@ export function ProfileContentTabs({
       className={cn("w-full md:flex-row md:gap-8 h-full", className)}
     >
       {/* Left Sidebar */}
-      <div className="w-full md:w-1/4 md:border-r border-b md:border-b-0 md:pr-8">
+      <div className="w-full md:w-1/4 md:border-r border-b md:border-b-0 md:pr-8 pt-4">
         <TabsList className="flex w-full justify-center p-1 rounded-lg space-x-2 md:flex-col md:items-stretch md:justify-start bg-transparent md:p-0 md:rounded-none md:space-y-1 md:space-x-0">
           <TabsTrigger
             value="bio"
@@ -100,7 +100,7 @@ export function ProfileContentTabs({
       </div>
 
       {/* Right Content */}
-      <div className="w-full md:w-3/4 px-4 md:pl-0">
+      <div className="w-full md:w-3/4 px-4 md:pl-0 pt-4">
         <TabsContent value="bio" className="mt-4 md:mt-0">
           <BioEditor initialBio={profile.bio} isOwnProfile={isOwnProfile} />
         </TabsContent>

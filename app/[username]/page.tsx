@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
+import { Separator } from "@/components/ui/separator";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -45,7 +46,7 @@ export default async function UserProfilePage({
   return (
     <div className="flex-1 w-full flex flex-col p-5 h-full">
       <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col">
-        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card mb-8">
+        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card mb-4">
           <div className="relative w-24 h-24 flex-shrink-0">
             {avatarUrlWithCacheBuster ? (
               <Image
@@ -104,6 +105,7 @@ export default async function UserProfilePage({
             )}
           </div>
         </div>
+        <Separator className="hidden md:block" />
         <ProfileContentTabs
           isOwnProfile={isOwnProfile}
           profile={profile}
