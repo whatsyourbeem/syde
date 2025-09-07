@@ -132,6 +132,11 @@ export async function withErrorHandling<T>(
   try {
     return await action();
   } catch (error) {
+    // Check for Next.js redirect error
+    if (error instanceof Error && 'digest' in error && typeof error.digest === 'string' && error.digest.startsWith('NEXT_REDIRECT')) {
+      throw error; // Re-throw the original redirect error
+    }
+
     if (error instanceof ActionError) {
       throw error;
     }
