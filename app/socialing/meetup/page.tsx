@@ -158,7 +158,7 @@ export default async function MeetupPage({
                   </div>
                 </div>
               </Link>
-              <div className="px-6 pt-4 pb-6 flex-grow flex flex-col">
+              <div className="px-6 py-4 flex-grow flex flex-col">
                 <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-2">
                   <div className="flex justify-between items-start">
                     <h2 className="text-base font-semibold line-clamp-3 hover:underline">
