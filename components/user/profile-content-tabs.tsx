@@ -6,9 +6,9 @@ import BioEditor from "@/components/user/bio-editor";
 import { LogList } from "@/components/log/log-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { logout } from "@/app/auth/auth-actions";
 import { cn } from "@/lib/utils";
+import { Tables } from "@/types/database.types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +20,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+
+
 interface ProfileContentTabsProps {
   isOwnProfile: boolean;
-  profile: any; // Using any for now, should be replaced with a proper type
+  profile: Tables<"profiles">;
   currentUserId: string | null;
   className?: string;
 }
@@ -59,12 +61,18 @@ export function ProfileContentTabs({
           >
             가입 클럽
           </TabsTrigger>
+          <TabsTrigger
+            value="bookmarks"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+          >
+            북마크
+          </TabsTrigger>
           {isOwnProfile && (
             <TabsTrigger
-              value="comments"
+              value="activity"
               className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
             >
-              좋아요/댓글
+              활동
             </TabsTrigger>
           )}
           {isOwnProfile && (
@@ -108,8 +116,11 @@ export function ProfileContentTabs({
         <TabsContent value="clubs" className="mt-4 md:mt-0">
           <UserJoinedClubsList userId={profile.id} />
         </TabsContent>
+        <TabsContent value="bookmarks" className="mt-4 md:mt-0">
+          <LogList currentUserId={currentUserId} filterByBookmarkedUserId={profile.id} />
+        </TabsContent>
         {isOwnProfile && (
-          <TabsContent value="comments" className="mt-4 md:mt-0">
+          <TabsContent value="activity" className="mt-4 md:mt-0">
             <UserActivityLogList
               currentUserId={currentUserId}
               userId={profile.id}

@@ -51,11 +51,12 @@ import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
-import { deleteLog } from "@/app/log/log-actions"; // Import the centralized server action
+import { deleteLog, toggleLogBookmark } from "@/app/log/log-actions"; // Import the centralized server action
 
 type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
   log_likes: Array<{ user_id: string }>;
+  log_bookmarks: Array<{ user_id: string }>;
   log_comments: Array<{ id: string }>;
 };
 
@@ -149,6 +150,16 @@ export function LogDetail({ log, user }: LogDetailProps) {
         )
       : false
   );
+  const [currentBookmarksCount, setCurrentBookmarksCount] = useState(
+    log.log_bookmarks.length
+  );
+  const [currentHasBookmarked, setCurrentHasBookmarked] = useState(
+    user
+      ? log.log_bookmarks.some(
+          (bookmark: { user_id: string }) => bookmark.user_id === user.id
+        )
+      : false
+  );
 
   const { openLoginDialog } = useLoginDialog();
 
@@ -182,6 +193,28 @@ export function LogDetail({ log, user }: LogDetailProps) {
       } else {
         console.error("Error liking log:", error);
       }
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user?.id) {
+      openLoginDialog();
+      return;
+    }
+
+    const newHasBookmarked = !currentHasBookmarked;
+    const newBookmarksCount = newHasBookmarked ? currentBookmarksCount + 1 : currentBookmarksCount - 1;
+
+    setCurrentHasBookmarked(newHasBookmarked);
+    setCurrentBookmarksCount(newBookmarksCount);
+
+    const result = await toggleLogBookmark(log.id, currentHasBookmarked);
+
+    if ("error" in result && result.error) {
+      toast.error(result.error.message);
+      // Revert state on error
+      setCurrentHasBookmarked(!newHasBookmarked);
+      setCurrentBookmarksCount(currentBookmarksCount);
     }
   };
 
@@ -414,7 +447,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                   className={
                     currentHasLiked
                       ? "fill-red-500 text-red-500"
-                      : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                      : "text-muted-foreground group-hover:text-red-500"
                   }
                   size={18}
                 />
@@ -467,10 +500,20 @@ export function LogDetail({ log, user }: LogDetailProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => console.log("Save button clicked!")}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+                onClick={handleBookmark}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20 group"
               >
-                <Bookmark size={18} />
+                <Bookmark
+                  className={
+                    currentHasBookmarked
+                      ? "fill-yellow-400 text-yellow-500"
+                      : "text-muted-foreground group-hover:text-yellow-500"
+                  }
+                  size={18}
+                />
+                 <span className="group-hover:text-yellow-500">
+                  {currentBookmarksCount}
+                </span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="bg-gray-100">

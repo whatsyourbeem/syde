@@ -18,7 +18,7 @@ export default async function LogDetailPage({ params }: LogDetailPageProps) {
 
   const { data: log, error } = await supabase
     .from("logs")
-    .select("*, profiles(*), log_likes(user_id), log_comments(id)")
+    .select("*, profiles(*), log_likes(user_id), log_bookmarks(user_id), log_comments(id)")
     .eq("id", log_id)
     .single();
 

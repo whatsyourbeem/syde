@@ -18,12 +18,14 @@ export function LogList({
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
+  filterByBookmarkedUserId,
   searchQuery, // Add searchQuery
 }: {
   currentUserId: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
+  filterByBookmarkedUserId?: string;
   searchQuery?: string; // Add searchQuery to props
 }) {
   const supabase = createClient();
@@ -37,6 +39,7 @@ export function LogList({
       filterByUserId,
       filterByCommentedUserId,
       filterByLikedUserId,
+      filterByBookmarkedUserId,
       searchQuery,
     },
   ];
@@ -50,6 +53,7 @@ export function LogList({
       filterByUserId,
       filterByCommentedUserId,
       filterByLikedUserId,
+      filterByBookmarkedUserId,
       searchQuery,
     }),
     staleTime: 1000, // Data is considered fresh for 1 second
@@ -63,6 +67,8 @@ export function LogList({
     const logIdsForFilter: string[] = logs
       .map((log) => log.id)
       .filter((id): id is string => id !== null);
+
+    if (logIdsForFilter.length === 0) return;
 
     const channel = supabase
       .channel("syde-log-feed")
@@ -82,11 +88,29 @@ export function LogList({
           filter: `log_id=in.(${logIdsForFilter.join(",")})`,
         },
         (payload) => {
-          // Invalidate only if the change is relevant to the current page's logs
           const changedLogId =
             (payload.new as Database["public"]["Tables"]["log_likes"]["Row"])
               .log_id ||
             (payload.old as Database["public"]["Tables"]["log_likes"]["Row"])
+              .log_id;
+          if (logs.some((log) => log.id === changedLogId)) {
+            queryClient.invalidateQueries({ queryKey: ["logs"] });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "log_bookmarks",
+          filter: `log_id=in.(${logIdsForFilter.join(",")})`,
+        },
+        (payload) => {
+          const changedLogId =
+            (payload.new as Database["public"]["Tables"]["log_bookmarks"]["Row"])
+              .log_id ||
+            (payload.old as Database["public"]["Tables"]["log_bookmarks"]["Row"])
               .log_id;
           if (logs.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
@@ -152,6 +176,8 @@ export function LogList({
               currentUserId={currentUserId}
               initialLikesCount={log.likesCount}
               initialHasLiked={log.hasLiked}
+              initialBookmarksCount={log.bookmarksCount}
+              initialHasBookmarked={log.hasBookmarked}
               initialCommentsCount={log.log_comments.length}
               mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
               searchQuery={searchQuery} // Pass searchQuery to LogCard

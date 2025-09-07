@@ -32,7 +32,7 @@ export function HeaderNavigation() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const handleSocialingClick = (e: React.MouseEvent) => {
+  const handleSocialingClick = () => {
     if (!isMobile) {
       // On desktop, navigate to /socialing
       router.push("/socialing");

@@ -259,6 +259,32 @@ export type Database = {
           }
         ];
       };
+      log_bookmarks: {
+        Row: {
+          created_at: string;
+          log_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          log_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          log_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "log_bookmarks_log_id_fkey";
+            columns: ["log_id"];
+            isOneToOne: false;
+            referencedRelation: "logs";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       log_comments: {
         Row: {
           content: string;

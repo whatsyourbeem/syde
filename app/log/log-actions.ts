@@ -310,3 +310,33 @@ export async function deleteLog(logId: string) {
 
   return { success: true };
 }
+
+export async function toggleLogBookmark(logId: string, hasBookmarked: boolean) {
+  return withErrorHandling(async () => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = requireAuth(user?.id);
+
+    if (hasBookmarked) {
+      const { error } = await supabase
+        .from('log_bookmarks')
+        .delete()
+        .eq('log_id', logId)
+        .eq('user_id', userId);
+      if (error) throw new Error(`북마크 취소 실패: ${error.message}`);
+    } else {
+      const { error } = await supabase
+        .from('log_bookmarks')
+        .insert({ log_id: logId, user_id: userId });
+      if (error) throw new Error(`북마크 추가 실패: ${error.message}`);
+    }
+
+    revalidatePath('/');
+    revalidatePath(`/log/${logId}`);
+    if (user?.user_metadata?.username) {
+      revalidatePath(`/${user.user_metadata.username}`);
+    }
+
+    return createSuccessResponse(null);
+  });
+}

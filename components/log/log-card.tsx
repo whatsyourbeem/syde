@@ -17,11 +17,14 @@ interface LogCardProps {
   log: Database['public']['Tables']['logs']['Row'] & {
     profiles: Database['public']['Tables']['profiles']['Row'] | null;
     log_likes: Array<{ user_id: string }>;
+    log_bookmarks: Array<{ user_id: string }>;
     log_comments: Array<{ id: string }>;
   };
   currentUserId: string | null;
   initialLikesCount: number;
   initialHasLiked: boolean;
+  initialBookmarksCount: number;
+  initialHasBookmarked: boolean;
   initialCommentsCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string;
@@ -33,6 +36,8 @@ function LogCardBase({
   currentUserId,
   initialLikesCount,
   initialHasLiked,
+  initialBookmarksCount,
+  initialHasBookmarked,
   initialCommentsCount,
   mentionedProfiles,
   searchQuery,
@@ -41,6 +46,8 @@ function LogCardBase({
   const router = useRouter();
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
+  const [bookmarksCount, setBookmarksCount] = useState(initialBookmarksCount);
+  const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
   const [loading, setLoading] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -69,7 +76,9 @@ function LogCardBase({
     setLikesCount(initialLikesCount);
     setHasLiked(initialHasLiked);
     setCommentsCount(initialCommentsCount);
-  }, [initialLikesCount, initialHasLiked, initialCommentsCount]);
+    setBookmarksCount(initialBookmarksCount);
+    setHasBookmarked(initialHasBookmarked);
+  }, [initialLikesCount, initialHasLiked, initialCommentsCount, initialBookmarksCount, initialHasBookmarked]);
 
   const handleCommentAdded = useCallback(() => {
     setCommentsCount((prev) => prev + 1);
@@ -79,6 +88,11 @@ function LogCardBase({
   const handleLikeStatusChange = useCallback((newLikesCount: number, newHasLiked: boolean) => {
     setLikesCount(newLikesCount);
     setHasLiked(newHasLiked);
+  }, []);
+
+  const handleBookmarkStatusChange = useCallback((newBookmarksCount: number, newHasBookmarked: boolean) => {
+    setBookmarksCount(newBookmarksCount);
+    setHasBookmarked(newHasBookmarked);
   }, []);
 
   const handleDelete = async () => {
@@ -129,9 +143,12 @@ function LogCardBase({
             currentUserId={currentUserId}
             likesCount={likesCount}
             hasLiked={hasLiked}
+            bookmarksCount={bookmarksCount}
+            hasBookmarked={hasBookmarked}
             commentsCount={commentsCount}
             showComments={showComments}
             onLikeStatusChange={handleLikeStatusChange}
+            onBookmarkStatusChange={handleBookmarkStatusChange}
             onCommentsToggle={() => setShowComments(!showComments)}
           />
 
@@ -143,7 +160,7 @@ function LogCardBase({
           />
         </>
       ) : (
-        <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />
+        <div className="h-32 bg-card-foreground/10 animate-pulse rounded-lg" style={{ height: '200px' }} />
       )}
     </div>
   );
@@ -156,6 +173,8 @@ const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
     prevProps.currentUserId === nextProps.currentUserId &&
     prevProps.initialLikesCount === nextProps.initialLikesCount &&
     prevProps.initialHasLiked === nextProps.initialHasLiked &&
+    prevProps.initialBookmarksCount === nextProps.initialBookmarksCount &&
+    prevProps.initialHasBookmarked === nextProps.initialHasBookmarked &&
     prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
     prevProps.searchQuery === nextProps.searchQuery &&
     prevProps.isDetailPage === nextProps.isDetailPage &&

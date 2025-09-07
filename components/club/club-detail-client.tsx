@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { Tables, Enums } from "@/types/database.types";
 import {
-  MEETUP_CATEGORIES,
   MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
-  MEETUP_CATEGORY_DISPLAY_NAMES,
   MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
   MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
@@ -98,21 +96,6 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
       return "border-gray-500 bg-gray-50 text-gray-700 px-2 w-10";
     default:
       return "border-gray-500 bg-gray-50 text-gray-700";
-  }
-}
-
-function getCategoryBadgeClass(category: Enums<"meetup_category_enum">) {
-  switch (category) {
-    case MEETUP_CATEGORIES.STUDY:
-      return "bg-blue-100 text-blue-800";
-    case MEETUP_CATEGORIES.CHALLENGE:
-      return "bg-purple-100 text-purple-800";
-    case MEETUP_CATEGORIES.NETWORKING:
-      return "bg-yellow-100 text-yellow-800";
-    case MEETUP_CATEGORIES.ETC:
-      return "bg-gray-100 text-gray-800";
-    default:
-      return "bg-gray-100 text-gray-800";
   }
 }
 

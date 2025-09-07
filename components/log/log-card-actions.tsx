@@ -17,15 +17,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toggleLogBookmark } from "@/app/log/log-actions";
 
 interface LogCardActionsProps {
   logId: string;
   currentUserId: string | null;
   likesCount: number;
   hasLiked: boolean;
+  bookmarksCount: number;
+  hasBookmarked: boolean;
   commentsCount: number;
   showComments: boolean;
   onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
+  onBookmarkStatusChange: (newBookmarksCount: number, newHasBookmarked: boolean) => void;
   onCommentsToggle: () => void;
 }
 
@@ -34,13 +38,16 @@ function LogCardActionsBase({
   currentUserId,
   likesCount,
   hasLiked,
+  bookmarksCount,
+  hasBookmarked,
   commentsCount,
   showComments,
   onLikeStatusChange,
+  onBookmarkStatusChange,
   onCommentsToggle,
 }: LogCardActionsProps) {
-  const supabase = createClient();
-  const [loading, setLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const { openLoginDialog } = useLoginDialog();
@@ -50,34 +57,49 @@ function LogCardActionsBase({
       openLoginDialog();
       return;
     }
-    if (loading) return;
+    if (likeLoading) return;
 
-    setLoading(true);
+    setLikeLoading(true);
+    const newLikesCount = hasLiked ? likesCount - 1 : likesCount + 1;
+    const newHasLiked = !hasLiked;
+    onLikeStatusChange(newLikesCount, newHasLiked);
+
+    const supabase = createClient();
     if (hasLiked) {
-      const { error } = await supabase
-        .from("log_likes")
-        .delete()
-        .eq("log_id", logId)
-        .eq("user_id", currentUserId);
-
-      if (!error) {
-        onLikeStatusChange(likesCount - 1, false);
-      } else {
-        console.error("Error unliking log:", error);
+      const { error } = await supabase.from("log_likes").delete().eq("log_id", logId).eq("user_id", currentUserId);
+      if (error) {
+        toast.error("좋아요 취소 실패");
+        onLikeStatusChange(likesCount, hasLiked); // Revert on error
       }
     } else {
-      const { error } = await supabase
-        .from("log_likes")
-        .insert({ log_id: logId, user_id: currentUserId });
-
-      if (!error) {
-        onLikeStatusChange(likesCount + 1, true);
-      } else {
-        console.error("Error liking log:", error);
+      const { error } = await supabase.from("log_likes").insert({ log_id: logId, user_id: currentUserId });
+      if (error) {
+        toast.error("좋아요 실패");
+        onLikeStatusChange(likesCount, hasLiked); // Revert on error
       }
     }
-    setLoading(false);
-  }, [currentUserId, logId, hasLiked, likesCount, loading, openLoginDialog, onLikeStatusChange, supabase]);
+    setLikeLoading(false);
+  }, [currentUserId, logId, hasLiked, likesCount, likeLoading, openLoginDialog, onLikeStatusChange]);
+
+  const handleBookmark = useCallback(async () => {
+    if (!currentUserId) {
+      openLoginDialog();
+      return;
+    }
+    if (bookmarkLoading) return;
+
+    setBookmarkLoading(true);
+    const newBookmarksCount = hasBookmarked ? bookmarksCount - 1 : bookmarksCount + 1;
+    const newHasBookmarked = !hasBookmarked;
+    onBookmarkStatusChange(newBookmarksCount, newHasBookmarked);
+
+    const result = await toggleLogBookmark(logId, hasBookmarked);
+    if ("error" in result && result.error) {
+      toast.error(result.error.message);
+      onBookmarkStatusChange(bookmarksCount, hasBookmarked); // Revert on error
+    }
+    setBookmarkLoading(false);
+  }, [currentUserId, logId, hasBookmarked, bookmarksCount, bookmarkLoading, openLoginDialog, onBookmarkStatusChange]);
 
   const handleCopyLink = useCallback(async () => {
     const url = `${window.location.origin}/log/${logId}`;
@@ -123,15 +145,15 @@ function LogCardActionsBase({
             <TooltipTrigger asChild>
               <button
                 onClick={handleLike}
-                disabled={loading}
+                disabled={likeLoading}
                 className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group disabled:opacity-50"
               >
-                {loading ? (
+                {likeLoading ? (
                   <LoadingSpinner size="sm" className="text-red-500" />
                 ) : (
                   <HeartIcon
                     className={
-                      hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                      hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500"
                     }
                     size={18}
                   />
@@ -182,10 +204,21 @@ function LogCardActionsBase({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => console.log("Save button clicked!")}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20"
+                onClick={handleBookmark}
+                disabled={bookmarkLoading}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 dark:hover:bg-yellow-900/20 group disabled:opacity-50"
               >
-                <Bookmark size={18} />
+                {bookmarkLoading ? (
+                  <LoadingSpinner size="sm" className="text-yellow-500" />
+                ) : (
+                  <Bookmark
+                    className={
+                      hasBookmarked ? "fill-yellow-400 text-yellow-500" : "text-muted-foreground group-hover:text-yellow-500"
+                    }
+                    size={18}
+                  />
+                )}
+                <span className="group-hover:text-yellow-500">{bookmarksCount}</span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -247,6 +280,8 @@ export const LogCardActions = memo(LogCardActionsBase, (prevProps, nextProps) =>
     prevProps.currentUserId === nextProps.currentUserId &&
     prevProps.likesCount === nextProps.likesCount &&
     prevProps.hasLiked === nextProps.hasLiked &&
+    prevProps.bookmarksCount === nextProps.bookmarksCount &&
+    prevProps.hasBookmarked === nextProps.hasBookmarked &&
     prevProps.commentsCount === nextProps.commentsCount &&
     prevProps.showComments === nextProps.showComments
   );

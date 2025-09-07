@@ -7,9 +7,12 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 export interface OptimizedLog extends LogRow {
   profiles: ProfileRow | null;
   log_likes: Array<{ user_id: string }>;
+  log_bookmarks: Array<{ user_id: string }>;
   log_comments: Array<{ id: string }>;
   likesCount: number;
   hasLiked: boolean;
+  bookmarksCount: number;
+  hasBookmarked: boolean;
 }
 
 export interface LogQueryOptions {
@@ -19,6 +22,7 @@ export interface LogQueryOptions {
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
+  filterByBookmarkedUserId?: string;
   searchQuery?: string;
 }
 
@@ -41,6 +45,7 @@ export async function getOptimizedLogs({
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
+  filterByBookmarkedUserId,
   searchQuery,
 }: LogQueryOptions): Promise<LogQueryResult> {
   const supabase = createClient();
@@ -57,6 +62,7 @@ export async function getOptimizedLogs({
       user_id,
       profiles (id, username, full_name, avatar_url, updated_at, tagline, bio, link),
       log_likes(user_id),
+      log_bookmarks(user_id),
       log_comments(id)
     `,
     { count: "exact" }
@@ -90,6 +96,12 @@ export async function getOptimizedLogs({
       return { logs: [], count: 0, mentionedProfiles: [] };
     }
     query = query.in("id", likedLogIds);
+  } else if (filterByBookmarkedUserId) {
+    const bookmarkedLogIds = await getBookmarkedLogIds(filterByBookmarkedUserId);
+    if (bookmarkedLogIds.length === 0) {
+      return { logs: [], count: 0, mentionedProfiles: [] };
+    }
+    query = query.in("id", bookmarkedLogIds);
   }
 
   // Execute the main query
@@ -111,6 +123,10 @@ export async function getOptimizedLogs({
     likesCount: log.log_likes?.length || 0,
     hasLiked: currentUserId
       ? log.log_likes?.some((like) => like.user_id === currentUserId) || false
+      : false,
+    bookmarksCount: log.log_bookmarks?.length || 0,
+    hasBookmarked: currentUserId
+      ? log.log_bookmarks?.some((bookmark) => bookmark.user_id === currentUserId) || false
       : false,
   })) as OptimizedLog[];
 
@@ -180,6 +196,22 @@ async function getLikedLogIds(userId: string): Promise<string[]> {
   
   const { data, error } = await supabase
     .from("log_likes")
+    .select("log_id")
+    .eq("user_id", userId);
+
+  if (error) throw error;
+
+  return data.map(item => item.log_id).filter((id): id is string => id !== null);
+}
+
+/**
+ * Cached helper to get bookmarked log IDs
+ */
+async function getBookmarkedLogIds(userId: string): Promise<string[]> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from("log_bookmarks")
     .select("log_id")
     .eq("user_id", userId);
 

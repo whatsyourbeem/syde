@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import BioEditor from "@/components/user/bio-editor";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 
 interface UserProfilePageProps {
