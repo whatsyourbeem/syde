@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { Plus } from "lucide-react";
-import { updateProfile } from "@/app/[username]/actions"; // Import the server action
+import { updateProfile, checkUsername } from "@/app/[username]/actions"; // Import the server action
 import { useFormStatus } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
 
@@ -28,11 +28,13 @@ function SubmitButton({
   isUsernameValid,
   isFullNameValid,
   isUsernameLengthValid,
+  isUsernameAvailable,
 }: {
   isLinkValid: boolean;
   isUsernameValid: boolean;
   isFullNameValid: boolean;
   isUsernameLengthValid: boolean;
+  isUsernameAvailable: boolean | null;
 }) {
   const { pending } = useFormStatus();
   return (
@@ -43,7 +45,8 @@ function SubmitButton({
         !isLinkValid ||
         !isUsernameValid ||
         !isFullNameValid ||
-        !isUsernameLengthValid
+        !isUsernameLengthValid ||
+        isUsernameAvailable === false
       }
     >
       {pending ? "수정 중..." : "수정하기"}
@@ -82,6 +85,10 @@ export default function ProfileForm({
   const [isUsernameValid, setIsUsernameValid] = useState(true);
   const [isFullNameValid, setIsFullNameValid] = useState(true);
   const [isUsernameLengthValid, setIsUsernameLengthValid] = useState(true);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(
+    null
+  );
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -130,8 +137,13 @@ export default function ProfileForm({
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCurrentUsername(value);
-    setIsUsernameValid(validateUsername(value));
-    setIsUsernameLengthValid(value.length <= 20);
+
+    const isLengthValid = value.length <= 20;
+    const isPatternValid = validateUsername(value);
+
+    setIsUsernameLengthValid(isLengthValid);
+    setIsUsernameValid(isPatternValid);
+    setIsUsernameAvailable(null); // Reset availability on change
   };
 
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,6 +248,18 @@ export default function ProfileForm({
   };
 
   const clientAction = async (formData: FormData) => {
+    // Check username availability only when submitting
+    if (currentUsername !== username) {
+      setIsCheckingUsername(true);
+      const isAvailable = await checkUsername(currentUsername || "", userId);
+      setIsUsernameAvailable(isAvailable);
+      setIsCheckingUsername(false);
+
+      if (!isAvailable) {
+        return; // Stop form submission if username is not available
+      }
+    }
+
     let newAvatarUrl = currentAvatarUrl;
     if (avatarFile) {
       try {
@@ -293,7 +317,11 @@ export default function ProfileForm({
             value={currentUsername || ""}
             onChange={handleUsernameChange}
             className={
-              !isUsernameValid || !isUsernameLengthValid ? "border-red-500" : ""
+              !isUsernameValid ||
+              !isUsernameLengthValid ||
+              isUsernameAvailable === false
+                ? "border-red-500"
+                : ""
             }
           />
           <p className="text-sm text-muted-foreground">
@@ -310,6 +338,16 @@ export default function ProfileForm({
                 currentUsername?.length || 0
               }
               /20)
+            </p>
+          )}
+          {isCheckingUsername && (
+            <p className="text-sm text-muted-foreground mt-1">
+              확인 중...
+            </p>
+          )}
+          {isUsernameAvailable === false && (
+            <p className="text-red-500 text-sm mt-1">
+              이미 사용중인 프로필 네임입니다.
             </p>
           )}
         </div>
@@ -395,6 +433,7 @@ export default function ProfileForm({
             isUsernameValid={isUsernameValid}
             isFullNameValid={isFullNameValid}
             isUsernameLengthValid={isUsernameLengthValid}
+            isUsernameAvailable={isUsernameAvailable}
           />
           <Button type="button" variant="outline" onClick={handleCancel}>
             취소

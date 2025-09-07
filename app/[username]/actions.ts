@@ -5,6 +5,27 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Json } from "@/types/database.types";
 
+export async function checkUsername(
+  username: string,
+  userId: string
+): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .neq("id", userId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    // PGRST116: 'No rows found'
+    console.error("Error checking username:", error);
+    return false; // Consider this case as "not available" to be safe
+  }
+
+  return !data; // Returns true if username is available (no data found), false otherwise
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
 
