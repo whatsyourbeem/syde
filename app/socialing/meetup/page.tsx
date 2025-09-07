@@ -133,27 +133,23 @@ export default async function MeetupPage({
               className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:shadow-xl hover:scale-[1.01]"
             >
               <Link href={`/socialing/meetup/${meetup.id}`}>
-                <div className="relative">
+                <div className="relative aspect-w-3 aspect-h-2">
                   <Image
                     src={
                       meetup.thumbnail_url || "/default_meetup_thumbnail.png"
                     }
                     alt={meetup.title}
-                    width={300}
-                    height={200}
-                    className={`w-full h-48 object-cover object-center rounded-t-lg ${
+                    fill
+                    className={`object-cover object-center rounded-t-lg ${
                       meetup.status === MEETUP_STATUSES.ENDED
                         ? "grayscale opacity-50"
                         : ""
                     }`}
                   />
-                  <div className="absolute top-3 left-3 flex gap-1">
+                  <div className="mt-3 px-3 flex justify-between h-fit">
                     <Badge className={getStatusBadgeClass(meetup.status)}>
                       {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
-                  </div>
-                  {/* New position for online/offline badge */}
-                  <div className="absolute top-3 right-3">
                     <Badge
                       className={getLocationTypeBadgeClass(meetup.location_type)}
                     >
