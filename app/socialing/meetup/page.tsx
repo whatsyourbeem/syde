@@ -152,13 +152,26 @@ export default async function MeetupPage({
                       {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
                   </div>
+                  {/* New position for online/offline badge */}
+                  <div className="absolute top-3 right-3">
+                    <Badge
+                      className={getLocationTypeBadgeClass(meetup.location_type)}
+                    >
+                      {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+                    </Badge>
+                  </div>
                 </div>
               </Link>
               <div className="px-6 pt-4 pb-6 flex-grow flex flex-col">
-                <Link href={`/socialing/meetup/${meetup.id}`}>
-                  <h2 className="text-base font-semibold mb-2 line-clamp-3 hover:underline">
-                    {meetup.title}
-                  </h2>
+                <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-2">
+                  <div className="flex justify-between items-start">
+                    <h2 className="text-base font-semibold line-clamp-3 hover:underline">
+                      {meetup.title}
+                    </h2>
+                    <Badge className={getCategoryBadgeClass(meetup.category)}>
+                      {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
+                    </Badge>
+                  </div>
                 </Link>
                 {meetup.clubs && (
                   <Link
@@ -169,16 +182,7 @@ export default async function MeetupPage({
                     <span>{meetup.clubs.name}</span>
                   </Link>
                 )}
-                <div className="flex gap-1 mb-4">
-                  <Badge className={getCategoryBadgeClass(meetup.category)}>
-                    {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
-                  </Badge>
-                  <Badge
-                    className={getLocationTypeBadgeClass(meetup.location_type)}
-                  >
-                    {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
-                  </Badge>
-                </div>
+                
                 {meetup.organizer_profile && (
                   <ProfileHoverCard
                     userId={meetup.organizer_profile.id}
@@ -211,7 +215,7 @@ export default async function MeetupPage({
                     </div>
                   </ProfileHoverCard>
                 )}
-                <div className="text-sm text-gray-500 mt-2 flex-grow">
+                <Link href={`/socialing/meetup/${meetup.id}`}className="text-sm text-gray-500 pt-2 flex-grow">
                   {meetup.max_participants && (
                     <p className="flex items-center gap-1 mb-1">
                       <Users className="size-4" />
@@ -234,7 +238,7 @@ export default async function MeetupPage({
                       {meetup.location_description}
                     </p>
                   )}
-                </div>
+                </Link>
               </div>
             </div>
           ))}
