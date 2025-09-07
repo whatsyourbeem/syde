@@ -259,7 +259,7 @@ export default function ClubDetailClient({
               💬<span className="font-extrabold pl-1">소개</span>
             </h2>
           </AccordionTrigger>
-          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-6">
+          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none px-6 pt-0 pb-6">
             {club.description ? (
               <TiptapViewer content={club.description} />
             ) : (

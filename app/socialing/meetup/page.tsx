@@ -130,7 +130,7 @@ export default async function MeetupPage({
           {typedMeetups.map((meetup) => (
             <div
               key={meetup.id}
-              className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col"
+              className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:shadow-xl hover:scale-[1.01]"
             >
               <Link href={`/socialing/meetup/${meetup.id}`}>
                 <div className="relative">

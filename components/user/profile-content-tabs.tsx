@@ -43,26 +43,26 @@ export function ProfileContentTabs({
         <TabsList className="flex w-full justify-center p-1 rounded-lg space-x-2 md:flex-col md:items-stretch md:justify-start bg-transparent md:p-0 md:rounded-none md:space-y-1 md:space-x-0">
           <TabsTrigger
             value="bio"
-            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
           >
             자유 소개
           </TabsTrigger>
           <TabsTrigger
             value="logs"
-            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
           >
             작성한 로그
           </TabsTrigger>
           <TabsTrigger
             value="clubs"
-            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
           >
             가입 클럽
           </TabsTrigger>
           {isOwnProfile && (
             <TabsTrigger
               value="comments"
-              className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
+              className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
             >
               좋아요/댓글
             </TabsTrigger>
