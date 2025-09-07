@@ -40,6 +40,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 import ClubMembersList from "./club-members-list"; // Import ClubMembersList
+import Image from "next/image";
 
 // Type Definitions
 type Profile = Tables<"profiles">;
@@ -297,87 +298,74 @@ export default function ClubDetailClient({
                 >
                   <div className="p-1 h-full">
                     <Card className="h-full transition-shadow hover:shadow-lg overflow-hidden">
-                      <CardContent className="flex flex-col items-start p-4 h-full">
-                        <Link
-                          href={`/socialing/meetup/${meetup.id}`}
-                          className="w-full flex flex-col flex-grow"
-                        >
-                          <div className="flex-grow">
-                            <div className="flex items-center gap-2 mb-2">
-                              {" "}
-                              {/* New row for badges */}
-                              <Badge
-                                className={`${getStatusBadgeClass(
-                                  meetup.status
-                                )} text-xs`}
-                              >
-                                {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
-                              </Badge>
-                              <Badge
-                                className={`${getCategoryBadgeClass(
-                                  meetup.category
-                                )} text-xs`}
-                              >
-                                {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
-                              </Badge>
-                              <Badge
-                                className={`${getLocationTypeBadgeClass(
-                                  meetup.location_type
-                                )} text-xs`}
-                              >
-                                {
-                                  MEETUP_LOCATION_TYPE_DISPLAY_NAMES[
-                                    meetup.location_type
-                                  ]
-                                }
-                              </Badge>
-                            </div>
+                      <CardContent className="flex flex-row items-start p-0 h-full">
+                        <div className="w-[120px] h-full flex-shrink-0 relative overflow-hidden rounded-l-lg">
+                          <Image
+                            src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
+                            alt={meetup.title}
+                            fill
+                            className="object-cover object-center"
+                          />
+                          <div className="absolute top-1 left-1">
+                            <Badge className={`${getStatusBadgeClass(meetup.status)} text-xs`}>
+                              {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
+                            </Badge>
+                          </div>
+                          <div className="absolute top-1 right-1">
+                            <Badge className={`${getLocationTypeBadgeClass(meetup.location_type)} text-xs`}>
+                              {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex flex-col flex-grow p-4">
+                          <Link
+                            href={`/socialing/meetup/${meetup.id}`}
+                            className="w-full flex flex-col flex-grow"
+                          >
                             <h3 className="font-semibold line-clamp-2 mb-2">
                               {meetup.title}
                             </h3>
-                          </div>
-                          <div className="flex flex-col text-xs text-muted-foreground space-y-1 mt-4">
-                            {" "}
-                            {/* Time and Location - MOVED HERE */}
-                            {meetup.start_datetime && (
-                              <p className="flex items-center gap-1.5">
-                                <Clock className="size-3" />{" "}
-                                {formatDate(meetup.start_datetime)}
-                              </p>
-                            )}
-                            {meetup.location_description && (
-                              <p className="flex items-center gap-1.5">
-                                <MapPin className="size-3" />{" "}
-                                {meetup.location_description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                            <div className="flex items-center gap-2">
-                              <Avatar className="size-5">
-                                <AvatarImage
-                                  src={
-                                    meetup.organizer_profile?.avatar_url ||
-                                    undefined
-                                  }
-                                />
-                                <AvatarFallback>
-                                  {meetup.organizer_profile?.username?.charAt(
-                                    0
-                                  ) || "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs font-medium">
-                                {meetup.organizer_profile?.full_name ||
-                                  meetup.organizer_profile?.username}
-                              </span>
+                            <div className="flex flex-col text-xs text-muted-foreground space-y-1 mt-4">
+                              {meetup.start_datetime && (
+                                <p className="flex items-center gap-1.5">
+                                  <Clock className="size-3" />{" "}
+                                  {formatDate(meetup.start_datetime)}
+                                </p>
+                              )}
+                              {meetup.location_description && (
+                                <p className="flex items-center gap-1.5">
+                                  <MapPin className="size-3" />{" "}
+                                  {meetup.location_description}
+                                </p>
+                              )}
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Users className="size-3" />
-                              <span>{meetup.max_participants || "무제한"}</span>
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="size-5">
+                                  <AvatarImage
+                                    src={
+                                      meetup.organizer_profile?.avatar_url ||
+                                      undefined
+                                    }
+                                  />
+                                  <AvatarFallback>
+                                    {meetup.organizer_profile?.username?.charAt(
+                                      0
+                                    ) || "U"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs font-medium">
+                                  {meetup.organizer_profile?.full_name ||
+                                    meetup.organizer_profile?.username}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Users className="size-3" />
+                                <span>{meetup.max_participants || "무제한"}</span>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
+                          </Link>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
