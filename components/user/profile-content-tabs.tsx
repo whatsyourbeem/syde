@@ -61,18 +61,12 @@ export function ProfileContentTabs({
           >
             가입 클럽
           </TabsTrigger>
-          <TabsTrigger
-            value="bookmarks"
-            className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
-          >
-            북마크
-          </TabsTrigger>
           {isOwnProfile && (
             <TabsTrigger
               value="activity"
               className="md:justify-start md:w-full rounded-md px-3 py-1.5 text-sm hover:bg-secondary hover:text-secondary-foreground data-[state=active]:bg-secondary data-[state=active]:text-gray-900 data-[state=active]:font-semibold"
             >
-              활동
+              나의 활동
             </TabsTrigger>
           )}
           {isOwnProfile && (
@@ -115,9 +109,6 @@ export function ProfileContentTabs({
         </TabsContent>
         <TabsContent value="clubs" className="mt-4 md:mt-0">
           <UserJoinedClubsList userId={profile.id} />
-        </TabsContent>
-        <TabsContent value="bookmarks" className="mt-4 md:mt-0">
-          <LogList currentUserId={currentUserId} filterByBookmarkedUserId={profile.id} />
         </TabsContent>
         {isOwnProfile && (
           <TabsContent value="activity" className="mt-4 md:mt-0">
