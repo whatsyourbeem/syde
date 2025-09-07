@@ -213,7 +213,7 @@ function LogCardActionsBase({
                 ) : (
                   <Bookmark
                     className={
-                      hasBookmarked ? "fill-yellow-400 text-yellow-500" : "text-muted-foreground group-hover:text-yellow-500"
+                      hasBookmarked ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground group-hover:text-yellow-500"
                     }
                     size={18}
                   />

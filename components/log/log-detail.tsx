@@ -506,7 +506,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                 <Bookmark
                   className={
                     currentHasBookmarked
-                      ? "fill-yellow-400 text-yellow-500"
+                      ? "fill-yellow-500 text-yellow-500"
                       : "text-muted-foreground group-hover:text-yellow-500"
                   }
                   size={18}
