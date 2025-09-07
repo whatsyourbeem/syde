@@ -72,6 +72,7 @@ export default function MeetupEditForm({
   );
   const [locationDescription, setLocationDescription] = useState(meetup?.location_description || "");
   const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
+  const [maxParticipantsError, setMaxParticipantsError] = useState<string | null>(null);
   
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(meetup?.thumbnail_url || null);
@@ -97,6 +98,17 @@ export default function MeetupEditForm({
       setDateError(null);
     }
   }, [startDatetime, endDatetime]);
+
+  const handleMaxParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMaxParticipants(value);
+
+    if (value === "" || /^\d+$/.test(value)) {
+      setMaxParticipantsError(null);
+    } else {
+      setMaxParticipantsError("숫자만 입력 가능합니다.");
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -328,7 +340,18 @@ export default function MeetupEditForm({
         <label htmlFor="maxParticipants" className="block text-sm font-semibold text-gray-700 mb-1">
           최대 인원 (비워두면 무제한)
         </label>
-        <Input id="maxParticipants" name="maxParticipants" type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} min="1" />
+        <Input
+          id="maxParticipants"
+          name="maxParticipants"
+          type="text"
+          value={maxParticipants}
+          onChange={handleMaxParticipantsChange}
+          min="1"
+          className={maxParticipantsError ? "border-red-500" : ""}
+        />
+        {maxParticipantsError && (
+          <p className="text-red-500 text-sm mt-1">{maxParticipantsError}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-3">
@@ -337,7 +360,7 @@ export default function MeetupEditForm({
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button type="button" disabled={isSubmitting || !!dateError}>
+            <Button type="button" disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !category || !locationType || !status}>
               {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
             </Button>
           </AlertDialogTrigger>
@@ -350,7 +373,7 @@ export default function MeetupEditForm({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || !!dateError}>
+              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !category || !locationType || !status}>
                 확인
               </AlertDialogAction>
             </AlertDialogFooter>
