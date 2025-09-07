@@ -6,7 +6,7 @@ import BioEditor from "@/components/user/bio-editor";
 import { LogList } from "@/components/log/log-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { Button } from "@/components/ui/button";
-import { logout, deleteAccount } from "@/app/auth/auth-actions";
+import { logout } from "@/app/auth/auth-actions";
 import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import {
@@ -90,38 +90,6 @@ export function ProfileContentTabs({
                     <form action={logout}>
                       <AlertDialogAction asChild>
                         <Button type="submit">로그아웃</Button>
-                      </AlertDialogAction>
-                    </form>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          )}
-          {isOwnProfile && (
-            <div className="hidden md:block w-full pt-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start rounded-md px-3 py-1.5 text-sm font-normal text-red-500 hover:bg-red-100 hover:text-red-600"
-                  >
-                    회원 탈퇴
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>정말 회원 탈퇴하시겠습니까?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며, 되돌릴 수 없습니다.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>취소</AlertDialogCancel>
-                    <form action={async () => { await deleteAccount(); }}>
-                      <AlertDialogAction asChild>
-                        <Button type="submit" variant="destructive">
-                          탈퇴
-                        </Button>
                       </AlertDialogAction>
                     </form>
                   </AlertDialogFooter>

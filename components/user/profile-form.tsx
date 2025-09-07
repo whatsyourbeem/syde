@@ -12,6 +12,18 @@ import { Plus } from "lucide-react";
 import { updateProfile, checkUsername } from "@/app/[username]/actions"; // Import the server action
 import { useFormStatus } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
+import { deleteAccount } from "@/app/auth/auth-actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileFormProps {
   userId: string;
@@ -428,16 +440,44 @@ export default function ProfileForm({
           )}
         </div>
         <div className="pt-4 flex space-x-2">
-          <SubmitButton
-            isLinkValid={isLinkValid}
-            isUsernameValid={isUsernameValid}
-            isFullNameValid={isFullNameValid}
-            isUsernameLengthValid={isUsernameLengthValid}
-            isUsernameAvailable={isUsernameAvailable}
-          />
-          <Button type="button" variant="outline" onClick={handleCancel}>
-            취소
-          </Button>
+          <div className="flex space-x-2">
+            <SubmitButton
+              isLinkValid={isLinkValid}
+              isUsernameValid={isUsernameValid}
+              isFullNameValid={isFullNameValid}
+              isUsernameLengthValid={isUsernameLengthValid}
+              isUsernameAvailable={isUsernameAvailable}
+            />
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              취소
+            </Button>
+          </div>
+          <div className="flex-grow" />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="ghost" className="text-gray-500">
+                회원 탈퇴
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>정말 회원 탈퇴하시겠습니까?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며, 되돌릴 수 없습니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>취소</AlertDialogCancel>
+                <form action={async () => { await deleteAccount(); }}>
+                  <AlertDialogAction asChild>
+                    <Button type="submit" variant="destructive">
+                      탈퇴
+                    </Button>
+                  </AlertDialogAction>
+                </form>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </form>
     </Card>
