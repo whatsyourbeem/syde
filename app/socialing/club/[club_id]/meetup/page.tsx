@@ -102,7 +102,7 @@ export default async function ClubMeetupListPage({
 
   const { data: meetups, error: meetupsError } = await supabase
     .from("meetups")
-    .select("*, organizer_profile:profiles!meetups_organizer_id_fkey(*)")
+    .select("id, created_at, organizer_id, club_id, title, description, thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*)")
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
 
@@ -180,10 +180,13 @@ export default async function ClubMeetupListPage({
                           {formatDate(meetup.start_datetime)}
                         </p>
                       )}
-                      {meetup.location_description && (
+                      {(meetup.location || meetup.address) && (
                         <p className="flex items-center gap-1.5">
                           <MapPin className="size-3" />{" "}
-                          {meetup.location_description}
+                          {meetup.location}
+                          {meetup.location && meetup.address && " ("}
+                          {meetup.address}
+                          {meetup.location && meetup.address && ")"}
                         </p>
                       )}
                     </div>

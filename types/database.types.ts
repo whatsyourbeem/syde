@@ -449,6 +449,7 @@ export type Database = {
       };
       meetups: {
         Row: {
+          address: string | null;
           category: Database["public"]["Enums"]["meetup_category_enum"];
           club_id: string | null;
           created_at: string;
@@ -456,7 +457,7 @@ export type Database = {
           end_datetime: string | null;
           fee: number | null;
           id: string;
-          location_description: string | null;
+          location: string | null;
           location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
           max_participants: number | null;
           organizer_id: string;
@@ -466,6 +467,7 @@ export type Database = {
           title: string;
         };
         Insert: {
+          address?: string | null;
           category?: Database["public"]["Enums"]["meetup_category_enum"];
           club_id?: string | null;
           created_at?: string;
@@ -473,7 +475,7 @@ export type Database = {
           end_datetime?: string | null;
           fee?: number | null;
           id?: string;
-          location_description?: string | null;
+          location?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           max_participants?: number | null;
           organizer_id: string;
@@ -483,6 +485,7 @@ export type Database = {
           title: string;
         };
         Update: {
+          address?: string | null;
           category?: Database["public"]["Enums"]["meetup_category_enum"];
           club_id?: string | null;
           created_at?: string;
@@ -490,7 +493,7 @@ export type Database = {
           end_datetime?: string | null;
           fee?: number | null;
           id?: string;
-          location_description?: string | null;
+          location?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           max_participants?: number | null;
           organizer_id?: string;

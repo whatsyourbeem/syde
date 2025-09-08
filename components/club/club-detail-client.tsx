@@ -315,10 +315,13 @@ export default function ClubDetailClient({
                                   {formatDate(meetup.start_datetime)}
                                 </p>
                               )}
-                              {meetup.location_description && (
+                              {(meetup.location || meetup.address) && (
                                 <p className="flex items-center gap-1.5">
                                   <MapPin className="size-3" />{" "}
-                                  {meetup.location_description}
+                                  {meetup.location}
+                                  {meetup.location && meetup.address && " ("}
+                                  {meetup.address}
+                                  {meetup.location && meetup.address && ")"}
                                 </p>
                               )}
                             </div>

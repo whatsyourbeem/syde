@@ -70,7 +70,8 @@ export default function MeetupEditForm({
   const [endDatetime, setEndDatetime] = useState<Date | undefined>(
     meetup?.end_datetime ? new Date(meetup.end_datetime) : undefined
   );
-  const [locationDescription, setLocationDescription] = useState(meetup?.location_description || "");
+  const [location, setLocation] = useState(meetup?.location || "");
+  const [address, setAddress] = useState(meetup?.address || "");
   const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
   const [fee, setFee] = useState<number | string>(meetup?.fee || "");
   const [maxParticipantsError, setMaxParticipantsError] = useState<string | null>(null);
@@ -145,7 +146,8 @@ export default function MeetupEditForm({
     formData.append("status", status);
     formData.append("startDatetime", startDatetime.toISOString());
     formData.append("endDatetime", endDatetime.toISOString());
-    formData.append("locationDescription", locationDescription);
+    formData.append("location", location);
+    formData.append("address", address);
     formData.append("maxParticipants", maxParticipants.toString());
     formData.append("fee", fee.toString());
 
@@ -332,10 +334,17 @@ export default function MeetupEditForm({
       </div>
 
       <div>
-        <label htmlFor="locationDescription" className="block text-sm font-semibold text-gray-700 mb-1">
-          장소 상세 설명
+        <label htmlFor="location" className="block text-sm font-semibold text-gray-700 mb-1">
+          장소명
         </label>
-        <Input id="locationDescription" name="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} />
+        <Input id="location" name="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1">
+          주소
+        </label>
+        <Input id="address" name="address" value={address} onChange={(e) => setAddress(e.target.value)} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

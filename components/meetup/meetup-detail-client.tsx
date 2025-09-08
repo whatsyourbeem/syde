@@ -19,7 +19,7 @@ import {
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Users, CreditCard, HelpCircle } from "lucide-react";
+import { Calendar, MapPin, Users, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -32,10 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { User } from "@supabase/supabase-js";
-import {
-  joinMeetup,
-} from "@/app/socialing/meetup/meetup-actions";
-
+import { joinMeetup } from "@/app/socialing/meetup/meetup-actions";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -50,6 +47,11 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   } else {
     return `${month}.${day}(${weekday})`;
   }
+}
+
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function formatFee(fee: number | null) {
@@ -125,7 +127,10 @@ export default function MeetupDetailClient({
   const [isJoinClubDialogOpen, setIsJoinClubDialogOpen] = useState(false);
   const [isJoinConfirmDialogOpen, setIsJoinConfirmDialogOpen] = useState(false);
   const [isJoinResultDialogOpen, setIsJoinResultDialogOpen] = useState(false);
-  const [joinResult, setJoinResult] = useState<{ error?: string; success?: boolean } | null>(null);
+  const [joinResult, setJoinResult] = useState<{
+    error?: string;
+    success?: boolean;
+  } | null>(null);
   const [, startTransition] = useTransition();
   const supabase = createClient();
 
@@ -143,13 +148,14 @@ export default function MeetupDetailClient({
           filter: `meetup_id=eq.${meetup.id}`,
         },
         async (payload) => {
-          const newParticipant = payload.new as Database['public']['Tables']['meetup_participants']['Row'];
-          
+          const newParticipant =
+            payload.new as Database["public"]["Tables"]["meetup_participants"]["Row"];
+
           // Fetch the profile for the new participant
           const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', newParticipant.user_id)
+            .from("profiles")
+            .select("*")
+            .eq("id", newParticipant.user_id)
             .single();
 
           if (error) {
@@ -165,7 +171,10 @@ export default function MeetupDetailClient({
 
           setMeetup((prev) => ({
             ...prev,
-            meetup_participants: [...prev.meetup_participants, newParticipantWithProfile],
+            meetup_participants: [
+              ...prev.meetup_participants,
+              newParticipantWithProfile,
+            ],
           }));
         }
       )
@@ -202,7 +211,6 @@ export default function MeetupDetailClient({
   const pendingParticipants = meetup.meetup_participants.filter(
     (p) => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
   );
-  
 
   const handleApplyClick = () => {
     if (!user) {
@@ -243,7 +251,15 @@ export default function MeetupDetailClient({
       return { disabled: true, text: "참가중" };
     }
     if (isPendingParticipant) {
-      return { disabled: false, text: (<>참가대기중<HelpCircle className="size-5" /></>) };
+      return {
+        disabled: false,
+        text: (
+          <>
+            참가대기중
+            <HelpCircle className="size-5" />
+          </>
+        ),
+      };
     }
     if (isMeetupFull) {
       return { disabled: true, text: "정원 마감" };
@@ -251,23 +267,12 @@ export default function MeetupDetailClient({
     return { disabled: false, text: "참가 신청하기" };
   };
 
-  
-
   const buttonState = getButtonState();
 
   return (
     <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 min-h-screen">
       <div className="w-full md:w-3/4 md:border-r md:pr-2 min-h-screen">
         <div className="max-w-3xl mx-auto p-4 pb-20">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-3xl font-bold pb-2">{meetup.title}</h1>
-            {isOrganizer && (
-              <Link href={`/socialing/meetup/${meetup.id}/edit`}>
-                <Button>수정</Button>
-              </Link>
-            )}
-          </div>
-
           {/* 카테고리, 형태, 상태 배지 */}
           <div className="flex gap-2 mb-4">
             <Badge className={getStatusBadgeClass(meetup.status)}>
@@ -279,6 +284,15 @@ export default function MeetupDetailClient({
             <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>
               {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
             </Badge>
+          </div>
+
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-3xl font-bold pb-2">{meetup.title}</h1>
+            {isOrganizer && (
+              <Link href={`/socialing/meetup/${meetup.id}/edit`}>
+                <Button>수정</Button>
+              </Link>
+            )}
           </div>
 
           {/* 모임장 정보 */}
@@ -301,34 +315,68 @@ export default function MeetupDetailClient({
             </p>
           </div>
 
-          {/* 일시 및 장소 정보 */}
-          <div className="text-sm text-gray-500 mb-6">
-            {meetup.start_datetime && (
-              <p className="flex items-center gap-1 mb-1">
-                <Clock className="size-4" />
-                {formatDate(meetup.start_datetime)}
-                {meetup.end_datetime &&
-                  formatDate(meetup.start_datetime) !==
-                    formatDate(meetup.end_datetime) &&
-                  ` - ${formatDate(meetup.end_datetime, false)}`}
-              </p>
-            )}
-            {meetup.location_description && (
-              <p className="flex items-center gap-1">
-                <MapPin className="size-4" />
-                {meetup.location_description}
-              </p>
-            )}
+          {/* 새로운 썸네일 및 정보 영역 */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            {/* 왼쪽: 썸네일 이미지 */}
+            <div className="w-full md:w-1/2">
+              <Image
+                src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
+                alt={meetup.title}
+                width={800} // Adjust as needed
+                height={400} // Adjust as needed
+                className="w-full h-64 object-cover object-center rounded-lg"
+              />
+            </div>
+            {/* 오른쪽: 모임 장소, 모임일시, 최대인원 정보 */}
+            <div className="w-full md:w-1/2 flex flex-col justify-center p-5 border rounded-lg">
+              {meetup.start_datetime && (
+                <p className="flex items-start gap-3 mb-6 text-black text-base font-bold">
+                  <Calendar className="size-6 text-black" />
+                  <span>
+                    {formatDate(meetup.start_datetime)}
+                    {meetup.end_datetime &&
+                      formatDate(meetup.start_datetime) !==
+                        formatDate(meetup.end_datetime) &&
+                      ` - ${formatDate(meetup.end_datetime, false)}`}
+                    <br />
+                    <span className="text-sm text-gray-500 font-normal">
+                      {formatTime(meetup.start_datetime)}
+                      {meetup.end_datetime &&
+                        formatDate(meetup.start_datetime) ===
+                          formatDate(meetup.end_datetime) &&
+                        ` - ${formatTime(meetup.end_datetime)}`}
+                    </span>
+                  </span>
+                </p>
+              )}
+              {(meetup.location || meetup.address) && (
+                <p className="flex items-start gap-3 mb-6 text-black text-base font-bold">
+                  <MapPin className="size-6 text-black" />
+                  <span>
+                    {meetup.location}
+                    {meetup.location && meetup.address && <br />}
+                    {meetup.address && (
+                      <span className="text-sm text-gray-500 font-normal">
+                        {meetup.address}
+                      </span>
+                    )}
+                  </span>
+                </p>
+              )}
+              {meetup.max_participants && (
+                <p className="flex items-start gap-3 text-black text-base font-bold">
+                  <Users className="size-6 text-black" />
+                  <span>
+                    {meetup.max_participants}명
+                    <br />
+                    <span className="text-sm text-gray-500 font-normal">
+                      최대 인원
+                    </span>
+                  </span>
+                </p>
+              )}
+            </div>
           </div>
-
-          {/* 썸네일 이미지 */}
-          <Image
-            src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
-            alt={meetup.title}
-            width={800} // Adjust as needed
-            height={400} // Adjust as needed
-            className="w-full h-64 object-cover object-center rounded-lg mb-6"
-          />
 
           {/* 모임 상세 설명 */}
           <div className="bg-white rounded-lg p-6 mb-6">
@@ -342,20 +390,17 @@ export default function MeetupDetailClient({
           <div className="max-w-5xl mx-auto flex justify-between items-center p-4">
             <p className="text-sm flex items-center gap-2">
               <span className="text-xs text-black mr-1">참가비</span>
-              <span className="font-extrabold text-xl">{formatFee(meetup.fee)}</span>
+              <span className="font-extrabold text-xl">
+                {formatFee(meetup.fee)}
+              </span>
             </p>
             <div className="flex items-center gap-4">
               <p className="text-sm flex items-center gap-2">
                 <Users className="size-5 text-gray-500" />
                 <span className="font-bold text-lg">
-                  {approvedParticipants.length}명
+                  {approvedParticipants.length}
+                  {meetup.max_participants ? ` / ${meetup.max_participants}` : ""}
                 </span>
-                {meetup.max_participants && (
-                  <span className="text-gray-500 text-sm">
-                    {" "}
-                    / {meetup.max_participants}명
-                  </span>
-                )}
               </p>
               <Button
                 size="lg"
@@ -376,8 +421,8 @@ export default function MeetupDetailClient({
             <AlertDialogHeader>
               <AlertDialogTitle>클럽 가입 필요</AlertDialogTitle>
               <AlertDialogDescription>
-                이 모임에 참가하려면 먼저 &apos;{meetup.clubs?.name}&apos; 클럽에
-                가입해야 합니다. 클럽 페이지로 이동하여 가입하시겠습니까?
+                이 모임에 참가하려면 먼저 &apos;{meetup.clubs?.name}&apos;
+                클럽에 가입해야 합니다. 클럽 페이지로 이동하여 가입하시겠습니까?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -420,7 +465,7 @@ export default function MeetupDetailClient({
               <AlertDialogTitle>
                 {joinResult?.error ? "오류" : "신청 완료"}
               </AlertDialogTitle>
-              </AlertDialogHeader>
+            </AlertDialogHeader>
             <div className="text-sm text-muted-foreground">
               {joinResult?.error ? (
                 joinResult.error
@@ -448,7 +493,9 @@ export default function MeetupDetailClient({
               )}
             </div>
             <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setIsJoinResultDialogOpen(false)}>
+              <AlertDialogAction
+                onClick={() => setIsJoinResultDialogOpen(false)}
+              >
                 확인
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -465,7 +512,9 @@ export default function MeetupDetailClient({
                 className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline"
               >
                 <Image
-                  src={meetup.clubs.thumbnail_url || "/default_club_thumbnail.png"}
+                  src={
+                    meetup.clubs.thumbnail_url || "/default_club_thumbnail.png"
+                  }
                   alt={meetup.clubs.name || "Club Thumbnail"}
                   width={36}
                   height={36}
@@ -479,15 +528,20 @@ export default function MeetupDetailClient({
           <div className="bg-white rounded-lg p-0 mb-8">
             <h2 className="text-xl font-semibold mb-2">
               참가 확정 ({approvedParticipants.length}
-              {meetup.max_participants ? `/${meetup.max_participants}` : ''})
+              {meetup.max_participants ? `/${meetup.max_participants}` : ""})
             </h2>
             <div className="flex flex-wrap gap-3">
               {approvedParticipants.length > 0 ? (
                 approvedParticipants.map((participant) => (
-                  <div key={participant.profiles?.id} className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
+                  <div
+                    key={participant.profiles?.id}
+                    className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer"
+                  >
                     <div className="flex items-center gap-2 w-full">
                       <Avatar className="size-10">
-                        <AvatarImage src={participant.profiles?.avatar_url || undefined} />
+                        <AvatarImage
+                          src={participant.profiles?.avatar_url || undefined}
+                        />
                         <AvatarFallback>
                           {participant.profiles?.username?.charAt(0) || "U"}
                         </AvatarFallback>
@@ -502,8 +556,8 @@ export default function MeetupDetailClient({
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
-                        {participant.profiles?.tagline}
-                      </p>
+                      {participant.profiles?.tagline}
+                    </p>
                   </div>
                 ))
               ) : (
@@ -519,10 +573,15 @@ export default function MeetupDetailClient({
             <div className="flex flex-wrap gap-3">
               {pendingParticipants.length > 0 ? (
                 pendingParticipants.map((participant) => (
-                  <div key={participant.profiles?.id} className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
+                  <div
+                    key={participant.profiles?.id}
+                    className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer"
+                  >
                     <div className="flex items-center gap-2 w-full">
                       <Avatar className="size-10">
-                        <AvatarImage src={participant.profiles?.avatar_url || undefined} />
+                        <AvatarImage
+                          src={participant.profiles?.avatar_url || undefined}
+                        />
                         <AvatarFallback>
                           {participant.profiles?.username?.charAt(0) || "U"}
                         </AvatarFallback>
@@ -537,8 +596,8 @@ export default function MeetupDetailClient({
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
-                        {participant.profiles?.tagline}
-                      </p>
+                      {participant.profiles?.tagline}
+                    </p>
                   </div>
                 ))
               ) : (

@@ -96,7 +96,8 @@ export async function createMeetup(
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
-      location_description: formData.get("locationDescription") as string,
+      location: formData.get("location") as string,
+      address: formData.get("address") as string,
       max_participants:
         parseInt(formData.get("maxParticipants") as string, 10) || null,
       fee: parseInt(formData.get("fee") as string, 10) || null,
@@ -234,7 +235,8 @@ export async function updateMeetup(
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
-      location_description: formData.get("locationDescription") as string,
+      location: formData.get("location") as string,
+      address: formData.get("address") as string,
       max_participants:
         parseInt(formData.get("maxParticipants") as string, 10) || null,
       fee: parseInt(formData.get("fee") as string, 10) || null,

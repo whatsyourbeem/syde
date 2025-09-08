@@ -93,7 +93,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, clubs(id, name), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), meetup_participants(count), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
+      "*, clubs(id, name), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), meetup_participants(count), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants"
     )
     .order("created_at", { ascending: false });
 
@@ -235,10 +235,10 @@ export default async function MeetupPage({
                         ` - ${formatDate(meetup.end_datetime, false)}`}
                     </p>
                   )}
-                  {meetup.location_description && (
+                  {meetup.location && (
                     <p className="flex items-center gap-1">
                       <MapPin className="size-4" />
-                      {meetup.location_description}
+                      {meetup.location}
                     </p>
                   )}
                 </Link>
