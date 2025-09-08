@@ -20,6 +20,7 @@ type MeetupWithOrganizerProfile =
   Database["public"]["Tables"]["meetups"]["Row"] & {
     organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
     clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
+    meetup_participants: { count: number }[];
   };
 
 // 날짜 포맷 헬퍼 함수 추가
@@ -92,7 +93,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, clubs(id, name), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
+      "*, clubs(id, name), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), meetup_participants(count), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location_description, max_participants"
     )
     .order("created_at", { ascending: false });
 
@@ -147,8 +148,8 @@ export default async function MeetupPage({
                     }`}
                   />
                   <div className="mt-3 px-3 flex justify-between h-fit">
-                    <Badge className={getStatusBadgeClass(meetup.status)}>
-                      {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
+                    <Badge className={getCategoryBadgeClass(meetup.category)}>
+                      {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
                     </Badge>
                     <Badge
                       className={getLocationTypeBadgeClass(meetup.location_type)}
@@ -164,8 +165,8 @@ export default async function MeetupPage({
                     <h2 className="text-base font-semibold line-clamp-3 hover:underline">
                       {meetup.title}
                     </h2>
-                    <Badge className={getCategoryBadgeClass(meetup.category)}>
-                      {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
+                    <Badge className={getStatusBadgeClass(meetup.status)}>
+                      {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
                   </div>
                 </Link>
@@ -212,12 +213,18 @@ export default async function MeetupPage({
                   </ProfileHoverCard>
                 )}
                 <Link href={`/socialing/meetup/${meetup.id}`}className="text-sm text-gray-500 pt-2 flex-grow">
-                  {meetup.max_participants && (
-                    <p className="flex items-center gap-1 mb-1">
-                      <Users className="size-4" />
-                      {meetup.max_participants}명
-                    </p>
-                  )}
+                  <p className="flex items-center gap-1 mb-1">
+                    <Users className="size-4" />
+                    {
+                      (meetup.meetup_participants &&
+                      meetup.meetup_participants.length > 0
+                        ? meetup.meetup_participants[0].count
+                        : 0)
+                    }
+                    {meetup.max_participants
+                      ? `/${meetup.max_participants}명`
+                      : "명"}
+                  </p>
                   {meetup.start_datetime && (
                     <p className="tracking-wide flex items-center gap-1 mb-1">
                       <Clock className="size-4" />
