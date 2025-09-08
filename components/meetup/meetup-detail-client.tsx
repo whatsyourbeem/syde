@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
 import TiptapViewer from "@/components/common/tiptap-viewer";
+import { createClient } from "@/lib/supabase/client";
 
 import {
   MEETUP_CATEGORIES,
@@ -116,13 +117,55 @@ export default function MeetupDetailClient({
   const [meetup, setMeetup] = useState(initialMeetup);
   const [isJoinClubDialogOpen, setIsJoinClubDialogOpen] = useState(false);
   const [, startTransition] = useTransition();
+  const supabase = createClient();
 
   useEffect(() => {
     document.body.classList.add("no-footer");
+
+    const channel = supabase
+      .channel(`meetup_participants:${meetup.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "meetup_participants",
+          filter: `meetup_id=eq.${meetup.id}`,
+        },
+        async (payload) => {
+          const newParticipant = payload.new as Database['public']['Tables']['meetup_participants']['Row'];
+          
+          // Fetch the profile for the new participant
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', newParticipant.user_id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching profile for new participant:", error);
+            return;
+          }
+
+          // Combine the new participant with their profile
+          const newParticipantWithProfile = {
+            ...newParticipant,
+            profiles: profile,
+          };
+
+          setMeetup((prev) => ({
+            ...prev,
+            meetup_participants: [...prev.meetup_participants, newParticipantWithProfile],
+          }));
+        }
+      )
+      .subscribe();
+
     return () => {
       document.body.classList.remove("no-footer");
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [meetup.id, supabase]);
 
   const isApprovedParticipant = user
     ? meetup.meetup_participants.some(
@@ -146,6 +189,9 @@ export default function MeetupDetailClient({
   const approvedParticipants = meetup.meetup_participants.filter(
     (p) => p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
   );
+  const pendingParticipants = meetup.meetup_participants.filter(
+    (p) => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
+  );
   
 
   const handleApplyClick = () => {
@@ -164,29 +210,7 @@ export default function MeetupDetailClient({
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("모임에 참가했습니다!");
-        if (user) {
-          const newParticipant = {
-            profiles: {
-              id: user.id,
-              full_name: user.user_metadata.full_name || null,
-              username: user.user_metadata.user_name || null,
-              avatar_url: user.user_metadata.avatar_url || null,
-              bio: null,
-              link: null,
-              tagline: null,
-              updated_at: null,
-            },
-            status: MEETUP_PARTICIPANT_STATUSES.PENDING,
-            joined_at: new Date().toISOString(),
-            meetup_id: meetup.id,
-            user_id: user.id,
-          };
-          setMeetup((prev) => ({
-            ...prev,
-            meetup_participants: [...prev.meetup_participants, newParticipant],
-          }));
-        }
+        toast.success("모임 참가 신청이 완료되었습니다.");
       }
     });
   };
@@ -217,135 +241,236 @@ export default function MeetupDetailClient({
   const buttonState = getButtonState();
 
   return (
-    <div>
-      <div className="max-w-3xl mx-auto p-4 pb-20">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-bold pb-2">{meetup.title}</h1>
-          {isOrganizer && (
-            <Link href={`/socialing/meetup/${meetup.id}/edit`}>
-              <Button>수정</Button>
-            </Link>
-          )}
-        </div>
+    <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 min-h-screen">
+      <div className="w-full md:w-3/4 md:border-r md:pr-2 min-h-screen">
+        <div className="max-w-3xl mx-auto p-4 pb-20">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-3xl font-bold pb-2">{meetup.title}</h1>
+            {isOrganizer && (
+              <Link href={`/socialing/meetup/${meetup.id}/edit`}>
+                <Button>수정</Button>
+              </Link>
+            )}
+          </div>
 
-        {/* 카테고리, 형태, 상태 배지 */}
-        <div className="flex gap-2 mb-4">
-          <Badge className={getStatusBadgeClass(meetup.status)}>
-            {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
-          </Badge>
-          <Badge className={getCategoryBadgeClass(meetup.category)}>
-            {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
-          </Badge>
-          <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>
-            {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
-          </Badge>
-        </div>
+          {/* 카테고리, 형태, 상태 배지 */}
+          <div className="flex gap-2 mb-4">
+            <Badge className={getStatusBadgeClass(meetup.status)}>
+              {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
+            </Badge>
+            <Badge className={getCategoryBadgeClass(meetup.category)}>
+              {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
+            </Badge>
+            <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>
+              {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+            </Badge>
+          </div>
 
-        {/* 모임장 정보 */}
-        <div className="flex items-center gap-2 mb-6 text-gray-600">
-          <Avatar className="size-7">
-            <AvatarImage
-              src={meetup.organizer_profile?.avatar_url || undefined}
-            />
-            <AvatarFallback>
-              {meetup.organizer_profile?.username?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
-          <p>
-            <span className="font-semibold text-black">
-              {meetup.organizer_profile?.full_name ||
-                meetup.organizer_profile?.username ||
-                "알 수 없음"}
-            </span>
-            <span className="ml-1">모임장</span>
-          </p>
-        </div>
-
-        {/* 일시 및 장소 정보 */}
-        <div className="text-sm text-gray-500 mb-6">
-          {meetup.start_datetime && (
-            <p className="flex items-center gap-1 mb-1">
-              <Clock className="size-4" />
-              {formatDate(meetup.start_datetime)}
-              {meetup.end_datetime &&
-                formatDate(meetup.start_datetime) !==
-                  formatDate(meetup.end_datetime) &&
-                ` - ${formatDate(meetup.end_datetime, false)}`}
-            </p>
-          )}
-          {meetup.location_description && (
-            <p className="flex items-center gap-1">
-              <MapPin className="size-4" />
-              {meetup.location_description}
-            </p>
-          )}
-        </div>
-
-        {/* 썸네일 이미지 */}
-        <Image
-          src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
-          alt={meetup.title}
-          width={800} // Adjust as needed
-          height={400} // Adjust as needed
-          className="w-full h-64 object-cover object-center rounded-lg mb-6"
-        />
-
-        {/* 모임 상세 설명 */}
-        <div className="bg-white rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
-          <TiptapViewer content={meetup.description} />
-        </div>
-      </div>
-
-      {/* 고정 하단 바 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t z-10">
-        <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <div>
-            <p className="text-sm flex items-center gap-2">
-              <Users className="size-5 text-gray-500" />
-              <span className="font-bold text-lg">
-                {approvedParticipants.length}명
+          {/* 모임장 정보 */}
+          <div className="flex items-center gap-2 mb-6 text-gray-600">
+            <Avatar className="size-7">
+              <AvatarImage
+                src={meetup.organizer_profile?.avatar_url || undefined}
+              />
+              <AvatarFallback>
+                {meetup.organizer_profile?.username?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <p>
+              <span className="font-semibold text-black">
+                {meetup.organizer_profile?.full_name ||
+                  meetup.organizer_profile?.username ||
+                  "알 수 없음"}
               </span>
-              {meetup.max_participants && (
-                <span className="text-gray-500 text-sm">
-                  {" "}
-                  / {meetup.max_participants}명
-                </span>
-              )}
+              <span className="ml-1">모임장</span>
             </p>
           </div>
-          <Button
-            size="lg"
-            disabled={buttonState.disabled}
-            onClick={handleApplyClick}
-          >
-            {buttonState.text}
-          </Button>
+
+          {/* 일시 및 장소 정보 */}
+          <div className="text-sm text-gray-500 mb-6">
+            {meetup.start_datetime && (
+              <p className="flex items-center gap-1 mb-1">
+                <Clock className="size-4" />
+                {formatDate(meetup.start_datetime)}
+                {meetup.end_datetime &&
+                  formatDate(meetup.start_datetime) !==
+                    formatDate(meetup.end_datetime) &&
+                  ` - ${formatDate(meetup.end_datetime, false)}`}
+              </p>
+            )}
+            {meetup.location_description && (
+              <p className="flex items-center gap-1">
+                <MapPin className="size-4" />
+                {meetup.location_description}
+              </p>
+            )}
+          </div>
+
+          {/* 썸네일 이미지 */}
+          <Image
+            src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
+            alt={meetup.title}
+            width={800} // Adjust as needed
+            height={400} // Adjust as needed
+            className="w-full h-64 object-cover object-center rounded-lg mb-6"
+          />
+
+          {/* 모임 상세 설명 */}
+          <div className="bg-white rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
+            <TiptapViewer content={meetup.description} />
+          </div>
+        </div>
+
+        {/* 고정 하단 바 */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t z-10">
+          <div className="max-w-3xl mx-auto flex justify-between items-center">
+            <div>
+              <p className="text-sm flex items-center gap-2">
+                <Users className="size-5 text-gray-500" />
+                <span className="font-bold text-lg">
+                  {approvedParticipants.length}명
+                </span>
+                {meetup.max_participants && (
+                  <span className="text-gray-500 text-sm">
+                    {" "}
+                    / {meetup.max_participants}명
+                  </span>
+                )}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              disabled={buttonState.disabled}
+              onClick={handleApplyClick}
+            >
+              {buttonState.text}
+            </Button>
+          </div>
+        </div>
+
+        <AlertDialog
+          open={isJoinClubDialogOpen}
+          onOpenChange={setIsJoinClubDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>클럽 가입 필요</AlertDialogTitle>
+              <AlertDialogDescription>
+                이 모임에 참가하려면 먼저 &apos;{meetup.clubs?.name}&apos; 클럽에
+                가입해야 합니다. 클럽 페이지로 이동하여 가입하시겠습니까?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Link href={`/socialing/club/${meetup.club_id}`}>
+                  클럽으로 이동
+                </Link>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+      <div className="w-full md:w-1/4 mt-4 md:mt-0 flex flex-col h-full md:pl-2">
+        <div className="md:block pl-6 pt-4 flex-grow pb-16">
+          {meetup.clubs && (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-2">주최 클럽</h2>
+              <Link
+                href={`/socialing/club/${meetup.clubs.id}`}
+                className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline"
+              >
+                <Image
+                  src={meetup.clubs.thumbnail_url || "/default_club_thumbnail.png"}
+                  alt={meetup.clubs.name || "Club Thumbnail"}
+                  width={36}
+                  height={36}
+                  className="rounded-md aspect-square object-cover"
+                />
+                {meetup.clubs.name}
+              </Link>
+            </div>
+          )}
+
+          <div className="bg-white rounded-lg p-0 mb-6">
+            <h2 className="text-xl font-semibold mb-2">
+              참가자 ({approvedParticipants.length}명)
+            </h2>
+            {meetup.max_participants && (
+              <p className="text-sm text-gray-600 mb-3">
+                최대 인원: {meetup.max_participants}명
+              </p>
+            )}
+            <div className="flex flex-wrap gap-3">
+              {approvedParticipants.length > 0 ? (
+                approvedParticipants.map((participant) => (
+                  <div key={participant.profiles?.id} className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
+                    <div className="flex items-center gap-2 w-full">
+                      <Avatar className="size-10">
+                        <AvatarImage src={participant.profiles?.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {participant.profiles?.username?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">
+                          {participant.profiles?.full_name || "알 수 없음"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          @{participant.profiles?.username || "알 수 없음"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
+                        {participant.profiles?.tagline}
+                      </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">아직 확정된 참가자가 없습니다.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-0 mb-6">
+            <h2 className="text-xl font-semibold mb-3">
+              참가 대기중 ({pendingParticipants.length}명)
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {pendingParticipants.length > 0 ? (
+                pendingParticipants.map((participant) => (
+                  <div key={participant.profiles?.id} className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer">
+                    <div className="flex items-center gap-2 w-full">
+                      <Avatar className="size-10">
+                        <AvatarImage src={participant.profiles?.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {participant.profiles?.username?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">
+                          {participant.profiles?.full_name || "알 수 없음"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          @{participant.profiles?.username || "알 수 없음"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
+                        {participant.profiles?.tagline}
+                      </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">
+                  현재 참가 대기중인 멤버가 없습니다.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-
-      <AlertDialog
-        open={isJoinClubDialogOpen}
-        onOpenChange={setIsJoinClubDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>클럽 가입 필요</AlertDialogTitle>
-            <AlertDialogDescription>
-              이 모임에 참가하려면 먼저 &apos;{meetup.clubs?.name}&apos; 클럽에
-              가입해야 합니다. 클럽 페이지로 이동하여 가입하시겠습니까?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Link href={`/socialing/club/${meetup.club_id}`}>
-                클럽으로 이동
-              </Link>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
