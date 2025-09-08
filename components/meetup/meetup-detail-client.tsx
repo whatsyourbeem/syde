@@ -19,7 +19,7 @@ import {
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Users } from "lucide-react";
+import { Clock, MapPin, Users, CreditCard, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -50,6 +50,13 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   } else {
     return `${month}.${day}(${weekday})`;
   }
+}
+
+function formatFee(fee: number | null) {
+  if (fee === null || fee === 0) {
+    return "무료";
+  }
+  return `${fee.toLocaleString()}원`;
 }
 
 function getCategoryBadgeClass(category: string) {
@@ -116,6 +123,9 @@ export default function MeetupDetailClient({
 }: MeetupDetailClientProps) {
   const [meetup, setMeetup] = useState(initialMeetup);
   const [isJoinClubDialogOpen, setIsJoinClubDialogOpen] = useState(false);
+  const [isJoinConfirmDialogOpen, setIsJoinConfirmDialogOpen] = useState(false);
+  const [isJoinResultDialogOpen, setIsJoinResultDialogOpen] = useState(false);
+  const [joinResult, setJoinResult] = useState<{ error?: string; success?: boolean } | null>(null);
   const [, startTransition] = useTransition();
   const supabase = createClient();
 
@@ -205,17 +215,22 @@ export default function MeetupDetailClient({
       return;
     }
 
-    startTransition(async () => {
-      const result = await joinMeetup(meetup.id);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success("모임 참가 신청이 완료되었습니다.");
-      }
-    });
+    if (isPendingParticipant) {
+      setJoinResult(null); // Clear previous result
+      setIsJoinResultDialogOpen(true);
+    } else {
+      setIsJoinConfirmDialogOpen(true);
+    }
   };
 
-  
+  const handleConfirmJoin = () => {
+    setIsJoinConfirmDialogOpen(false);
+    startTransition(async () => {
+      const result = await joinMeetup(meetup.id);
+      setJoinResult(result);
+      setIsJoinResultDialogOpen(true);
+    });
+  };
 
   const getButtonState = () => {
     if (isOrganizer) {
@@ -228,7 +243,7 @@ export default function MeetupDetailClient({
       return { disabled: true, text: "참가중" };
     }
     if (isPendingParticipant) {
-      return { disabled: true, text: "참가대기중" };
+      return { disabled: false, text: (<>참가대기중<HelpCircle className="size-5" /></>) };
     }
     if (isMeetupFull) {
       return { disabled: true, text: "정원 마감" };
@@ -323,9 +338,13 @@ export default function MeetupDetailClient({
         </div>
 
         {/* 고정 하단 바 */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t z-10">
-          <div className="max-w-3xl mx-auto flex justify-between items-center">
-            <div>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-10 px-4">
+          <div className="max-w-5xl mx-auto flex justify-between items-center p-4">
+            <p className="text-sm flex items-center gap-2">
+              <span className="text-xs text-black mr-1">참가비</span>
+              <span className="font-extrabold text-xl">{formatFee(meetup.fee)}</span>
+            </p>
+            <div className="flex items-center gap-4">
               <p className="text-sm flex items-center gap-2">
                 <Users className="size-5 text-gray-500" />
                 <span className="font-bold text-lg">
@@ -338,14 +357,14 @@ export default function MeetupDetailClient({
                   </span>
                 )}
               </p>
+              <Button
+                size="lg"
+                disabled={buttonState.disabled}
+                onClick={handleApplyClick}
+              >
+                {buttonState.text}
+              </Button>
             </div>
-            <Button
-              size="lg"
-              disabled={buttonState.disabled}
-              onClick={handleApplyClick}
-            >
-              {buttonState.text}
-            </Button>
           </div>
         </div>
 
@@ -371,11 +390,75 @@ export default function MeetupDetailClient({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <AlertDialog
+          open={isJoinConfirmDialogOpen}
+          onOpenChange={setIsJoinConfirmDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>모임 참가 신청</AlertDialogTitle>
+              <AlertDialogDescription>
+                &apos;{meetup.title}&apos; 모임에 참가 신청하시겠습니까?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmJoin}>
+                확인
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={isJoinResultDialogOpen}
+          onOpenChange={setIsJoinResultDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {joinResult?.error ? "오류" : "신청 완료"}
+              </AlertDialogTitle>
+              </AlertDialogHeader>
+            <div className="text-sm text-muted-foreground">
+              {joinResult?.error ? (
+                joinResult.error
+              ) : (
+                <>
+                  {!(meetup.fee && meetup.fee > 0) && (
+                    <div className="mb-4">모임 참가 신청이 완료되었습니다.</div>
+                  )}
+                  {meetup.fee && meetup.fee > 0 && (
+                    <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md mt-4">
+                      <div className="font-semibold">참가 확정 안내</div>
+                      <div className="mt-2">
+                        참가비를 아래 계좌로 입금해주시면 24시간 내로 참가
+                        신청이 확정됩니다.
+                      </div>
+                      <div className="mt-2 text-red-500 font-semibold">
+                        * 입금자명은 반드시 본인의 유저네임으로 해주세요.
+                      </div>
+                      <div className="mt-2 font-mono bg-gray-100 p-2 rounded">
+                        신한은행 110-320-955821 (안재현)
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setIsJoinResultDialogOpen(false)}>
+                확인
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       <div className="w-full md:w-1/4 mt-4 md:mt-0 flex flex-col h-full md:pl-2">
         <div className="md:block pl-6 pt-4 flex-grow pb-16">
           {meetup.clubs && (
-            <div className="mb-6">
+            <div className="mb-8">
               <h2 className="text-xl font-semibold mb-2">주최 클럽</h2>
               <Link
                 href={`/socialing/club/${meetup.clubs.id}`}
@@ -393,15 +476,11 @@ export default function MeetupDetailClient({
             </div>
           )}
 
-          <div className="bg-white rounded-lg p-0 mb-6">
+          <div className="bg-white rounded-lg p-0 mb-8">
             <h2 className="text-xl font-semibold mb-2">
-              참가자 ({approvedParticipants.length}명)
+              참가 확정 ({approvedParticipants.length}
+              {meetup.max_participants ? `/${meetup.max_participants}` : ''})
             </h2>
-            {meetup.max_participants && (
-              <p className="text-sm text-gray-600 mb-3">
-                최대 인원: {meetup.max_participants}명
-              </p>
-            )}
             <div className="flex flex-wrap gap-3">
               {approvedParticipants.length > 0 ? (
                 approvedParticipants.map((participant) => (
@@ -433,9 +512,9 @@ export default function MeetupDetailClient({
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-0 mb-6">
+          <div className="bg-white rounded-lg p-0 mb-8">
             <h2 className="text-xl font-semibold mb-3">
-              참가 대기중 ({pendingParticipants.length}명)
+              참가 대기중 ({pendingParticipants.length})
             </h2>
             <div className="flex flex-wrap gap-3">
               {pendingParticipants.length > 0 ? (

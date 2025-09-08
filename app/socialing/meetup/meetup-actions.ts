@@ -99,6 +99,7 @@ export async function createMeetup(
       location_description: formData.get("locationDescription") as string,
       max_participants:
         parseInt(formData.get("maxParticipants") as string, 10) || null,
+      fee: parseInt(formData.get("fee") as string, 10) || null,
     };
 
     const { data: newMeetup, error } = await supabase
@@ -236,6 +237,7 @@ export async function updateMeetup(
       location_description: formData.get("locationDescription") as string,
       max_participants:
         parseInt(formData.get("maxParticipants") as string, 10) || null,
+      fee: parseInt(formData.get("fee") as string, 10) || null,
     };
 
     const { error: updateError } = await supabase

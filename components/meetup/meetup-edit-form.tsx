@@ -72,6 +72,7 @@ export default function MeetupEditForm({
   );
   const [locationDescription, setLocationDescription] = useState(meetup?.location_description || "");
   const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
+  const [fee, setFee] = useState<number | string>(meetup?.fee || "");
   const [maxParticipantsError, setMaxParticipantsError] = useState<string | null>(null);
   
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -146,6 +147,7 @@ export default function MeetupEditForm({
     formData.append("endDatetime", endDatetime.toISOString());
     formData.append("locationDescription", locationDescription);
     formData.append("maxParticipants", maxParticipants.toString());
+    formData.append("fee", fee.toString());
 
     if (isEditMode && meetup) {
       formData.append("id", meetup.id);
@@ -336,22 +338,39 @@ export default function MeetupEditForm({
         <Input id="locationDescription" name="locationDescription" value={locationDescription} onChange={(e) => setLocationDescription(e.target.value)} />
       </div>
 
-      <div>
-        <label htmlFor="maxParticipants" className="block text-sm font-semibold text-gray-700 mb-1">
-          최대 인원 (비워두면 무제한)
-        </label>
-        <Input
-          id="maxParticipants"
-          name="maxParticipants"
-          type="text"
-          value={maxParticipants}
-          onChange={handleMaxParticipantsChange}
-          min="1"
-          className={maxParticipantsError ? "border-red-500" : ""}
-        />
-        {maxParticipantsError && (
-          <p className="text-red-500 text-sm mt-1">{maxParticipantsError}</p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="maxParticipants" className="block text-sm font-semibold text-gray-700 mb-1">
+            최대 인원 (비워두면 무제한)
+          </label>
+          <Input
+            id="maxParticipants"
+            name="maxParticipants"
+            type="text"
+            value={maxParticipants}
+            onChange={handleMaxParticipantsChange}
+            min="1"
+            className={maxParticipantsError ? "border-red-500" : ""}
+          />
+          {maxParticipantsError && (
+            <p className="text-red-500 text-sm mt-1">{maxParticipantsError}</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="fee" className="block text-sm font-semibold text-gray-700 mb-1">
+            참가비 (비워두면 무료)
+          </label>
+          <Input
+            id="fee"
+            name="fee"
+            type="number"
+            value={fee}
+            onChange={(e) => setFee(e.target.value)}
+            min="0"
+            step="100"
+            placeholder="예: 5000"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-3">

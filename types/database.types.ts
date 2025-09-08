@@ -454,6 +454,7 @@ export type Database = {
           created_at: string;
           description: Json | null;
           end_datetime: string | null;
+          fee: number | null;
           id: string;
           location_description: string | null;
           location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
@@ -470,6 +471,7 @@ export type Database = {
           created_at?: string;
           description?: Json | null;
           end_datetime?: string | null;
+          fee?: number | null;
           id?: string;
           location_description?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
@@ -486,6 +488,7 @@ export type Database = {
           created_at?: string;
           description?: Json | null;
           end_datetime?: string | null;
+          fee?: number | null;
           id?: string;
           location_description?: string | null;
           location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
