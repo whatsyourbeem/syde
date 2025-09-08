@@ -81,7 +81,7 @@ function formatDate(dateString: string | null) {
   hours = hours ? hours : 12; // the hour '0' should be '12'
   const formattedHours = hours.toString().padStart(2, "0");
 
-  return `${year}.${month}.${day}(${weekday}) ${formattedHours}:${minutes}${ampm}`;
+  return `${year}.${month}.${day}(${weekday})`;
 }
 
 function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
@@ -277,12 +277,12 @@ export default function ClubDetailClient({
               {club.meetups.map((meetup) => (
                 <div
                   key={meetup.id}
-                  className="w-[280px] h-[240px] flex-shrink-0"
+                  className="w-[240px] flex-shrink-0"
                 >
                   <div className="p-1 h-full">
                     <Card className="h-full transition-shadow hover:shadow-lg overflow-hidden">
-                      <CardContent className="flex flex-row items-start p-0 h-full">
-                        <div className="w-[120px] h-full flex-shrink-0 relative overflow-hidden rounded-l-lg">
+                      <CardContent className="flex flex-col p-0 h-full">
+                        <div className="w-full h-[160px] relative overflow-hidden rounded-t-lg">
                           <Image
                             src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
                             alt={meetup.title}
@@ -294,39 +294,17 @@ export default function ClubDetailClient({
                               {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                             </Badge>
                           </div>
-                          <div className="absolute top-1 right-1">
-                            <Badge className={`${getLocationTypeBadgeClass(meetup.location_type)} text-xs`}>
-                              {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
-                            </Badge>
-                          </div>
+                          
                         </div>
                         <div className="flex flex-col flex-grow p-4">
                           <Link
                             href={`/socialing/meetup/${meetup.id}`}
                             className="w-full flex flex-col flex-grow"
                           >
-                            <h3 className="font-semibold line-clamp-2 mb-2">
+                            <h3 className="font-semibold text-sm line-clamp-2 mb-2">
                               {meetup.title}
                             </h3>
-                            <div className="flex flex-col text-xs text-muted-foreground space-y-1 mt-4">
-                              {meetup.start_datetime && (
-                                <p className="flex items-center gap-1.5">
-                                  <Clock className="size-3" />{" "}
-                                  {formatDate(meetup.start_datetime)}
-                                </p>
-                              )}
-                              {(meetup.location || meetup.address) && (
-                                <p className="flex items-center gap-1.5">
-                                  <MapPin className="size-3" />{" "}
-                                  {meetup.location}
-                                  {meetup.location && meetup.address && " ("}
-                                  {meetup.address}
-                                  {meetup.location && meetup.address && ")"}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                              <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mb-2"> {/* Organizer Info */}
                                 <Avatar className="size-5">
                                   <AvatarImage
                                     src={
@@ -345,10 +323,21 @@ export default function ClubDetailClient({
                                     meetup.organizer_profile?.username}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Users className="size-3" />
-                                <span>{meetup.max_participants || "무제한"}</span>
-                              </div>
+                            <div className="text-xs text-muted-foreground"> {/* Date and Location Info */}
+                              {meetup.start_datetime && (
+                                <span>
+                                  {formatDate(meetup.start_datetime)}
+                                </span>
+                              )}
+                              {(meetup.location || meetup.address) && (
+                                <span>
+                                  {" | "}
+                                  {meetup.location}
+                                  {meetup.location && meetup.address && " ("}
+                                  {meetup.address}
+                                  {meetup.location && meetup.address && ")"}
+                                </span>
+                              )}
                             </div>
                           </Link>
                         </div>
