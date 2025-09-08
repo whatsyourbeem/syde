@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { Tables, Enums } from "@/types/database.types";
 import {
-  MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
-  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
   MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
 import TiptapViewer from "@/components/common/tiptap-viewer";
@@ -23,7 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 
-import { Clock, MapPin, Users } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
@@ -74,12 +72,7 @@ function formatDate(dateString: string | null) {
   const day = date.getDate().toString().padStart(2, "0");
   const weekday = ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
 
-  let hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  hours = hours ? hours : 12; // the hour '0' should be '12'
-  const formattedHours = hours.toString().padStart(2, "0");
+  
 
   return `${year}.${month}.${day}(${weekday})`;
 }
@@ -99,18 +92,7 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
   }
 }
 
-function getLocationTypeBadgeClass(
-  locationType: Enums<"meetup_location_type_enum">
-) {
-  switch (locationType) {
-    case MEETUP_LOCATION_TYPES.ONLINE:
-      return "bg-green-100 text-green-800";
-    case MEETUP_LOCATION_TYPES.OFFLINE:
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
+
 
 // Main Component
 export default function ClubDetailClient({
