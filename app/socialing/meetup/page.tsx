@@ -14,6 +14,7 @@ import {
   MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { Calendar, MapPin } from 'lucide-react';
 
 type MeetupWithOrganizerProfile =
   Database["public"]["Tables"]["meetups"]["Row"] & {
@@ -28,11 +29,13 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const day = date.getDate().toString().padStart(2, "0");
   const weekday = date.toLocaleDateString(undefined, { weekday: "short" });
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
 
   if (includeYear) {
-    return `${year}.${month}.${day}(${weekday})`;
+    return `${year}.${month}.${day}(${weekday}) ${hours}:${minutes}`;
   } else {
-    return `${month}.${day}(${weekday})`;
+    return `${month}.${day}(${weekday}) ${hours}:${minutes}`;
   }
 }
 
@@ -41,41 +44,41 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 function getCategoryBadgeClass(category: string) {
   switch (category) {
     case MEETUP_CATEGORIES.STUDY:
-      return "border border-orange-500 bg-orange-50 text-orange-700 px-2 py-1 text-sm hover:bg-orange-50 hover:text-orange-700";
+      return "border border-orange-500 bg-orange-50 text-orange-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-orange-50 hover:text-orange-700";
     case MEETUP_CATEGORIES.CHALLENGE:
-      return "border border-red-500 bg-red-50 text-red-700 px-2 py-1 text-sm hover:bg-red-50 hover:text-red-700";
+      return "border border-red-500 bg-red-50 text-red-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-red-50 hover:text-red-700";
     case MEETUP_CATEGORIES.NETWORKING:
-      return "border border-purple-500 bg-purple-50 text-purple-700 px-2 py-1 text-sm hover:bg-purple-50 hover:text-purple-700";
+      return "border border-purple-500 bg-purple-50 text-purple-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-purple-50 hover:text-purple-700";
     case MEETUP_CATEGORIES.ETC:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
   }
 }
 
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
     case MEETUP_LOCATION_TYPES.ONLINE:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700";
     case MEETUP_LOCATION_TYPES.OFFLINE:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
   }
 }
 
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case MEETUP_STATUSES.UPCOMING:
-      return "border border-gray-400 bg-gray-100 text-gray-700 px-2 py-1 text-sm font-bold hover:bg-gray-100 hover:text-gray-700";
+      return "border border-gray-400 bg-gray-100 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-gray-100 hover:text-gray-700";
     case MEETUP_STATUSES.APPLY_AVAILABLE:
-      return "border border-green-500 bg-green-50 text-green-700 px-2 py-1 text-sm font-bold hover:bg-green-50 hover:text-green-700";
+      return "border border-green-500 bg-green-50 text-green-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-green-50 hover:text-green-700";
     case MEETUP_STATUSES.APPLY_CLOSED:
-      return "border border-red-500 bg-red-50 text-red-700 px-2 py-1 text-sm font-bold hover:bg-red-50 hover:text-red-700";
+      return "border border-red-500 bg-red-50 text-red-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-red-50 hover:text-red-700";
     case MEETUP_STATUSES.ENDED:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
   }
 }
 
@@ -127,7 +130,7 @@ export default async function MeetupPage({
           <p>해당 모임이 없습니다.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
           {typedMeetups.map((meetup) => (
             <div
               key={meetup.id}
@@ -151,7 +154,7 @@ export default async function MeetupPage({
                     <Badge className={`${getStatusBadgeClass(meetup.status)} whitespace-nowrap`}>
                       {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
-                    <div className="flex gap-2">
+                    <div className="hidden md:flex gap-2">
                       <Badge className={getCategoryBadgeClass(meetup.category)}>
                         {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
                       </Badge>
@@ -164,18 +167,19 @@ export default async function MeetupPage({
                   </div>
                 </div>
               </Link>
-              <div className="px-6 py-4 flex-grow flex flex-col">
+              <div className="p-2 md:px-6 md:pb-4 md:pt-4 flex-grow flex flex-col">
                 <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-2">
                   <div className="flex justify-between items-start">
-                    <h2 className="text-base font-semibold line-clamp-2 hover:underline mr-2">
+                    <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline mr-2">
                       {meetup.title}
                     </h2>
                   </div>
                 </Link>
+                <div className="flex-grow"></div>
                 {meetup.clubs && (
                   <Link
                     href={`/socialing/club/${meetup.clubs.id}`}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:underline mb-2"
+                    className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline mb-2"
                   >
                     <Avatar className="size-5">
                       <AvatarImage
@@ -185,16 +189,16 @@ export default async function MeetupPage({
                         {meetup.clubs.name?.charAt(0) || "C"}
                       </AvatarFallback>
                     </Avatar>
-                    <span>{meetup.clubs.name}</span>
+                    <span className="truncate inline-block max-w-full">{meetup.clubs.name}</span>
                   </Link>
                 )}
                 
-                {meetup.organizer_profile && (
+                {!meetup.clubs && meetup.organizer_profile && (
                   <ProfileHoverCard
                     userId={meetup.organizer_profile.id}
                     profileData={meetup.organizer_profile}
                   >
-                    <div className="text-sm text-gray-500 flex items-center gap-2">
+                    <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2 mb-2">
                       <Link href={`/${meetup.organizer_profile?.username}`}>
                         <Avatar className="size-5">
                           <AvatarImage
@@ -208,9 +212,9 @@ export default async function MeetupPage({
                           </AvatarFallback>
                         </Avatar>
                       </Link>
-                      <p>
-                        <Link href={`/${meetup.organizer_profile?.username}`}>
-                          <span className="font-semibold text-gray-700 hover:underline">
+                      <p className="flex items-center">
+                        <Link href={`/${meetup.organizer_profile?.username}`} className="inline-flex items-center">
+                          <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">
                             {meetup.organizer_profile?.full_name ||
                               meetup.organizer_profile?.username ||
                               "알 수 없음"}
@@ -221,16 +225,15 @@ export default async function MeetupPage({
                     </div>
                   </ProfileHoverCard>
                 )}
-                <Link href={`/socialing/meetup/${meetup.id}`}className="text-sm text-gray-500 pt-2 flex-grow">
-                  <p className="text-sm text-gray-500 font-medium">
+                <Link href={`/socialing/meetup/${meetup.id}`}className="text-sm text-gray-500">
+                  <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-2">
                     {meetup.start_datetime && (
-                      <span>{formatDate(meetup.start_datetime)}</span>
+                      <><Calendar className="size-3 md:size-4" /><span>{formatDate(meetup.start_datetime)}</span></>
                     )}
-                    {meetup.start_datetime && meetup.location && (
-                      <span> &nbsp;|&nbsp; </span>
-                    )}
+                  </p>
+                  <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2">
                     {meetup.location && (
-                      <span>{meetup.location}</span>
+                      <><MapPin className="size-3 md:size-4" /><span className="truncate whitespace-nowrap overflow-hidden">{meetup.location}{meetup.address && ` (${meetup.address})`}</span></>
                     )}
                   </p>
                 </Link>
