@@ -45,41 +45,41 @@ function formatTime(dateString: string) {
 function getCategoryBadgeClass(category: string) {
   switch (category) {
     case MEETUP_CATEGORIES.STUDY:
-      return "border border-orange-500 bg-orange-50 text-orange-700 hover:bg-orange-50 hover:text-orange-700";
+      return "border border-orange-500 bg-orange-50 text-orange-700 px-2 py-1 text-sm hover:bg-orange-50 hover:text-orange-700";
     case MEETUP_CATEGORIES.CHALLENGE:
-      return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
+      return "border border-red-500 bg-red-50 text-red-700 px-2 py-1 text-sm hover:bg-red-50 hover:text-red-700";
     case MEETUP_CATEGORIES.NETWORKING:
-      return "border border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-50 hover:text-purple-700";
+      return "border border-purple-500 bg-purple-50 text-purple-700 px-2 py-1 text-sm hover:bg-purple-50 hover:text-purple-700";
     case MEETUP_CATEGORIES.ETC:
-      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
   }
 }
 
 function getLocationTypeBadgeClass(locationType: string) {
   switch (locationType) {
     case MEETUP_LOCATION_TYPES.ONLINE:
-      return "border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-50 hover:text-blue-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700";
     case MEETUP_LOCATION_TYPES.OFFLINE:
-      return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700"; // 기본값
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
   }
 }
 
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case MEETUP_STATUSES.UPCOMING:
-      return "border border-gray-400 bg-gray-100 text-gray-700 hover:bg-gray-100 hover:text-gray-700";
+      return "border border-gray-400 bg-gray-100 text-gray-700 px-2 py-1 text-sm font-bold hover:bg-gray-100 hover:text-gray-700";
     case MEETUP_STATUSES.APPLY_AVAILABLE:
-      return "border border-green-500 bg-green-50 text-green-700 hover:bg-green-50 hover:text-green-700";
+      return "border border-green-500 bg-green-50 text-green-700 px-2 py-1 text-sm font-bold hover:bg-green-50 hover:text-green-700";
     case MEETUP_STATUSES.APPLY_CLOSED:
-      return "border border-red-500 bg-red-50 text-red-700 hover:bg-red-50 hover:text-red-700";
+      return "border border-red-500 bg-red-50 text-red-700 px-2 py-1 text-sm font-bold hover:bg-red-50 hover:text-red-700";
     case MEETUP_STATUSES.ENDED:
-      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700";
+      return "border border-gray-500 bg-gray-50 text-gray-700 px-2 py-1 text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
   }
 }
 
@@ -151,27 +151,29 @@ export default async function MeetupPage({
                         : ""
                     }`}
                   />
-                  <div className="mt-3 px-3 flex justify-between h-fit">
-                    <Badge className={getCategoryBadgeClass(meetup.category)}>
-                      {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
+                  <div className="absolute top-3 inset-x-0 flex justify-between items-start px-3">
+                    <Badge className={`${getStatusBadgeClass(meetup.status)} whitespace-nowrap`}>
+                      {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
-                    <Badge
-                      className={getLocationTypeBadgeClass(meetup.location_type)}
-                    >
-                      {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
-                    </Badge>
+                    <div className="flex gap-2">
+                      <Badge className={getCategoryBadgeClass(meetup.category)}>
+                        {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
+                      </Badge>
+                      <Badge
+                        className={getLocationTypeBadgeClass(meetup.location_type)}
+                      >
+                        {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </Link>
               <div className="px-6 py-4 flex-grow flex flex-col">
-                <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-4">
+                <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-2">
                   <div className="flex justify-between items-start">
                     <h2 className="text-base font-semibold line-clamp-2 hover:underline mr-2">
                       {meetup.title}
                     </h2>
-                    <Badge className={`${getStatusBadgeClass(meetup.status)} whitespace-nowrap`}>
-                      {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
-                    </Badge>
                   </div>
                 </Link>
                 {meetup.clubs && (

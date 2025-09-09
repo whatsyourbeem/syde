@@ -311,13 +311,10 @@ export default function ClubDetailClient({
                                   {formatDate(meetup.start_datetime)}
                                 </span>
                               )}
-                              {(meetup.location || meetup.address) && (
+                              {meetup.location && (
                                 <span>
                                   {" | "}
                                   {meetup.location}
-                                  {meetup.location && meetup.address && " ("}
-                                  {meetup.address}
-                                  {meetup.location && meetup.address && ")"}
                                 </span>
                               )}
                             </div>
