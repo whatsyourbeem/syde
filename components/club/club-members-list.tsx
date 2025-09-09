@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, LogOut, Crown, EllipsisVertical } from "lucide-react";
 import { toast } from "sonner";
 import { leaveClub } from "@/app/socialing/club/club-actions";
+import { updateClubMemberRole } from "@/app/socialing/club/actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import {
@@ -63,6 +64,9 @@ export default function ClubMembersList({
 }: ClubMembersListProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
+
+  const isOwner = currentUserId === clubOwnerId;
 
   const currentMember = members.find(
     (member) => member.user_id === currentUserId
@@ -116,9 +120,22 @@ export default function ClubMembersList({
     }
   };
 
+  const handleUpdateRole = async (
+    userId: string,
+    role: Enums<"club_member_role_enum">
+  ) => {
+    setIsUpdatingRole(userId);
+    const result = await updateClubMemberRole(clubId, userId, role);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("멤버 등급이 변경되었습니다.");
+    }
+    setIsUpdatingRole(null);
+  };
+
   return (
     <div>
-      
       <div
         className={`flex ${
           direction === "vertical" ? "flex-col gap-4" : "flex-row gap-4"
@@ -270,6 +287,7 @@ export default function ClubMembersList({
                       <div className="flex flex-col gap-2 py-2">
                         {membersInRole.map((member) => {
                           if (!member.profiles) return null;
+                          const isUpdating = isUpdatingRole === member.user_id;
                           return (
                             <MemberCard
                               key={member.user_id}
@@ -277,6 +295,23 @@ export default function ClubMembersList({
                               tagline={member.profiles.tagline}
                               isOwner={member.user_id === clubOwnerId}
                               isCurrentUser={member.user_id === currentUserId}
+                              showButton={
+                                isOwner && member.user_id !== clubOwnerId
+                              }
+                              buttonText={
+                                member.role === "FULL_MEMBER"
+                                  ? "준회원으로 변경"
+                                  : "정회원으로 변경"
+                              }
+                              onButtonClick={() =>
+                                handleUpdateRole(
+                                  member.user_id,
+                                  member.role === "FULL_MEMBER"
+                                    ? "GENERAL_MEMBER"
+                                    : "FULL_MEMBER"
+                                )
+                              }
+                              isLoading={isUpdating}
                             />
                           );
                         })}

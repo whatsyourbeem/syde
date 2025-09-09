@@ -182,14 +182,14 @@ export default function ClubDetailClient({
                 모두보기
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="h-full w-full">
+            <DrawerContent className="h-full w-full flex flex-col">
               <DrawerHeader>
                 <DrawerTitle>클럽 멤버 전체 보기</DrawerTitle>
                 <DrawerDescription>
                   이 클럽의 모든 멤버 목록입니다.
                 </DrawerDescription>
               </DrawerHeader>
-              <div className="p-4">
+              <div className="p-4 overflow-y-auto">
                 <ClubMembersList
                   clubId={club.id}
                   members={club.members}
