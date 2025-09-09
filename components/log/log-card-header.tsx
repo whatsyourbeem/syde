@@ -45,7 +45,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
       <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
         <div className="flex items-start">
           {avatarUrlWithCacheBuster && (
-            <Link href={`/${log.profiles?.username || log.user_id}`}>
+            <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
               <Image
                 src={avatarUrlWithCacheBuster}
                 alt={`${log.profiles?.username || "User"}'s avatar`}
@@ -58,9 +58,9 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
               />
             </Link>
           )}
-          <div className="flex-grow">
-            <div className="flex items-baseline gap-1">
-              <Link href={`/${log.profiles?.username || log.user_id}`}>
+          <div className="flex-grow min-w-0 overflow-hidden">
+            <div className="flex items-baseline gap-1 overflow-hidden">
+              <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
                 <p className="font-semibold hover:underline text-log-content">
                   {log.profiles?.full_name ||
                     log.profiles?.username ||
@@ -68,9 +68,9 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
                 </p>
               </Link>
               {log.profiles?.tagline && (
-                <p className="text-xs text-muted-foreground">{log.profiles.tagline}</p>
+                <p className="text-xs text-muted-foreground flex-grow min-w-0 truncate">{log.profiles.tagline}</p>
               )}
-              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedLogDate}</p>
+              <p className="text-xs text-muted-foreground flex-shrink-0">·&nbsp;&nbsp;{formattedLogDate}</p>
             </div>
           </div>
         </div>
