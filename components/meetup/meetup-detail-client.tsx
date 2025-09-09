@@ -363,18 +363,16 @@ export default function MeetupDetailClient({
                   </span>
                 </p>
               )}
-              {meetup.max_participants && (
-                <p className="flex items-start gap-3 text-black text-base font-bold">
-                  <Users className="size-6 text-black" />
-                  <span>
-                    {meetup.max_participants}명
-                    <br />
-                    <span className="text-sm text-gray-500 font-normal">
-                      최대 인원
-                    </span>
+              <p className="flex items-start gap-3 text-black text-base font-bold">
+                <Users className="size-6 text-black" />
+                <span>
+                  {meetup.max_participants ? `${meetup.max_participants}명` : "무제한"}
+                  <br />
+                  <span className="text-sm text-gray-500 font-normal">
+                    최대 인원
                   </span>
-                </p>
-              )}
+                </span>
+              </p>
             </div>
           </div>
 

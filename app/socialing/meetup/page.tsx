@@ -20,7 +20,6 @@ type MeetupWithOrganizerProfile =
   Database["public"]["Tables"]["meetups"]["Row"] & {
     organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
     clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
-    meetup_participants: { count: number }[];
   };
 
 // 날짜 포맷 헬퍼 함수 추가
@@ -36,6 +35,11 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   } else {
     return `${month}.${day}(${weekday})`;
   }
+}
+
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function getCategoryBadgeClass(category: string) {
@@ -93,7 +97,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, clubs(id, name), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), meetup_participants(count), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants"
+      "*, clubs(id, name, thumbnail_url), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants"
     )
     .order("created_at", { ascending: false });
 
@@ -127,7 +131,7 @@ export default async function MeetupPage({
           <p>해당 모임이 없습니다.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {typedMeetups.map((meetup) => (
             <div
               key={meetup.id}
@@ -160,12 +164,12 @@ export default async function MeetupPage({
                 </div>
               </Link>
               <div className="px-6 py-4 flex-grow flex flex-col">
-                <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-2">
+                <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-4">
                   <div className="flex justify-between items-start">
-                    <h2 className="text-base font-semibold line-clamp-3 hover:underline">
+                    <h2 className="text-base font-semibold line-clamp-2 hover:underline mr-2">
                       {meetup.title}
                     </h2>
-                    <Badge className={getStatusBadgeClass(meetup.status)}>
+                    <Badge className={`${getStatusBadgeClass(meetup.status)} whitespace-nowrap`}>
                       {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
                   </div>
@@ -173,9 +177,16 @@ export default async function MeetupPage({
                 {meetup.clubs && (
                   <Link
                     href={`/socialing/club/${meetup.clubs.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:underline mb-2"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:underline mb-2"
                   >
-                    <Network className="size-4" />
+                    <Avatar className="size-5">
+                      <AvatarImage
+                        src={meetup.clubs.thumbnail_url || undefined}
+                      />
+                      <AvatarFallback>
+                        {meetup.clubs.name?.charAt(0) || "C"}
+                      </AvatarFallback>
+                    </Avatar>
                     <span>{meetup.clubs.name}</span>
                   </Link>
                 )}
@@ -201,7 +212,7 @@ export default async function MeetupPage({
                       </Link>
                       <p>
                         <Link href={`/${meetup.organizer_profile?.username}`}>
-                          <span className="font-semibold text-black hover:underline">
+                          <span className="font-semibold text-gray-700 hover:underline">
                             {meetup.organizer_profile?.full_name ||
                               meetup.organizer_profile?.username ||
                               "알 수 없음"}
@@ -213,34 +224,17 @@ export default async function MeetupPage({
                   </ProfileHoverCard>
                 )}
                 <Link href={`/socialing/meetup/${meetup.id}`}className="text-sm text-gray-500 pt-2 flex-grow">
-                  <p className="flex items-center gap-1 mb-1">
-                    <Users className="size-4" />
-                    {
-                      (meetup.meetup_participants &&
-                      meetup.meetup_participants.length > 0
-                        ? meetup.meetup_participants[0].count
-                        : 0)
-                    }
-                    {meetup.max_participants
-                      ? `/${meetup.max_participants}명`
-                      : "명"}
+                  <p className="text-sm text-gray-500 font-medium">
+                    {meetup.start_datetime && (
+                      <span>{formatDate(meetup.start_datetime)}</span>
+                    )}
+                    {meetup.start_datetime && meetup.location && (
+                      <span> &nbsp;|&nbsp; </span>
+                    )}
+                    {meetup.location && (
+                      <span>{meetup.location}</span>
+                    )}
                   </p>
-                  {meetup.start_datetime && (
-                    <p className="tracking-wide flex items-center gap-1 mb-1">
-                      <Clock className="size-4" />
-                      {formatDate(meetup.start_datetime)}
-                      {meetup.end_datetime &&
-                        formatDate(meetup.start_datetime) !==
-                          formatDate(meetup.end_datetime) &&
-                        ` - ${formatDate(meetup.end_datetime, false)}`}
-                    </p>
-                  )}
-                  {meetup.location && (
-                    <p className="flex items-center gap-1">
-                      <MapPin className="size-4" />
-                      {meetup.location}
-                    </p>
-                  )}
                 </Link>
               </div>
             </div>
