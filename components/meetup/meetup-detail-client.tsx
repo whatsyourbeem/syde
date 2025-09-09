@@ -38,7 +38,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { User } from "@supabase/supabase-js";
-import { joinMeetup, updateMeetupParticipantStatus } from "@/app/socialing/meetup/meetup-actions";
+import { Separator } from "@/components/ui/separator";
+import {
+  joinMeetup,
+  updateMeetupParticipantStatus,
+} from "@/app/socialing/meetup/meetup-actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 
@@ -59,7 +63,11 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 
 function formatTime(dateString: string) {
   const date = new Date(dateString);
-  return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return date.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 function formatFee(fee: number | null) {
@@ -335,7 +343,9 @@ export default function MeetupDetailClient({
           </div>
 
           <div className="flex justify-between items-center mb-2">
-            <h1 className="text-3xl font-bold pb-2">{meetup.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold pb-2">
+              {meetup.title}
+            </h1>
             {isOrganizer && (
               <Link href={`/socialing/meetup/${meetup.id}/edit`}>
                 <Button>수정</Button>
@@ -344,8 +354,8 @@ export default function MeetupDetailClient({
           </div>
 
           {/* 모임장 정보 */}
-          <div className="flex items-center gap-2 mb-6 text-gray-600">
-            <Avatar className="size-7">
+          <div className="flex items-center gap-2 mb-6 text-gray-600 text-sm md:text-base">
+            <Avatar className="size-6 md:size-7">
               <AvatarImage
                 src={meetup.organizer_profile?.avatar_url || undefined}
               />
@@ -372,14 +382,14 @@ export default function MeetupDetailClient({
                 alt={meetup.title}
                 width={800} // Adjust as needed
                 height={400} // Adjust as needed
-                className="w-full h-64 object-cover object-center rounded-lg"
+                className="w-full h-48 md:h-64 object-cover object-center rounded-lg"
               />
             </div>
             {/* 오른쪽: 모임 장소, 모임일시, 최대인원 정보 */}
-            <div className="w-full md:w-1/2 flex flex-col justify-center p-5 border rounded-lg">
+            <div className="w-full md:w-1/2 flex flex-col justify-center p-4 md:p-5 border rounded-lg">
               {meetup.start_datetime && (
-                <p className="flex items-start gap-3 mb-6 text-black text-base font-bold">
-                  <Calendar className="size-6 text-black" />
+                <p className="flex items-start gap-3 mb-6 text-black text-sm md:text-base font-bold">
+                  <Calendar className="size-5 md:size-6 text-black" />
                   <span>
                     {formatDate(meetup.start_datetime)}
                     {meetup.end_datetime &&
@@ -387,7 +397,7 @@ export default function MeetupDetailClient({
                         formatDate(meetup.end_datetime) &&
                       ` - ${formatDate(meetup.end_datetime, false)}`}
                     <br />
-                    <span className="text-sm text-gray-500 font-normal">
+                    <span className="text-xs md:text-sm text-gray-500 font-normal">
                       {formatTime(meetup.start_datetime)}
                       {meetup.end_datetime &&
                         formatDate(meetup.start_datetime) ===
@@ -398,25 +408,27 @@ export default function MeetupDetailClient({
                 </p>
               )}
               {(meetup.location || meetup.address) && (
-                <p className="flex items-start gap-3 mb-6 text-black text-base font-bold">
-                  <MapPin className="size-6 text-black" />
+                <p className="flex items-start gap-3 mb-6 text-black text-sm md:text-base font-bold">
+                  <MapPin className="size-5 md:size-6 text-black" />
                   <span>
                     {meetup.location}
                     {meetup.location && meetup.address && <br />}
                     {meetup.address && (
-                      <span className="text-sm text-gray-500 font-normal">
+                      <span className="text-xs md:text-sm text-gray-500 font-normal">
                         {meetup.address}
                       </span>
                     )}
                   </span>
                 </p>
               )}
-              <p className="flex items-start gap-3 text-black text-base font-bold">
-                <Users className="size-6 text-black" />
+              <p className="flex items-start gap-3 text-black text-sm md:text-base font-bold">
+                <Users className="size-5 md:size-6 text-black" />
                 <span>
-                  {meetup.max_participants ? `${meetup.max_participants}명` : "무제한"}
+                  {meetup.max_participants
+                    ? `${meetup.max_participants}명`
+                    : "무제한"}
                   <br />
-                  <span className="text-sm text-gray-500 font-normal">
+                  <span className="text-xs md:text-sm text-gray-500 font-normal">
                     최대 인원
                   </span>
                 </span>
@@ -425,7 +437,7 @@ export default function MeetupDetailClient({
           </div>
 
           {/* 모임 상세 설명 */}
-          <div className="bg-white rounded-lg p-6 mb-6">
+          <div className="bg-white rounded-lg mb-6">
             <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
             <TiptapViewer content={meetup.description} />
           </div>
@@ -433,23 +445,26 @@ export default function MeetupDetailClient({
 
         {/* 고정 하단 바 */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-10 px-4">
-          <div className="max-w-5xl mx-auto flex justify-between items-center p-4">
+          <div className="max-w-5xl mx-auto flex justify-between items-center px-2 py-3 md:p-4">
             <p className="text-sm flex items-center gap-2">
-              <span className="text-xs text-black mr-1">참가비</span>
-              <span className="font-extrabold text-xl">
+              <span className="text-xs text-black">참가비</span>
+              <span className="font-extrabold text-base md:text-xl">
                 {formatFee(meetup.fee)}
               </span>
             </p>
             <div className="flex items-center gap-4">
               <p className="text-sm flex items-center gap-2">
-                <Users className="size-5 text-gray-500" />
-                <span className="font-bold text-lg">
+                <Users className="size-3 md:size-5 text-gray-500" />
+                <span className="font-bold text-sm md:text-lg">
                   {approvedParticipants.length}
-                  {meetup.max_participants ? ` / ${meetup.max_participants}` : ""}
+                  {meetup.max_participants
+                    ? ` / ${meetup.max_participants}`
+                    : ""}
                 </span>
               </p>
               <Button
-                size="lg"
+                size="sm"
+                className="md:h-10 md:px-8 md:text-sm"
                 disabled={buttonState.disabled}
                 onClick={handleApplyClick}
               >
@@ -548,34 +563,49 @@ export default function MeetupDetailClient({
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <div className="w-full md:w-1/4 mt-4 md:mt-0 flex flex-col h-full md:pl-2">
-        <div className="md:block pl-6 pt-4 flex-grow pb-16">
+
+      {meetup.clubs && <Separator className="my-4 block md:hidden" />}
+
+      <div className="w-full md:w-1/4 md:mt-0 flex flex-col h-full md:pl-2">
+        <div className="flex-grow pb-16">
           {meetup.clubs && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-2">주최 클럽</h2>
-              <Link
-                href={`/socialing/club/${meetup.clubs.id}`}
-                className="inline-flex items-center gap-2 text-md font-semibold text-primary hover:underline"
-              >
-                <Image
-                  src={
-                    meetup.clubs.thumbnail_url || "/default_club_thumbnail.png"
-                  }
-                  alt={meetup.clubs.name || "Club Thumbnail"}
-                  width={36}
-                  height={36}
-                  className="rounded-md aspect-square object-cover"
-                />
-                {meetup.clubs.name}
-              </Link>
+            <div className="py-4 md:pl-6">
+              <div>
+                <h2 className="text-2xl md:text-xl font-bold mb-4">
+                  🌟<span className="font-extrabold pl-2">주최 클럽</span>
+                </h2>
+                <Link
+                  href={`/socialing/club/${meetup.clubs.id}`}
+                  className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                >
+                  <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                    <Image
+                      src={
+                        meetup.clubs.thumbnail_url ||
+                        "/default_club_thumbnail.png"
+                      }
+                      alt={meetup.clubs.name || "Club Thumbnail"}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 object-cover"
+                    />
+                  </div>
+                  {meetup.clubs.name}
+                </Link>
+              </div>
             </div>
           )}
 
+          <Separator className="my-4 block md:hidden" />
+
           {/* Desktop View: Accordion */}
-          <div className="hidden md:block">
-            <h2 className="text-xl font-semibold mb-2">
-              참가자 ({approvedParticipants.length}
-              {meetup.max_participants ? `/${meetup.max_participants}` : ""})
+          <div className="hidden px-4 pt-4 md:px-0 md:pl-6 md:block">
+            <h2 className="text-xl font-bold mb-4">
+              👥
+              <span className="font-extrabold pl-2">
+                참가자 ({approvedParticipants.length}
+                {meetup.max_participants ? `/${meetup.max_participants}` : ""})
+              </span>
             </h2>
             <Accordion
               type="multiple"
@@ -602,7 +632,9 @@ export default function MeetupDetailClient({
                             key={participant.user_id}
                             profile={participant.profiles}
                             tagline={participant.profiles.tagline}
-                            isOwner={participant.user_id === meetup.organizer_id}
+                            isOwner={
+                              participant.user_id === meetup.organizer_id
+                            }
                             isCurrentUser={participant.user_id === user?.id}
                             showButton={
                               isOrganizer &&
@@ -673,13 +705,21 @@ export default function MeetupDetailClient({
           </div>
 
           {/* Mobile View: Horizontal Scroll */}
-          <div className="block md:hidden">
+          <div className="py-4 block md:hidden">
             <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2 px-4">
+              <h2 className="text-2xl font-bold mb-4">
+                👥
+                <span className="font-extrabold pl-2">
+                  참가자 ({approvedParticipants.length}
+                  {meetup.max_participants ? `/${meetup.max_participants}` : ""}
+                  )
+                </span>
+              </h2>
+              <h2 className="text-base font-semibold mb-2">
                 참가 확정 ({approvedParticipants.length})
               </h2>
               {approvedParticipants.length > 0 ? (
-                <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <div className="py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
                   <div className="flex flex-row gap-4">
                     {approvedParticipants.map((participant) => {
                       if (!participant.profiles) return null;
@@ -707,18 +747,18 @@ export default function MeetupDetailClient({
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm px-4">
+                <p className="text-gray-500 text-sm">
                   아직 확정된 참가자가 없습니다.
                 </p>
               )}
             </div>
 
             <div>
-              <h2 className="text-lg font-semibold mb-2 px-4">
+              <h2 className="text-base font-semibold mb-2">
                 참가 대기중 ({pendingParticipants.length})
               </h2>
               {pendingParticipants.length > 0 ? (
-                <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <div className="py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
                   <div className="flex flex-row gap-4">
                     {pendingParticipants.map((participant) => {
                       if (!participant.profiles) return null;
@@ -743,7 +783,7 @@ export default function MeetupDetailClient({
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm px-4">
+                <p className="text-gray-500 text-sm">
                   현재 참가 대기중인 멤버가 없습니다.
                 </p>
               )}
