@@ -375,3 +375,49 @@ export async function approveMeetupParticipant(
   revalidatePath(`/socialing/meetup/${meetupId}`);
   return { success: true };
 }
+
+export async function updateMeetupParticipantStatus(
+  meetupId: string,
+  userId: string,
+  newStatus: Enums<"meetup_participant_status_enum">
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  // Verify that the current user is the organizer of the meetup
+  const { data: meetup, error: meetupError } = await supabase
+    .from("meetups")
+    .select("organizer_id")
+    .eq("id", meetupId)
+    .single();
+
+  if (meetupError || !meetup) {
+    console.error("Error fetching meetup for status update:", meetupError);
+    return { error: "모임 정보를 찾을 수 없습니다." };
+  }
+
+  if (meetup.organizer_id !== user.id) {
+    return { error: "모임장만 참가자 상태를 변경할 수 있습니다." };
+  }
+
+  // Update the participant\'s status
+  const { error } = await supabase
+    .from("meetup_participants")
+    .update({ status: newStatus })
+    .eq("meetup_id", meetupId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Error updating participant status:", error);
+    return { error: "참가자 상태 변경에 실패했습니다. 다시 시도해주세요." };
+  }
+
+  revalidatePath(`/socialing/meetup/${meetupId}`);
+  return { success: true };
+}

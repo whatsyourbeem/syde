@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { User } from "@supabase/supabase-js";
-import { joinMeetup } from "@/app/socialing/meetup/meetup-actions";
+import { joinMeetup, updateMeetupParticipantStatus } from "@/app/socialing/meetup/meetup-actions";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -175,6 +175,28 @@ export default function MeetupDetailClient({
               ...prev.meetup_participants,
               newParticipantWithProfile,
             ],
+          }));
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "meetup_participants",
+          filter: `meetup_id=eq.${meetup.id}`,
+        },
+        (payload) => {
+          const updatedParticipant =
+            payload.new as Database["public"]["Tables"]["meetup_participants"]["Row"];
+
+          setMeetup((prev) => ({
+            ...prev,
+            meetup_participants: prev.meetup_participants.map((p) =>
+              p.user_id === updatedParticipant.user_id
+                ? { ...p, status: updatedParticipant.status }
+                : p
+            ),
           }));
         }
       )
@@ -556,6 +578,29 @@ export default function MeetupDetailClient({
                     <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
                       {participant.profiles?.tagline}
                     </p>
+                    {isOrganizer && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() =>
+                          startTransition(async () => {
+                            const result = await updateMeetupParticipantStatus(
+                              meetup.id,
+                              participant.profiles!.id,
+                              MEETUP_PARTICIPANT_STATUSES.PENDING
+                            );
+                            if (result.error) {
+                              toast.error(result.error);
+                            } else {
+                              toast.success("참가자 상태가 변경되었습니다.");
+                            }
+                          })
+                        }
+                      >
+                        대기중으로 변경
+                      </Button>
+                    )}
                   </div>
                 ))
               ) : (
@@ -596,6 +641,29 @@ export default function MeetupDetailClient({
                     <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
                       {participant.profiles?.tagline}
                     </p>
+                    {isOrganizer && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() =>
+                          startTransition(async () => {
+                            const result = await updateMeetupParticipantStatus(
+                              meetup.id,
+                              participant.profiles!.id,
+                              MEETUP_PARTICIPANT_STATUSES.APPROVED
+                            );
+                            if (result.error) {
+                              toast.error(result.error);
+                            } else {
+                              toast.success("참가자 상태가 변경되었습니다.");
+                            }
+                          })
+                        }
+                      >
+                        확정으로 변경
+                      </Button>
+                    )}
                   </div>
                 ))
               ) : (
