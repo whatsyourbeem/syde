@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, LogOut, Crown, EllipsisVertical } from "lucide-react";
 import { toast } from "sonner";
 import { leaveClub } from "@/app/socialing/club/club-actions";
+import MemberCard from "@/components/user/MemberCard";
+import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import {
   Accordion,
   AccordionContent,
@@ -160,41 +162,17 @@ export default function ClubMembersList({
               count++;
             }
 
-            return displayMembers.map((member) => (
-              <ProfileHoverCard
-                key={member.profiles?.id}
-                userId={member.user_id}
-                profileData={member.profiles}
-              >
-                <Link href={`/${member.profiles?.username}`} className="block">
-                  <div className={`flex flex-col items-center flex-shrink-0 w-32 border rounded-md p-2 ${member.user_id === currentUserId ? "bg-gray-50" : ""}`}>
-                    <div className="relative">
-                      <Avatar className="size-12">
-                        <AvatarImage
-                          src={member.profiles?.avatar_url || undefined}
-                        />
-                        <AvatarFallback>
-                          {member.profiles?.username?.charAt(0).toUpperCase() ||
-                            "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      {member.user_id === clubOwnerId && (
-                        <Crown className="absolute -top-1 -left-1 size-6 text-yellow-500 fill-yellow-500 bg-white rounded-full p-0.5" />
-                      )}
-                    </div>
-                    <p className="font-semibold text-xs text-center mt-1 w-full truncate items-center justify-center">
-                      {member.profiles?.full_name || member.profiles?.username}
-                    </p>
-                    <p className="text-xs text-muted-foreground text-center w-full truncate">
-                      @{member.profiles?.username || member.user_id}
-                    </p>
-                    <p className="text-xs text-muted-foreground text-center w-full truncate h-[1rem]">
-                      {member.profiles?.tagline || " "}
-                    </p>
-                  </div>
-                </Link>
-              </ProfileHoverCard>
-            ));
+            return displayMembers.map((member) => {
+              if (!member.profiles) return null;
+              return (
+                <MemberCardHorizontal
+                  key={member.user_id}
+                  profile={member.profiles}
+                  isOwner={member.user_id === clubOwnerId}
+                  isCurrentUser={member.user_id === currentUserId}
+                />
+              );
+            });
           })()
         ) : (
           // Original vertical display for desktop
@@ -290,51 +268,18 @@ export default function ClubMembersList({
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-2 py-2">
-                        {membersInRole.map((member) => (
-                          <ProfileHoverCard
-                            key={member.profiles?.id}
-                            userId={member.user_id}
-                            profileData={member.profiles}
-                          >
-                            <Link href={`/${member.profiles?.username}`} className="block">
-                              <div className={`border rounded-md p-2 ${member.user_id === currentUserId ? "bg-gray-50" : ""}`}>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-x-2">
-                                    <div className="relative">
-                                      <Avatar className="size-7">
-                                        <AvatarImage
-                                          src={
-                                            member.profiles?.avatar_url || undefined
-                                          }
-                                        />
-                                        <AvatarFallback>
-                                          {member.profiles?.username
-                                            ?.charAt(0)
-                                            .toUpperCase() || "U"}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      {member.user_id === clubOwnerId && (
-                                        <Crown className="absolute -top-1 -left-1 size-4 text-yellow-500 fill-yellow-500 bg-white rounded-full p-0.5" />
-                                      )}
-                                    </div>
-                                    <div className="text-left">
-                                      <p className="font-semibold text-sm hover:underline line-clamp-1">
-                                        {member.profiles?.full_name ||
-                                          member.profiles?.username}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        @{member.profiles?.username || member.user_id}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                                <p className="text-xs text-muted-foreground line-clamp-1 h-[1rem] mt-1">
-                                  {member.profiles?.tagline || " "}
-                                </p>
-                              </div>
-                            </Link>
-                          </ProfileHoverCard>
-                        ))}
+                        {membersInRole.map((member) => {
+                          if (!member.profiles) return null;
+                          return (
+                            <MemberCard
+                              key={member.user_id}
+                              profile={member.profiles}
+                              tagline={member.profiles.tagline}
+                              isOwner={member.user_id === clubOwnerId}
+                              isCurrentUser={member.user_id === currentUserId}
+                            />
+                          );
+                        })}
                       </div>
                     </AccordionContent>
                   </AccordionItem>

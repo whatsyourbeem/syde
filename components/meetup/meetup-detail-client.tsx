@@ -31,8 +31,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { User } from "@supabase/supabase-js";
 import { joinMeetup, updateMeetupParticipantStatus } from "@/app/socialing/meetup/meetup-actions";
+import MemberCard from "@/components/user/MemberCard";
+import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -131,8 +139,26 @@ export default function MeetupDetailClient({
     error?: string;
     success?: boolean;
   } | null>(null);
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
   const supabase = createClient();
+
+  const handleStatusUpdate = (
+    participantId: string,
+    status: "APPROVED" | "PENDING"
+  ) => {
+    startTransition(async () => {
+      const result = await updateMeetupParticipantStatus(
+        meetup.id,
+        participantId,
+        status
+      );
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("참가자 상태가 변경되었습니다.");
+      }
+    });
+  };
 
   useEffect(() => {
     document.body.classList.add("no-footer");
@@ -545,129 +571,179 @@ export default function MeetupDetailClient({
             </div>
           )}
 
-          <div className="bg-white rounded-lg p-0 mb-8">
+          {/* Desktop View: Accordion */}
+          <div className="hidden md:block">
             <h2 className="text-xl font-semibold mb-2">
-              참가 확정 ({approvedParticipants.length}
+              참가자 ({approvedParticipants.length}
               {meetup.max_participants ? `/${meetup.max_participants}` : ""})
             </h2>
-            <div className="flex flex-wrap gap-3">
-              {approvedParticipants.length > 0 ? (
-                approvedParticipants.map((participant) => (
-                  <div
-                    key={participant.profiles?.id}
-                    className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <Avatar className="size-10">
-                        <AvatarImage
-                          src={participant.profiles?.avatar_url || undefined}
-                        />
-                        <AvatarFallback>
-                          {participant.profiles?.username?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">
-                          {participant.profiles?.full_name || "알 수 없음"}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          @{participant.profiles?.username || "알 수 없음"}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
-                      {participant.profiles?.tagline}
-                    </p>
-                    {isOrganizer && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() =>
-                          startTransition(async () => {
-                            const result = await updateMeetupParticipantStatus(
-                              meetup.id,
-                              participant.profiles!.id,
-                              MEETUP_PARTICIPANT_STATUSES.PENDING
-                            );
-                            if (result.error) {
-                              toast.error(result.error);
-                            } else {
-                              toast.success("참가자 상태가 변경되었습니다.");
+            <Accordion
+              type="multiple"
+              className="w-full"
+              defaultValue={["approved", "pending"]}
+            >
+              <AccordionItem value="approved">
+                <AccordionTrigger className="text-sm font-semibold pt-2">
+                  <div className="flex items-center gap-1 flex-grow">
+                    참가 확정
+                    <span className="text-muted-foreground">
+                      ({approvedParticipants.length})
+                    </span>
+                    <div className="flex-grow border-b border-gray-300 ml-2"></div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2 py-2">
+                    {approvedParticipants.length > 0 ? (
+                      approvedParticipants.map((participant) => {
+                        if (!participant.profiles) return null;
+                        return (
+                          <MemberCard
+                            key={participant.user_id}
+                            profile={participant.profiles}
+                            tagline={participant.profiles.tagline}
+                            isOwner={participant.user_id === meetup.organizer_id}
+                            isCurrentUser={participant.user_id === user?.id}
+                            showButton={
+                              isOrganizer &&
+                              participant.user_id !== meetup.organizer_id
                             }
-                          })
-                        }
-                      >
-                        대기중으로 변경
-                      </Button>
+                            buttonText="확정 취소"
+                            onButtonClick={() =>
+                              handleStatusUpdate(
+                                participant.profiles!.id,
+                                MEETUP_PARTICIPANT_STATUSES.PENDING
+                              )
+                            }
+                            isLoading={isPending}
+                          />
+                        );
+                      })
+                    ) : (
+                      <p className="text-gray-500 text-sm py-2">
+                        아직 확정된 참가자가 없습니다.
+                      </p>
                     )}
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500">아직 확정된 참가자가 없습니다.</p>
-              )}
-            </div>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="pending">
+                <AccordionTrigger className="text-sm font-semibold pt-2">
+                  <div className="flex items-center gap-1 flex-grow">
+                    참가 대기중
+                    <span className="text-muted-foreground">
+                      ({pendingParticipants.length})
+                    </span>
+                    <div className="flex-grow border-b border-gray-300 ml-2"></div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex flex-col gap-2 py-2">
+                    {pendingParticipants.length > 0 ? (
+                      pendingParticipants.map((participant) => {
+                        if (!participant.profiles) return null;
+                        return (
+                          <MemberCard
+                            key={participant.user_id}
+                            profile={participant.profiles}
+                            tagline={participant.profiles.tagline}
+                            isOwner={false}
+                            isCurrentUser={participant.user_id === user?.id}
+                            showButton={isOrganizer}
+                            buttonText="참가 확정"
+                            onButtonClick={() =>
+                              handleStatusUpdate(
+                                participant.profiles!.id,
+                                MEETUP_PARTICIPANT_STATUSES.APPROVED
+                              )
+                            }
+                            isLoading={isPending}
+                          />
+                        );
+                      })
+                    ) : (
+                      <p className="text-gray-500 text-sm py-2">
+                        현재 참가 대기중인 멤버가 없습니다.
+                      </p>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
 
-          <div className="bg-white rounded-lg p-0 mb-8">
-            <h2 className="text-xl font-semibold mb-3">
-              참가 대기중 ({pendingParticipants.length})
-            </h2>
-            <div className="flex flex-wrap gap-3">
-              {pendingParticipants.length > 0 ? (
-                pendingParticipants.map((participant) => (
-                  <div
-                    key={participant.profiles?.id}
-                    className="flex flex-col items-start gap-2 p-3 border rounded-lg w-48 flex-shrink-0 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <Avatar className="size-10">
-                        <AvatarImage
-                          src={participant.profiles?.avatar_url || undefined}
+          {/* Mobile View: Horizontal Scroll */}
+          <div className="block md:hidden">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-2 px-4">
+                참가 확정 ({approvedParticipants.length})
+              </h2>
+              {approvedParticipants.length > 0 ? (
+                <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                  <div className="flex flex-row gap-4">
+                    {approvedParticipants.map((participant) => {
+                      if (!participant.profiles) return null;
+                      return (
+                        <MemberCardHorizontal
+                          key={participant.user_id}
+                          profile={participant.profiles}
+                          isOwner={participant.user_id === meetup.organizer_id}
+                          isCurrentUser={participant.user_id === user?.id}
+                          showButton={
+                            isOrganizer &&
+                            participant.user_id !== meetup.organizer_id
+                          }
+                          buttonText="확정 취소"
+                          onButtonClick={() =>
+                            handleStatusUpdate(
+                              participant.profiles!.id,
+                              MEETUP_PARTICIPANT_STATUSES.PENDING
+                            )
+                          }
+                          isLoading={isPending}
                         />
-                        <AvatarFallback>
-                          {participant.profiles?.username?.charAt(0) || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate">
-                          {participant.profiles?.full_name || "알 수 없음"}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          @{participant.profiles?.username || "알 수 없음"}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 w-full truncate h-[1rem]">
-                      {participant.profiles?.tagline}
-                    </p>
-                    {isOrganizer && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() =>
-                          startTransition(async () => {
-                            const result = await updateMeetupParticipantStatus(
-                              meetup.id,
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm px-4">
+                  아직 확정된 참가자가 없습니다.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold mb-2 px-4">
+                참가 대기중 ({pendingParticipants.length})
+              </h2>
+              {pendingParticipants.length > 0 ? (
+                <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                  <div className="flex flex-row gap-4">
+                    {pendingParticipants.map((participant) => {
+                      if (!participant.profiles) return null;
+                      return (
+                        <MemberCardHorizontal
+                          key={participant.user_id}
+                          profile={participant.profiles}
+                          isOwner={false}
+                          isCurrentUser={participant.user_id === user?.id}
+                          showButton={isOrganizer}
+                          buttonText="참가 확정"
+                          onButtonClick={() =>
+                            handleStatusUpdate(
                               participant.profiles!.id,
                               MEETUP_PARTICIPANT_STATUSES.APPROVED
-                            );
-                            if (result.error) {
-                              toast.error(result.error);
-                            } else {
-                              toast.success("참가자 상태가 변경되었습니다.");
-                            }
-                          })
-                        }
-                      >
-                        확정으로 변경
-                      </Button>
-                    )}
+                            )
+                          }
+                          isLoading={isPending}
+                        />
+                      );
+                    })}
                   </div>
-                ))
+                </div>
               ) : (
-                <p className="text-gray-500">
+                <p className="text-gray-500 text-sm px-4">
                   현재 참가 대기중인 멤버가 없습니다.
                 </p>
               )}

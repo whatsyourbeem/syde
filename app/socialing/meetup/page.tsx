@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Users, Network } from "lucide-react";
 import MeetupStatusFilter from "@/components/meetup/meetup-status-filter";
 import { Database, Enums } from "@/types/database.types";
 import {
@@ -37,10 +36,7 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   }
 }
 
-function formatTime(dateString: string) {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-}
+
 
 function getCategoryBadgeClass(category: string) {
   switch (category) {
