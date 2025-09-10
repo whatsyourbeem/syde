@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useCallback, Fragment } from "react";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useCallback, useMemo } from "react";
+import { useInfiniteQuery, useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "@/components/comment/comment-card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ export function CommentList({
   const supabase = createClient();
   const queryClient = useQueryClient();
 
-  const queryKey = ["comments", { logId }];
+  const queryKey = useMemo(() => ["comments", { logId }], [logId]);
 
   const {
     data,
@@ -175,9 +175,16 @@ export function CommentList({
   const allMentionedProfiles = data?.pages.flatMap(page => page.mentionedProfiles) || [];
   const uniqueMentionedProfiles = Array.from(new Map(allMentionedProfiles.map(item => [item.id, item])).values());
 
+  type PageData = {
+    comments: ProcessedComment[];
+    count: number;
+    mentionedProfiles: Array<{ id: string; username: string | null }>;
+    currentPage: number;
+  };
+
   const handleLikeStatusChange = useCallback(
     (commentId: string, newLikesCount: number, newHasLiked: boolean) => {
-      queryClient.setQueryData(queryKey, (oldData) => {
+      queryClient.setQueryData(queryKey, (oldData: InfiniteData<PageData> | undefined) => {
         if (!oldData) return oldData;
         return {
           ...oldData,

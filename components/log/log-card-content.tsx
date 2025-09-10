@@ -83,7 +83,7 @@ function LogCardContentBase({
       className={`${!isDetailPage ? 'cursor-pointer' : ''} py-1 pl-[44px] relative`} 
       style={{ marginTop: '-12px' }}
     >
-      <p className={`mb-3 text-log-content whitespace-pre-wrap ${!isDetailPage ? 'overflow-hidden max-h-72' : ''}`}>
+      <p className={`mb-3 text-sm md:text-log-content whitespace-pre-wrap ${!isDetailPage ? 'overflow-hidden max-h-72' : ''}`}>
         {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
       </p>
       {showReadMore && !isDetailPage && (

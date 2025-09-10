@@ -44,7 +44,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
-import { useLoginDialog } from '@/context/LoginDialogContext';
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
@@ -68,7 +68,7 @@ interface LogDetailProps {
 export function LogDetail({ log, user }: LogDetailProps) {
   const supabase = createClient();
   const router = useRouter();
-  
+
   const [mentionedProfiles, setMentionedProfiles] = useState<
     Array<{ id: string; username: string | null }>
   >([]);
@@ -203,7 +203,9 @@ export function LogDetail({ log, user }: LogDetailProps) {
     }
 
     const newHasBookmarked = !currentHasBookmarked;
-    const newBookmarksCount = newHasBookmarked ? currentBookmarksCount + 1 : currentBookmarksCount - 1;
+    const newBookmarksCount = newHasBookmarked
+      ? currentBookmarksCount + 1
+      : currentBookmarksCount - 1;
 
     setCurrentHasBookmarked(newHasBookmarked);
     setCurrentBookmarksCount(newBookmarksCount);
@@ -224,13 +226,13 @@ export function LogDetail({ log, user }: LogDetailProps) {
     try {
       const result = await deleteLog(log.id);
       if (result?.error) {
-        toast.error('로그 삭제 실패', { description: result.error });
+        toast.error("로그 삭제 실패", { description: result.error });
       } else {
-        toast.success('로그가 삭제되었습니다.');
-        router.push('/'); // Redirect to home after deletion
+        toast.success("로그가 삭제되었습니다.");
+        router.push("/"); // Redirect to home after deletion
       }
     } catch {
-      toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
+      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
     } finally {
       setIsDeleting(false);
     }
@@ -267,7 +269,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
           url: url,
         });
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if ((error as Error).name !== "AbortError") {
           console.error("Error sharing:", error);
         }
       }
@@ -300,7 +302,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
           <ChevronLeft size={24} />
         </button>
       </div>
-      
       <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header */}
       <div className="flex items-center justify-between">
@@ -311,8 +312,8 @@ export function LogDetail({ log, user }: LogDetailProps) {
                 <Image
                   src={avatarUrlWithCacheBuster}
                   alt={`${log.profiles?.username || "User"}'s avatar`}
-                  width={40}
-                  height={40}
+                  width={32}
+                  height={32}
                   className="rounded-full object-cover aspect-square mr-3"
                 />
               )}
@@ -355,13 +356,19 @@ export function LogDetail({ log, user }: LogDetailProps) {
                   initialLogData={log}
                   onSuccess={() => router.refresh()}
                 >
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="cursor-pointer"
+                  >
                     <Edit className="mr-2 h-4 w-4" />
                     <span>수정</span>
                   </DropdownMenuItem>
                 </LogEditDialog>
                 <AlertDialogTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-500 cursor-pointer">
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-red-500 cursor-pointer"
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
                     <span>삭제</span>
                   </DropdownMenuItem>
@@ -372,13 +379,14 @@ export function LogDetail({ log, user }: LogDetailProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고 스토리지에서 관련 이미지도 함께 삭제합니다.
+                  이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고
+                  스토리지에서 관련 이미지도 함께 삭제합니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>취소</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                  {isDeleting ? '삭제 중...' : '삭제'}
+                  {isDeleting ? "삭제 중..." : "삭제"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -387,26 +395,26 @@ export function LogDetail({ log, user }: LogDetailProps) {
       </div>
       {/* Log Content */}
       <div className="py-1 pl-11">
-          <p className="mb-3 text-base whitespace-pre-wrap leading-relaxed">
-            {linkifyMentions(log.content, mentionedProfiles)}
-          </p>
-          {log.image_url && imageStyle && (
-            <div
-              className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
-              style={{ aspectRatio: imageStyle.aspectRatio }}
-              onClick={() => setShowImageModal(true)}
-            >
-              <Image
-                src={log.image_url!}
-                alt="Log image"
-                fill
-                style={{ objectFit: imageStyle.objectFit }}
-                sizes="(max-width: 768px) 100vw, 672px"
-              />
-            </div>
-          )}
-          {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
-        </div>
+        <p className="mb-3 text-sm md:text-log-content whitespace-pre-wrap leading-relaxed">
+          {linkifyMentions(log.content, mentionedProfiles)}
+        </p>
+        {log.image_url && imageStyle && (
+          <div
+            className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
+            style={{ aspectRatio: imageStyle.aspectRatio }}
+            onClick={() => setShowImageModal(true)}
+          >
+            <Image
+              src={log.image_url!}
+              alt="Log image"
+              fill
+              style={{ objectFit: imageStyle.objectFit }}
+              sizes="(max-width: 768px) 100vw, 672px"
+            />
+          </div>
+        )}
+        {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
+      </div>
       {/* Image Modal */}
       {showImageModal && (
         <div
@@ -488,11 +496,17 @@ export function LogDetail({ log, user }: LogDetailProps) {
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleCopyLink}
+                className="cursor-pointer"
+              >
                 <Link2 className="mr-2 h-4 w-4" />
                 <span>링크 복사하기</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShareAll} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleShareAll}
+                className="cursor-pointer"
+              >
                 <span>모두 보기</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -511,7 +525,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                   }
                   size={18}
                 />
-                 <span className="group-hover:text-yellow-500">
+                <span className="group-hover:text-yellow-500">
                   {currentBookmarksCount}
                 </span>
               </button>
@@ -523,12 +537,11 @@ export function LogDetail({ log, user }: LogDetailProps) {
         </TooltipProvider>
       </div>
       {/* Comments Section */}
-      <div className="mt-4 border-t">
+      <div className="mt-4 pt-4 border-t">
         <CommentList
           logId={log.id}
           currentUserId={user?.id || null}
           pageSize={10}
-          showPaginationButtons={true}
           isDetailPage={true}
         />
         <CommentForm
@@ -537,7 +550,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
           onCommentAdded={handleCommentAdded}
         />
       </div>
-
       <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
         <AlertDialogContent className="w-[350px] rounded-lg">
           <AlertDialogHeader>

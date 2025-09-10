@@ -61,7 +61,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
           <div className="flex-grow min-w-0 overflow-hidden">
             <div className="flex items-baseline gap-1 overflow-hidden">
               <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
-                <p className="font-semibold hover:underline text-log-content">
+                <p className="font-semibold hover:underline text-sm md:text-log-content">
                   {log.profiles?.full_name ||
                     log.profiles?.username ||
                     "Anonymous"}

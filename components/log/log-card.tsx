@@ -9,7 +9,7 @@ import { deleteLog } from "@/app/log/log-actions";
 import { LogCardHeader } from "./log-card-header";
 import { LogCardContent } from "./log-card-content";
 import { LogCardActions } from "./log-card-actions";
-import { LogCardComments } from "./log-card-comments";
+
 import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
