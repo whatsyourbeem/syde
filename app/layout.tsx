@@ -94,11 +94,11 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className="h-full">
-      <body className={`${pretendard.className} antialiased h-full`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${pretendard.className} antialiased`}>
         <Providers>
           <LoginDialogProvider>
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col min-h-screen">
               <header>
                 <div className="w-full bg-background">
                   <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
@@ -214,13 +214,13 @@ export default async function RootLayout({
                     </div>
                   </div>
                 </div>
-                <div className="sticky top-0 z-40 w-full bg-background">
-                  <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
-                    <HeaderNavigation />
-                  </nav>
-                  <Separator />
-                </div>
               </header>
+              <div className="sticky top-0 z-40 w-full bg-background">
+                <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
+                  <HeaderNavigation />
+                </nav>
+                <Separator />
+              </div>
               <main className="flex-1">
                 <div className="max-w-6xl mx-auto h-full">{children}</div>
               </main>
