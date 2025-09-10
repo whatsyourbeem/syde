@@ -521,7 +521,8 @@ export async function fetchClubPostComments(
   const supabase = await createClient();
   const offset = (page - 1) * limit;
 
-  const { data: comments, error } = await supabase
+  // Fetch all comments and replies in a single query
+  const { data: allComments, error } = await supabase
     .from("club_forum_post_comments")
     .select(
       `
@@ -530,52 +531,40 @@ export async function fetchClubPostComments(
     `
     )
     .eq("post_id", postId)
-    .is("parent_comment_id", null)
-    .order("created_at", { ascending: true })
-    .range(offset, offset + limit - 1);
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching club post comments:", error);
     return { comments: [], error: error.message };
   }
 
-  const commentsWithReplies = await Promise.all(
-    comments.map(async (comment) => {
-      const { data: replies, error: repliesError } = await supabase
-        .from("club_forum_post_comments")
-        .select(
-          `
-          *,
-          author:profiles(*)
-        `
-        )
-        .eq("parent_comment_id", comment.id)
-        .order("created_at", { ascending: true });
-
-      if (repliesError) {
-        console.error("Error fetching replies:", repliesError);
-        return { ...comment, replies: [] };
+  // Separate parent comments and replies
+  const parentComments = (allComments || []).filter(comment => !comment.parent_comment_id);
+  const repliesMap = new Map();
+  
+  // Group replies by parent comment ID
+  (allComments || []).forEach(comment => {
+    if (comment.parent_comment_id) {
+      if (!repliesMap.has(comment.parent_comment_id)) {
+        repliesMap.set(comment.parent_comment_id, []);
       }
-      return { ...comment, replies };
-    })
-  );
+      repliesMap.get(comment.parent_comment_id).push(comment);
+    }
+  });
 
-  const { count, error: countError } = await supabase
-    .from("club_forum_post_comments")
-    .select("*", { count: "exact", head: true })
-    .eq("post_id", postId)
-    .is("parent_comment_id", null);
+  // Apply pagination to parent comments only
+  const paginatedParentComments = parentComments.slice(offset, offset + limit);
 
-  if (countError) {
-    console.error("Error fetching club post comment count:", countError);
-    return {
-      comments: commentsWithReplies,
-      count: 0,
-      error: countError.message,
-    };
-  }
+  // Build comments with their replies
+  const commentsWithReplies = paginatedParentComments.map(comment => ({
+    ...comment,
+    replies: repliesMap.get(comment.id) || []
+  }));
 
-  return { comments: commentsWithReplies, count: count || 0, error: null };
+  // Use the already fetched parent comments count for better performance
+  const totalCount = parentComments.length;
+
+  return { comments: commentsWithReplies, count: totalCount, error: null };
 }
 
 export async function deleteClubPostComment(commentId: string) {

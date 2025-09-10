@@ -48,36 +48,39 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
 
-  // Fetch all forums for the club
-  const { data: forums, error: forumsError } = await supabase
+  // Fetch all forums with their posts in a single query using nested selection
+  const { data: forumsWithPosts, error: forumsError } = await supabase
     .from("club_forums")
-    .select("*, write_permission") // Fetch write_permission
+    .select(`
+      *,
+      write_permission,
+      club_forum_posts(
+        *,
+        author:profiles(*)
+      )
+    `)
     .eq("club_id", club_id)
     .order("position", { ascending: true });
 
   if (forumsError) {
-    console.error("Error fetching forums:", forumsError);
+    console.error("Error fetching forums with posts:", forumsError);
     notFound();
   }
 
-  // For each forum, fetch its posts
-  const forumsWithPosts: ForumWithPosts[] = forums ? await Promise.all(
-    forums.map(async (forum) => {
-      const { data: postsData, error: postsError } = await supabase
-        .from("club_forum_posts")
-        .select("*, author:profiles(*)")
-        .eq("forum_id", forum.id)
-        .order("created_at", { ascending: false });
-
-      if (postsError) {
-        console.error(`Error fetching posts for forum ${forum.id}:`, postsError);
-        return { ...forum, posts: [] }; // Return forum with empty posts on error
-      }
-      
-      const posts = postsData?.map(p => ({ ...p, author: p.author as Profile | null })) || [];
-      return { ...forum, posts };
-    })
-  ) : [];
+  // Transform the data to match the expected structure
+  const transformedForums: ForumWithPosts[] = forumsWithPosts?.map(forum => ({
+    ...forum,
+    posts: (forum.club_forum_posts || [])
+      .map(post => ({
+        ...post,
+        author: post.author as Profile | null
+      }))
+      .sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      })
+  })) || [];
 
   if (membersError || meetupsError) {
     // Handle errors appropriately
@@ -96,7 +99,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     ...club,
     members: members || [],
     meetups: meetups || [],
-    forums: forumsWithPosts,
+    forums: transformedForums,
   };
 
   return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} userRole={userRole} isOwner={isOwner} />;
