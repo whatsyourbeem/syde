@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, memo, useCallback } from "react";
+import { useState, memo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -17,7 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { toggleLogBookmark } from "@/app/log/log-actions";
+import { CommentList } from "@/components/comment/comment-list";
+import { CommentForm } from "@/components/comment/comment-form";
 
 interface LogCardActionsProps {
   logId: string;
@@ -27,10 +31,9 @@ interface LogCardActionsProps {
   bookmarksCount: number;
   hasBookmarked: boolean;
   commentsCount: number;
-  showComments: boolean;
   onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
   onBookmarkStatusChange: (newBookmarksCount: number, newHasBookmarked: boolean) => void;
-  onCommentsToggle: () => void;
+  onCommentAdded: () => void; // To update comment count
 }
 
 function LogCardActionsBase({
@@ -41,16 +44,36 @@ function LogCardActionsBase({
   bookmarksCount,
   hasBookmarked,
   commentsCount,
-  showComments,
   onLikeStatusChange,
   onBookmarkStatusChange,
-  onCommentsToggle,
+  onCommentAdded,
 }: LogCardActionsProps) {
+  const router = useRouter();
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const { openLoginDialog } = useLoginDialog();
+  
+  const [isMobile, setIsMobile] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const handleCommentClick = useCallback(() => {
+    if (isMobile) {
+      setIsDrawerOpen(true);
+    } else {
+      router.push(`/log/${logId}`);
+    }
+  }, [isMobile, router, logId]);
 
   const handleLike = useCallback(async () => {
     if (!currentUserId) {
@@ -137,6 +160,23 @@ function LogCardActionsBase({
     }
   }, [logId]);
 
+  const commentButton = (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={handleCommentClick}
+          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+        >
+          <MessageCircle size={18} />
+          <span>{commentsCount}</span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <p>댓글</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+
   return (
     <>
       <div className="flex justify-between items-center text-sm text-muted-foreground px-[44px] pt-2">
@@ -165,19 +205,35 @@ function LogCardActionsBase({
               <p>좋아요</p>
             </TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onCommentsToggle}
-                className={`flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20 ${showComments ? 'text-green-500' : ''}`}>
-                <MessageCircle size={18} />
-                <span>{commentsCount}</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>댓글</p>
-            </TooltipContent>
-          </Tooltip>
+          
+          {isMobile ? (
+            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <DrawerTrigger asChild>{commentButton}</DrawerTrigger>
+              <DrawerContent className="h-[90vh] flex flex-col">
+                <DrawerHeader>
+                  <DrawerTitle>댓글</DrawerTitle>
+                </DrawerHeader>
+                <div className="flex-1 overflow-y-auto">
+                  <CommentList 
+                    logId={logId}
+                    currentUserId={currentUserId}
+                  />
+                </div>
+                <div className="flex-shrink-0 border-t">
+                  <CommentForm
+                    logId={logId}
+                    currentUserId={currentUserId}
+                    onCommentAdded={() => {
+                      onCommentAdded();
+                    }}
+                  />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          ) : (
+            commentButton
+          )}
+
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -282,8 +338,7 @@ export const LogCardActions = memo(LogCardActionsBase, (prevProps, nextProps) =>
     prevProps.hasLiked === nextProps.hasLiked &&
     prevProps.bookmarksCount === nextProps.bookmarksCount &&
     prevProps.hasBookmarked === nextProps.hasBookmarked &&
-    prevProps.commentsCount === nextProps.commentsCount &&
-    prevProps.showComments === nextProps.showComments
+    prevProps.commentsCount === nextProps.commentsCount
   );
 });
 

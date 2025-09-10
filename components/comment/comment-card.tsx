@@ -146,19 +146,21 @@ export function CommentCard({
   return (
     <div className="flex items-start justify-between gap-3 p-2">
       <div className="flex items-start gap-3">
-        <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
-          <Link href={`/${comment.profiles?.username || comment.user_id}`}>
-            {avatarUrlWithCacheBuster && (
-              <Image
-                src={avatarUrlWithCacheBuster}
-                alt={`${comment.profiles?.username || "User"}'s avatar`}
-                width={32}
-                height={32}
-                                className="rounded-full object-cover aspect-square flex-shrink-0"
-              />
-            )}
-          </Link>
-        </ProfileHoverCard>
+        <div className="flex-shrink-0">
+          <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
+            <Link href={`/${comment.profiles?.username || comment.user_id}`}>
+              {avatarUrlWithCacheBuster && (
+                <Image
+                  src={avatarUrlWithCacheBuster}
+                  alt={`${comment.profiles?.username || "User"}'s avatar`}
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover aspect-square"
+                />
+              )}
+            </Link>
+          </ProfileHoverCard>
+        </div>
         <div className="flex-grow">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
             <div className="flex items-baseline gap-1">

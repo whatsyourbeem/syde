@@ -347,15 +347,15 @@ export default function ClubDetailClient({
             className="w-full"
             onValueChange={setActiveForumId}
           >
-            <div className="flex justify-between items-center">
-              <TabsList>
+            <div className="flex flex-col gap-4 mb-4 md:flex-row md:justify-between md:items-center">
+              <TabsList className="overflow-x-auto whitespace-nowrap scrollbar-hide">
                 {club.forums.map((forum) => (
                   <TabsTrigger key={forum.id} value={forum.id}>
                     {forum.name}
                   </TabsTrigger>
                 ))}
               </TabsList>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end md:self-center">
                 {canWriteForum(activeForum) && (
                   <Link
                     href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}

@@ -50,7 +50,6 @@ function LogCardBase({
   const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
   const [loading, setLoading] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
   const contentRef = useRef<HTMLParagraphElement>(null);
   
@@ -82,7 +81,6 @@ function LogCardBase({
 
   const handleCommentAdded = useCallback(() => {
     setCommentsCount((prev) => prev + 1);
-    setShowComments(true);
   }, []);
 
   const handleLikeStatusChange = useCallback((newLikesCount: number, newHasLiked: boolean) => {
@@ -146,16 +144,8 @@ function LogCardBase({
             bookmarksCount={bookmarksCount}
             hasBookmarked={hasBookmarked}
             commentsCount={commentsCount}
-            showComments={showComments}
             onLikeStatusChange={handleLikeStatusChange}
             onBookmarkStatusChange={handleBookmarkStatusChange}
-            onCommentsToggle={() => setShowComments(!showComments)}
-          />
-
-          <LogCardComments 
-            logId={log.id}
-            currentUserId={currentUserId}
-            showComments={showComments}
             onCommentAdded={handleCommentAdded}
           />
         </>
