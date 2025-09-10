@@ -8,7 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
+import dynamic from 'next/dynamic';
+
+const TiptapEditorWrapper = dynamic(
+  () => import('@/components/common/tiptap-editor-wrapper'),
+  {
+    loading: () => <div className="h-32 bg-gray-50 animate-pulse rounded-md flex items-center justify-center">에디터 로딩 중...</div>,
+    ssr: false
+  }
+);
 import { JSONContent } from '@tiptap/react';
 import { createClub, updateClub } from '@/app/socialing/club/club-actions';
 

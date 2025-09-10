@@ -6,7 +6,15 @@ import { Button } from '@/components/ui/button';
 import { createClubPost, updateClubPost } from '@/app/socialing/club/club-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import TiptapEditorWrapper from '@/components/common/tiptap-editor-wrapper';
+import dynamic from 'next/dynamic';
+
+const TiptapEditorWrapper = dynamic(
+  () => import('@/components/common/tiptap-editor-wrapper'),
+  {
+    loading: () => <div className="h-32 bg-gray-50 animate-pulse rounded-md flex items-center justify-center">에디터 로딩 중...</div>,
+    ssr: false
+  }
+);
 import { Json, Tables, Enums } from '@/types/database.types';
 import { JSONContent } from '@tiptap/react';
 import { Input } from '@/components/ui/input';
