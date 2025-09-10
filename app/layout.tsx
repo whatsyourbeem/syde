@@ -15,6 +15,8 @@ import NotificationBell from "@/components/notification/notification-bell";
 import { Suspense } from "react";
 
 import { Toaster } from "sonner"; // Import Toaster from sonner
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -230,6 +232,8 @@ export default async function RootLayout({
             </div>
           </LoginDialogProvider>
         </Providers>
+      <SpeedInsights />
+      <Analytics />
       </body>
     </html>
   );
