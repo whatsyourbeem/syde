@@ -26,7 +26,10 @@ export function LogListWrapper({
 
   return (
     <div>
-      {!filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && (
+      {!filterByUserId &&
+        !filterByCommentedUserId &&
+        !filterByLikedUserId &&
+        !searchQuery && (
         <LogCreateButton user={user} avatarUrl={avatarUrl} />
       )}
       <LogList
