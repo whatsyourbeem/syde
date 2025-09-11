@@ -170,7 +170,7 @@ function LogForm({
                 if (!userId) openLoginDialog();
               }}
               ref={textareaRef}
-              className="h-full w-full resize-none border-none p-0 focus-visible:ring-0 shadow-none bg-transparent"
+              className="h-full w-full resize-none border-none p-0 focus-visible:ring-0 shadow-none bg-transparent text-base"
             />
             {showSuggestions && mentionSuggestions.length > 0 && (
               <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg bottom-full mb-1 max-h-60 overflow-auto">
