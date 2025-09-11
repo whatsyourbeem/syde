@@ -51,11 +51,11 @@ export function ClientAuthButton({
                     ) : (
                       <div className="w-9 h-9 bg-gray-200 rounded-full" />
                     )}
-                    <div className="flex flex-col overflow-hidden min-w-0 max-w-[150px]">
-                      <span className="text-base font-semibold truncate">
+                    <div className="flex flex-col overflow-hidden min-w-0 max-w-[150px] text-left">
+                      <span className="text-sm font-semibold truncate">
                         {fullName || username}
                       </span>
-                      <span className="text-sm text-gray-500 truncate">
+                      <span className="text-xs text-gray-500 truncate">
                         @{username || user.email}
                       </span>
                     </div>

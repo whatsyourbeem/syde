@@ -137,13 +137,13 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             href="https://open.kakao.com/o/gduSGmtf"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-sm"
+            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-xs"
           >
             <Image
               src="/kakao-talk-bw.png"
               alt="Kakao"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
             <span>SYDE 오픈채팅</span>
           </Link>
@@ -151,13 +151,13 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             href="https://www.instagram.com/syde.official/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-sm"
+            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-xs"
           >
             <Image
               src="/instagram.png"
               alt="Instagram"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
             />
             <span>Instagram</span>
           </Link>
@@ -165,9 +165,9 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             href="https://www.threads.net/@syde.official"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-sm"
+            className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-xs"
           >
-            <Image src="/threads.png" alt="Threads" width={24} height={24} />
+            <Image src="/threads.png" alt="Threads" width={20} height={20} />
             <span>Threads</span>
           </Link>
         </div>
