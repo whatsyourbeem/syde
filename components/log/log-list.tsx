@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "@/components/log/log-card";
 import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
-import { getOptimizedLogs, OptimizedLog } from "@/lib/queries/log-queries";
+import { getOptimizedLogs, OptimizedLog, LogQueryResult } from "@/lib/queries/log-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
@@ -19,14 +19,16 @@ export function LogList({
   filterByCommentedUserId,
   filterByLikedUserId,
   filterByBookmarkedUserId,
-  searchQuery, // Add searchQuery
+  searchQuery,
+  initialLogs,
 }: {
   currentUserId: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
   filterByBookmarkedUserId?: string;
-  searchQuery?: string; // Add searchQuery to props
+  searchQuery?: string;
+  initialLogs?: LogQueryResult;
 }) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -60,7 +62,8 @@ export function LogList({
       filterByBookmarkedUserId,
       searchQuery,
     }),
-    staleTime: 1000, // Data is considered fresh for 1 second
+    staleTime: 30000,
+    initialData: currentPage === 1 && !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery ? initialLogs : undefined,
   });
 
   const logs: OptimizedLog[] = useMemo(() => data?.logs || [], [data?.logs]);
