@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "@/components/log/log-card";
+import { LogCreateButton } from "@/components/log/log-create-button";
 import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
 import { getOptimizedLogs, OptimizedLog, LogQueryResult } from "@/lib/queries/log-queries";
@@ -14,7 +15,7 @@ import { InlineError } from "@/components/error/error-boundary";
 const LOGS_PER_PAGE = 20; // Define logs per page
 
 export function LogList({
-  currentUserId,
+  currentUserId: propCurrentUserId,
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
@@ -33,6 +34,36 @@ export function LogList({
   const supabase = createClient();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId);
+  const [userProfile, setUserProfile] = useState<Database["public"]["Tables"]["profiles"]["Row"] | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Fetch user profile
+  useEffect(() => {
+    async function fetchUserProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        setCurrentUserId(user.id);
+        
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*, updated_at")
+          .eq("id", user.id)
+          .single();
+          
+        if (!error && profile) {
+          setUserProfile(profile);
+          const url = profile.avatar_url && profile.updated_at
+            ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
+            : profile.avatar_url;
+          setAvatarUrl(url);
+        }
+      }
+    }
+    
+    fetchUserProfile();
+  }, [supabase]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -153,6 +184,15 @@ export function LogList({
   if (isLoading) {
     return (
       <div className="w-full max-w-2xl mx-auto px-4 py-4">
+        {/* Create button skeleton */}
+        <div className="mb-6 p-4 border border-gray-200 rounded-lg animate-pulse">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0" />
+            <div className="h-4 bg-gray-200 rounded-md w-24" />
+          </div>
+          <div className="h-20 bg-gray-200 rounded-md w-full mb-3" />
+          <div className="h-8 bg-gray-200 rounded-md w-16" />
+        </div>
         <LoadingList count={5} />
       </div>
     );
@@ -171,6 +211,10 @@ export function LogList({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 px-4 py-4">
+      {!filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && (
+        <LogCreateButton user={userProfile} avatarUrl={avatarUrl} />
+      )}
+      
       {logs.length === 0 && !isLoading ? (
         <p className="text-center text-muted-foreground">
           아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
