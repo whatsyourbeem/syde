@@ -183,45 +183,49 @@ export function LogList({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-4">
+      <div className="w-full max-w-2xl mx-auto pb-4">
         {/* Create button skeleton */}
-        <div className="mb-6 p-4 border border-gray-200 rounded-lg animate-pulse">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0" />
-            <div className="h-4 bg-gray-200 rounded-md w-24" />
+        <div className="px-4 py-3 border-b border-gray-200 animate-pulse">
+          <div className="flex items-center">
+            <div className="w-9 h-9 bg-gray-200 rounded-full flex-shrink-0 mr-3" />
+            <div className="h-4 bg-gray-200 rounded-md w-48" />
           </div>
-          <div className="h-20 bg-gray-200 rounded-md w-full mb-3" />
-          <div className="h-8 bg-gray-200 rounded-md w-16" />
         </div>
-        <LoadingList count={5} />
+        <div className="px-4">
+          <LoadingList count={5} />
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="w-full max-w-2xl mx-auto px-4 py-4">
-        <InlineError 
-          error={error?.message || "로그를 불러오는 중 오류가 발생했습니다."}
-          retry={() => queryClient.invalidateQueries({ queryKey: ["logs"] })}
-        />
+      <div className="w-full max-w-2xl mx-auto pb-4">
+        <div className="px-4">
+          <InlineError 
+            error={error?.message || "로그를 불러오는 중 오류가 발생했습니다."}
+            retry={() => queryClient.invalidateQueries({ queryKey: ["logs"] })}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 px-4 py-4">
+    <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
       {!filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && (
         <LogCreateButton user={userProfile} avatarUrl={avatarUrl} />
       )}
       
       {logs.length === 0 && !isLoading ? (
-        <p className="text-center text-muted-foreground">
-          아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
-        </p>
+        <div className="px-4">
+          <p className="text-center text-muted-foreground">
+            아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
+          </p>
+        </div>
       ) : (
         logs.map((log, index) => (
-          <div key={log.id}>
+          <div key={log.id} className="px-4">
             <LogCard
               log={log}
               currentUserId={currentUserId}
