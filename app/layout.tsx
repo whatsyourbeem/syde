@@ -105,7 +105,7 @@ export default async function RootLayout({
       <body className={`${pretendard.className} antialiased`}>
         <Providers>
           <LoginDialogProvider>
-            <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col h-full">
               <header>
                 <div className="w-full bg-background">
                   <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
