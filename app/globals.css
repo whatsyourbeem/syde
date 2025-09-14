@@ -103,15 +103,14 @@
     scrollbar-color: #888 #f1f1f1; /* thumb color track color */
   }
 
-  /* Mobile keyboard spacing fix */
-  .keyboard-aware-form {
-    padding-bottom: env(keyboard-inset-height, 0px);
-    transition: padding-bottom 0.3s ease;
+  /* Mobile keyboard fix - minimize spacing */
+  .mobile-keyboard-fix {
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
-  @supports (-webkit-touch-callout: none) {
-    .keyboard-aware-form {
-      padding-bottom: max(env(safe-area-inset-bottom), env(keyboard-inset-height, 0px));
-    }
+  .mobile-keyboard-fix.keyboard-open {
+    margin-bottom: 0;
+    padding-bottom: 8px;
   }
 }

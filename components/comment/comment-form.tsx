@@ -67,6 +67,37 @@ export function CommentForm({
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Mobile keyboard handling
+  useEffect(() => {
+    const handleViewportChange = () => {
+      if (typeof window !== 'undefined' && window.visualViewport) {
+        const viewport = window.visualViewport;
+        const isKeyboardOpen = viewport.height < window.innerHeight * 0.75;
+
+        if (formRef.current) {
+          if (isKeyboardOpen) {
+            formRef.current.classList.add('keyboard-open');
+            // Scroll input into view when keyboard opens
+            if (inputRef.current) {
+              setTimeout(() => {
+                inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 300);
+            }
+          } else {
+            formRef.current.classList.remove('keyboard-open');
+          }
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      };
+    }
+  }, []);
+
   const fetchMentionSuggestions = useCallback(async (term: string) => {
     if (term.length < 1) {
       setMentionSuggestions([]);
@@ -213,7 +244,7 @@ export function CommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 mx-4 my-2 relative keyboard-aware-form"
+      className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
     >
       <input type="hidden" name="log_id" value={logId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
