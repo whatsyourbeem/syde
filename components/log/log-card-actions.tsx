@@ -3,6 +3,7 @@
 import { useState, memo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy, X } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from '@/context/LoginDialogContext';
@@ -57,7 +58,7 @@ function LogCardActionsBase({
   
   const [isMobile, setIsMobile] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -232,8 +233,19 @@ function LogCardActionsBase({
                 </div>
                 <div className="flex-shrink-0 border-t p-2">
                   {replyTo && (
-                    <div className="text-sm text-muted-foreground pl-6 flex justify-between items-center">
-                      <span>{replyTo.authorName}에게 답글 남기는 중...</span>
+                    <div className="text-xs text-muted-foreground pl-6 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        {replyTo.authorAvatarUrl && (
+                          <Image 
+                            src={replyTo.authorAvatarUrl}
+                            alt={replyTo.authorName}
+                            width={16}
+                            height={16}
+                            className="rounded-full"
+                          />
+                        )}
+                        <span>{replyTo.authorName}에게 답글 남기는 중...</span>
+                      </div>
                       <button onClick={() => setReplyTo(null)} className="p-1"><X className="h-4 w-4" /></button>
                     </div>
                   )}
@@ -246,6 +258,7 @@ function LogCardActionsBase({
                       setReplyTo(null); // Reset after submitting
                     }}
                     placeholder={replyTo ? "답글을 작성하세요..." : "댓글을 작성하세요..."}
+                    replyTo={replyTo}
                   />
                 </div>
               </DrawerContent>

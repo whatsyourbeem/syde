@@ -14,7 +14,7 @@ interface CommentListProps {
   pageSize?: number;
   isDetailPage?: boolean;
   isMobile?: boolean;
-  setReplyTo?: (replyTo: { parentId: string; authorName: string } | null) => void;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null) => void;
 }
 
 type CommentRow = Database['public']['Tables']['log_comments']['Row'];

@@ -20,6 +20,7 @@ interface CommentFormProps {
   onCommentUpdated?: () => void;
   onCancel?: () => void;
   placeholder?: string;
+  replyTo?: { parentId: string; authorName: string; authorUsername: string | null; } | null;
 }
 
 function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['log_comments']['Row'], content: string, isSubmitting: boolean }) {
@@ -43,6 +44,7 @@ export function CommentForm({
   onCommentUpdated,
   onCancel,
   placeholder,
+  replyTo,
 }: CommentFormProps) {
   const supabase = createClient();
   const { openLoginDialog } = useLoginDialog();
@@ -50,6 +52,15 @@ export function CommentForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (replyTo && replyTo.authorUsername) {
+      setContent(`@${replyTo.authorUsername} `);
+      inputRef.current?.focus();
+    } else if (!initialCommentData) {
+      setContent("");
+    }
+  }, [replyTo, initialCommentData]);
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
@@ -222,7 +233,7 @@ export function CommentForm({
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
-            className="w-full pr-20 text-base"
+            className="w-full pr-20 text-sm"
             ref={inputRef}
             onClick={() => {
               if (!currentUserId) {

@@ -35,7 +35,7 @@ interface CommentCardProps {
   level: number; // Add level prop
   isDetailPage?: boolean; // New prop
   isMobile?: boolean;
-  setReplyTo?: (replyTo: { parentId: string; authorName: string } | null) => void;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null) => void;
 }
 
 export function CommentCard({
@@ -306,12 +306,25 @@ export function CommentCard({
                   <Button
                       onClick={() => setReplyTo({ 
                         parentId: comment.id, 
-                        authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous" 
+                        authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                        authorUsername: comment.profiles?.username || null,
+                        authorAvatarUrl: comment.profiles?.avatar_url || null
                       })}
-                      className="w-full justify-start p-2 h-auto text-xs text-muted-foreground"
+                      className="w-full justify-start px-3 py-2 h-auto text-xs text-muted-foreground"
                       variant="ghost"
                   >
-                    {`${comment.profiles?.full_name || comment.profiles?.username || "Anonymous"}에게 답글 달기...`}
+                    <div className="flex items-center gap-2">
+                      {comment.profiles?.avatar_url && (
+                        <Image 
+                          src={comment.profiles.avatar_url}
+                          alt={comment.profiles.username || "User"}
+                          width={16}
+                          height={16}
+                          className="rounded-full"
+                        />
+                      )}
+                      {`${comment.profiles?.full_name || comment.profiles?.username || "Anonymous"}에게 답글 달기...`}
+                    </div>
                   </Button>
                 </div>
               )}
