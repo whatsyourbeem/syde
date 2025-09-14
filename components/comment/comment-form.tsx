@@ -235,7 +235,7 @@ export function CommentForm({
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             
-            className="w-full pr-20 text-base placeholder:text-sm"
+            className="w-full pr-20 text-sm placeholder:text-sm"
             ref={inputRef}
             onClick={handleInputClick}
           />
