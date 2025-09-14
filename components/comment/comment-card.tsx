@@ -298,6 +298,12 @@ export function CommentCard({
                     currentUserId={currentUserId}
                     parentCommentId={comment.id}
                     onCancel={() => setShowReplies(false)}
+                    replyTo={{
+                      parentId: comment.id,
+                      authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                      authorUsername: comment.profiles?.username || null,
+                      authorAvatarUrl: comment.profiles?.avatar_url || null
+                    }}
                   />
                 </div>
               )}

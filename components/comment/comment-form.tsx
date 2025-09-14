@@ -54,11 +54,8 @@ export function CommentForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (replyTo && replyTo.authorUsername) {
-      setContent(`@${replyTo.authorUsername} `);
-      inputRef.current?.focus();
-    } else if (!initialCommentData) {
-      setContent("");
+    if (!initialCommentData) {
+      setContent('');
     }
   }, [replyTo, initialCommentData]);
 
@@ -179,6 +176,15 @@ export function CommentForm({
     }, 300);
   };
 
+  const handleInputClick = () => {
+    if (replyTo && replyTo.authorUsername && content === '') {
+      setContent(`@${replyTo.authorUsername} `);
+    }
+    if (!currentUserId) {
+      openLoginDialog();
+    }
+  };
+
   const clientAction = async (formData: FormData) => {
     if (!currentUserId) {
             openLoginDialog();
@@ -235,11 +241,7 @@ export function CommentForm({
             onFocus={handleFocus}
             className="w-full pr-20 text-sm"
             ref={inputRef}
-            onClick={() => {
-              if (!currentUserId) {
-                openLoginDialog();
-              }
-            }}
+            onClick={handleInputClick}
           />
           {showSuggestions && mentionSuggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
