@@ -213,7 +213,7 @@ export function CommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 mx-4 my-2 relative"
+      className="flex flex-col gap-2 mx-4 my-2 relative keyboard-aware-form"
     >
       <input type="hidden" name="log_id" value={logId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}

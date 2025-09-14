@@ -102,4 +102,16 @@
     scrollbar-width: thin; /* "auto" or "thin" */
     scrollbar-color: #888 #f1f1f1; /* thumb color track color */
   }
+
+  /* Mobile keyboard spacing fix */
+  .keyboard-aware-form {
+    padding-bottom: env(keyboard-inset-height, 0px);
+    transition: padding-bottom 0.3s ease;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    .keyboard-aware-form {
+      padding-bottom: max(env(safe-area-inset-bottom), env(keyboard-inset-height, 0px));
+    }
+  }
 }
