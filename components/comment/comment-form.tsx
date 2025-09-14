@@ -69,31 +69,43 @@ export function CommentForm({
 
   // Mobile keyboard handling
   useEffect(() => {
-    const handleViewportChange = () => {
-      if (typeof window !== 'undefined' && window.visualViewport) {
-        const viewport = window.visualViewport;
-        const isKeyboardOpen = viewport.height < window.innerHeight * 0.75;
+    let initialScrollY = 0;
 
-        if (formRef.current) {
-          if (isKeyboardOpen) {
-            formRef.current.classList.add('keyboard-open');
-            // Scroll input into view when keyboard opens
-            if (inputRef.current) {
-              setTimeout(() => {
-                inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }, 300);
-            }
-          } else {
-            formRef.current.classList.remove('keyboard-open');
-          }
-        }
+    const handleFocus = () => {
+      // Store initial scroll position
+      initialScrollY = window.scrollY;
+
+      if (formRef.current) {
+        formRef.current.classList.add('keyboard-open');
       }
+
+      // Prevent iOS viewport shift by restoring scroll position
+      setTimeout(() => {
+        if (window.scrollY !== initialScrollY) {
+          window.scrollTo(0, initialScrollY);
+        }
+      }, 100);
     };
 
-    if (typeof window !== 'undefined' && window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleViewportChange);
+    const handleBlur = () => {
+      if (formRef.current) {
+        formRef.current.classList.remove('keyboard-open');
+      }
+
+      // Restore original scroll position if needed
+      setTimeout(() => {
+        window.scrollTo(0, initialScrollY);
+      }, 100);
+    };
+
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('focus', handleFocus);
+      inputElement.addEventListener('blur', handleBlur);
+
       return () => {
-        window.visualViewport?.removeEventListener('resize', handleViewportChange);
+        inputElement.removeEventListener('focus', handleFocus);
+        inputElement.removeEventListener('blur', handleBlur);
       };
     }
   }, []);
