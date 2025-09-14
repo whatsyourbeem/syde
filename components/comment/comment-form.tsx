@@ -67,35 +67,31 @@ export function CommentForm({
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Mobile keyboard handling
+  // iOS keyboard handling
   useEffect(() => {
-    let initialScrollY = 0;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!isIOS) return;
 
     const handleFocus = () => {
-      // Store initial scroll position
-      initialScrollY = window.scrollY;
-
       if (formRef.current) {
-        formRef.current.classList.add('keyboard-open');
+        formRef.current.classList.add('keyboard-active');
       }
-
-      // Prevent iOS viewport shift by restoring scroll position
-      setTimeout(() => {
-        if (window.scrollY !== initialScrollY) {
-          window.scrollTo(0, initialScrollY);
-        }
-      }, 100);
+      // Prevent body scroll when keyboard is open
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.width = '100%';
     };
 
     const handleBlur = () => {
       if (formRef.current) {
-        formRef.current.classList.remove('keyboard-open');
+        formRef.current.classList.remove('keyboard-active');
       }
-
-      // Restore original scroll position if needed
-      setTimeout(() => {
-        window.scrollTo(0, initialScrollY);
-      }, 100);
+      // Restore body scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
     };
 
     const inputElement = inputRef.current;
@@ -256,7 +252,7 @@ export function CommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
+      className="flex flex-col gap-2 mx-4 my-2 relative ios-keyboard-container"
     >
       <input type="hidden" name="log_id" value={logId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
