@@ -64,6 +64,28 @@
   }
   body {
     @apply bg-background text-foreground overflow-y-scroll;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Mobile specific body positioning */
+  @media (max-width: 768px) {
+    body {
+      position: relative;
+      height: auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    html {
+      overflow: auto;
+    }
   }
 }
 
@@ -103,25 +125,14 @@
     scrollbar-color: #888 #f1f1f1; /* thumb color track color */
   }
 
-  /* iOS keyboard fix */
-  .ios-keyboard-container {
-    position: relative;
+  /* Mobile keyboard fix - minimize spacing */
+  .mobile-keyboard-fix {
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
-  .ios-keyboard-container.keyboard-active {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: var(--background);
-    border-top: 1px solid var(--border);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  @supports (-webkit-touch-callout: none) {
-    .ios-keyboard-container.keyboard-active {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+  .mobile-keyboard-fix.keyboard-open {
+    margin-bottom: 0;
+    padding-bottom: 8px;
   }
 }
