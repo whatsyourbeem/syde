@@ -219,7 +219,7 @@ function LogCardActionsBase({
               }}
             >
               <DrawerTrigger asChild>{commentButton}</DrawerTrigger>
-              <DrawerContent className="h-[90vh] flex flex-col">
+              <DrawerContent className="h-[90dvh] flex flex-col">
                 <DrawerHeader>
                   <DrawerTitle>댓글</DrawerTitle>
                 </DrawerHeader>

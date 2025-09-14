@@ -170,11 +170,7 @@ export function CommentForm({
     }
   };
 
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'auto', block: 'end' });
-    }, 300);
-  };
+  
 
   const handleInputClick = () => {
     if (replyTo && replyTo.authorUsername && content === '') {
@@ -238,8 +234,8 @@ export function CommentForm({
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
-            className="w-full pr-20 text-sm"
+            
+            className="w-full pr-20 text-sm placeholder:text-sm"
             ref={inputRef}
             onClick={handleInputClick}
           />
