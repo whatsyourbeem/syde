@@ -34,6 +34,8 @@ interface CommentCardProps {
   logId: string; // Add logId prop
   level: number; // Add level prop
   isDetailPage?: boolean; // New prop
+  isMobile?: boolean;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string } | null) => void;
 }
 
 export function CommentCard({
@@ -46,6 +48,8 @@ export function CommentCard({
   logId, // Destructure logId
   level, // Destructure level
   isDetailPage = false, // Destructure isDetailPage with default value
+  isMobile = false,
+  setReplyTo,
 }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -249,6 +253,8 @@ export function CommentCard({
                       onLikeStatusChange={onLikeStatusChange}
                       logId={logId}
                       level={level + 1}
+                      isMobile={isMobile}
+                      setReplyTo={setReplyTo}
                     />
                   ))}
                   {comment.replies.length > displayReplyCount && (
@@ -274,7 +280,7 @@ export function CommentCard({
                 </div>
               )}
               {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
-                <div className="flex justify-start mt-0">
+                <div className="flex justify-start mt-0 ml-4">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -285,7 +291,7 @@ export function CommentCard({
                   </Button>
                 </div>
               )}
-              {showReplies && (
+              {showReplies && !isMobile && (
                 <div className="mt-2 ml-4">
                   <CommentForm
                     logId={logId}
@@ -293,6 +299,20 @@ export function CommentCard({
                     parentCommentId={comment.id}
                     onCancel={() => setShowReplies(false)}
                   />
+                </div>
+              )}
+              {showReplies && isMobile && setReplyTo && (
+                <div className="ml-4">
+                  <Button
+                      onClick={() => setReplyTo({ 
+                        parentId: comment.id, 
+                        authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous" 
+                      })}
+                      className="w-full justify-start p-2 h-auto text-xs text-muted-foreground"
+                      variant="ghost"
+                  >
+                    {`${comment.profiles?.full_name || comment.profiles?.username || "Anonymous"}에게 답글 달기...`}
+                  </Button>
                 </div>
               )}
             </>

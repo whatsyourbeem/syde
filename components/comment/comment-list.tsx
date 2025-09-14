@@ -13,6 +13,8 @@ interface CommentListProps {
   currentUserId: string | null;
   pageSize?: number;
   isDetailPage?: boolean;
+  isMobile?: boolean;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string } | null) => void;
 }
 
 type CommentRow = Database['public']['Tables']['log_comments']['Row'];
@@ -37,6 +39,8 @@ export function CommentList({
   currentUserId,
   pageSize = 10, // Changed to 10 as requested
   isDetailPage = false,
+  isMobile = false,
+  setReplyTo,
 }: CommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -243,7 +247,7 @@ export function CommentList({
   }
 
   return (
-    <div className="space-y-1 px-4">
+    <div className="space-y-1 px-4 mb-4">
       {allComments.length === 0 && !isLoading ? (
         <p className="text-center text-sm text-muted-foreground my-4">
           아직 댓글이 없습니다.
@@ -261,6 +265,8 @@ export function CommentList({
             logId={logId}
             level={0}
             isDetailPage={isDetailPage}
+            isMobile={isMobile}
+            setReplyTo={setReplyTo}
           />
         ))
       )}

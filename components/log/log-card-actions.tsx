@@ -2,7 +2,7 @@
 
 import { useState, memo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy } from "lucide-react";
+import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy, X } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from '@/context/LoginDialogContext';
@@ -57,6 +57,7 @@ function LogCardActionsBase({
   
   const [isMobile, setIsMobile] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string } | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -207,7 +208,15 @@ function LogCardActionsBase({
           </Tooltip>
           
           {isMobile ? (
-            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+            <Drawer 
+              open={isDrawerOpen} 
+              onOpenChange={(open) => {
+                setIsDrawerOpen(open);
+                if (!open) {
+                  setReplyTo(null); // Reset reply state on close
+                }
+              }}
+            >
               <DrawerTrigger asChild>{commentButton}</DrawerTrigger>
               <DrawerContent className="h-[90vh] flex flex-col">
                 <DrawerHeader>
@@ -217,15 +226,26 @@ function LogCardActionsBase({
                   <CommentList 
                     logId={logId}
                     currentUserId={currentUserId}
+                    isMobile={isMobile}
+                    setReplyTo={setReplyTo}
                   />
                 </div>
-                <div className="flex-shrink-0 border-t">
+                <div className="flex-shrink-0 border-t p-2">
+                  {replyTo && (
+                    <div className="text-sm text-muted-foreground pl-6 flex justify-between items-center">
+                      <span>{replyTo.authorName}에게 답글 남기는 중...</span>
+                      <button onClick={() => setReplyTo(null)} className="p-1"><X className="h-4 w-4" /></button>
+                    </div>
+                  )}
                   <CommentForm
                     logId={logId}
                     currentUserId={currentUserId}
+                    parentCommentId={replyTo?.parentId}
                     onCommentAdded={() => {
                       onCommentAdded();
+                      setReplyTo(null); // Reset after submitting
                     }}
+                    placeholder={replyTo ? "답글을 작성하세요..." : "댓글을 작성하세요..."}
                   />
                 </div>
               </DrawerContent>

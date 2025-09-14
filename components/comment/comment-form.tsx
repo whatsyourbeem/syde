@@ -19,6 +19,7 @@ interface CommentFormProps {
   onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
+  placeholder?: string;
 }
 
 function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['log_comments']['Row'], content: string, isSubmitting: boolean }) {
@@ -41,6 +42,7 @@ export function CommentForm({
   onCommentAdded,
   onCommentUpdated,
   onCancel,
+  placeholder,
 }: CommentFormProps) {
   const supabase = createClient();
   const { openLoginDialog } = useLoginDialog();
@@ -208,11 +210,12 @@ export function CommentForm({
           <Input
             name="content"
             placeholder={
-              initialCommentData
+              placeholder ||
+              (initialCommentData
                 ? "댓글을 수정하세요..."
                 : parentCommentId
                 ? "답글을 작성하세요..."
-                : "댓글을 작성하세요..."
+                : "댓글을 작성하세요...")
             }
             disabled={isSubmitting}
             value={content}
