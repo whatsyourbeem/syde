@@ -101,11 +101,11 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className="h-full">
-      <body className={`${pretendard.className} antialiased h-full`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${pretendard.className} antialiased`}>
         <Providers>
           <LoginDialogProvider>
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col min-h-dvh">
               <header>
                 <div className="w-full bg-background">
                   <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
