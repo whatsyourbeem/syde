@@ -181,12 +181,6 @@ export function CommentForm({
     }
   };
 
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'auto', block: 'end' });
-    }, 300);
-  };
-
   const clientAction = async (formData: FormData) => {
     if (!currentUserId) {
             openLoginDialog();
@@ -240,7 +234,7 @@ export function CommentForm({
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
+            
             className="w-full pr-20 text-sm placeholder:text-sm"
             ref={inputRef}
             onClick={handleInputClick}

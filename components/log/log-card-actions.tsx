@@ -58,6 +58,7 @@ function LogCardActionsBase({
   
   const [isMobile, setIsMobile] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerHeight, setDrawerHeight] = useState<string | number>("90%");
   const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
 
   useEffect(() => {
@@ -213,13 +214,16 @@ function LogCardActionsBase({
               open={isDrawerOpen} 
               onOpenChange={(open) => {
                 setIsDrawerOpen(open);
+                if (open) {
+                  setDrawerHeight(window.innerHeight * 0.9);
+                }
                 if (!open) {
                   setReplyTo(null); // Reset reply state on close
                 }
               }}
             >
               <DrawerTrigger asChild>{commentButton}</DrawerTrigger>
-              <DrawerContent className="h-[90dvh] flex flex-col">
+              <DrawerContent style={{ height: drawerHeight }} className="flex flex-col">
                 <DrawerHeader>
                   <DrawerTitle>댓글</DrawerTitle>
                 </DrawerHeader>
