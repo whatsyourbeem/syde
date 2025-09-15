@@ -232,9 +232,9 @@ export function ClubPostCommentForm({
                         className="rounded-full object-cover aspect-square mr-2"
                       />
                     )}
-                    <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                    <span className="font-semibold truncate">{suggestion.full_name || suggestion.username}</span>
                     {suggestion.full_name && suggestion.username && (
-                      <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                      <span className="text-muted-foreground ml-2 truncate">@{suggestion.username}</span>
                     )}
                   </div>
                 </li>
