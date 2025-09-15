@@ -45,6 +45,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
@@ -68,6 +69,7 @@ interface LogDetailProps {
 export function LogDetail({ log, user }: LogDetailProps) {
   const supabase = createClient();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [mentionedProfiles, setMentionedProfiles] = useState<
     Array<{ id: string; username: string | null }>
@@ -240,6 +242,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
 
   const handleCommentAdded = () => {
     setCommentsCount((prev) => prev + 1);
+    queryClient.invalidateQueries({ queryKey: ["comments", { logId: log.id }] });
   };
 
   const handleCopyLink = async () => {

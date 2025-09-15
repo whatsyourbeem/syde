@@ -247,7 +247,7 @@ export function CommentForm({
                   className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
                   onClick={() => handleSelectSuggestion(suggestion)}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center text-xs">
                     {suggestion.avatar_url && (
                       <Image
                         src={suggestion.avatar_url}

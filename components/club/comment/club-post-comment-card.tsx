@@ -204,7 +204,7 @@ export function ClubPostCommentCard({
                     postId={postId}
                     currentUserId={currentUserId}
                     parentCommentId={comment.id}
-                    onCommentAdded={() => {}}
+                    onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["clubPostComments", { postId }] })}
                     onCancel={() => setShowReplies(false)}
                   />
                 </div>
