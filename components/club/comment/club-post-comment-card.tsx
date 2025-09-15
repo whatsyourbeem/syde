@@ -27,6 +27,7 @@ interface ClubPostCommentCardProps {
   level: number;
   clubId: string;
   isDetailPage?: boolean;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
 }
 
 export function ClubPostCommentCard({
@@ -34,9 +35,10 @@ export function ClubPostCommentCard({
   currentUserId,
   mentionedProfiles,
   postId,
-  level,
+  level = 0, // Default value for level
   clubId,
   isDetailPage = false,
+  setReplyTo,
 }: ClubPostCommentCardProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -127,6 +129,21 @@ export function ClubPostCommentCard({
                     <span className="text-xs">{comment.replies?.length || 0}</span>
                   </button>
                 )}
+                {level > 0 && setReplyTo && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:bg-muted-foreground/10"
+                    onClick={() => setReplyTo({
+                      parentId: comment.parent_comment_id || comment.id,
+                      authorName: comment.author?.full_name || comment.author?.username || "Anonymous",
+                      authorUsername: comment.author?.username || null,
+                      authorAvatarUrl: comment.author?.avatar_url || null
+                    })}
+                  >
+                    답글 달기
+                  </Button>
+                )}
                 {currentUserId === comment.user_id && (
                   <>
                     <Button
@@ -153,7 +170,7 @@ export function ClubPostCommentCard({
 
               {showReplies && comment.replies && comment.replies.length > 0 && (
                 <div className="mt-2 space-y-2 border-l pl-4">
-                  {comment.replies.slice(0, displayReplyCount).map((reply) => (
+                  {comment.replies.slice(0, displayReplyCount).map((reply: ProcessedClubPostComment) => (
                     <ClubPostCommentCard
                       key={reply.id}
                       comment={reply}
@@ -163,6 +180,7 @@ export function ClubPostCommentCard({
                       level={level + 1}
                       clubId={clubId}
                       isDetailPage={isDetailPage}
+                      setReplyTo={setReplyTo}
                     />
                   ))}
                   {comment.replies.length > displayReplyCount && (

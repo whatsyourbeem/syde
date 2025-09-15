@@ -18,6 +18,7 @@ interface ClubPostCommentFormProps {
   onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
+  replyTo?: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null;
 }
 
 function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['club_forum_post_comments']['Row'], content: string, isSubmitting: boolean }) {
@@ -40,12 +41,23 @@ export function ClubPostCommentForm({
   onCommentAdded,
   onCommentUpdated,
   onCancel,
+  replyTo,
 }: ClubPostCommentFormProps) {
   const supabase = createClient();
   const { openLoginDialog } = useLoginDialog();
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!initialCommentData) {
+      if (replyTo && replyTo.authorUsername) {
+        setContent(`@${replyTo.authorUsername} `);
+      } else {
+        setContent('');
+      }
+    }
+  }, [replyTo, initialCommentData]);
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");

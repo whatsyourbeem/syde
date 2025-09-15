@@ -40,6 +40,7 @@ export default function ClubPostDetailClient({
   clubOwnerId,
 }: ClubPostDetailClientProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
   const formattedPostDate = post.created_at ? formatRelativeTime(post.created_at) : '';
 
   const handleEditSuccess = () => {
@@ -119,12 +120,14 @@ export default function ClubPostDetailClient({
           <ClubPostCommentForm
             postId={post.id}
             currentUserId={user?.id || null}
+            replyTo={replyTo}
           />
           <ClubPostCommentList
             postId={post.id}
             currentUserId={user?.id || null}
             clubId={clubId}
             isDetailPage={true}
+            setReplyTo={setReplyTo}
           />
         </div>
       )}

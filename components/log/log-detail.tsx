@@ -84,6 +84,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
   const [copyUrl, setCopyUrl] = useState("");
   const [ogUrl, setOgUrl] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
 
   useEffect(() => {
     const urlRegex = /(https?:\/\/[^\s]+)/;
@@ -547,11 +548,13 @@ export function LogDetail({ log, user }: LogDetailProps) {
           currentUserId={user?.id || null}
           pageSize={10}
           isDetailPage={true}
+          setReplyTo={setReplyTo}
         />
         <CommentForm
           logId={log.id}
           currentUserId={user?.id || null}
           onCommentAdded={handleCommentAdded}
+          replyTo={replyTo}
         />
       </div>
       <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>

@@ -7,7 +7,6 @@ import { HeartIcon, MessageCircle } from "lucide-react"; // Added Edit, HeartIco
 import { useState, useEffect } from "react";
 import { CommentForm } from "@/components/comment/comment-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { useLoginDialog } from '@/context/LoginDialogContext';
 
@@ -24,18 +23,24 @@ type ProcessedComment = Database['public']['Tables']['log_comments']['Row'] & {
   replies?: ProcessedComment[]; // Add replies property
 };
 
+import { Button } from "../ui/button";
+
 interface CommentCardProps {
   comment: ProcessedComment;
+  logId: string;
+  userId: string | null;
+  isLiked: boolean;
+  likeCount: number;
+  onReplyClick?: (username: string, fullName: string) => void;
+  level?: number;
   currentUserId: string | null;
-  mentionedProfiles: Array<{ id: string; username: string | null }>;
-  initialLikesCount: number; // New prop
-  initialHasLiked: boolean; // New prop
-  onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void; // New prop
-  logId: string; // Add logId prop
-  level: number; // Add level prop
-  isDetailPage?: boolean; // New prop
+  mentionedProfiles: any[];
+  initialLikesCount: number;
+  initialHasLiked: boolean;
+  onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void;
+  isDetailPage?: boolean;
   isMobile?: boolean;
-  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null) => void;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
 }
 
 export function CommentCard({
@@ -46,7 +51,7 @@ export function CommentCard({
   initialHasLiked,
   onLikeStatusChange,
   logId, // Destructure logId
-  level, // Destructure level
+  level = 0, // Destructure level with default value
   isDetailPage = false, // Destructure isDetailPage with default value
   isMobile = false,
   setReplyTo,
@@ -194,7 +199,7 @@ export function CommentCard({
           ) : (
             <>
               <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-1 mt-2">
                 <button
                   onClick={handleLike}
                   disabled={loading || isEditing}
@@ -207,6 +212,21 @@ export function CommentCard({
                   />
                   <span className="text-xs">{likesCount}</span>
                 </button>
+                {level > 0 && setReplyTo && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:bg-muted-foreground/10"
+                    onClick={() => setReplyTo({
+                      parentId: comment.parent_comment_id || comment.id,
+                      authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                      authorUsername: comment.profiles?.username || null,
+                      authorAvatarUrl: comment.profiles?.avatar_url || null
+                    })}
+                  >
+                    답글 달기
+                  </Button>
+                )}
                 {level < 1 && (
                   <button
                     onClick={() => {
@@ -244,7 +264,7 @@ export function CommentCard({
               </div>
               {showReplies && comment.replies && comment.replies.length > 0 && (
                 <div className="mt-2 space-y-2 border-l pl-4">
-                  {comment.replies.slice(0, displayReplyCount).map((reply) => (
+                  {comment.replies.slice(0, displayReplyCount).map((reply: ProcessedComment) => (
                     <CommentCard
                       key={reply.id}
                       comment={reply}
@@ -257,6 +277,11 @@ export function CommentCard({
                       level={level + 1}
                       isMobile={isMobile}
                       setReplyTo={setReplyTo}
+                      // Pass props required by CommentCard for each reply
+                      userId={reply.user_id} // Assuming user_id is the userId for the reply
+                      isLiked={reply.initialHasLiked}
+                      likeCount={reply.initialLikesCount}
+                      
                     />
                   ))}
                   {comment.replies.length > displayReplyCount && (

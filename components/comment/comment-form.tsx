@@ -55,7 +55,11 @@ export function CommentForm({
 
   useEffect(() => {
     if (!initialCommentData) {
-      setContent('');
+      if (replyTo && replyTo.authorUsername) {
+        setContent(`@${replyTo.authorUsername} `);
+      } else {
+        setContent('');
+      }
     }
   }, [replyTo, initialCommentData]);
 

@@ -15,6 +15,7 @@ interface ClubPostCommentListProps {
   pageSize?: number;
   showPaginationButtons?: boolean;
   isDetailPage?: boolean;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
 }
 
 export function ClubPostCommentList({
@@ -24,6 +25,7 @@ export function ClubPostCommentList({
   pageSize = 5,
   showPaginationButtons = false,
   isDetailPage = false,
+  setReplyTo,
 }: ClubPostCommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -86,6 +88,7 @@ export function ClubPostCommentList({
         level={level}
         clubId={clubId}
         isDetailPage={isDetailPage}
+        setReplyTo={setReplyTo}
       />
     </div>
   );
