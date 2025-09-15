@@ -76,7 +76,7 @@ export default {
       fontSize: {
         'log-content': '15px',
       },
-      typography: ({ theme }) => ({
+      typography: ({ theme }: { theme: (path: string) => string }) => ({
         DEFAULT: {
           css: {
             '--tw-prose-body': 'hsl(var(--foreground))',

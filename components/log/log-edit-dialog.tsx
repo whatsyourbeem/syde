@@ -423,7 +423,6 @@ export function LogEditDialog({
 
     const lines = textBeforeAt.split('\n');
     const currentLineIndex = lines.length - 1;
-    const currentLineText = lines[currentLineIndex];
 
     // Calculate line height
     const lineHeight = parseInt(style.lineHeight) || parseInt(style.fontSize) * 1.2;
