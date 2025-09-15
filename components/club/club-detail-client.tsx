@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tables, Enums } from "@/types/database.types";
 import {
   MEETUP_STATUSES,
@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 import ClubPostList from "./club-post-list"; // Import ClubPostList
+import { getPaginatedClubPosts } from "@/app/socialing/club/club-post-actions"; // Import the new server action
 import {
   Accordion,
   AccordionContent,
@@ -45,17 +46,13 @@ type ClubMember = Tables<"club_members"> & { profiles: Profile | null };
 
 type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 
-type ForumWithPosts = Tables<"club_forums"> & { posts: ClubForumPost[] };
 
-type Club = Tables<"clubs"> & {
-  owner_profile: Profile | null;
-  members: ClubMember[];
-  meetups: Meetup[];
-  forums: ForumWithPosts[];
-};
 
 interface ClubDetailClientProps {
-  club: Club;
+  club: Tables<"clubs"> & { owner_profile: Profile | null };
+  members: ClubMember[];
+  meetups: Meetup[];
+  forums: Tables<"club_forums">[];
   isMember: boolean;
   currentUserId?: string;
   userRole: string | null;
@@ -97,14 +94,23 @@ function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
 // Main Component
 export default function ClubDetailClient({
   club,
+  members,
+  meetups,
+  forums,
   isMember,
   currentUserId,
   userRole,
   isOwner,
 }: ClubDetailClientProps) {
-  const [activeForumId, setActiveForumId] = useState(club.forums[0]?.id || "");
+  const [activeForumId, setActiveForumId] = useState(forums[0]?.id || "");
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 10; // Constant for posts per page
 
-  const canReadForum = (forum: ForumWithPosts) => {
+  const [paginatedPosts, setPaginatedPosts] = useState<ClubForumPost[]>([]);
+  const [totalPostsCount, setTotalPostsCount] = useState(0);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+
+  const canReadForum = (forum: Tables<"club_forums">) => {
     const permission = forum.read_permission;
     if (permission === CLUB_PERMISSION_LEVELS.PUBLIC) {
       return true;
@@ -124,7 +130,7 @@ export default function ClubDetailClient({
     return false;
   };
 
-  const canWriteForum = (forum: ForumWithPosts | undefined) => {
+  const canWriteForum = (forum: Tables<"club_forums"> | undefined) => {
     if (!forum || !isMember) return false;
     const permission = forum.write_permission;
     if (permission === CLUB_PERMISSION_LEVELS.MEMBER) {
@@ -142,7 +148,29 @@ export default function ClubDetailClient({
     return false;
   };
 
-  const activeForum = club.forums.find((f) => f.id === activeForumId);
+  const activeForum = forums.find((f) => f.id === activeForumId);
+
+  useEffect(() => {
+    if (!activeForumId) {
+      setPaginatedPosts([]);
+      setTotalPostsCount(0);
+      return;
+    }
+
+    const fetchPosts = async () => {
+      setIsLoadingPosts(true);
+      const { posts, totalCount } = await getPaginatedClubPosts(
+        activeForumId,
+        currentPage,
+        postsPerPage
+      );
+      setPaginatedPosts(posts);
+      setTotalPostsCount(totalCount);
+      setIsLoadingPosts(false);
+    };
+
+    fetchPosts();
+  }, [activeForumId, currentPage, postsPerPage]);
 
   return (
     <div className="relative">
@@ -192,7 +220,7 @@ export default function ClubDetailClient({
               <div className="p-4 overflow-y-auto">
                 <ClubMembersList
                   clubId={club.id}
-                  members={club.members}
+                  members={members}
                   clubOwnerId={club.owner_id}
                   currentUserId={currentUserId}
                   direction="vertical"
@@ -204,9 +232,7 @@ export default function ClubDetailClient({
         <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <ClubMembersList
             clubId={club.id}
-            members={
-              club.members.length > 6 ? club.members.slice(0, 6) : club.members
-            }
+            members={members}
             clubOwnerId={club.owner_id}
             currentUserId={currentUserId}
             direction="horizontal"
@@ -253,10 +279,10 @@ export default function ClubDetailClient({
             </Link>
           </div>
         </div>
-        {club.meetups.length > 0 ? (
+        {meetups.length > 0 ? (
           <div className="overflow-x-auto pb-4 custom-scrollbar">
             <div className="flex space-x-4 px-4">
-              {club.meetups.map((meetup) => (
+              {meetups.map((meetup) => (
                 <div
                   key={meetup.id}
                   className="w-[240px] flex-shrink-0"
@@ -341,7 +367,7 @@ export default function ClubDetailClient({
         <h2 className="text-2xl font-bold mb-4">
           📌<span className="font-extrabold pl-2">게시판</span>
         </h2>
-        {club.forums && club.forums.length > 0 ? (
+        {forums && forums.length > 0 ? (
           <Tabs
             defaultValue={activeForumId}
             className="w-full"
@@ -349,7 +375,7 @@ export default function ClubDetailClient({
           >
             <div className="flex flex-col gap-4 mb-4 md:flex-row md:justify-between md:items-center">
               <TabsList className="overflow-x-auto whitespace-nowrap scrollbar-hide">
-                {club.forums.map((forum) => (
+                {forums.map((forum) => (
                   <TabsTrigger key={forum.id} value={forum.id}>
                     {forum.name}
                   </TabsTrigger>
@@ -366,10 +392,10 @@ export default function ClubDetailClient({
               </div>
             </div>
 
-            {club.forums.map((forum) => (
+            {forums.map((forum) => (
               <TabsContent key={forum.id} value={forum.id}>
                 {canReadForum(forum) ? (
-                  <ClubPostList posts={forum.posts} clubId={club.id} />
+                  <ClubPostList posts={paginatedPosts} clubId={club.id} currentPage={currentPage} postsPerPage={postsPerPage} totalPostsCount={totalPostsCount} onPageChange={setCurrentPage} isLoading={isLoadingPosts} />
                 ) : (
                   <div className="p-8 text-center rounded-lg">
                     <p className="text-muted-foreground">

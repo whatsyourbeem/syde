@@ -3,6 +3,7 @@ import { Tables } from "@/types/database.types";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPlainTextFromTiptapJson } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type Profile = Tables<"profiles">;
 type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
@@ -10,9 +11,22 @@ type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 interface ClubPostListProps {
   posts: ClubForumPost[];
   clubId: string;
+  currentPage: number;
+  postsPerPage: number;
+  totalPostsCount: number;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
 }
 
-export default function ClubPostList({ posts, clubId }: ClubPostListProps) {
+export default function ClubPostList({
+  posts,
+  clubId,
+  currentPage,
+  postsPerPage,
+  totalPostsCount,
+  onPageChange,
+  isLoading,
+}: ClubPostListProps) {
   if (!posts || posts.length === 0) {
     return (
       <p className="text-center text-gray-500 py-8">아직 게시글이 없습니다.</p>
@@ -56,6 +70,38 @@ export default function ClubPostList({ posts, clubId }: ClubPostListProps) {
           </li>
         ))}
       </ul>
+      {/* Pagination Controls */}
+      {totalPostsCount > postsPerPage && (
+        <div className="flex justify-center items-center gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1 || isLoading}
+          >
+            이전
+          </Button>
+          {Array.from({ length: Math.ceil(totalPostsCount / postsPerPage) }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              variant={page === currentPage ? "default" : "outline"}
+              size="sm"
+              onClick={() => onPageChange(page)}
+              disabled={isLoading}
+            >
+              {page}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === Math.ceil(totalPostsCount / postsPerPage) || isLoading}
+          >
+            다음
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
