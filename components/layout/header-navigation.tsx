@@ -74,7 +74,7 @@ export function HeaderNavigation() {
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid gap-0 p-0 w-[150px] lg:grid-cols-[1fr]">
-              <ListItem href="/socialing/meetup" title="밋업"></ListItem>
+              <ListItem href="/socialing/meetup" title="모임"></ListItem>
               <ListItem href="/socialing/club" title="클럽"></ListItem>
             </ul>
           </NavigationMenuContent>

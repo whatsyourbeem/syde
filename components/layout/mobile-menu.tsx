@@ -88,7 +88,7 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
                         : ""
                     }`}
                   >
-                    밋업
+                    모임
                   </Link>
                 </SheetClose>
                 <SheetClose asChild>

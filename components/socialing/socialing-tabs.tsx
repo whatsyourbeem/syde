@@ -15,7 +15,7 @@ export default function SocialingTabs() {
       <TabsList className="flex justify-center items-center gap-1">
         <TabsTrigger value="meetup" asChild>
           <Link href="/socialing/meetup" className="px-4 py-2">
-            밋업
+            모임
           </Link>
         </TabsTrigger>
         <TabsTrigger value="club" asChild>

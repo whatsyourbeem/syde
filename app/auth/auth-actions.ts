@@ -108,7 +108,7 @@ export async function deleteAccount(): Promise<DeleteResponse> {
       .eq("organizer_id", userId);
 
     if (meetupsError) {
-      throw new Error(`밋업 조회 실패: ${meetupsError.message}`);
+      throw new Error(`모임 조회 실패: ${meetupsError.message}`);
     }
 
     for (const meetup of meetupsData) {
@@ -119,7 +119,7 @@ export async function deleteAccount(): Promise<DeleteResponse> {
             .from("meetups")
             .remove([meetupPath]);
           if (storageError) {
-            console.error(`밋업 썸네일 삭제 실패 (${meetup.id}):`, storageError);
+            console.error(`모임 썸네일 삭제 실패 (${meetup.id}):`, storageError);
           }
         }
       }
