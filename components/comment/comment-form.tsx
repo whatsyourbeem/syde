@@ -20,7 +20,7 @@ interface CommentFormProps {
   onCommentUpdated?: () => void;
   onCancel?: () => void;
   placeholder?: string;
-  replyTo?: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null;
+  replyTo?: { parentId: string; authorName: string | null; authorUsername: string | null; authorAvatarUrl: string | null; } | null;
 }
 
 function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['log_comments']['Row'], content: string, isSubmitting: boolean }) {

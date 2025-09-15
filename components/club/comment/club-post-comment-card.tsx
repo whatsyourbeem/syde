@@ -234,7 +234,17 @@ export function ClubPostCommentCard({
                   </Button>
                 </div>
               )}
-
+              {showReplies && (
+                <div className="mt-2 ml-4">
+                  <ClubPostCommentForm
+                    postId={postId}
+                    currentUserId={currentUserId}
+                    parentCommentId={comment.id}
+                    onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["clubPostComments", { postId }] })}
+                    onCancel={() => setShowReplies(false)}
+                  />
+                </div>
+              )}
               
             </>
           )}

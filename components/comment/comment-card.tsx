@@ -69,6 +69,7 @@ export function CommentCard({
   const [hasLiked, setHasLiked] = useState(initialHasLiked); // New state
   const [showReplies, setShowReplies] = useState(false); // New state for showing replies
   const [displayReplyCount, setDisplayReplyCount] = useState(5); // New state for replies to display
+  const [internalReplyTo, setInternalReplyTo] = useState<{ parentId: string; authorName: string | null; authorUsername: string | null; authorAvatarUrl: string | null } | undefined>(undefined);
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -229,17 +230,22 @@ export function CommentCard({
                   />
                   <span className="text-xs">{likesCount}</span>
                 </button>
-                {level > 0 && setReplyTo && (
+                {level > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     className="text-muted-foreground hover:bg-muted-foreground/10"
-                    onClick={() => setReplyTo({
-                      parentId: comment.parent_comment_id || comment.id,
-                      authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
-                      authorUsername: comment.profiles?.username || null,
-                      authorAvatarUrl: comment.profiles?.avatar_url || null
-                    })}
+                    onClick={() => {
+                      // 답글의 답글달기 버튼 클릭시 부모 댓글에게 알리기
+                      if (setReplyTo) {
+                        setReplyTo({
+                          parentId: comment.parent_comment_id || comment.id,
+                          authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                          authorUsername: comment.profiles?.username || null,
+                          authorAvatarUrl: comment.profiles?.avatar_url || null
+                        });
+                      }
+                    }}
                   >
                     답글 달기
                   </Button>
@@ -248,6 +254,9 @@ export function CommentCard({
                   <button
                     onClick={() => {
                       setShowReplies(!showReplies);
+                      if (!showReplies) { // If replies are about to be shown
+                        setInternalReplyTo(undefined); // Clear any previous replyTo for the internal form
+                      }
                     }}
                     className={`p-1 text-muted-foreground hover:text-green-500 flex items-center gap-1 ${showReplies ? 'text-green-500' : ''}`}
                     aria-label="Reply to comment"
@@ -255,6 +264,24 @@ export function CommentCard({
                     <MessageCircle size={14} />
                     <span className="text-xs">{comment.replies?.length || 0}</span>
                   </button>
+                )}
+                {level < 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:bg-muted-foreground/10"
+                    onClick={() => {
+                      setInternalReplyTo({
+                        parentId: comment.id,
+                        authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                        authorUsername: comment.profiles?.username || null,
+                        authorAvatarUrl: comment.profiles?.avatar_url || null
+                      });
+                      setShowReplies(true);
+                    }}
+                  >
+                    답글 달기
+                  </Button>
                 )}
                 {currentUserId === comment.user_id && (
                   <>
@@ -293,7 +320,16 @@ export function CommentCard({
                       logId={logId}
                       level={level + 1}
                       isMobile={isMobile}
-                      setReplyTo={setReplyTo}
+                      setReplyTo={(replyData) => {
+                        // 답글의 답글달기 버튼이 클릭되면 이 댓글의 답글 입력란에 멘션을 설정
+                        setInternalReplyTo({
+                          parentId: comment.id,
+                          authorName: replyData.authorName,
+                          authorUsername: replyData.authorUsername,
+                          authorAvatarUrl: replyData.authorAvatarUrl
+                        });
+                        setShowReplies(true);
+                      }}
                       // Pass props required by CommentCard for each reply
                       userId={reply.user_id} // Assuming user_id is the userId for the reply
                       isLiked={reply.initialHasLiked}
@@ -335,7 +371,7 @@ export function CommentCard({
                   </Button>
                 </div>
               )}
-              {showReplies && !isMobile && (
+              {showReplies && !isMobile && level === 0 && (
                 <div className="mt-2 ml-4">
                   <CommentForm
                     logId={logId}
@@ -343,24 +379,26 @@ export function CommentCard({
                     parentCommentId={comment.id}
                     onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", { logId }] })}
                     onCancel={() => setShowReplies(false)}
-                    replyTo={{
-                      parentId: comment.id,
-                      authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
-                      authorUsername: comment.profiles?.username || null,
-                      authorAvatarUrl: comment.profiles?.avatar_url || null
-                    }}
+                    replyTo={internalReplyTo}
                   />
                 </div>
               )}
+              
+              
               {showReplies && isMobile && setReplyTo && (
                 <div className="ml-4">
                   <Button
-                      onClick={() => setReplyTo({ 
-                        parentId: comment.id, 
-                        authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
-                        authorUsername: comment.profiles?.username || null,
-                        authorAvatarUrl: comment.profiles?.avatar_url || null
-                      })}
+                      onClick={() => {
+                        setReplyTo({
+                          parentId: comment.id,
+                          authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                          authorUsername: comment.profiles?.username || null,
+                          authorAvatarUrl: comment.profiles?.avatar_url || null
+                        });
+                        // For mobile, we still want to use the parent's setReplyTo to open the main comment form
+                        // and pre-fill it. The setShowReplies(true) is not needed here as the mobile button
+                        // itself is within the showReplies block.
+                      }}
                       className="w-full justify-start px-3 py-2 h-auto text-xs text-muted-foreground"
                       variant="ghost"
                   >
