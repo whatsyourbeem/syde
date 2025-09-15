@@ -87,18 +87,18 @@ export function ClubPostCommentCard({
               </Link>
             )}
         </ProfileHoverCard>
-        <div className="flex-grow">
+        <div className="flex-grow min-w-0">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
             <div className="flex items-baseline gap-1">
-                <Link href={`/${comment.author?.username || comment.user_id}`}>
-                  <p className="font-semibold text-sm hover:underline">
+                <Link href={`/${comment.author?.username || comment.user_id}`} className="min-w-0">
+                  <p className="font-semibold text-sm hover:underline truncate max-w-36 md:max-w-none">
                     {comment.author?.full_name ||
                       comment.author?.username ||
                       "Anonymous"}
                   </p>
                 </Link>
               {comment.author?.tagline && (
-                <p className="text-xs text-muted-foreground">{comment.author.tagline}</p>
+                <p className="text-xs text-muted-foreground truncate min-w-0 max-w-24 md:max-w-none">{comment.author.tagline}</p>
               )}
               <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedCommentDate}</p>
             </div>
