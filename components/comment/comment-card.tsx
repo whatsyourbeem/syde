@@ -168,16 +168,18 @@ export function CommentCard({
         <div className="flex-grow min-w-0">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
             <div className="flex items-baseline gap-1">
-                <Link href={`/${comment.profiles?.username || comment.user_id}`} className="min-w-0">
-                  <p className="font-semibold text-sm hover:underline truncate max-w-36 md:max-w-none">
-                    {comment.profiles?.full_name ||
-                      comment.profiles?.username ||
-                      "Anonymous"}
-                  </p>
-                </Link>
-              {comment.profiles?.tagline && (
-                <p className="text-xs text-muted-foreground truncate min-w-0 max-w-24 md:max-w-none">{comment.profiles.tagline}</p>
-              )}
+                <div className="flex flex-col md:flex-row md:gap-2">
+                  <Link href={`/${comment.profiles?.username || comment.user_id}`} className="min-w-0">
+                    <p className="font-semibold text-sm hover:underline truncate max-w-48">
+                      {comment.profiles?.full_name ||
+                        comment.profiles?.username ||
+                        "Anonymous"}
+                    </p>
+                  </Link>
+                {comment.profiles?.tagline && (
+                  <p className="text-xs text-muted-foreground truncate min-w-0 max-w-48">{comment.profiles.tagline}</p>
+                )}
+                </div>
               <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedCommentDate}</p>
             </div>
           </ProfileHoverCard>

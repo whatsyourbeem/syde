@@ -72,7 +72,7 @@ export function ClubPostCommentCard({
   };
 
   return (
-    <div className="flex items-start justify-between gap-3 p-2">
+    <div className="flex items-start justify-between gap-3 p-1">
       <div className="flex items-start gap-3">
         <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
             {avatarUrlWithCacheBuster && (
@@ -90,16 +90,18 @@ export function ClubPostCommentCard({
         <div className="flex-grow min-w-0">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
             <div className="flex items-baseline gap-1">
-                <Link href={`/${comment.author?.username || comment.user_id}`} className="min-w-0">
-                  <p className="font-semibold text-sm hover:underline truncate max-w-36 md:max-w-none">
-                    {comment.author?.full_name ||
-                      comment.author?.username ||
-                      "Anonymous"}
-                  </p>
-                </Link>
-              {comment.author?.tagline && (
-                <p className="text-xs text-muted-foreground truncate min-w-0 max-w-24 md:max-w-none">{comment.author.tagline}</p>
-              )}
+                <div className="flex flex-col md:flex-row md:items-baseline md:gap-2">
+                  <Link href={`/${comment.author?.username || comment.user_id}`} className="min-w-0">
+                    <p className="font-semibold text-sm hover:underline truncate max-w-48">
+                      {comment.author?.full_name ||
+                        comment.author?.username ||
+                        "Anonymous"}
+                    </p>
+                  </Link>
+                {comment.author?.tagline && (
+                  <p className="text-xs text-muted-foreground truncate min-w-0 max-w-48">{comment.author.tagline}</p>
+                )}
+                </div>
               <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedCommentDate}</p>
             </div>
           </ProfileHoverCard>
