@@ -52,7 +52,7 @@ export async function getOptimizedLogs({
   // 1. Fetch liked log IDs for the current user in a separate query.
   let likedLogIdsSet = new Set<string>();
   if (currentUserId) {
-    const { data: likedLogs, error: likedLogsError } = await supabase
+    const { data: likedLogs } = await supabase
       .from('log_likes')
       .select('log_id')
       .eq('user_id', currentUserId);
@@ -63,11 +63,12 @@ export async function getOptimizedLogs({
   }
 
   // 2. Build the main query without the complex 'has_liked' subquery.
-  let selectQuery = `
+  const selectQuery = `
     id,
     content,
     image_url,
     created_at,
+    updated_at,
     user_id,
     profiles (id, username, full_name, avatar_url, updated_at, tagline, bio, link),
     log_bookmarks(user_id),
@@ -114,17 +115,17 @@ export async function getOptimizedLogs({
   }
 
   // Batch fetch mentioned profiles
-  const mentionedProfiles = await getMentionedProfiles((logsData || []) as any);
+  const mentionedProfiles = await getMentionedProfiles(logsData || []);
 
   // 3. Process logs and determine 'hasLiked' using the Set.
-  const processedLogs: OptimizedLog[] = (logsData || []).map((log: any) => ({
-    ...(log as any),
+  const processedLogs: OptimizedLog[] = (logsData || []).map((log) => ({
+    ...log,
     profiles: Array.isArray(log.profiles) ? log.profiles[0] : log.profiles,
     likesCount: log.likes_count?.[0]?.count || 0,
     hasLiked: likedLogIdsSet.has(log.id),
     bookmarksCount: log.log_bookmarks?.length || 0,
     hasBookmarked: currentUserId
-      ? log.log_bookmarks?.some((bookmark: any) => bookmark.user_id === currentUserId)
+      ? log.log_bookmarks?.some((bookmark) => bookmark.user_id === currentUserId)
       : false,
     log_likes: [], // Keep interface consistent
     log_comments: log.log_comments || [],

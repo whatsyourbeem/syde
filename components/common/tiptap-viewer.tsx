@@ -48,7 +48,7 @@ export default function TiptapViewer({ content, placeholder = "작성된 내용�
   }
 
   return (
-    <div className="prose max-w-none text-muted-foreground">
+    <div className="prose max-w-none">
       <EditorContent editor={editor} />
     </div>
   );

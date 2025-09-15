@@ -67,6 +67,49 @@ export function CommentForm({
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Mobile keyboard handling
+  useEffect(() => {
+    let initialScrollY = 0;
+
+    const handleFocus = () => {
+      // Store initial scroll position
+      initialScrollY = window.scrollY;
+
+      if (formRef.current) {
+        formRef.current.classList.add('keyboard-open');
+      }
+
+      // Prevent iOS viewport shift by restoring scroll position
+      setTimeout(() => {
+        if (window.scrollY !== initialScrollY) {
+          window.scrollTo(0, initialScrollY);
+        }
+      }, 100);
+    };
+
+    const handleBlur = () => {
+      if (formRef.current) {
+        formRef.current.classList.remove('keyboard-open');
+      }
+
+      // Restore original scroll position if needed
+      setTimeout(() => {
+        window.scrollTo(0, initialScrollY);
+      }, 100);
+    };
+
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('focus', handleFocus);
+      inputElement.addEventListener('blur', handleBlur);
+
+      return () => {
+        inputElement.removeEventListener('focus', handleFocus);
+        inputElement.removeEventListener('blur', handleBlur);
+      };
+    }
+  }, []);
+
   const fetchMentionSuggestions = useCallback(async (term: string) => {
     if (term.length < 1) {
       setMentionSuggestions([]);
@@ -213,7 +256,7 @@ export function CommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 mx-4 my-2 relative"
+      className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
     >
       <input type="hidden" name="log_id" value={logId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
@@ -235,7 +278,7 @@ export function CommentForm({
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             
-            className="w-full pr-20 text-sm placeholder:text-sm"
+            className="w-full pr-20 text-base placeholder:text-sm"
             ref={inputRef}
             onClick={handleInputClick}
           />

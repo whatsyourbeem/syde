@@ -1,11 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ClubDetailClient from "@/components/club/club-detail-client";
-import { Tables } from "@/types/database.types";
 
-type Profile = Tables<'profiles'>;
-type ClubForumPost = Tables<'club_forum_posts'> & { author: Profile | null };
-type ForumWithPosts = Tables<'club_forums'> & { posts: ClubForumPost[] };
 
 type ClubDetailPageProps = {
   params: Promise<{
@@ -49,15 +45,16 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     .order("start_datetime", { ascending: false });
 
   // Fetch all forums with their posts in a single query using nested selection
-  const { data: forumsWithPosts, error: forumsError } = await supabase
+  const { data: forums, error: forumsError } = await supabase
     .from("club_forums")
     .select(`
-      *,
+      id,
+      name,
+      description,
+      club_id,
+      read_permission,
       write_permission,
-      club_forum_posts(
-        *,
-        author:profiles(*)
-      )
+      position
     `)
     .eq("club_id", club_id)
     .order("position", { ascending: true });
@@ -67,20 +64,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     notFound();
   }
 
-  // Transform the data to match the expected structure
-  const transformedForums: ForumWithPosts[] = forumsWithPosts?.map(forum => ({
-    ...forum,
-    posts: (forum.club_forum_posts || [])
-      .map(post => ({
-        ...post,
-        author: post.author as Profile | null
-      }))
-      .sort((a, b) => {
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateB - dateA;
-      })
-  })) || [];
+  
 
   if (membersError || meetupsError) {
     // Handle errors appropriately
@@ -95,12 +79,16 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const userRole = currentUserMembership?.role || null;
   const isOwner = user?.id === club.owner_id;
 
-  const fullClubData = {
-    ...club,
-    members: members || [],
-    meetups: meetups || [],
-    forums: transformedForums,
-  };
+  
 
-  return <ClubDetailClient club={fullClubData} isMember={isMember} currentUserId={user?.id} userRole={userRole} isOwner={isOwner} />;
+  return <ClubDetailClient
+    club={club}
+    members={members || []}
+    meetups={meetups || []}
+    forums={forums || []}
+    isMember={isMember}
+    currentUserId={user?.id}
+    userRole={userRole}
+    isOwner={isOwner}
+  />;
 }

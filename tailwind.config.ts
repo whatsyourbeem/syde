@@ -76,6 +76,50 @@ export default {
       fontSize: {
         'log-content': '15px',
       },
+      typography: ({ theme }: { theme: (path: string) => string }) => ({
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': 'hsl(var(--foreground))',
+            h1: {
+              fontSize: theme('fontSize.3xl'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+            h2: {
+              fontSize: theme('fontSize.2xl'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+            h3: {
+              fontSize: theme('fontSize.xl'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+            h4: {
+              fontSize: theme('fontSize.lg'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+          },
+        },
+        sm: {
+          css: {
+            '--tw-prose-body': 'hsl(var(--foreground))',
+            h1: {
+              fontSize: theme('fontSize.2xl'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+            h2: {
+              fontSize: theme('fontSize.xl'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+            h3: {
+              fontSize: theme('fontSize.lg'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+            h4: {
+              fontSize: theme('fontSize.base'),
+              fontWeight: theme('fontWeight.bold'),
+            },
+          },
+        },
+      }),
       
     },
   },
