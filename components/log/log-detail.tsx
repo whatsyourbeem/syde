@@ -321,24 +321,25 @@ export function LogDetail({ log, user }: LogDetailProps) {
                 />
               )}
             </Link>
-            <div className="flex-grow">
-              <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-1">
+              <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
                 <Link href={`/${log.profiles?.username || log.user_id}`}>
-                  <p className="font-semibold hover:underline">
+                  <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
                     {log.profiles?.full_name ||
                       log.profiles?.username ||
                       "Anonymous"}
                   </p>
                 </Link>
                 {log.profiles?.tagline && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
                     {log.profiles.tagline}
                   </p>
                 )}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   ·&nbsp;&nbsp;&nbsp;{formattedLogDate}
                 </p>
-              </div>
+              
             </div>
           </div>
         </ProfileHoverCard>

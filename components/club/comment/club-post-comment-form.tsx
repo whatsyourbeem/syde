@@ -197,7 +197,7 @@ export function ClubPostCommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 m-4 relative"
+      className="flex flex-col gap-2 m-0 relative"
     >
       <input type="hidden" name="post_id" value={postId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
