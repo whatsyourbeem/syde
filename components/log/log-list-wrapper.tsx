@@ -28,7 +28,7 @@ export function LogListWrapper({
   const searchQuery = searchParams.get("q") || "";
 
   return (
-    <div>
+    <div className="space-y-6">
       {!filterByUserId &&
         !filterByCommentedUserId &&
         !filterByLikedUserId &&
