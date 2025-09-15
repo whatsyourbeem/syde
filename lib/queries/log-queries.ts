@@ -33,10 +33,7 @@ export interface LogQueryResult {
 }
 
 /**
- * Optimized query that reduces N+1 patterns by:
- * 1. Using CTEs (Common Table Expressions) for filtering
- * 2. Batching profile lookups
- * 3. Single query with proper joins
+ * Optimized query for CLIENT-side fetching.
  */
 export async function getOptimizedLogs({
   currentUserId,
@@ -52,21 +49,33 @@ export async function getOptimizedLogs({
   const from = (currentPage - 1) * logsPerPage;
   const to = from + logsPerPage - 1;
 
-  // Build the base query with proper joins
-  let query = supabase.from("logs").select(
-    `
-      id,
-      content,
-      image_url,
-      created_at,
-      user_id,
-      profiles (id, username, full_name, avatar_url, updated_at, tagline, bio, link),
-      log_likes(user_id),
-      log_bookmarks(user_id),
-      log_comments(id)
-    `,
-    { count: "exact" }
-  );
+  // 1. Fetch liked log IDs for the current user in a separate query.
+  let likedLogIdsSet = new Set<string>();
+  if (currentUserId) {
+    const { data: likedLogs, error: likedLogsError } = await supabase
+      .from('log_likes')
+      .select('log_id')
+      .eq('user_id', currentUserId);
+
+    if (likedLogs) {
+      likedLogIdsSet = new Set(likedLogs.map(like => like.log_id).filter((id): id is string => id !== null));
+    }
+  }
+
+  // 2. Build the main query without the complex 'has_liked' subquery.
+  let selectQuery = `
+    id,
+    content,
+    image_url,
+    created_at,
+    user_id,
+    profiles (id, username, full_name, avatar_url, updated_at, tagline, bio, link),
+    log_bookmarks(user_id),
+    log_comments(id),
+    likes_count:log_likes(count)
+  `;
+
+  let query = supabase.from("logs").select(selectQuery, { count: "exact" });
 
   // Handle search query optimization
   if (searchQuery) {
@@ -74,7 +83,6 @@ export async function getOptimizedLogs({
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(","));
     } else {
-      // If no valid search conditions, return empty result
       return { logs: [], count: 0, mentionedProfiles: [] };
     }
   }
@@ -83,24 +91,16 @@ export async function getOptimizedLogs({
   if (filterByUserId) {
     query = query.eq("user_id", filterByUserId);
   } else if (filterByCommentedUserId) {
-    // Use a more efficient approach with IN clause
     const commentedLogIds = await getCommentedLogIds(filterByCommentedUserId);
-    if (commentedLogIds.length === 0) {
-      return { logs: [], count: 0, mentionedProfiles: [] };
-    }
+    if (commentedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", commentedLogIds);
   } else if (filterByLikedUserId) {
-    // Use a more efficient approach with IN clause
     const likedLogIds = await getLikedLogIds(filterByLikedUserId);
-    if (likedLogIds.length === 0) {
-      return { logs: [], count: 0, mentionedProfiles: [] };
-    }
+    if (likedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", likedLogIds);
   } else if (filterByBookmarkedUserId) {
     const bookmarkedLogIds = await getBookmarkedLogIds(filterByBookmarkedUserId);
-    if (bookmarkedLogIds.length === 0) {
-      return { logs: [], count: 0, mentionedProfiles: [] };
-    }
+    if (bookmarkedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", bookmarkedLogIds);
   }
 
@@ -114,21 +114,21 @@ export async function getOptimizedLogs({
   }
 
   // Batch fetch mentioned profiles
-  const mentionedProfiles = await getMentionedProfiles(logsData || []);
+  const mentionedProfiles = await getMentionedProfiles((logsData || []) as any);
 
-  // Process logs with computed fields
-  const processedLogs: OptimizedLog[] = (logsData || []).map((log) => ({
-    ...log,
+  // 3. Process logs and determine 'hasLiked' using the Set.
+  const processedLogs: OptimizedLog[] = (logsData || []).map((log: any) => ({
+    ...(log as any),
     profiles: Array.isArray(log.profiles) ? log.profiles[0] : log.profiles,
-    likesCount: log.log_likes?.length || 0,
-    hasLiked: currentUserId
-      ? log.log_likes?.some((like) => like.user_id === currentUserId) || false
-      : false,
+    likesCount: log.likes_count?.[0]?.count || 0,
+    hasLiked: likedLogIdsSet.has(log.id),
     bookmarksCount: log.log_bookmarks?.length || 0,
     hasBookmarked: currentUserId
-      ? log.log_bookmarks?.some((bookmark) => bookmark.user_id === currentUserId) || false
+      ? log.log_bookmarks?.some((bookmark: any) => bookmark.user_id === currentUserId)
       : false,
-  })) as OptimizedLog[];
+    log_likes: [], // Keep interface consistent
+    log_comments: log.log_comments || [],
+  }));
 
   return {
     logs: processedLogs,

@@ -1,7 +1,13 @@
-import { LogList } from "@/components/log/log-list";
+import { createClient } from "@/lib/supabase/server";
+import { LogListServer } from "@/components/log/log-list-server";
 
-export const revalidate = 30;
+export const revalidate = 0;
 
-export default function LogPage() {
-  return <LogList currentUserId={null} />;
+export default async function LogPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return <LogListServer currentUserId={user?.id || null} />;
 }
