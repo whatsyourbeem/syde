@@ -271,7 +271,7 @@ export default function ClubDetailClient({
                             fill
                             className="object-cover object-center"
                           />
-                          <div className="absolute top-1 left-1">
+                          <div className="absolute top-2 left-3">
                             <Badge className={`${getStatusBadgeClass(meetup.status)} text-xs`}>
                               {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                             </Badge>

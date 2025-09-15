@@ -297,6 +297,7 @@ export function CommentCard({
                     logId={logId}
                     currentUserId={currentUserId}
                     parentCommentId={comment.id}
+                    onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", { logId }] })}
                     onCancel={() => setShowReplies(false)}
                     replyTo={{
                       parentId: comment.id,

@@ -112,6 +112,7 @@ function LogForm({
   onCancel,
   setOpen,
   ogUrl,
+  suggestionPosition,
 }: {
   clientAction: (formData: FormData) => Promise<void>;
   initialLogData?: LogEditDialogProps["initialLogData"];
@@ -134,6 +135,7 @@ function LogForm({
   onCancel?: () => void;
   setOpen: (open: boolean) => void;
   ogUrl: string | null;
+  suggestionPosition: { top: number; left: number };
 }) {
   return (
     <form
@@ -173,7 +175,13 @@ function LogForm({
               className="h-full w-full resize-none border-none p-0 focus-visible:ring-0 shadow-none bg-transparent text-base"
             />
             {showSuggestions && mentionSuggestions.length > 0 && (
-              <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg bottom-full mb-1 max-h-60 overflow-auto">
+              <ul
+                className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-auto"
+                style={{
+                  top: `${suggestionPosition.top}px`,
+                  left: `${suggestionPosition.left}px`,
+                }}
+              >
                 {mentionSuggestions.map((suggestion, index) => (
                   <li
                     key={suggestion.id}
@@ -182,7 +190,7 @@ function LogForm({
                     }`}
                     onClick={() => handleSelectSuggestion(suggestion)}
                   >
-                    <div className="flex items-center">
+                    <div className="flex items-center text-xs">
                       {suggestion.avatar_url && (
                         <Image
                           src={suggestion.avatar_url}
@@ -192,11 +200,11 @@ function LogForm({
                           className="rounded-full object-cover aspect-square mr-2"
                         />
                       )}
-                      <span className="font-semibold">
+                      <span className="font-semibold truncate">
                         {suggestion.full_name || suggestion.username}
                       </span>
                       {suggestion.full_name && suggestion.username && (
-                        <span className="text-muted-foreground ml-2">
+                        <span className="text-muted-foreground ml-2 truncate">
                           @{suggestion.username}
                         </span>
                       )}
@@ -351,6 +359,7 @@ export function LogEditDialog({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+  const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
 
   const fetchMentionSuggestions = useCallback(
     async (term: string) => {
@@ -391,6 +400,43 @@ export function LogEditDialog({
     return () => clearTimeout(handler);
   }, [mentionSearchTerm, fetchMentionSuggestions]);
 
+  const calculateSuggestionPosition = (textarea: HTMLTextAreaElement, atIndex: number) => {
+    // Create a temporary div to measure text dimensions
+    const div = document.createElement('div');
+    const style = window.getComputedStyle(textarea);
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.height = 'auto';
+    div.style.width = textarea.clientWidth + 'px';
+    div.style.font = style.font;
+    div.style.fontSize = style.fontSize;
+    div.style.lineHeight = style.lineHeight;
+    div.style.padding = style.padding;
+    div.style.border = style.border;
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+
+    document.body.appendChild(div);
+
+    const textBeforeAt = textarea.value.substring(0, atIndex);
+    div.textContent = textBeforeAt;
+
+    const lines = textBeforeAt.split('\n');
+    const currentLineIndex = lines.length - 1;
+    const currentLineText = lines[currentLineIndex];
+
+    // Calculate line height
+    const lineHeight = parseInt(style.lineHeight) || parseInt(style.fontSize) * 1.2;
+
+    // Position the suggestions below the current line
+    const top = (currentLineIndex + 1) * lineHeight + parseInt(style.paddingTop);
+    const left = parseInt(style.paddingLeft);
+
+    document.body.removeChild(div);
+
+    return { top, left };
+  };
+
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
@@ -404,6 +450,10 @@ export function LogEditDialog({
         setMentionSearchTerm(textAfterAt);
         setMentionStartIndex(lastAtIndex);
         setActiveSuggestionIndex(0);
+
+        // Calculate position for the suggestion dropdown
+        const position = calculateSuggestionPosition(e.target, lastAtIndex);
+        setSuggestionPosition(position);
       } else {
         setMentionSearchTerm("");
         setShowSuggestions(false);
@@ -536,6 +586,7 @@ export function LogEditDialog({
     onCancel,
     setOpen,
     ogUrl,
+    suggestionPosition,
   };
 
   const triggerContent = children || (

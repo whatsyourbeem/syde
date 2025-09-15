@@ -204,14 +204,20 @@ export default async function MeetupPage({
                     href={`/socialing/club/${meetup.clubs.id}`}
                     className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline mb-2"
                   >
-                    <Avatar className="size-5">
-                      <AvatarImage
-                        src={meetup.clubs.thumbnail_url || undefined}
-                      />
-                      <AvatarFallback>
-                        {meetup.clubs.name?.charAt(0) || "C"}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                      {meetup.clubs.thumbnail_url ? (
+                        <Image
+                          src={meetup.clubs.thumbnail_url}
+                          alt={meetup.clubs.name || "Club thumbnail"}
+                          fill
+                          className="aspect-square size-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {meetup.clubs.name?.charAt(0) || "C"}
+                        </span>
+                      )}
+                    </div>
                     <span className="truncate inline-block max-w-full">{meetup.clubs.name}</span>
                   </Link>
                 )}

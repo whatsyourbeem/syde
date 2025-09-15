@@ -290,7 +290,7 @@ export function CommentForm({
                   className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
                   onClick={() => handleSelectSuggestion(suggestion)}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center text-xs">
                     {suggestion.avatar_url && (
                       <Image
                         src={suggestion.avatar_url}
@@ -300,9 +300,9 @@ export function CommentForm({
                         className="rounded-full object-cover aspect-square mr-2"
                       />
                     )}
-                    <span className="font-semibold">{suggestion.full_name || suggestion.username}</span>
+                    <span className="font-semibold truncate">{suggestion.full_name || suggestion.username}</span>
                     {suggestion.full_name && suggestion.username && (
-                      <span className="text-muted-foreground ml-2">@{suggestion.username}</span>
+                      <span className="text-muted-foreground ml-2 truncate">@{suggestion.username}</span>
                     )}
                   </div>
                 </li>
