@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClubPostCommentForm } from "./club-post-comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ interface ClubPostCommentCardProps {
   clubId: string;
   isDetailPage?: boolean;
   setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
+  newCommentId?: string;
+  newParentCommentId?: string;
 }
 
 export function ClubPostCommentCard({
@@ -39,6 +41,8 @@ export function ClubPostCommentCard({
   clubId,
   isDetailPage = false,
   setReplyTo,
+  newCommentId,
+  newParentCommentId,
 }: ClubPostCommentCardProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -46,6 +50,19 @@ export function ClubPostCommentCard({
   const [isEditing, setIsEditing] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
   const [displayReplyCount, setDisplayReplyCount] = useState(5);
+
+  useEffect(() => {
+    if (newCommentId && newParentCommentId === comment.id) {
+      setShowReplies(true);
+      // Ensure the new reply is visible by increasing displayReplyCount if needed
+      setDisplayReplyCount(prevCount => {
+        if (comment.replies && comment.replies.length > prevCount) {
+          return comment.replies.length; // Show all replies if new one is added
+        }
+        return prevCount;
+      });
+    }
+  }, [newCommentId, newParentCommentId, comment.id, comment.replies]);
 
   const avatarUrlWithCacheBuster = comment.author?.avatar_url || null;
   const formattedCommentDate = comment.created_at ? formatRelativeTime(comment.created_at) : '';
@@ -218,17 +235,7 @@ export function ClubPostCommentCard({
                 </div>
               )}
 
-              {showReplies && (
-                <div className="mt-2 ml-4">
-                  <ClubPostCommentForm
-                    postId={postId}
-                    currentUserId={currentUserId}
-                    parentCommentId={comment.id}
-                    onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["clubPostComments", { postId }] })}
-                    onCancel={() => setShowReplies(false)}
-                  />
-                </div>
-              )}
+              
             </>
           )}
         </div>

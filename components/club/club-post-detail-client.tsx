@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tables, Enums } from "@/types/database.types";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,12 +42,18 @@ export default function ClubPostDetailClient({
 }: ClubPostDetailClientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
+  const queryClient = useQueryClient();
   const formattedPostDate = post.created_at ? formatRelativeTime(post.created_at) : '';
 
   const handleEditSuccess = () => {
     setIsEditing(false);
     // Optionally, revalidate path or refresh data if needed
     // router.refresh(); // If using Next.js router
+  };
+
+  const handleCommentAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ["clubPostComments", { postId: post.id }] });
+    setReplyTo(null); // Clear replyTo after comment is added
   };
 
   return (
@@ -117,17 +124,18 @@ export default function ClubPostDetailClient({
       {isAuthorized && !isEditing && ( // Only show comments if authorized and not editing
         <div className="mt-8 border-t pt-4">
           <h2 className="text-2xl font-bold mb-4">댓글</h2>
-          <ClubPostCommentForm
-            postId={post.id}
-            currentUserId={user?.id || null}
-            replyTo={replyTo}
-          />
           <ClubPostCommentList
             postId={post.id}
             currentUserId={user?.id || null}
             clubId={clubId}
             isDetailPage={true}
             setReplyTo={setReplyTo}
+          />
+          <ClubPostCommentForm
+            postId={post.id}
+            currentUserId={user?.id || null}
+            replyTo={replyTo}
+            onCommentAdded={handleCommentAdded}
           />
         </div>
       )}

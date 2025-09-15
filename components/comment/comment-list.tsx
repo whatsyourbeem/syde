@@ -15,6 +15,8 @@ interface CommentListProps {
   isDetailPage?: boolean;
   isMobile?: boolean;
   setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null) => void;
+  newCommentId?: string;
+  newParentCommentId?: string;
 }
 
 type CommentRow = Database['public']['Tables']['log_comments']['Row'];
@@ -41,6 +43,8 @@ export function CommentList({
   isDetailPage = false,
   isMobile = false,
   setReplyTo,
+  newCommentId,
+  newParentCommentId,
 }: CommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -230,6 +234,12 @@ export function CommentList({
     };
   }, [supabase, logId, queryClient, queryKey]);
 
+  useEffect(() => {
+    if (newCommentId) {
+        queryClient.resetQueries({ queryKey: queryKey });
+    }
+  }, [newCommentId, queryClient, queryKey]);
+
   if (isLoading) {
     return (
       <div className="text-center text-sm text-muted-foreground p-4">
@@ -267,6 +277,11 @@ export function CommentList({
             isDetailPage={isDetailPage}
             isMobile={isMobile}
             setReplyTo={setReplyTo}
+            newCommentId={newCommentId}
+            newParentCommentId={newParentCommentId}
+            userId={comment.user_id} // Pass the comment's user_id as userId
+            isLiked={comment.initialHasLiked} // Pass the comment's initialHasLiked as isLiked
+            likeCount={comment.initialLikesCount} // Pass the comment's initialLikesCount as likeCount
           />
         ))
       )}

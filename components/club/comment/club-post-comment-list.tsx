@@ -15,7 +15,7 @@ interface ClubPostCommentListProps {
   pageSize?: number;
   showPaginationButtons?: boolean;
   isDetailPage?: boolean;
-  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
+  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null) => void;
 }
 
 export function ClubPostCommentList({
@@ -89,7 +89,7 @@ export function ClubPostCommentList({
         clubId={clubId}
         isDetailPage={isDetailPage}
         setReplyTo={setReplyTo}
-      />
+        />
     </div>
   );
 
@@ -139,6 +139,8 @@ export function ClubPostCommentList({
       supabase.removeChannel(channel);
     };
   }, [supabase, postId, queryClient]);
+
+  
 
   if (isLoading) {
     return (

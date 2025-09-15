@@ -51,11 +51,7 @@ export function ClubPostCommentForm({
 
   useEffect(() => {
     if (!initialCommentData) {
-      if (replyTo && replyTo.authorUsername) {
-        setContent(`@${replyTo.authorUsername} `);
-      } else {
-        setContent('');
-      }
+      setContent('');
     }
   }, [replyTo, initialCommentData]);
 

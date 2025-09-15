@@ -41,6 +41,8 @@ interface CommentCardProps {
   isDetailPage?: boolean;
   isMobile?: boolean;
   setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
+  newCommentId?: string;
+  newParentCommentId?: string;
 }
 
 export function CommentCard({
@@ -55,6 +57,8 @@ export function CommentCard({
   isDetailPage = false, // Destructure isDetailPage with default value
   isMobile = false,
   setReplyTo,
+  newCommentId,
+  newParentCommentId,
 }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -70,6 +74,19 @@ export function CommentCard({
     setLikesCount(initialLikesCount);
     setHasLiked(initialHasLiked);
   }, [initialLikesCount, initialHasLiked]);
+
+  useEffect(() => {
+    if (newCommentId && newParentCommentId === comment.id) {
+      setShowReplies(true);
+      // Ensure the new reply is visible by increasing displayReplyCount if needed
+      setDisplayReplyCount(prevCount => {
+        if (comment.replies && comment.replies.length > prevCount) {
+          return comment.replies.length; // Show all replies if new one is added
+        }
+        return prevCount;
+      });
+    }
+  }, [newCommentId, newParentCommentId, comment.id, comment.replies]);
 
   const avatarUrlWithCacheBuster = comment.profiles?.avatar_url
     ? `${comment.profiles.avatar_url}?t=${comment.profiles.updated_at ? new Date(comment.profiles.updated_at).getTime() : ''}`
