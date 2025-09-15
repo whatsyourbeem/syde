@@ -13,6 +13,7 @@ import { ClubPostCommentList } from "@/components/club/comment/club-post-comment
 import { Separator } from "@/components/ui/separator";
 import { formatRelativeTime } from "@/lib/utils";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import Link from "next/link";
 
 
 // Define a more specific type for the author profile fetched in the post detail
@@ -67,25 +68,27 @@ export default function ClubPostDetailClient({
       ) : (
         <>
           <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
-            <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author}>
-              <Avatar className="size-8">
-                <AvatarImage src={post.author?.avatar_url || undefined} />
-                <AvatarFallback>{post.author?.username?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
-            </ProfileHoverCard>
-            <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author}>
-              <div className="flex items-baseline gap-1">
-                <span className="font-semibold">
-                  {post.author?.full_name || post.author?.username || "Unknown User"}
-                </span>
-                {post.author?.tagline && (
-                  <p className="text-xs text-muted-foreground">{post.author.tagline}</p>
-                )}
-                <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedPostDate}</p>
-              </div>
-            </ProfileHoverCard>
-          </div>
+          <Link href={`/${post.author?.username || post.author?.id}`} className="block">
+            <div className="flex items-center gap-3 text-sm mb-6">
+              <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author} disableHover={true}>
+                <Avatar className="size-8">
+                  <AvatarImage src={post.author?.avatar_url || undefined} />
+                  <AvatarFallback>{post.author?.username?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+              </ProfileHoverCard>
+              <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author} disableHover={true}>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-semibold">
+                    {post.author?.full_name || post.author?.username || "Unknown User"}
+                  </span>
+                  {post.author?.tagline && (
+                    <p className="text-xs text-muted-foreground">{post.author.tagline}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedPostDate}</p>
+                </div>
+              </ProfileHoverCard>
+            </div>
+          </Link>
 
           <Separator className="my-4" />
 
