@@ -328,7 +328,7 @@ export default function MeetupDetailClient({
   return (
     <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 min-h-screen">
       <div className="w-full md:w-3/4 md:border-r md:pr-2 min-h-screen">
-        <div className="max-w-3xl mx-auto p-4 pb-20">
+        <div className="max-w-3xl mx-auto pt-4 px-0 md:px-4 pb-20">
           {/* 카테고리, 형태, 상태 배지 */}
           <div className="flex gap-2 mb-4">
             <Badge className={getStatusBadgeClass(meetup.status)}>
@@ -438,7 +438,9 @@ export default function MeetupDetailClient({
 
           {/* 모임 상세 설명 */}
           <div className="bg-white rounded-lg mb-6">
-            <h2 className="text-xl font-semibold mb-3">모임 상세 설명</h2>
+            <h2 className="text-2xl md:text-xl font-bold mb-4">
+              💬<span className="font-extrabold pl-2">모임 설명</span>
+            </h2>
             <TiptapViewer content={meetup.description} />
           </div>
         </div>
