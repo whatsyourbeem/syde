@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginDialog } from "@/context/LoginDialogContext";
+
 import { createClubPostComment, updateClubPostComment } from "@/app/socialing/club/club-actions";
 import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
@@ -18,7 +19,8 @@ interface ClubPostCommentFormProps {
   onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
-  replyTo?: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null;
+  placeholder?: string;
+  replyTo?: { parentId: string; authorName: string | null; authorUsername: string | null; authorAvatarUrl: string | null; } | null;
 }
 
 function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['club_forum_post_comments']['Row'], content: string, isSubmitting: boolean }) {
@@ -41,17 +43,23 @@ export function ClubPostCommentForm({
   onCommentAdded,
   onCommentUpdated,
   onCancel,
+  placeholder,
   replyTo,
 }: ClubPostCommentFormProps) {
   const supabase = createClient();
   const { openLoginDialog } = useLoginDialog();
+
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!initialCommentData) {
-      setContent('');
+      if (replyTo && replyTo.authorUsername) {
+        setContent(`@${replyTo.authorUsername} `);
+      } else {
+        setContent('');
+      }
     }
   }, [replyTo, initialCommentData]);
 
@@ -62,6 +70,49 @@ export function ClubPostCommentForm({
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mobile keyboard handling
+  useEffect(() => {
+    let initialScrollY = 0;
+
+    const handleFocus = () => {
+      // Store initial scroll position
+      initialScrollY = window.scrollY;
+
+      if (formRef.current) {
+        formRef.current.classList.add('keyboard-open');
+      }
+
+      // Prevent iOS viewport shift by restoring scroll position
+      setTimeout(() => {
+        if (window.scrollY !== initialScrollY) {
+          window.scrollTo(0, initialScrollY);
+        }
+      }, 100);
+    };
+
+    const handleBlur = () => {
+      if (formRef.current) {
+        formRef.current.classList.remove('keyboard-open');
+      }
+
+      // Restore original scroll position if needed
+      setTimeout(() => {
+        window.scrollTo(0, initialScrollY);
+      }, 100);
+    };
+
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('focus', handleFocus);
+      inputElement.addEventListener('blur', handleBlur);
+
+      return () => {
+        inputElement.removeEventListener('focus', handleFocus);
+        inputElement.removeEventListener('blur', handleBlur);
+      };
+    }
+  }, []);
 
   const fetchMentionSuggestions = useCallback(async (term: string) => {
     if (term.length < 1) {
@@ -166,6 +217,15 @@ export function ClubPostCommentForm({
     }
   };
 
+  const handleInputClick = () => {
+    if (replyTo && replyTo.authorUsername && content === '') {
+      setContent(`@${replyTo.authorUsername} `);
+    }
+    if (!currentUserId) {
+      openLoginDialog();
+    }
+  };
+
   const clientAction = async (formData: FormData) => {
     if (!currentUserId) {
       openLoginDialog();
@@ -205,7 +265,7 @@ export function ClubPostCommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 m-0 relative"
+      className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
     >
       <input type="hidden" name="post_id" value={postId} />
       {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
@@ -214,13 +274,22 @@ export function ClubPostCommentForm({
         <div className="flex-grow relative">
           <Input
             name="content"
-            placeholder={initialCommentData ? "댓글을 수정하세요..." : "댓글을 작성하세요..."}
-            disabled={!currentUserId || isSubmitting}
+            placeholder={
+              placeholder ||
+              (initialCommentData
+                ? "댓글을 수정하세요..."
+                : parentCommentId
+                ? "답글을 작성하세요..."
+                : "댓글을 작성하세요...")
+            }
+            disabled={isSubmitting}
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
-            className="w-full pr-20"
+
+            className="w-full pr-20 text-base placeholder:text-sm"
             ref={inputRef}
+            onClick={handleInputClick}
           />
           {showSuggestions && mentionSuggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
