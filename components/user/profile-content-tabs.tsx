@@ -100,18 +100,18 @@ export function ProfileContentTabs({
       </div>
 
       {/* Right Content */}
-      <div className="w-full md:w-3/4 px-4 md:pl-0 pt-4">
-        <TabsContent value="bio" className="mt-4 md:mt-0">
+      <div className="w-full md:w-3/4 px-4 md:pl-0 pt-2">
+        <TabsContent value="bio" className="mt-2 md:mt-0">
           <BioEditor initialBio={profile.bio} isOwnProfile={isOwnProfile} />
         </TabsContent>
-        <TabsContent value="logs" className="mt-4 md:mt-0">
+        <TabsContent value="logs" className="mt-2 md:mt-0">
           <LogList currentUserId={currentUserId} filterByUserId={profile.id} />
         </TabsContent>
-        <TabsContent value="clubs" className="mt-4 md:mt-0">
+        <TabsContent value="clubs" className="md:mt-0">
           <UserJoinedClubsList userId={profile.id} />
         </TabsContent>
         {isOwnProfile && (
-          <TabsContent value="activity" className="mt-4 md:mt-0">
+          <TabsContent value="activity" className="mt-2 md:mt-0">
             <UserActivityLogList
               currentUserId={currentUserId}
               userId={profile.id}

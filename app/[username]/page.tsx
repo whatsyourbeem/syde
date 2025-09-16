@@ -44,9 +44,9 @@ export default async function UserProfilePage({
     : null;
 
   return (
-    <div className="flex-1 w-full flex flex-col p-5 h-full">
+    <div className="flex-1 w-full flex flex-col py-5 h-full">
       <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col">
-        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card mb-4">
+        <div className="flex flex-row-reverse items-center gap-6 px-8 py-6 rounded-lg bg-card mb-4">
           <div className="relative w-24 h-24 flex-shrink-0">
             {avatarUrlWithCacheBuster ? (
               <Image

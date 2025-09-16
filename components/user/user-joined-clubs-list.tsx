@@ -3,24 +3,20 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/types/database.types";
-import Image from "next/image";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { CLUB_MEMBER_ROLE_DISPLAY_NAMES } from "@/lib/constants";
+import ClubCard from "@/components/club/club-card";
 
-type Club = Database["public"]["Tables"]["clubs"]["Row"];
-type ClubMemberRole = Database["public"]["Enums"]["club_member_role_enum"];
-
-interface ClubWithMemberInfo extends Club {
-  member_role: ClubMemberRole;
-}
+type Club = Database["public"]["Tables"]["clubs"]["Row"] & {
+  owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  member_count: number;
+  members: Database["public"]["Tables"]["profiles"]["Row"][];
+};
 
 interface UserJoinedClubsListProps {
   userId: string;
 }
 
 export function UserJoinedClubsList({ userId }: UserJoinedClubsListProps) {
-  const [clubs, setClubs] = useState<ClubWithMemberInfo[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,19 +28,15 @@ export function UserJoinedClubsList({ userId }: UserJoinedClubsListProps) {
         const { data, error } = await supabase
           .from("club_members")
           .select(`
-            role,
-            clubs:club_id (
-              id,
-              name,
-              description,
-              thumbnail_url,
-              created_at,
-              owner_id,
-              tagline,
-              updated_at
+            clubs (
+              *,
+              owner_profile:profiles!clubs_owner_id_fkey(*),
+              member_count:club_members(count),
+              club_members(user_id, profiles(*))
             )
           `)
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .limit(10, { foreignTable: "clubs.club_members" });
 
         if (error) {
           console.error("Error fetching joined clubs:", error);
@@ -52,14 +44,22 @@ export function UserJoinedClubsList({ userId }: UserJoinedClubsListProps) {
           return;
         }
 
-        const clubsWithRole = data
-          ?.filter((item) => item.clubs)
-          .map((item) => ({
-            ...item.clubs!,
-            member_role: item.role,
-          })) || [];
+        const clubsWithDetails = data
+          ?.map(item => {
+            if (!item.clubs) return null;
+            const clubData = item.clubs as any; // Use any to handle the shape from query
+            return {
+              ...clubData,
+              owner_profile: clubData.owner_profile,
+              member_count: Array.isArray(clubData.member_count)
+                ? clubData.member_count[0]?.count || 0
+                : 0,
+              members: clubData.club_members.map((m: any) => m.profiles).filter(Boolean),
+            };
+          })
+          .filter(Boolean) as Club[] || [];
 
-        setClubs(clubsWithRole);
+        setClubs(clubsWithDetails);
       } catch (err) {
         console.error("Unexpected error:", err);
         setError("예기치 않은 오류가 발생했습니다.");
@@ -96,46 +96,11 @@ export function UserJoinedClubsList({ userId }: UserJoinedClubsListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col -mx-4">
       {clubs.map((club) => (
-        <Link
-          key={club.id}
-          href={`/socialing/club/${club.id}`}
-          className="block p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-        >
-          <div className="flex items-start gap-4">
-            <div className="relative w-16 h-16 flex-shrink-0">
-              {club.thumbnail_url ? (
-                <Image
-                  src={club.thumbnail_url}
-                  alt={club.name}
-                  fill
-                  className="rounded-lg object-cover"
-                />
-              ) : (
-                <div className="w-full h-full rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-bold text-lg">
-                  {club.name[0]}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-lg truncate">{club.name}</h3>
-                <Badge variant="secondary" className="text-xs">
-                  {CLUB_MEMBER_ROLE_DISPLAY_NAMES[club.member_role]}
-                </Badge>
-              </div>
-              {club.tagline && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {club.tagline}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-2">
-                가입일: {new Date(club.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-        </Link>
+        <div key={club.id} className="border-b last:border-b-0">
+          <ClubCard club={club} />
+        </div>
       ))}
     </div>
   );
