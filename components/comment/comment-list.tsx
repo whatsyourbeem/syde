@@ -126,7 +126,7 @@ export function CommentList({
       }));
 
 
-      const mentionRegex = /\ \[mention:([a-f0-9\\-]+)\]/g;
+      const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
       const mentionedUserIds = new Set<string>();
       [...commentsWithReplies, ...(repliesData || [])].forEach(comment => {
         const content = (comment as CommentWithRelations).content;
