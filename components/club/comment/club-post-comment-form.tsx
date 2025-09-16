@@ -10,6 +10,7 @@ import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import { X } from "lucide-react";
 
 interface ClubPostCommentFormProps {
   postId: string;
@@ -284,10 +285,20 @@ export function ClubPostCommentForm({
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
 
-            className="w-full text-base placeholder:text-sm"
+            className="w-full text-base placeholder:text-sm pr-8"
             ref={inputRef}
             onClick={handleInputClick}
           />
+          {content && (
+            <button
+              type="button"
+              onClick={() => setContent("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full"
+              aria-label="Clear input"
+            >
+              <X size={16} />
+            </button>
+          )}
           {showSuggestions && mentionSuggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
               {mentionSuggestions.map((suggestion, index) => (

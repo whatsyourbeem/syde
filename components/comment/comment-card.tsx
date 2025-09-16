@@ -377,7 +377,7 @@ export function CommentCard({
           </div>
         )}
         {showReplies && !isMobile && level === 0 && (
-          <div className="mt-2 ml-42">
+          <div className="mt-2 ml-4">
             <CommentForm
               logId={logId}
               currentUserId={currentUserId}
