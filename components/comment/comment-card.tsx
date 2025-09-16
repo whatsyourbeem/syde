@@ -171,7 +171,7 @@ export function CommentCard({
   };
 
   return (
-    <div className="flex flex-col gap-0 p-2">
+    <div className="flex flex-col p-2">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
@@ -306,7 +306,6 @@ export function CommentCard({
                   </>
                 )}
               </div>
-              
             </>
           )}
         </div>
@@ -364,64 +363,64 @@ export function CommentCard({
                     </div>
                   )}
                 </div>
-              )}
-              {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
-                <div className="flex justify-start mt-0 ml-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowReplies(false)}
-                    className="text-xs text-muted-foreground"
-                  >
-                    답글 숨기기
-                  </Button>
-                </div>
-              )}
-              {showReplies && !isMobile && level === 0 && (
-                <div className="mt-2 ml-42">
-                  <CommentForm
-                    logId={logId}
-                    currentUserId={currentUserId}
-                    parentCommentId={comment.id}
-                    onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", { logId }] })}
-                    onCancel={() => setShowReplies(false)}
-                    replyTo={internalReplyTo}
+        )}
+        {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
+          <div className="flex justify-start mt-0 ml-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowReplies(false)}
+              className="text-xs text-muted-foreground"
+            >
+              답글 숨기기
+            </Button>
+          </div>
+        )}
+        {showReplies && !isMobile && level === 0 && (
+          <div className="mt-2 ml-42">
+            <CommentForm
+              logId={logId}
+              currentUserId={currentUserId}
+              parentCommentId={comment.id}
+              onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", { logId }] })}
+              onCancel={() => setShowReplies(false)}
+              replyTo={internalReplyTo}
+            />
+          </div>
+        )}
+        {showReplies && isMobile && setReplyTo && (
+          <div className="ml-4">
+            <Button
+                onClick={() => {
+                  setReplyTo({
+                    parentId: comment.id,
+                    authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                    authorUsername: comment.profiles?.username || null,
+                    authorAvatarUrl: comment.profiles?.avatar_url || null
+                  });
+                  // For mobile, we still want to use the parent's setReplyTo to open the main comment form
+                  // and pre-fill it. The setShowReplies(true) is not needed here as the mobile button
+                  // itself is within the showReplies block.
+                }}
+                className="w-full justify-start px-3 py-2 h-auto text-xs text-muted-foreground"
+                variant="ghost"
+            >
+              <div className="flex items-center gap-2">
+                {comment.profiles?.avatar_url && (
+                  <Image 
+                    src={comment.profiles.avatar_url}
+                    alt={comment.profiles.username || "User"}
+                    width={16}
+                    height={16}
+                    className="rounded-full"
                   />
-                </div>
-              )}
-              {showReplies && isMobile && setReplyTo && (
-                <div className="ml-4">
-                  <Button
-                      onClick={() => {
-                        setReplyTo({
-                          parentId: comment.id,
-                          authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
-                          authorUsername: comment.profiles?.username || null,
-                          authorAvatarUrl: comment.profiles?.avatar_url || null
-                        });
-                        // For mobile, we still want to use the parent's setReplyTo to open the main comment form
-                        // and pre-fill it. The setShowReplies(true) is not needed here as the mobile button
-                        // itself is within the showReplies block.
-                      }}
-                      className="w-full justify-start px-3 py-2 h-auto text-xs text-muted-foreground"
-                      variant="ghost"
-                  >
-                    <div className="flex items-center gap-2">
-                      {comment.profiles?.avatar_url && (
-                        <Image 
-                          src={comment.profiles.avatar_url}
-                          alt={comment.profiles.username || "User"}
-                          width={16}
-                          height={16}
-                          className="rounded-full"
-                        />
-                      )}
-                      {`${comment.profiles?.full_name || comment.profiles?.username || "Anonymous"}에게 답글 달기...`}
-                    </div>
-                  </Button>
-                </div>
-              )}
+                )}
+                {`${comment.profiles?.full_name || comment.profiles?.username || "Anonymous"}에게 답글 달기...`}
               </div>
+            </Button>
+          </div>
+        )}
+        </div>
     </div>
   );
 }

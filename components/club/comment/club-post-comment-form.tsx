@@ -218,9 +218,6 @@ export function ClubPostCommentForm({
   };
 
   const handleInputClick = () => {
-    if (replyTo && replyTo.authorUsername && content === '') {
-      setContent(`@${replyTo.authorUsername} `);
-    }
     if (!currentUserId) {
       openLoginDialog();
     }
@@ -287,7 +284,7 @@ export function ClubPostCommentForm({
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
 
-            className="w-full pr-20 text-base placeholder:text-sm"
+            className="w-full text-base placeholder:text-sm"
             ref={inputRef}
             onClick={handleInputClick}
           />
@@ -319,10 +316,9 @@ export function ClubPostCommentForm({
             </ul>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {onCancel && <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>취소</Button>}
+        
           <SubmitButton initialCommentData={initialCommentData} content={content} isSubmitting={isSubmitting} />
-        </div>
+        
       </div>
     </form>
   );
