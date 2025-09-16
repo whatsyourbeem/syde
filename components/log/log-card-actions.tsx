@@ -158,7 +158,7 @@ function LogCardActionsBase({
 
   return (
     <>
-      <div className="flex justify-between items-center text-sm text-muted-foreground px-[44px] pt-2">
+      <div className="flex justify-between items-center text-xs md:text-sm text-muted-foreground px-[44px] pt-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
