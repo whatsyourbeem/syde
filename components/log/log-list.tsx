@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "@/components/log/log-card";
-import { LogCreateButton } from "@/components/log/log-create-button";
 import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
 import { getOptimizedLogs, OptimizedLog, LogQueryResult } from "@/lib/queries/log-queries";
@@ -35,35 +34,19 @@ export function LogList({
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId);
-  const [userProfile, setUserProfile] = useState<Database["public"]["Tables"]["profiles"]["Row"] | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  // Fetch user profile
+  // Fetch current user ID if not provided
   useEffect(() => {
-    async function fetchUserProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        setCurrentUserId(user.id);
-        
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*, updated_at")
-          .eq("id", user.id)
-          .single();
-          
-        if (!error && profile) {
-          setUserProfile(profile);
-          const url = profile.avatar_url && profile.updated_at
-            ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
-            : profile.avatar_url;
-          setAvatarUrl(url);
+    if (!propCurrentUserId) {
+      async function fetchCurrentUserId() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
         }
       }
+      fetchCurrentUserId();
     }
-    
-    fetchUserProfile();
-  }, [supabase]);
+  }, [supabase, propCurrentUserId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -184,13 +167,6 @@ export function LogList({
   if (isLoading) {
     return (
       <div className="w-full max-w-2xl mx-auto pb-4">
-        {/* Create button skeleton */}
-        <div className="px-4 py-3 border-b border-gray-200 animate-pulse">
-          <div className="flex items-center">
-            <div className="w-9 h-9 bg-gray-200 rounded-full flex-shrink-0 mr-3" />
-            <div className="h-4 bg-gray-200 rounded-md w-48" />
-          </div>
-        </div>
         <div className="px-4">
           <LoadingList count={5} />
         </div>
@@ -213,10 +189,6 @@ export function LogList({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
-      {!filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && (
-        <LogCreateButton user={userProfile} avatarUrl={avatarUrl} />
-      )}
-      
       {logs.length === 0 && !isLoading ? (
         <div className="px-4">
           <p className="text-center text-muted-foreground">
@@ -244,26 +216,42 @@ export function LogList({
           </div>
         ))
       )}
-      <div className="flex justify-center space-x-2 mt-4">
-        {Array.from(
-          { length: Math.ceil(totalLogsCount / LOGS_PER_PAGE) },
-          (_, i) => (
+      {/* Pagination Controls */}
+      {Math.ceil(totalLogsCount / LOGS_PER_PAGE) > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8 mb-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1 || isLoading}
+          >
+            이전
+          </Button>
+          {Array.from({ length: Math.ceil(totalLogsCount / LOGS_PER_PAGE) }, (_, i) => i + 1).map((page) => (
             <Button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              variant="ghost"
-              className={currentPage === i + 1 ? "bg-secondary" : ""}
+              key={page}
+              variant={page === currentPage ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCurrentPage(page)}
               disabled={isLoading}
             >
-              {isLoading && currentPage === i + 1 ? (
+              {isLoading && currentPage === page ? (
                 <CenteredLoading message="" className="py-0" />
               ) : (
-                i + 1
+                page
               )}
             </Button>
-          )
-        )}
-      </div>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === Math.ceil(totalLogsCount / LOGS_PER_PAGE) || isLoading}
+          >
+            다음
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

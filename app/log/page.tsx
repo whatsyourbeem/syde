@@ -1,8 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { LogListServer } from "@/components/log/log-list-server";
-import { LogCreateButton } from "@/components/log/log-create-button";
-
-export const revalidate = 0;
+import { LogListWrapper } from "@/components/log/log-list-wrapper";
 
 export default async function LogPage() {
   const supabase = await createClient();
@@ -19,9 +16,9 @@ export default async function LogPage() {
     : null;
 
   return (
-    <>
-      <LogCreateButton user={profile} avatarUrl={avatarUrl} />
-      <LogListServer currentUserId={user?.id || null} />
-    </>
+    <LogListWrapper
+      user={profile}
+      avatarUrl={avatarUrl}
+    />
   );
 }
