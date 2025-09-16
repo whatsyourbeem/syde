@@ -43,7 +43,6 @@ export function ClubPostCommentForm({
   initialCommentData,
   onCommentAdded,
   onCommentUpdated,
-  onCancel,
   placeholder,
   replyTo,
 }: ClubPostCommentFormProps) {
@@ -58,6 +57,10 @@ export function ClubPostCommentForm({
     if (!initialCommentData) {
       if (replyTo && replyTo.authorUsername) {
         setContent(`@${replyTo.authorUsername} `);
+        if (inputRef.current) {
+          console.log("Attempting to focus input:", inputRef.current);
+          inputRef.current.focus();
+        }
       } else {
         setContent('');
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo, useCallback, useEffect } from "react";
+import { useState, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy } from "lucide-react";
 import { toast } from "sonner";
