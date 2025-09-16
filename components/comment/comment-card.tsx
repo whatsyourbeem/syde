@@ -34,7 +34,7 @@ interface CommentCardProps {
   onReplyClick?: (username: string, fullName: string) => void;
   level?: number;
   currentUserId: string | null;
-  mentionedProfiles: any[];
+  mentionedProfiles: Array<{ id: string; username: string | null }>;
   initialLikesCount: number;
   initialHasLiked: boolean;
   onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void;

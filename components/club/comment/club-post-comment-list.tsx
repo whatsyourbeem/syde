@@ -30,6 +30,14 @@ export function ClubPostCommentList({
   const supabase = createClient();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
+  const [commentLikes, setCommentLikes] = useState<Record<string, { likesCount: number; hasLiked: boolean }>>({});
+
+  const handleLikeStatusChange = (commentId: string, newLikesCount: number, newHasLiked: boolean) => {
+    setCommentLikes(prev => ({
+      ...prev,
+      [commentId]: { likesCount: newLikesCount, hasLiked: newHasLiked },
+    }));
+  };
 
   const queryKey = useMemo(() => ["clubPostComments", { postId, currentPage, pageSize }], [postId, currentPage, pageSize]);
 
@@ -89,6 +97,12 @@ export function ClubPostCommentList({
         clubId={clubId}
         isDetailPage={isDetailPage}
         setReplyTo={setReplyTo}
+        userId={comment.user_id}
+        isLiked={commentLikes[comment.id]?.hasLiked ?? comment.initialHasLiked}
+        likeCount={commentLikes[comment.id]?.likesCount ?? comment.initialLikesCount}
+        initialLikesCount={commentLikes[comment.id]?.likesCount ?? comment.initialLikesCount}
+        initialHasLiked={commentLikes[comment.id]?.hasLiked ?? comment.initialHasLiked}
+        onLikeStatusChange={handleLikeStatusChange}
         />
     </div>
   );
