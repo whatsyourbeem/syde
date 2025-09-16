@@ -171,7 +171,7 @@ export function CommentCard({
   };
 
   return (
-    <div className="flex items-start justify-between gap-3 p-2">
+    <div className="flex flex-col gap-0 p-2">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
@@ -306,8 +306,14 @@ export function CommentCard({
                   </>
                 )}
               </div>
-              {showReplies && comment.replies && comment.replies.length > 0 && (
-                <div className="mt-2 space-y-2 border-l pl-4">
+              
+            </>
+          )}
+        </div>
+      </div>
+      <div className="w-full pl-4"> 
+        {showReplies && comment.replies && comment.replies.length > 0 && (
+                <div className="mt-1 space-y-1 border-l pl-2">
                   {comment.replies.slice(0, displayReplyCount).map((reply: ProcessedComment) => (
                     <CommentCard
                       key={reply.id}
@@ -372,7 +378,7 @@ export function CommentCard({
                 </div>
               )}
               {showReplies && !isMobile && level === 0 && (
-                <div className="mt-2 ml-4">
+                <div className="mt-2 ml-42">
                   <CommentForm
                     logId={logId}
                     currentUserId={currentUserId}
@@ -383,8 +389,6 @@ export function CommentCard({
                   />
                 </div>
               )}
-              
-              
               {showReplies && isMobile && setReplyTo && (
                 <div className="ml-4">
                   <Button
@@ -417,10 +421,7 @@ export function CommentCard({
                   </Button>
                 </div>
               )}
-            </>
-          )}
-        </div>
-      </div>
+              </div>
     </div>
   );
 }

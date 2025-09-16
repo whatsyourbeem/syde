@@ -543,6 +543,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
       </div>
       {/* Comments Section */}
       <div className="mt-4 pt-4 border-t">
+        <h2 className="text-lg font-semibold mb-4 ml-2">댓글</h2>
         <CommentList
           logId={log.id}
           currentUserId={user?.id || null}

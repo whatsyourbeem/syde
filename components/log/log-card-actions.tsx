@@ -2,8 +2,7 @@
 
 import { useState, memo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy, X } from "lucide-react";
-import Image from "next/image";
+import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from '@/context/LoginDialogContext';
@@ -19,10 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { toggleLogBookmark } from "@/app/log/log-actions";
-import { CommentList } from "@/components/comment/comment-list";
-import { CommentForm } from "@/components/comment/comment-form";
 
 interface LogCardActionsProps {
   logId: string;
@@ -34,7 +30,6 @@ interface LogCardActionsProps {
   commentsCount: number;
   onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
   onBookmarkStatusChange: (newBookmarksCount: number, newHasBookmarked: boolean) => void;
-  onCommentAdded: () => void; // To update comment count
 }
 
 function LogCardActionsBase({
@@ -47,7 +42,6 @@ function LogCardActionsBase({
   commentsCount,
   onLikeStatusChange,
   onBookmarkStatusChange,
-  onCommentAdded,
 }: LogCardActionsProps) {
   const router = useRouter();
   const [likeLoading, setLikeLoading] = useState(false);
@@ -55,28 +49,10 @@ function LogCardActionsBase({
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const { openLoginDialog } = useLoginDialog();
-  
-  const [isMobile, setIsMobile] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerHeight, setDrawerHeight] = useState<string | number>("90%");
-  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const handleCommentClick = useCallback(() => {
-    if (isMobile) {
-      setIsDrawerOpen(true);
-    } else {
-      router.push(`/log/${logId}`);
-    }
-  }, [isMobile, router, logId]);
+    router.push(`/log/${logId}#comments`);
+  }, [router, logId]);
 
   const handleLike = useCallback(async () => {
     if (!currentUserId) {
@@ -209,67 +185,7 @@ function LogCardActionsBase({
             </TooltipContent>
           </Tooltip>
           
-          {isMobile ? (
-            <Drawer 
-              open={isDrawerOpen} 
-              onOpenChange={(open) => {
-                setIsDrawerOpen(open);
-                if (open) {
-                  setDrawerHeight(window.innerHeight * 0.9);
-                }
-                if (!open) {
-                  setReplyTo(null); // Reset reply state on close
-                }
-              }}
-            >
-              <DrawerTrigger asChild>{commentButton}</DrawerTrigger>
-              <DrawerContent style={{ height: drawerHeight }} className="flex flex-col">
-                <DrawerHeader>
-                  <DrawerTitle>댓글</DrawerTitle>
-                </DrawerHeader>
-                <div className="flex-1 overflow-y-auto">
-                  <CommentList 
-                    logId={logId}
-                    currentUserId={currentUserId}
-                    isMobile={isMobile}
-                    setReplyTo={setReplyTo}
-                  />
-                </div>
-                <div className="flex-shrink-0 border-t p-2">
-                  {replyTo && (
-                    <div className="text-xs text-muted-foreground pl-6 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        {replyTo.authorAvatarUrl && (
-                          <Image 
-                            src={replyTo.authorAvatarUrl}
-                            alt={replyTo.authorName}
-                            width={16}
-                            height={16}
-                            className="rounded-full"
-                          />
-                        )}
-                        <span>{replyTo.authorName}에게 답글 남기는 중...</span>
-                      </div>
-                      <button onClick={() => setReplyTo(null)} className="p-1"><X className="h-4 w-4" /></button>
-                    </div>
-                  )}
-                  <CommentForm
-                    logId={logId}
-                    currentUserId={currentUserId}
-                    parentCommentId={replyTo?.parentId}
-                    onCommentAdded={() => {
-                      onCommentAdded();
-                      setReplyTo(null); // Reset after submitting
-                    }}
-                    placeholder={replyTo ? "답글을 작성하세요..." : "댓글을 작성하세요..."}
-                    replyTo={replyTo}
-                  />
-                </div>
-              </DrawerContent>
-            </Drawer>
-          ) : (
-            commentButton
-          )}
+          {commentButton}
 
           <DropdownMenu>
             <Tooltip>

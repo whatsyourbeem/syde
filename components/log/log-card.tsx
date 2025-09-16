@@ -79,10 +79,6 @@ function LogCardBase({
     setHasBookmarked(initialHasBookmarked);
   }, [initialLikesCount, initialHasLiked, initialCommentsCount, initialBookmarksCount, initialHasBookmarked]);
 
-  const handleCommentAdded = useCallback(() => {
-    setCommentsCount((prev) => prev + 1);
-  }, []);
-
   const handleLikeStatusChange = useCallback((newLikesCount: number, newHasLiked: boolean) => {
     setLikesCount(newLikesCount);
     setHasLiked(newHasLiked);
@@ -146,7 +142,6 @@ function LogCardBase({
             commentsCount={commentsCount}
             onLikeStatusChange={handleLikeStatusChange}
             onBookmarkStatusChange={handleBookmarkStatusChange}
-            onCommentAdded={handleCommentAdded}
           />
         </>
       ) : (
