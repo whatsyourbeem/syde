@@ -120,8 +120,8 @@ export default async function RootLayout({
                           <Image
                             src="/logo_no_bg.png"
                             alt="SYDE"
-                            width={22}
-                            height={22}
+                            width={28}
+                            height={28}
                             priority
                           />
                           <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
