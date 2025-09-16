@@ -220,9 +220,6 @@ export function CommentForm({
   
 
   const handleInputClick = () => {
-    if (replyTo && replyTo.authorUsername && content === '') {
-      setContent(`@${replyTo.authorUsername} `);
-    }
     if (!currentUserId) {
       openLoginDialog();
     }
@@ -315,7 +312,7 @@ export function CommentForm({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {onCancel && <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>취소</Button>}
+          {initialCommentData && onCancel && <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>취소</Button>}
           <SubmitButton initialCommentData={initialCommentData} content={content} isSubmitting={isSubmitting} />
         </div>
       </div>
