@@ -11,6 +11,17 @@ type Club = Database["public"]["Tables"]["clubs"]["Row"] & {
   members: Database["public"]["Tables"]["profiles"]["Row"][];
 };
 
+// Type for the data returned by the Supabase query
+type FetchedClubMember = {
+  clubs: (Database["public"]["Tables"]["clubs"]["Row"] & {
+    owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    member_count: { count: number }[];
+    club_members: {
+      profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    }[];
+  }) | null;
+};
+
 interface UserJoinedClubsListProps {
   userId: string;
 }
@@ -36,7 +47,8 @@ export function UserJoinedClubsList({ userId }: UserJoinedClubsListProps) {
             )
           `)
           .eq("user_id", userId)
-          .limit(10, { foreignTable: "clubs.club_members" });
+          .limit(10, { foreignTable: "clubs.club_members" })
+          .returns<FetchedClubMember[]>();
 
         if (error) {
           console.error("Error fetching joined clubs:", error);
@@ -47,14 +59,14 @@ export function UserJoinedClubsList({ userId }: UserJoinedClubsListProps) {
         const clubsWithDetails = data
           ?.map(item => {
             if (!item.clubs) return null;
-            const clubData = item.clubs as any; // Use any to handle the shape from query
+            const clubData = item.clubs;
             return {
               ...clubData,
               owner_profile: clubData.owner_profile,
               member_count: Array.isArray(clubData.member_count)
                 ? clubData.member_count[0]?.count || 0
                 : 0,
-              members: clubData.club_members.map((m: any) => m.profiles).filter(Boolean),
+              members: clubData.club_members.map((m) => m.profiles).filter(Boolean) as Database["public"]["Tables"]["profiles"]["Row"][],
             };
           })
           .filter(Boolean) as Club[] || [];
