@@ -148,7 +148,7 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             <span>SYDE 오픈채팅</span>
           </Link>
           <Link
-            href="https://www.instagram.com/syde.official/"
+            href="https://www.instagram.com/syde.kr/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-xs"
@@ -162,7 +162,7 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             <span>Instagram</span>
           </Link>
           <Link
-            href="https://www.threads.net/@syde.official"
+            href="https://www.threads.net/@syde.kr"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:bg-secondary p-2 rounded-md text-xs"
