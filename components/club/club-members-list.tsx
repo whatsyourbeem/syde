@@ -51,7 +51,7 @@ interface ClubMembersListProps {
   members: ClubMember[];
   clubId: string;
   currentUserId?: string;
-  clubOwnerId: string;
+  clubOwnerId: string | null;
   direction?: "vertical" | "horizontal"; // Added new prop
 }
 
@@ -66,7 +66,7 @@ export default function ClubMembersList({
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
 
-  const isOwner = currentUserId === clubOwnerId;
+  const isOwner = clubOwnerId && currentUserId === clubOwnerId;
 
   const currentMember = members.find(
     (member) => member.user_id === currentUserId
@@ -151,9 +151,9 @@ export default function ClubMembersList({
             const currentUser = tempMembers.find(
               (member) => member.user_id === currentUserId
             );
-            const ownerUser = tempMembers.find(
+            const ownerUser = clubOwnerId ? tempMembers.find(
               (member) => member.user_id === clubOwnerId
-            );
+            ) : null;
 
             // 1. Add current user first
             if (currentUser) {
@@ -185,7 +185,7 @@ export default function ClubMembersList({
                 <MemberCardHorizontal
                   key={member.user_id}
                   profile={member.profiles}
-                  isOwner={member.user_id === clubOwnerId}
+                  isOwner={Boolean(clubOwnerId && member.user_id === clubOwnerId)}
                   isCurrentUser={member.user_id === currentUserId}
                 />
               );
@@ -215,7 +215,7 @@ export default function ClubMembersList({
                               .toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
-                        {currentMember.user_id === clubOwnerId && (
+                        {clubOwnerId && currentMember.user_id === clubOwnerId && (
                           <Crown className="absolute -top-1 -left-1 size-4 text-yellow-500 fill-yellow-500 bg-white rounded-full p-0.5" />
                         )}
                       </div>
@@ -230,7 +230,7 @@ export default function ClubMembersList({
                     </div>
                   </div>
                   {currentUserId === currentMember.user_id &&
-                    currentUserId !== clubOwnerId && (
+                    clubOwnerId && currentUserId !== clubOwnerId && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -293,10 +293,10 @@ export default function ClubMembersList({
                               key={member.user_id}
                               profile={member.profiles}
                               tagline={member.profiles.tagline}
-                              isOwner={member.user_id === clubOwnerId}
+                              isOwner={Boolean(clubOwnerId && member.user_id === clubOwnerId)}
                               isCurrentUser={member.user_id === currentUserId}
                               showButton={
-                                isOwner && member.user_id !== clubOwnerId
+                                Boolean(isOwner && clubOwnerId && member.user_id !== clubOwnerId)
                               }
                               buttonText={
                                 member.role === "FULL_MEMBER"

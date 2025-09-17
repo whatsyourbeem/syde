@@ -54,7 +54,7 @@ function ClubCardBase({ club }: ClubCardProps) {
 
         <div className="flex items-center justify-between text-xs md:text-sm text-gray-500 py-2">
           <div onClick={(e) => e.stopPropagation()}>
-            {club.owner_profile && (
+            {club.owner_profile && club.owner_id && (
               <ProfileHoverCard
                 userId={club.owner_id}
                 profileData={club.owner_profile}

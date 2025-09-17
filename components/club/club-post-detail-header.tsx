@@ -13,7 +13,7 @@ type Post = Database["public"]["Tables"]["club_forum_posts"]["Row"];
 interface ClubPostDetailHeaderProps {
   post: Post;
   clubId: string;
-  clubOwnerId: string;
+  clubOwnerId: string | null;
   user: User | null;
   onEditClick: () => void; // Added prop
 }
@@ -22,7 +22,7 @@ export function ClubPostDetailHeader({ post, clubId, clubOwnerId, user, onEditCl
   const router = useRouter();
 
   const isAuthor = user?.id === post.user_id;
-  const isClubOwner = user?.id === clubOwnerId;
+  const isClubOwner = clubOwnerId && user?.id === clubOwnerId;
   const canManage = isAuthor || isClubOwner;
 
   return (

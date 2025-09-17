@@ -31,7 +31,7 @@ interface ClubPostDetailClientProps {
   clubId: string;
   user: User | null;
   isAuthorized: boolean;
-  clubOwnerId: string;
+  clubOwnerId: string | null;
 }
 
 export default function ClubPostDetailClient({

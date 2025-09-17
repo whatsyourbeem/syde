@@ -191,7 +191,7 @@ export type Database = {
           description: Json | null;
           id: string;
           name: string;
-          owner_id: string;
+          owner_id: string | null;
           tagline: string | null;
           thumbnail_url: string | null;
           updated_at: string | null;
@@ -201,7 +201,7 @@ export type Database = {
           description?: Json | null;
           id?: string;
           name: string;
-          owner_id: string;
+          owner_id?: string | null;
           tagline?: string | null;
           thumbnail_url?: string | null;
           updated_at?: string | null;
@@ -211,7 +211,7 @@ export type Database = {
           description?: Json | null;
           id?: string;
           name?: string;
-          owner_id?: string;
+          owner_id?: string | null;
           tagline?: string | null;
           thumbnail_url?: string | null;
           updated_at?: string | null;

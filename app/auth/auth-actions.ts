@@ -26,107 +26,74 @@ export async function deleteAccount(): Promise<DeleteResponse> {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // 1. Delete user's avatar from storage
-    const { data: profileData, error: profileError } = await supabase
+    // Delete storage files (these won't be automatically deleted by CASCADE)
+    // 1. Delete user's avatar
+    const { data: profileData } = await supabaseAdmin
       .from("profiles")
       .select("avatar_url")
       .eq("id", userId)
       .single();
 
-    if (profileError) {
-      throw new Error(`프로필 조회 실패: ${profileError.message}`);
-    }
-
     if (profileData?.avatar_url) {
-      const avatarPath = profileData.avatar_url.split("/avatars/").pop();
+      const avatarPath = profileData.avatar_url.split("/profiles/").pop();
       if (avatarPath) {
-        const { error: storageError } = await supabaseAdmin.storage
-          .from("avatars")
-          .remove([avatarPath]);
-        if (storageError) {
-          console.error("아바타 삭제 실패:", storageError);
-          // Don't throw, continue with account deletion
-        }
+        await supabaseAdmin.storage.from("profiles").remove([avatarPath]);
       }
     }
 
-    // 2. Delete logs and their images
-    const { data: logsData, error: logsError } = await supabase
+    // 2. Delete user's log images
+    const { data: logsData } = await supabaseAdmin
       .from("logs")
-      .select("id, image_url")
+      .select("image_url")
       .eq("user_id", userId);
 
-    if (logsError) {
-      throw new Error(`로그 조회 실패: ${logsError.message}`);
-    }
-
-    for (const log of logsData) {
-      if (log.image_url) {
-        const logPath = log.image_url.split("/logs/").pop();
-        if (logPath) {
-          const { error: storageError } = await supabaseAdmin.storage
-            .from("logs")
-            .remove([logPath]);
-          if (storageError) {
-            console.error(`로그 이미지 삭제 실패 (${log.id}):`, storageError);
+    if (logsData) {
+      for (const log of logsData) {
+        if (log.image_url) {
+          const logPath = log.image_url.split("/logimages/").pop();
+          if (logPath) {
+            await supabaseAdmin.storage.from("logimages").remove([logPath]);
           }
         }
       }
     }
-    // Logs will be deleted by RLS policy on user deletion, or by explicit delete if needed
-    // For now, relying on cascade delete if set up, or admin delete later.
 
-    // 3. Delete clubs owned by the user and their thumbnails
-    const { data: clubsData, error: clubsError } = await supabase
+    // 3. Delete user's club thumbnails
+    const { data: clubsData } = await supabaseAdmin
       .from("clubs")
-      .select("id, thumbnail_url")
+      .select("thumbnail_url")
       .eq("owner_id", userId);
 
-    if (clubsError) {
-      throw new Error(`클럽 조회 실패: ${clubsError.message}`);
-    }
-
-    for (const club of clubsData) {
-      if (club.thumbnail_url) {
-        const clubPath = club.thumbnail_url.split("/clubs/").pop();
-        if (clubPath) {
-          const { error: storageError } = await supabaseAdmin.storage
-            .from("clubs")
-            .remove([clubPath]);
-          if (storageError) {
-            console.error(`클럽 썸네일 삭제 실패 (${club.id}):`, storageError);
+    if (clubsData) {
+      for (const club of clubsData) {
+        if (club.thumbnail_url) {
+          const clubPath = club.thumbnail_url.split("/clubs/").pop();
+          if (clubPath) {
+            await supabaseAdmin.storage.from("clubs").remove([clubPath]);
           }
         }
       }
     }
-    // Clubs will be deleted by RLS policy on user deletion, or by explicit delete if needed
 
-    // 4. Delete meetups organized by the user and their thumbnails
-    const { data: meetupsData, error: meetupsError } = await supabase
+    // 4. Delete user's meetup thumbnails
+    const { data: meetupsData } = await supabaseAdmin
       .from("meetups")
-      .select("id, thumbnail_url")
+      .select("thumbnail_url")
       .eq("organizer_id", userId);
 
-    if (meetupsError) {
-      throw new Error(`모임 조회 실패: ${meetupsError.message}`);
-    }
-
-    for (const meetup of meetupsData) {
-      if (meetup.thumbnail_url) {
-        const meetupPath = meetup.thumbnail_url.split("/meetups/").pop();
-        if (meetupPath) {
-          const { error: storageError } = await supabaseAdmin.storage
-            .from("meetups")
-            .remove([meetupPath]);
-          if (storageError) {
-            console.error(`모임 썸네일 삭제 실패 (${meetup.id}):`, storageError);
+    if (meetupsData) {
+      for (const meetup of meetupsData) {
+        if (meetup.thumbnail_url) {
+          const meetupPath = meetup.thumbnail_url.split("/meetup-images/").pop();
+          if (meetupPath) {
+            await supabaseAdmin.storage.from("meetup-images").remove([meetupPath]);
           }
         }
       }
     }
-    // Meetups will be deleted by RLS policy on user deletion, or by explicit delete if needed
 
     // 5. Delete the user from Supabase Auth
+    // This will cascade delete all related database records
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteUserError) {
