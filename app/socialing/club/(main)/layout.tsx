@@ -116,9 +116,15 @@ export default async function ClubMainLayout({
           <p className="text-sm text-gray-600 mb-4">
             관심 있는 주제로 직접 클럽을 개설해보세요!
           </p>
-          <Button disabled className="w-full">
-            클럽 개설 요청
-          </Button>
+          <Link
+            href="https://slashpage.com/syde-host-recruit"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button className="w-full">
+              클럽 개설 요청
+            </Button>
+          </Link>
         </div>
       </div>
     </main>
