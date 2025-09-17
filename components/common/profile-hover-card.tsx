@@ -54,7 +54,7 @@ export default function ProfileHoverCard({
     }
   }, [userId, profileData, supabase]);
 
-  if (!profile && !isLoading || disableHover) {
+  if ((!profile && !isLoading) || disableHover) {
     return <>{children}</>; // Render children without hover card if profile not found or hover is disabled
   }
 
@@ -71,10 +71,12 @@ export default function ProfileHoverCard({
             <div className="flex justify-start space-x-3">
               <Avatar className="size-16">
                 <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback>{profile?.username?.charAt(0) || "U"}</AvatarFallback>
+                <AvatarFallback>
+                  {profile?.username?.charAt(0) || "U"}
+                </AvatarFallback>
               </Avatar>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <h4 className="text-base font-semibold">
                     {profile?.full_name || ""}
                   </h4>

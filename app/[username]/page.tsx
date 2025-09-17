@@ -69,7 +69,7 @@ export default async function UserProfilePage({
           </div>
           <div className="flex-grow">
             <div className="flex flex-col md:flex-row md:items-baseline gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <h1 className="text-2xl font-bold leading-tight">
                   {profile.full_name
                     ? profile.full_name

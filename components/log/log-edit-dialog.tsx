@@ -148,7 +148,7 @@ function LogForm({
         {initialLogData && (
           <input type="hidden" name="logId" value={initialLogData.id} />
         )}
-        
+
         {/* This hidden input is no longer needed as the file itself will be appended to FormData */}
         {/* <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} /> */}
 
@@ -362,34 +362,34 @@ export function LogEditDialog({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
-  const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
+  const [suggestionPosition, setSuggestionPosition] = useState({
+    top: 0,
+    left: 0,
+  });
 
-  const fetchMentionSuggestions = useCallback(
-    async (term: string) => {
-      if (term.length < 1) {
-        setMentionSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-      // This requires a client-side supabase instance
-      const { createClient } = await import("@/lib/supabase/client");
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, username, full_name, avatar_url")
-        .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
-        .limit(5);
-      if (error) {
-        console.error("Error fetching mention suggestions:", error);
-        setMentionSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-      setMentionSuggestions(data || []);
-      setShowSuggestions(true);
-    },
-    []
-  );
+  const fetchMentionSuggestions = useCallback(async (term: string) => {
+    if (term.length < 1) {
+      setMentionSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    // This requires a client-side supabase instance
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, full_name, avatar_url")
+      .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
+      .limit(5);
+    if (error) {
+      console.error("Error fetching mention suggestions:", error);
+      setMentionSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setMentionSuggestions(data || []);
+    setShowSuggestions(true);
+  }, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -403,35 +403,40 @@ export function LogEditDialog({
     return () => clearTimeout(handler);
   }, [mentionSearchTerm, fetchMentionSuggestions]);
 
-  const calculateSuggestionPosition = (textarea: HTMLTextAreaElement, atIndex: number) => {
+  const calculateSuggestionPosition = (
+    textarea: HTMLTextAreaElement,
+    atIndex: number
+  ) => {
     // Create a temporary div to measure text dimensions
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     const style = window.getComputedStyle(textarea);
-    div.style.position = 'absolute';
-    div.style.visibility = 'hidden';
-    div.style.height = 'auto';
-    div.style.width = textarea.clientWidth + 'px';
+    div.style.position = "absolute";
+    div.style.visibility = "hidden";
+    div.style.height = "auto";
+    div.style.width = textarea.clientWidth + "px";
     div.style.font = style.font;
     div.style.fontSize = style.fontSize;
     div.style.lineHeight = style.lineHeight;
     div.style.padding = style.padding;
     div.style.border = style.border;
-    div.style.whiteSpace = 'pre-wrap';
-    div.style.wordWrap = 'break-word';
+    div.style.whiteSpace = "pre-wrap";
+    div.style.wordWrap = "break-word";
 
     document.body.appendChild(div);
 
     const textBeforeAt = textarea.value.substring(0, atIndex);
     div.textContent = textBeforeAt;
 
-    const lines = textBeforeAt.split('\n');
+    const lines = textBeforeAt.split("\n");
     const currentLineIndex = lines.length - 1;
 
     // Calculate line height
-    const lineHeight = parseInt(style.lineHeight) || parseInt(style.fontSize) * 1.2;
+    const lineHeight =
+      parseInt(style.lineHeight) || parseInt(style.fontSize) * 1.2;
 
     // Position the suggestions below the current line
-    const top = (currentLineIndex + 1) * lineHeight + parseInt(style.paddingTop);
+    const top =
+      (currentLineIndex + 1) * lineHeight + parseInt(style.paddingTop);
     const left = parseInt(style.paddingLeft);
 
     document.body.removeChild(div);
@@ -505,9 +510,7 @@ export function LogEditDialog({
     }
   };
 
-  const handleImageChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
       setImageFile(file);
@@ -529,7 +532,7 @@ export function LogEditDialog({
       return;
     }
     setIsSubmitting(true);
-    
+
     formData.set("content", content);
     if (imageFile) {
       formData.append("imageFile", imageFile);
@@ -603,7 +606,7 @@ export function LogEditDialog({
         />
       )}
       {full_name && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <p className="text-base font-bold">{full_name}</p>
           {certified && <CertifiedBadge size="md" />}
         </div>
