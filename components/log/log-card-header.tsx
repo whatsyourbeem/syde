@@ -52,7 +52,8 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
                 alt={`${log.profiles?.username || "User"}'s avatar`}
                 width={36}
                 height={36}
-                className="rounded-full object-cover aspect-square mr-2"
+                className="rounded-full object-cover mr-2"
+                style={{ aspectRatio: '1' }}
                 loading="lazy"
                 placeholder="blur"
                 blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNmMGYwZjAiLz4KPC9zdmc+"
