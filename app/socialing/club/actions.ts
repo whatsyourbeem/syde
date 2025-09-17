@@ -43,7 +43,7 @@ export async function updateClubMemberRole(
     .update({ role })
     .eq("club_id", clubId)
     .eq("user_id", userId)
-    .select("id, club_id, user_id, role, created_at");
+    .select("club_id, user_id, role, created_at");
 
   if (error) {
     return { error: error.message };
