@@ -376,7 +376,7 @@ export default function ClubDetailClient({
             <div className="flex flex-col gap-4 mb-4 md:flex-row md:justify-between md:items-center">
               <TabsList className="overflow-x-auto whitespace-nowrap scrollbar-hide">
                 {forums.map((forum) => (
-                  <TabsTrigger key={forum.id} value={forum.id}>
+                  <TabsTrigger key={forum.id} value={forum.id} className="text-xs">
                     {forum.name}
                   </TabsTrigger>
                 ))}
