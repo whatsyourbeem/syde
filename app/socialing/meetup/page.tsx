@@ -25,18 +25,29 @@ type MeetupWithOrganizerProfile =
 
 // 날짜 포맷 헬퍼 함수 추가
 function formatDate(dateString: string, includeYear: boolean = true) {
+  // UTC로 저장된 시간을 한국시간(KST)으로 변환하여 표시
   const date = new Date(dateString);
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  const weekday = date.toLocaleDateString(undefined, { weekday: "short" });
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  // 한국시간으로 변환 (UTC + 9시간)
+  const kstDate = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
+
+  const year = kstDate.getFullYear().toString().slice(-2);
+  const month = (kstDate.getMonth() + 1).toString().padStart(2, "0");
+  const day = kstDate.getDate().toString().padStart(2, "0");
+
+  // 한글 요일명
+  const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+  const weekday = weekdays[kstDate.getDay()];
+
+  const hours24 = kstDate.getHours();
+  const hours12 = hours24 === 0 ? 12 : hours24 > 12 ? hours24 - 12 : hours24;
+  const period = hours24 < 12 ? "오전" : "오후";
+  const minutes = kstDate.getMinutes().toString().padStart(2, "0");
 
   if (includeYear) {
-    return `${year}.${month}.${day}(${weekday}) ${hours}:${minutes}`;
+    return `${year}.${month}.${day}(${weekday}) ${period} ${hours12}:${minutes}`;
   } else {
-    return `${month}.${day}(${weekday}) ${hours}:${minutes}`;
+    return `${month}.${day}(${weekday}) ${period} ${hours12}:${minutes}`;
   }
 }
 
