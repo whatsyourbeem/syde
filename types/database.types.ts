@@ -585,6 +585,7 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           bio: Json | null;
+          certified: boolean | null;
           full_name: string | null;
           id: string;
           link: string | null;
@@ -595,6 +596,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null;
           bio?: Json | null;
+          certified?: boolean | null;
           full_name?: string | null;
           id: string;
           link?: string | null;
@@ -605,6 +607,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null;
           bio?: Json | null;
+          certified?: boolean | null;
           full_name?: string | null;
           id?: string;
           link?: string | null;

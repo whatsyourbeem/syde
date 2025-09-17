@@ -45,6 +45,7 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        certifiedblue: "#2962d8",
         sydenightblue: "#22282E",
         chart: {
           "1": "hsl(var(--chart-1))",
@@ -74,54 +75,57 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontSize: {
-        'log-content': '15px',
+        "log-content": "15px",
       },
       typography: ({ theme }: { theme: (path: string) => string }) => ({
         DEFAULT: {
           css: {
-            '--tw-prose-body': 'hsl(var(--foreground))',
+            "--tw-prose-body": "hsl(var(--foreground))",
             h1: {
-              fontSize: theme('fontSize.3xl'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.3xl"),
+              fontWeight: theme("fontWeight.bold"),
             },
             h2: {
-              fontSize: theme('fontSize.2xl'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.2xl"),
+              fontWeight: theme("fontWeight.bold"),
             },
             h3: {
-              fontSize: theme('fontSize.xl'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.xl"),
+              fontWeight: theme("fontWeight.bold"),
             },
             h4: {
-              fontSize: theme('fontSize.lg'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.lg"),
+              fontWeight: theme("fontWeight.bold"),
             },
           },
         },
         sm: {
           css: {
-            '--tw-prose-body': 'hsl(var(--foreground))',
+            "--tw-prose-body": "hsl(var(--foreground))",
             h1: {
-              fontSize: theme('fontSize.2xl'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.2xl"),
+              fontWeight: theme("fontWeight.bold"),
             },
             h2: {
-              fontSize: theme('fontSize.xl'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.xl"),
+              fontWeight: theme("fontWeight.bold"),
             },
             h3: {
-              fontSize: theme('fontSize.lg'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.lg"),
+              fontWeight: theme("fontWeight.bold"),
             },
             h4: {
-              fontSize: theme('fontSize.base'),
-              fontWeight: theme('fontWeight.bold'),
+              fontSize: theme("fontSize.base"),
+              fontWeight: theme("fontWeight.bold"),
             },
           },
         },
       }),
-      
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography"), require("@tailwindcss/aspect-ratio")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+    require("@tailwindcss/aspect-ratio"),
+  ],
 } satisfies Config;
