@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Profile = Tables<"profiles">;
 
@@ -58,9 +59,12 @@ export default function MemberCard({
                 )}
               </div>
               <div className="text-left overflow-hidden min-w-0">
-                <p className="font-semibold text-sm truncate">
-                  {profile.full_name || profile.username}
-                </p>
+                <div className="flex items-center gap-1">
+                  <p className="font-semibold text-sm truncate">
+                    {profile.full_name || profile.username}
+                  </p>
+                  {profile.certified && <CertifiedBadge size="sm" />}
+                </div>
                 <p className="text-xs text-muted-foreground truncate">
                   @{profile.username || profile.id}
                 </p>

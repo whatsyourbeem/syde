@@ -41,6 +41,7 @@ export default async function LogLayout({ children }: { children: React.ReactNod
             avatarUrl={avatarUrl}
             username={profile.username}
             full_name={profile.full_name}
+            certified={profile.certified}
           />
         ) : (
           <LoginPromptCard />

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Database } from "@/types/database.types";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -73,9 +74,12 @@ export default function ProfileHoverCard({
                 <AvatarFallback>{profile?.username?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
               <div className="space-y-1">
-                <h4 className="text-base font-semibold">
-                  {profile?.full_name || ""}
-                </h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-base font-semibold">
+                    {profile?.full_name || ""}
+                  </h4>
+                  {profile?.certified && <CertifiedBadge size="md" />}
+                </div>
                 <p className="text-sm">@{profile?.username || "Anonymous"}</p>
                 {profile?.tagline && (
                   <p className="text-xs text-muted-foreground">

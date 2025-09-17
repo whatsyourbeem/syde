@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 import { Separator } from "@/components/ui/separator";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -20,7 +21,7 @@ export default async function UserProfilePage({
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "id, username, full_name, avatar_url, bio, link, tagline, updated_at"
+      "id, username, full_name, avatar_url, bio, link, tagline, updated_at, certified"
     )
     .eq("username", username)
     .single();
@@ -68,11 +69,14 @@ export default async function UserProfilePage({
           </div>
           <div className="flex-grow">
             <div className="flex flex-col md:flex-row md:items-baseline gap-2">
-              <h1 className="text-2xl font-bold leading-tight">
-                {profile.full_name
-                  ? profile.full_name
-                  : profile.username || "Anonymous"}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold leading-tight">
+                  {profile.full_name
+                    ? profile.full_name
+                    : profile.username || "Anonymous"}
+                </h1>
+                {profile.certified && <CertifiedBadge size="lg" />}
+              </div>
               {profile.full_name && profile.username && (
                 <p className="text-muted-foreground text-sm">
                   @{profile.username}

@@ -76,7 +76,7 @@ export function CommentList({
           user_id,
           log_id,
           parent_comment_id,
-          profiles!log_comments_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline),
+          profiles!log_comments_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
           comment_likes(user_id)
         `,
           { count: "exact" }
@@ -102,7 +102,7 @@ export function CommentList({
           user_id,
           log_id,
           parent_comment_id,
-          profiles!log_comments_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline),
+          profiles!log_comments_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
           comment_likes(user_id)
         `)
         .in('parent_comment_id', commentIds);

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/drawer";
 
 import { OgPreviewCard } from "@/components/common/og-preview-card";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface MentionSuggestion {
   id: string;
@@ -42,6 +43,7 @@ interface LogEditDialogProps {
   avatarUrl: string | null;
   username: string | null;
   full_name: string | null;
+  certified?: boolean | null;
   initialLogData?: Database["public"]["Tables"]["logs"]["Row"];
   children?: React.ReactNode;
   onSuccess?: () => void;
@@ -300,6 +302,7 @@ export function LogEditDialog({
   avatarUrl,
   username,
   full_name,
+  certified,
   initialLogData,
   children,
   onSuccess,
@@ -599,7 +602,12 @@ export function LogEditDialog({
           className="rounded-full object-cover aspect-square mb-4"
         />
       )}
-      {full_name && <p className="text-base font-bold">{full_name}</p>}
+      {full_name && (
+        <div className="flex items-center gap-2">
+          <p className="text-base font-bold">{full_name}</p>
+          {certified && <CertifiedBadge size="md" />}
+        </div>
+      )}
       {username && <p className="text-sm text-gray-500">@{username}</p>}
       <Button variant="default" className="mt-4">
         로그 작성하기

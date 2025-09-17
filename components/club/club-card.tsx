@@ -7,6 +7,7 @@ import { memo, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Database } from "@/types/database.types";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Club = Database["public"]["Tables"]["clubs"]["Row"] & {
   owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -69,7 +70,7 @@ function ClubCardBase({ club }: ClubCardProps) {
                       </AvatarFallback>
                     </Avatar>
                   </Link>
-                  <p>
+                  <p className="flex items-center gap-1">
                     <Link href={`/${club.owner_profile?.username}`}>
                       <span className="font-semibold text-black hover:underline">
                         {club.owner_profile?.full_name ||
@@ -77,6 +78,7 @@ function ClubCardBase({ club }: ClubCardProps) {
                           "알 수 없음"}
                       </span>
                     </Link>
+                    {club.owner_profile?.certified && <CertifiedBadge size="sm" />}
                     <span className="ml-1">클럽장</span>
                   </p>
                 </div>

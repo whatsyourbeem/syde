@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Clock, MapPin, Users } from "lucide-react";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Profile = Tables<"profiles">;
 type Meetup = Tables<"meetups"> & { organizer_profile: Profile | null };
@@ -203,10 +204,13 @@ export default async function ClubMeetupListPage({
                           {meetup.organizer_profile?.username?.charAt(0) || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs font-medium">
-                        {meetup.organizer_profile?.full_name ||
-                          meetup.organizer_profile?.username}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium">
+                          {meetup.organizer_profile?.full_name ||
+                            meetup.organizer_profile?.username}
+                        </span>
+                        {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" />}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Users className="size-3" />

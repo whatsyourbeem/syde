@@ -45,7 +45,6 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        certifiedblue: "#2962d8",
         sydenightblue: "#22282E",
         chart: {
           "1": "hsl(var(--chart-1))",

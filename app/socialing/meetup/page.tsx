@@ -15,6 +15,7 @@ import {
 } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Calendar, MapPin } from 'lucide-react';
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type MeetupWithOrganizerProfile =
   Database["public"]["Tables"]["meetups"]["Row"] & {
@@ -99,7 +100,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, clubs(id, name, thumbnail_url), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants"
+      "*, clubs(id, name, thumbnail_url), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, tagline, certified), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants"
     )
     .order("created_at", { ascending: false })
     .range(offset, offset + pageSize - 1);
@@ -242,12 +243,13 @@ export default async function MeetupPage({
                         </Avatar>
                       </Link>
                       <p className="flex items-center">
-                        <Link href={`/${meetup.organizer_profile?.username}`} className="inline-flex items-center">
+                        <Link href={`/${meetup.organizer_profile?.username}`} className="inline-flex items-center gap-1">
                           <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">
                             {meetup.organizer_profile?.full_name ||
                               meetup.organizer_profile?.username ||
                               "알 수 없음"}
                           </span>
+                          {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" />}
                         </Link>
                         <span className="ml-1">모임장</span>
                       </p>

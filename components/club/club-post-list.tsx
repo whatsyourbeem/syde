@@ -4,6 +4,7 @@ import { Tables } from "@/types/database.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPlainTextFromTiptapJson } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Profile = Tables<"profiles">;
 type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
@@ -55,11 +56,14 @@ export default function ClubPostList({
                   <AvatarImage src={post.author?.avatar_url || undefined} />
                   <AvatarFallback>{post.author?.username?.[0]}</AvatarFallback>
                 </Avatar>
-                <span className="text-sm text-black">
-                  {post.author?.full_name ||
-                    post.author?.username ||
-                    "Unknown User"}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-black">
+                    {post.author?.full_name ||
+                      post.author?.username ||
+                      "Unknown User"}
+                  </span>
+                  {post.author?.certified && <CertifiedBadge size="sm" />}
+                </div>
               </div>
               <div className="text-xs text-gray-500 mt-2">
                 {" "}

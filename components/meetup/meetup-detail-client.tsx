@@ -45,6 +45,7 @@ import {
 } from "@/app/socialing/meetup/meetup-actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -363,12 +364,13 @@ export default function MeetupDetailClient({
                 {meetup.organizer_profile?.username?.charAt(0) || "U"}
               </AvatarFallback>
             </Avatar>
-            <p>
+            <p className="flex items-center">
               <span className="font-semibold text-black">
                 {meetup.organizer_profile?.full_name ||
                   meetup.organizer_profile?.username ||
                   "알 수 없음"}
               </span>
+              {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" className="ml-1" />}
               <span className="ml-1">모임장</span>
             </p>
           </div>

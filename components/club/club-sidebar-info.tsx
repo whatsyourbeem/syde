@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { Database } from "@/types/database.types";
 import { CLUB_MEMBER_ROLE_DISPLAY_NAMES, ClubMemberRole } from "@/lib/constants";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -93,9 +94,10 @@ export default function ClubSidebarInfo({
                   <AvatarFallback>{ownerProfile?.username?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
               </Link>
-              <Link href={`/${ownerProfile?.username}`} className="hover:underline">
+              <Link href={`/${ownerProfile?.username}`} className="hover:underline flex items-center gap-1">
                 <span className="font-semibold text-primary">{ownerProfile?.full_name || ownerProfile?.username}</span>
-                <span className="ml-2">클럽장</span>
+                {ownerProfile?.certified && <CertifiedBadge size="sm" />}
+                <span className="ml-1">클럽장</span>
               </Link>
             </div>
           </ProfileHoverCard>

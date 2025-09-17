@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatRelativeTime } from "@/lib/utils";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import Link from "next/link";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 
 // Define a more specific type for the author profile fetched in the post detail
@@ -86,10 +87,13 @@ export default function ClubPostDetailClient({
               </ProfileHoverCard>
               <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author} disableHover={true}>
                 <div className="flex items-baseline gap-1">
-                  <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">  
-                    <span className="font-semibold truncate max-w-48">
-                      {post.author?.full_name || post.author?.username || "Unknown User"}
-                    </span>
+                  <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold truncate max-w-48">
+                        {post.author?.full_name || post.author?.username || "Unknown User"}
+                      </span>
+                      {post.author?.certified && <CertifiedBadge size="sm" />}
+                    </div>
                     {post.author?.tagline && (
                       <p className="text-xs text-muted-foreground truncate max-w-48">{post.author.tagline}</p>
                     )}

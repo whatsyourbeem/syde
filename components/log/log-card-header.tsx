@@ -21,6 +21,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { Database } from "@/types/database.types";
 import { formatRelativeTime } from "@/lib/utils";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface LogCardHeaderProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -61,11 +62,14 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
           <div className="flex-grow min-w-0 overflow-hidden">
             <div className="flex items-baseline gap-1 overflow-hidden">
               <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
-                <p className="font-semibold hover:underline text-sm md:text-log-content">
-                  {log.profiles?.full_name ||
-                    log.profiles?.username ||
-                    "Anonymous"}
-                </p>
+                <div className="flex items-center gap-1">
+                  <p className="font-semibold hover:underline text-sm md:text-log-content">
+                    {log.profiles?.full_name ||
+                      log.profiles?.username ||
+                      "Anonymous"}
+                  </p>
+                  {log.profiles?.certified && <CertifiedBadge size="sm" />}
+                </div>
               </Link>
               {log.profiles?.tagline && (
                 <p className="text-xs text-muted-foreground flex-grow min-w-0 truncate">{log.profiles.tagline}</p>

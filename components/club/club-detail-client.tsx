@@ -38,6 +38,7 @@ import { Separator } from "@/components/ui/separator";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 import ClubMembersList from "./club-members-list"; // Import ClubMembersList
 import Image from "next/image";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 // Type Definitions
 type Profile = Tables<"profiles">;
@@ -326,10 +327,13 @@ export default function ClubDetailClient({
                                     ) || "U"}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs font-medium">
-                                  {meetup.organizer_profile?.full_name ||
-                                    meetup.organizer_profile?.username}
-                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs font-medium">
+                                    {meetup.organizer_profile?.full_name ||
+                                      meetup.organizer_profile?.username}
+                                  </span>
+                                  {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" />}
+                                </div>
                               </div>
                             <div className="text-xs text-muted-foreground"> {/* Date and Location Info */}
                               {meetup.start_datetime && (

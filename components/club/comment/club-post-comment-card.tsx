@@ -9,6 +9,7 @@ import { ClubPostCommentForm } from "./club-post-comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { useLoginDialog } from '@/context/LoginDialogContext';
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 import { useRouter } from "next/navigation";
 
@@ -192,11 +193,14 @@ export function ClubPostCommentCard({
             <div className="flex items-baseline gap-1">
               <div className="flex flex-col md:flex-row md:gap-2">
                 <Link href={`/${comment.author?.username || comment.user_id}`} className="min-w-0">
-                  <p className="font-semibold text-sm hover:underline truncate max-w-48">
-                    {comment.author?.full_name ||
-                      comment.author?.username ||
-                      "Anonymous"}
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <p className="font-semibold text-sm hover:underline truncate max-w-48">
+                      {comment.author?.full_name ||
+                        comment.author?.username ||
+                        "Anonymous"}
+                    </p>
+                    {comment.author?.certified && <CertifiedBadge size="sm" />}
+                  </div>
                 </Link>
               {comment.author?.tagline && (
                 <p className="text-xs text-muted-foreground truncate min-w-0 max-w-48">{comment.author.tagline}</p>
