@@ -40,6 +40,7 @@ export async function updateProfile(formData: FormData) {
   const username = formData.get("username") as string;
   const full_name = formData.get("full_name") as string;
   const tagline = formData.get("tagline") as string;
+  const link = formData.get("link") as string;
   const avatar_url = formData.get("avatar_url") as string | null;
 
   const { error } = await supabase
@@ -48,6 +49,7 @@ export async function updateProfile(formData: FormData) {
       username,
       full_name,
       tagline,
+      link,
       avatar_url,
       updated_at: new Date().toISOString(),
     })
