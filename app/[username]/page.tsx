@@ -67,7 +67,7 @@ export default async function UserProfilePage({
               </div>
             )}
           </div>
-          <div className="flex-grow">
+          <div className="flex-grow min-w-0">
             <div className="flex flex-col md:flex-row md:items-baseline gap-2">
               <div className="flex items-center gap-1">
                 <h1 className="text-2xl font-bold leading-tight">
@@ -102,7 +102,7 @@ export default async function UserProfilePage({
                 href={profile.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:underline text-sm mt-2 block"
+                className="text-blue-500 hover:underline text-sm mt-2 inline-block max-w-full truncate overflow-hidden whitespace-nowrap"
               >
                 {profile.link}
               </Link>
