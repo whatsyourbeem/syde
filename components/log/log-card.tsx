@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, memo, useCallback } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
@@ -14,8 +14,8 @@ import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 interface LogCardProps {
-  log: Database['public']['Tables']['logs']['Row'] & {
-    profiles: Database['public']['Tables']['profiles']['Row'] | null;
+  log: Database["public"]["Tables"]["logs"]["Row"] & {
+    profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
     log_likes: Array<{ user_id: string }>;
     log_bookmarks: Array<{ user_id: string }>;
     log_comments: Array<{ id: string }>;
@@ -54,7 +54,7 @@ function LogCardBase({
   // Intersection observer for performance optimization
   const { ref: cardRef, isVisible } = useIntersectionObserver({
     threshold: 0.1,
-    rootMargin: '100px',
+    rootMargin: "100px",
     enabled: !isDetailPage, // Disable on detail pages
   });
 
@@ -64,17 +64,29 @@ function LogCardBase({
     setCommentsCount(initialCommentsCount);
     setBookmarksCount(initialBookmarksCount);
     setHasBookmarked(initialHasBookmarked);
-  }, [initialLikesCount, initialHasLiked, initialCommentsCount, initialBookmarksCount, initialHasBookmarked]);
+  }, [
+    initialLikesCount,
+    initialHasLiked,
+    initialCommentsCount,
+    initialBookmarksCount,
+    initialHasBookmarked,
+  ]);
 
-  const handleLikeStatusChange = useCallback((newLikesCount: number, newHasLiked: boolean) => {
-    setLikesCount(newLikesCount);
-    setHasLiked(newHasLiked);
-  }, []);
+  const handleLikeStatusChange = useCallback(
+    (newLikesCount: number, newHasLiked: boolean) => {
+      setLikesCount(newLikesCount);
+      setHasLiked(newHasLiked);
+    },
+    []
+  );
 
-  const handleBookmarkStatusChange = useCallback((newBookmarksCount: number, newHasBookmarked: boolean) => {
-    setBookmarksCount(newBookmarksCount);
-    setHasBookmarked(newHasBookmarked);
-  }, []);
+  const handleBookmarkStatusChange = useCallback(
+    (newBookmarksCount: number, newHasBookmarked: boolean) => {
+      setBookmarksCount(newBookmarksCount);
+      setHasBookmarked(newHasBookmarked);
+    },
+    []
+  );
 
   const handleDelete = async () => {
     if (currentUserId !== log.user_id) return;
@@ -82,14 +94,14 @@ function LogCardBase({
     try {
       const result = await deleteLog(log.id);
       if (result?.error) {
-        toast.error('로그 삭제 실패', { description: result.error });
+        toast.error("로그 삭제 실패", { description: result.error });
         setLoading(false);
       } else {
-        toast.success('로그가 삭제되었습니다.');
+        toast.success("로그가 삭제되었습니다.");
         router.refresh();
       }
     } catch {
-      toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
+      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
       setLoading(false);
     }
   };
@@ -103,7 +115,7 @@ function LogCardBase({
     <div ref={cardRef} className="rounded-lg bg-card flex flex-col">
       {isDetailPage || isVisible ? (
         <>
-          <LogCardHeader 
+          <LogCardHeader
             log={log}
             currentUserId={currentUserId}
             onDelete={handleDelete}
@@ -118,7 +130,7 @@ function LogCardBase({
             onCardClick={handleCardClick}
           />
 
-          <LogCardActions 
+          <LogCardActions
             logId={log.id}
             currentUserId={currentUserId}
             likesCount={likesCount}
@@ -131,7 +143,10 @@ function LogCardBase({
           />
         </>
       ) : (
-        <div className="h-32 bg-card-foreground/10 animate-pulse rounded-lg" style={{ height: '200px' }} />
+        <div
+          className="h-32 bg-card-foreground/10 animate-pulse rounded-lg"
+          style={{ height: "200px" }}
+        />
       )}
     </div>
   );
@@ -149,16 +164,19 @@ const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
     prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
     prevProps.searchQuery === nextProps.searchQuery &&
     prevProps.isDetailPage === nextProps.isDetailPage &&
-    JSON.stringify(prevProps.log.profiles) === JSON.stringify(nextProps.log.profiles)
+    JSON.stringify(prevProps.log.profiles) ===
+      JSON.stringify(nextProps.log.profiles)
   );
 });
 
-MemoizedLogCardBase.displayName = 'MemoizedLogCardBase';
+MemoizedLogCardBase.displayName = "MemoizedLogCardBase";
 
 export const LogCard = withErrorBoundary(MemoizedLogCardBase, {
   fallback: (
     <div className="rounded-lg bg-card p-6 border border-red-200">
-      <p className="text-center text-red-600">로그를 불러오는 중 오류가 발생했습니다.</p>
+      <p className="text-center text-red-600">
+        로그를 불러오는 중 오류가 발생했습니다.
+      </p>
     </div>
-  )
+  ),
 });
