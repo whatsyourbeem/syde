@@ -244,7 +244,6 @@ function LogForm({
         )}
         {ogUrl && !imagePreviewUrl && (
           <>
-            <div className="border-t my-4" />
             <OgPreviewCard url={ogUrl} />
           </>
         )}
