@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getOgData, type OGData } from "@/app/actions/og";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface OGData {
+  title?: string;
+  description?: string;
+  image?: string;
+  url: string;
+}
 
 interface OgPreviewCardProps {
   url: string;
@@ -19,7 +25,11 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
       if (!url) return;
       setIsLoading(true);
       try {
-        const data = await getOgData(url);
+        const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
         if (isMounted) {
           setOgData(data);
         }
@@ -73,9 +83,9 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
       rel="noopener noreferrer"
       className="not-prose block"
     >
-      <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50 h-24 md:h-32">
+      <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50 h-24 md:h-30">
         {ogData.image && (
-          <div className="w-20 h-24 md:w-32 md:h-32 flex-shrink-0 bg-muted">
+          <div className="w-20 h-24 md:w-30 md:h-30 flex-shrink-0 bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ogData.image}
