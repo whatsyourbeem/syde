@@ -64,16 +64,7 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
   }
 
   if (!ogData || (!ogData.title && !ogData.description)) {
-    return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-500 hover:underline my-2 block"
-      >
-        {url}
-      </a>
-    );
+    return null;
   }
 
   return (
