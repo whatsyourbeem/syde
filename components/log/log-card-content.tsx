@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useRef } from "react";
 import { linkifyMentions } from "@/lib/utils";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { LoadingSpinner } from "@/components/ui/loading-states";
@@ -17,7 +17,6 @@ interface LogCardContentProps {
   searchQuery?: string;
   isDetailPage: boolean;
   onCardClick: () => void;
-  showReadMore: boolean;
 }
 
 function LogCardContentBase({
@@ -26,11 +25,12 @@ function LogCardContentBase({
   searchQuery,
   isDetailPage,
   onCardClick,
-  showReadMore,
 }: LogCardContentProps) {
   const router = useRouter();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [isClamped, setIsClamped] = useState(false);
+  const contentRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     const urlRegex = /(https?:\/\/[^\s]+)/;
@@ -40,34 +40,51 @@ function LogCardContentBase({
     }
   }, [log.content]);
 
+  useEffect(() => {
+    if (contentRef.current && !isDetailPage) {
+      // Check if line-clamp is actually truncating the content
+      setIsClamped(
+        contentRef.current.scrollHeight > contentRef.current.clientHeight
+      );
+    }
+  }, [log.content, isDetailPage]);
+
   return (
     <div
       onClick={onCardClick}
-      className={`${
-        !isDetailPage ? "cursor-pointer" : ""
-      } py-1 pl-[44px] relative`}
+      className={`${!isDetailPage ? "cursor-pointer" : ""} py-1 pl-[44px]`}
       style={{ marginTop: "-12px" }}
     >
-      <p
-        className={`mb-3 text-sm md:text-log-content whitespace-pre-wrap ${
-          !isDetailPage ? "overflow-hidden max-h-72" : ""
-        }`}
-      >
-        {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
-      </p>
-      {showReadMore && !isDetailPage && (
-        <div className="absolute bottom-0 right-0 bg-gradient-to-l from-card to-transparent pl-10 pr-5 pt-2 pb-3">
+      <div className="mb-3 relative">
+        <p
+          ref={contentRef}
+          className="text-sm md:text-log-content whitespace-pre-wrap"
+          style={
+            !isDetailPage
+              ? ({
+                  display: "-webkit-box",
+                  WebkitLineClamp: 12,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  maxHeight: "18rem",
+                } as React.CSSProperties)
+              : {}
+          }
+        >
+          {linkifyMentions(log.content, mentionedProfiles, searchQuery)}
+        </p>
+        {isClamped && !isDetailPage && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               router.push(`/log/${log.id}`);
             }}
-            className="text-blue-500 hover:underline text-sm font-semibold"
+            className="text-gray-500 hover:text-gray-700 text-sm md:text-log-content absolute bottom-0 right-0 bg-card pl-4"
           >
-            ... 더보기
+            ...더 보기
           </button>
-        </div>
-      )}
+        )}
+      </div>
       {previewUrl && !log.image_url && (
         <div className="mt-3">
           <OgPreviewCard url={previewUrl} />
@@ -110,7 +127,6 @@ export const LogCardContent = memo(
       prevProps.log.image_url === nextProps.log.image_url &&
       prevProps.searchQuery === nextProps.searchQuery &&
       prevProps.isDetailPage === nextProps.isDetailPage &&
-      prevProps.showReadMore === nextProps.showReadMore &&
       JSON.stringify(prevProps.mentionedProfiles) ===
         JSON.stringify(nextProps.mentionedProfiles)
     );

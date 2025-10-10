@@ -50,26 +50,13 @@ function LogCardBase({
   const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
   const [loading, setLoading] = useState(false);
-  const [showReadMore, setShowReadMore] = useState(false);
-  const contentRef = useRef<HTMLParagraphElement>(null);
-  
+
   // Intersection observer for performance optimization
   const { ref: cardRef, isVisible } = useIntersectionObserver({
     threshold: 0.1,
     rootMargin: '100px',
     enabled: !isDetailPage, // Disable on detail pages
   });
-
-  useEffect(() => {
-    if (contentRef.current) {
-      const maxHeight = 12 * 24;
-      if (contentRef.current.scrollHeight > maxHeight) {
-        setShowReadMore(true);
-      } else {
-        setShowReadMore(false);
-      }
-    }
-  }, [log.content]);
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -123,13 +110,12 @@ function LogCardBase({
             loading={loading}
           />
 
-          <LogCardContent 
+          <LogCardContent
             log={log}
             mentionedProfiles={mentionedProfiles}
             searchQuery={searchQuery}
             isDetailPage={isDetailPage}
             onCardClick={handleCardClick}
-            showReadMore={showReadMore}
           />
 
           <LogCardActions 
