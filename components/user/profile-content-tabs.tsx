@@ -20,8 +20,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-
-
 interface ProfileContentTabsProps {
   isOwnProfile: boolean;
   profile: Tables<"profiles">;
@@ -101,17 +99,17 @@ export function ProfileContentTabs({
 
       {/* Right Content */}
       <div className="w-full md:w-3/4 px-4 md:pl-0 pt-2">
-        <TabsContent value="bio" className="mt-2 md:mt-0">
+        <TabsContent value="bio" className="mt-2">
           <BioEditor initialBio={profile.bio} isOwnProfile={isOwnProfile} />
         </TabsContent>
-        <TabsContent value="logs" className="mt-2 md:mt-0">
+        <TabsContent value="logs" className="mt-2">
           <LogList currentUserId={currentUserId} filterByUserId={profile.id} />
         </TabsContent>
-        <TabsContent value="clubs" className="md:mt-0">
+        <TabsContent value="clubs">
           <UserJoinedClubsList userId={profile.id} />
         </TabsContent>
         {isOwnProfile && (
-          <TabsContent value="activity" className="mt-2 md:mt-0">
+          <TabsContent value="activity" className="mt-2">
             <UserActivityLogList
               currentUserId={currentUserId}
               userId={profile.id}

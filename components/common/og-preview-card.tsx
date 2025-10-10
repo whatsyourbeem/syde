@@ -76,7 +76,7 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
     >
       <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50 h-24 md:h-30">
         {ogData.image && (
-          <div className="w-20 h-24 md:w-30 md:h-30 flex-shrink-0 bg-muted">
+          <div className="w-24 h-24 md:w-30 md:h-30 flex-shrink-0 bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ogData.image}
@@ -87,7 +87,7 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
         )}
         <div className="px-3 md:px-4 flex flex-col justify-center">
           {ogData.title && (
-            <div className="text-xs md:text-sm font-semibold line-clamp-1">
+            <div className="text-sm md:text-sm font-medium line-clamp-1">
               {ogData.title}
             </div>
           )}
