@@ -13,25 +13,35 @@ export async function GET(request: NextRequest) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code); // Get data as well
 
     if (!error) {
-      // Check if user exists and has an avatar URL from OAuth provider
-      if (data.user && data.user.user_metadata && data.user.user_metadata.avatar_url) {
-        const providerAvatarUrl = data.user.user_metadata.avatar_url;
+      // On initial social login, set the avatar from the provider
+      if (data.user && data.user.user_metadata?.avatar_url) {
         const userId = data.user.id;
+        const providerAvatarUrl = data.user.user_metadata.avatar_url;
 
-        // Upload avatar to Supabase Storage
-        const newAvatarUrl = await uploadAvatarFromUrl(userId, providerAvatarUrl);
+        // Check if the user already has an avatar
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", userId)
+          .single();
 
-        // If upload was successful, update the user's profile in public.profiles
-        if (newAvatarUrl) {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ avatar_url: newAvatarUrl })
-            .eq('id', userId);
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+        }
 
-          if (updateError) {
-            console.error("Error updating profile avatar_url:", updateError);
-            // Decide how to handle this error: redirect to error page or proceed
-            // For now, we'll just log and proceed, as login itself was successful
+        // If the user does not have an avatar set, upload the one from the provider
+        if (profile && !profile.avatar_url) {
+          const newAvatarUrl = await uploadAvatarFromUrl(userId, providerAvatarUrl);
+
+          if (newAvatarUrl) {
+            const { error: updateError } = await supabase
+              .from("profiles")
+              .update({ avatar_url: newAvatarUrl })
+              .eq("id", userId);
+
+            if (updateError) {
+              console.error("Error updating profile avatar_url:", updateError);
+            }
           }
         }
       }
