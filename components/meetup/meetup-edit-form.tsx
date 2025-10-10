@@ -376,7 +376,7 @@ export default function MeetupEditForm({
             value={fee}
             onChange={(e) => setFee(e.target.value)}
             min="0"
-            step="100"
+            step="1"
             placeholder="예: 5000"
           />
         </div>
