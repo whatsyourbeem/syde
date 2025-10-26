@@ -19,7 +19,7 @@ export function LoginPromptCard() {
       <p className="text-sm font-semibold mb-4">
         주체적인 삶으로 가득한 세상,
         <br />
-        1200+명의 SYDER와 함께해요.
+        1300+명의 SYDER와 함께해요.
       </p>
       <Button onClick={openLoginDialog}>SYDE 시작하기</Button>
     </div>
