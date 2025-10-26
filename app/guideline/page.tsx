@@ -2,9 +2,9 @@ import React from "react";
 
 export default function GuidelinePage() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-8 py-8 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6">SYDE 커뮤니티 가이드라인</h1>
-      <div className="prose prose-lg mx-auto">
+      <div className="prose prose-sm mx-auto">
         <h2>1. 오픈채팅방 가이드라인</h2>
         <h3>🎯 기본 원칙</h3>
         <ul>
@@ -189,9 +189,6 @@ export default function GuidelinePage() {
         <hr />
         <p>
           <strong>함께 만드는 건강한 SYDE 커뮤니티 🚀</strong>
-        </p>
-        <p>
-          <em>업데이트: 2025년 9월</em>
         </p>
       </div>
     </div>
