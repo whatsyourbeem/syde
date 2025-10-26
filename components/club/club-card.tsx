@@ -86,7 +86,9 @@ function ClubCardBase({ club }: ClubCardProps) {
                           "알 수 없음"}
                       </span>
                     </Link>
-                    {club.owner_profile?.certified && <CertifiedBadge size="sm" />}
+                    {club.owner_profile?.certified && (
+                      <CertifiedBadge size="sm" />
+                    )}
                     <span className="ml-1">클럽장</span>
                   </p>
                 </div>
@@ -107,9 +109,9 @@ function ClubCardBase({ club }: ClubCardProps) {
                 </Avatar>
               ))}
             </div>
-            <span className="pl-3 text-xs md:text-sm text-gray-500">
+            <span className="pl-1 text-xs md:text-sm text-gray-500">
               {club.member_count > 3
-                ? `+${club.member_count}`
+                ? `+${club.member_count}명`
                 : `${club.member_count}명`}
             </span>
           </div>
@@ -129,6 +131,6 @@ const ClubCard = memo(ClubCardBase, (prevProps, nextProps) => {
   );
 });
 
-ClubCard.displayName = 'ClubCard';
+ClubCard.displayName = "ClubCard";
 
 export default ClubCard;
