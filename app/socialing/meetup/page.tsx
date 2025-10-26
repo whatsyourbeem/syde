@@ -14,7 +14,7 @@ import {
   MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin } from "lucide-react";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type MeetupWithOrganizerProfile =
@@ -29,7 +29,9 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   const date = new Date(dateString);
 
   // 한국시간으로 변환 (UTC + 9시간)
-  const kstDate = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Seoul"}));
+  const kstDate = new Date(
+    date.toLocaleString("en-US", { timeZone: "Asia/Seoul" })
+  );
 
   const year = kstDate.getFullYear().toString().slice(-2);
   const month = (kstDate.getMonth() + 1).toString().padStart(2, "0");
@@ -50,8 +52,6 @@ function formatDate(dateString: string, includeYear: boolean = true) {
     return `${month}.${day}(${weekday}) ${period} ${hours12}:${minutes}`;
   }
 }
-
-
 
 function getCategoryBadgeClass(category: string) {
   switch (category) {
@@ -127,12 +127,12 @@ export default async function MeetupPage({
   }
 
   const { data: meetups, error: meetupsError } = await meetupQuery;
-  
+
   // Get total count for pagination
   let countQuery = supabase
     .from("meetups")
     .select("*", { count: "exact", head: true });
-    
+
   if (selectedStatus && selectedStatus !== "전체") {
     const meetupStatus = Object.entries(MEETUP_STATUS_DISPLAY_NAMES).find(
       (entry) => entry[1] === selectedStatus
@@ -142,10 +142,10 @@ export default async function MeetupPage({
       countQuery = countQuery.eq("status", meetupStatus);
     }
   }
-  
+
   const { count: totalCount } = await countQuery;
   const totalPages = Math.ceil((totalCount || 0) / pageSize);
-  
+
   const typedMeetups = meetups as MeetupWithOrganizerProfile[];
 
   if (meetupsError) {
@@ -180,13 +180,18 @@ export default async function MeetupPage({
                     alt={meetup.title}
                     fill
                     className={`object-cover object-center rounded-t-lg ${
-                      meetup.status === MEETUP_STATUSES.ENDED
-                        ? "grayscale opacity-50"
-                        : ""
+                      meetup.status === MEETUP_STATUSES.ENDED ? "grayscale" : ""
                     }`}
                   />
+                  {meetup.status === MEETUP_STATUSES.ENDED && (
+                    <div className="absolute inset-0 bg-white opacity-50"></div>
+                  )}
                   <div className="absolute top-3 inset-x-0 flex justify-between items-start px-3">
-                    <Badge className={`${getStatusBadgeClass(meetup.status)} whitespace-nowrap`}>
+                    <Badge
+                      className={`${getStatusBadgeClass(
+                        meetup.status
+                      )} whitespace-nowrap`}
+                    >
                       {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
                     </Badge>
                     <div className="hidden md:flex gap-2">
@@ -194,16 +199,25 @@ export default async function MeetupPage({
                         {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
                       </Badge>
                       <Badge
-                        className={getLocationTypeBadgeClass(meetup.location_type)}
+                        className={getLocationTypeBadgeClass(
+                          meetup.location_type
+                        )}
                       >
-                        {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
+                        {
+                          MEETUP_LOCATION_TYPE_DISPLAY_NAMES[
+                            meetup.location_type
+                          ]
+                        }
                       </Badge>
                     </div>
                   </div>
                 </div>
               </Link>
               <div className="p-2 md:px-6 md:pb-4 md:pt-4 flex-grow flex flex-col">
-                <Link href={`/socialing/meetup/${meetup.id}`} className="justyfy-between mb-2">
+                <Link
+                  href={`/socialing/meetup/${meetup.id}`}
+                  className="justyfy-between mb-2"
+                >
                   <div className="flex justify-between items-start">
                     <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline mr-2">
                       {meetup.title}
@@ -230,10 +244,12 @@ export default async function MeetupPage({
                         </span>
                       )}
                     </div>
-                    <span className="truncate inline-block max-w-full">{meetup.clubs.name}</span>
+                    <span className="truncate inline-block max-w-full">
+                      {meetup.clubs.name}
+                    </span>
                   </Link>
                 )}
-                
+
                 {!meetup.clubs && meetup.organizer_profile && (
                   <ProfileHoverCard
                     userId={meetup.organizer_profile.id}
@@ -254,28 +270,45 @@ export default async function MeetupPage({
                         </Avatar>
                       </Link>
                       <p className="flex items-center">
-                        <Link href={`/${meetup.organizer_profile?.username}`} className="inline-flex items-center gap-1">
+                        <Link
+                          href={`/${meetup.organizer_profile?.username}`}
+                          className="inline-flex items-center gap-1"
+                        >
                           <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">
                             {meetup.organizer_profile?.full_name ||
                               meetup.organizer_profile?.username ||
                               "알 수 없음"}
                           </span>
-                          {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" />}
+                          {meetup.organizer_profile?.certified && (
+                            <CertifiedBadge size="sm" />
+                          )}
                         </Link>
                         <span className="ml-1">모임장</span>
                       </p>
                     </div>
                   </ProfileHoverCard>
                 )}
-                <Link href={`/socialing/meetup/${meetup.id}`}className="text-sm text-gray-500">
+                <Link
+                  href={`/socialing/meetup/${meetup.id}`}
+                  className="text-sm text-gray-500"
+                >
                   <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-2">
                     {meetup.start_datetime && (
-                      <><Calendar className="size-3 md:size-4" /><span>{formatDate(meetup.start_datetime)}</span></>
+                      <>
+                        <Calendar className="size-3 md:size-4" />
+                        <span>{formatDate(meetup.start_datetime)}</span>
+                      </>
                     )}
                   </p>
                   <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2">
                     {meetup.location && (
-                      <><MapPin className="size-3 md:size-4" /><span className="truncate whitespace-nowrap overflow-hidden">{meetup.location}{meetup.address && ` (${meetup.address})`}</span></>
+                      <>
+                        <MapPin className="size-3 md:size-4" />
+                        <span className="truncate whitespace-nowrap overflow-hidden">
+                          {meetup.location}
+                          {meetup.address && ` (${meetup.address})`}
+                        </span>
+                      </>
                     )}
                   </p>
                 </Link>
@@ -284,7 +317,7 @@ export default async function MeetupPage({
           ))}
         </div>
       )}
-      
+
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8">
@@ -292,14 +325,14 @@ export default async function MeetupPage({
             <Link
               href={`/socialing/meetup?${new URLSearchParams({
                 ...(selectedStatus && { status: selectedStatus }),
-                page: (currentPage - 1).toString()
+                page: (currentPage - 1).toString(),
               }).toString()}`}
               className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
               이전
             </Link>
           )}
-          
+
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             let pageNum;
             if (totalPages <= 5) {
@@ -311,30 +344,30 @@ export default async function MeetupPage({
             } else {
               pageNum = currentPage - 2 + i;
             }
-            
+
             return (
               <Link
                 key={pageNum}
                 href={`/socialing/meetup?${new URLSearchParams({
                   ...(selectedStatus && { status: selectedStatus }),
-                  page: pageNum.toString()
+                  page: pageNum.toString(),
                 }).toString()}`}
                 className={`px-3 py-2 text-sm font-medium border rounded-md ${
                   pageNum === currentPage
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700 border-gray-300 hover:bg-gray-50'
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "text-gray-500 hover:text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {pageNum}
               </Link>
             );
           })}
-          
+
           {currentPage < totalPages && (
             <Link
               href={`/socialing/meetup?${new URLSearchParams({
                 ...(selectedStatus && { status: selectedStatus }),
-                page: (currentPage + 1).toString()
+                page: (currentPage + 1).toString(),
               }).toString()}`}
               className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
