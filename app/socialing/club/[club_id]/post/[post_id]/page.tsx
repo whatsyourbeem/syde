@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import ClubPostDetailClient from "@/components/club/club-post-detail-client"; // New import
@@ -29,8 +29,7 @@ export default async function ClubPostDetailPage({
     .single();
 
   if (error || !post) {
-    console.error("Error fetching post:", error);
-    notFound();
+    return redirect(`/socialing/club/${club_id}/access-denied`);
   }
 
   const { data: club } = await supabase
@@ -59,7 +58,7 @@ export default async function ClubPostDetailPage({
   const forumReadPermission = post.club_forums?.read_permission;
 
   let isAuthorized = false;
-  
+
   // Check if forum is public - anyone can read public posts
   if (forumReadPermission === CLUB_PERMISSION_LEVELS.PUBLIC) {
     isAuthorized = true;
