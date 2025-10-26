@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Database } from "@/types/database.types";
@@ -21,6 +21,14 @@ interface ClubCardProps {
 
 function ClubCardBase({ club }: ClubCardProps) {
   const router = useRouter();
+  const [randomMembers, setRandomMembers] = useState<
+    Database["public"]["Tables"]["profiles"]["Row"][]
+  >([]);
+
+  useEffect(() => {
+    const shuffled = [...club.members].sort(() => 0.5 - Math.random());
+    setRandomMembers(shuffled.slice(0, 3));
+  }, [club.members]);
 
   const handleCardClick = useCallback(() => {
     router.push(`/socialing/club/${club.id}`);
@@ -85,9 +93,9 @@ function ClubCardBase({ club }: ClubCardProps) {
               </ProfileHoverCard>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <div className="flex -space-x-2 overflow-hidden">
-              {club.members.map((member, index) => (
+              {randomMembers.map((member, index) => (
                 <Avatar
                   key={member.id || index}
                   className="size-5 md:size-7 border-2 border-white"
@@ -99,7 +107,11 @@ function ClubCardBase({ club }: ClubCardProps) {
                 </Avatar>
               ))}
             </div>
-            <span>{club.member_count}명</span>
+            <span className="pl-3 text-xs md:text-sm text-gray-500">
+              {club.member_count > 3
+                ? `+${club.member_count}`
+                : `${club.member_count}명`}
+            </span>
           </div>
         </div>
       </div>
