@@ -97,12 +97,13 @@ function getStatusBadgeClass(status: string) {
 export default async function MeetupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; tab?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; type?: string; page?: string }>;
 }) {
   const supabase = await createClient();
 
   const awaitedSearchParams = await searchParams;
   const selectedStatus = awaitedSearchParams.status;
+  const selectedType = awaitedSearchParams.type;
   const currentPage = parseInt(awaitedSearchParams.page || "1", 10);
   const pageSize = 12; // 그리드 레이아웃에 맞게 12개씩
   const offset = (currentPage - 1) * pageSize;
@@ -126,6 +127,11 @@ export default async function MeetupPage({
     }
   }
 
+  if (selectedType && selectedType !== "전체") {
+    const meetupType = selectedType === "정기모임" ? "INSYDE" : "SPINOFF";
+    meetupQuery = meetupQuery.eq("type", meetupType);
+  }
+
   const { data: meetups, error: meetupsError } = await meetupQuery;
 
   // Get total count for pagination
@@ -141,6 +147,11 @@ export default async function MeetupPage({
     if (meetupStatus) {
       countQuery = countQuery.eq("status", meetupStatus);
     }
+  }
+
+  if (selectedType && selectedType !== "전체") {
+    const meetupType = selectedType === "정기모임" ? "INSYDE" : "SPINOFF";
+    countQuery = countQuery.eq("type", meetupType);
   }
 
   const { count: totalCount } = await countQuery;
@@ -325,6 +336,7 @@ export default async function MeetupPage({
             <Link
               href={`/meetup?${new URLSearchParams({
                 ...(selectedStatus && { status: selectedStatus }),
+                ...(selectedType && { type: selectedType }),
                 page: (currentPage - 1).toString(),
               }).toString()}`}
               className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
@@ -350,6 +362,7 @@ export default async function MeetupPage({
                 key={pageNum}
                 href={`/meetup?${new URLSearchParams({
                   ...(selectedStatus && { status: selectedStatus }),
+                  ...(selectedType && { type: selectedType }),
                   page: pageNum.toString(),
                 }).toString()}`}
                 className={`px-3 py-2 text-sm font-medium border rounded-md ${
@@ -367,6 +380,7 @@ export default async function MeetupPage({
             <Link
               href={`/meetup?${new URLSearchParams({
                 ...(selectedStatus && { status: selectedStatus }),
+                ...(selectedType && { type: selectedType }),
                 page: (currentPage + 1).toString(),
               }).toString()}`}
               className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
