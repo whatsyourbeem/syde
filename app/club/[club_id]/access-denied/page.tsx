@@ -49,7 +49,7 @@ export default async function AccessDeniedPage({
       )}
       <div className="flex gap-4">
         {!user && <LoginRedirectButton />}
-        <Link href={`/socialing/club/${club_id}`}>
+        <Link href={`/club/${club_id}`}>
           <Button variant="outline">클럽으로 돌아가기</Button>
         </Link>
       </div>

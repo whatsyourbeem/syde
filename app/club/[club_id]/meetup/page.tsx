@@ -103,7 +103,9 @@ export default async function ClubMeetupListPage({
 
   const { data: meetups, error: meetupsError } = await supabase
     .from("meetups")
-    .select("id, created_at, organizer_id, club_id, title, description, thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*)")
+    .select(
+      "id, created_at, organizer_id, club_id, title, description, thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*)"
+    )
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
 
@@ -140,7 +142,7 @@ export default async function ClubMeetupListPage({
                   />
                 </div>
                 <Link
-                  href={`/socialing/meetup/${meetup.id}`}
+                  href={`/meetup/${meetup.id}`}
                   className="flex flex-col flex-grow p-4"
                 >
                   <div className="flex-grow">
@@ -183,8 +185,7 @@ export default async function ClubMeetupListPage({
                       )}
                       {(meetup.location || meetup.address) && (
                         <p className="flex items-center gap-1.5">
-                          <MapPin className="size-3" />{" "}
-                          {meetup.location}
+                          <MapPin className="size-3" /> {meetup.location}
                           {meetup.location && meetup.address && " ("}
                           {meetup.address}
                           {meetup.location && meetup.address && ")"}
@@ -209,7 +210,9 @@ export default async function ClubMeetupListPage({
                           {meetup.organizer_profile?.full_name ||
                             meetup.organizer_profile?.username}
                         </span>
-                        {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" />}
+                        {meetup.organizer_profile?.certified && (
+                          <CertifiedBadge size="sm" />
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">

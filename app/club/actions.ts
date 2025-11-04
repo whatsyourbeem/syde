@@ -56,7 +56,7 @@ export async function updateClubMemberRole(
     };
   }
 
-  revalidatePath(`/socialing/club/${clubId}`);
+  revalidatePath(`/club/${clubId}`);
 
   return { success: true };
 }

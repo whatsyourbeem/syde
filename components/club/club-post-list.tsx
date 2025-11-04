@@ -39,10 +39,7 @@ export default function ClubPostList({
       <ul>
         {posts.map((post) => (
           <li key={post.id} className="py-4 px-4 hover:bg-gray-50 border-b">
-            <Link
-              href={`/socialing/club/${clubId}/post/${post.id}`}
-              className="block"
-            >
+            <Link href={`/club/${clubId}/post/${post.id}`} className="block">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold truncate">{post.title}</h3>
               </div>
@@ -68,7 +65,13 @@ export default function ClubPostList({
               <div className="text-xs text-gray-500 mt-2">
                 {" "}
                 {/* Added mt-2 for spacing */}
-                {new Date(post.created_at!).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {new Date(post.created_at!).toLocaleString(undefined, {
+                  year: "numeric",
+                  month: "numeric",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
             </Link>
           </li>
@@ -85,7 +88,10 @@ export default function ClubPostList({
           >
             이전
           </Button>
-          {Array.from({ length: Math.ceil(totalPostsCount / postsPerPage) }, (_, i) => i + 1).map((page) => (
+          {Array.from(
+            { length: Math.ceil(totalPostsCount / postsPerPage) },
+            (_, i) => i + 1
+          ).map((page) => (
             <Button
               key={page}
               variant={page === currentPage ? "default" : "outline"}
@@ -100,7 +106,10 @@ export default function ClubPostList({
             variant="outline"
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === Math.ceil(totalPostsCount / postsPerPage) || isLoading}
+            disabled={
+              currentPage === Math.ceil(totalPostsCount / postsPerPage) ||
+              isLoading
+            }
           >
             다음
           </Button>

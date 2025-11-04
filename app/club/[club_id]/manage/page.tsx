@@ -6,21 +6,27 @@ interface ManageClubForumsPageProps {
   params: Promise<{ club_id: string }>;
 }
 
-export default async function ManageClubForumsPage({ params }: ManageClubForumsPageProps) {
+export default async function ManageClubForumsPage({
+  params,
+}: ManageClubForumsPageProps) {
   const { club_id } = await params;
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     redirect("/auth/login");
   }
 
   const { data: club, error } = await supabase
     .from("clubs")
-    .select(`
+    .select(
+      `
       *,
       forums:club_forums(*)
-    `)
+    `
+    )
     .eq("id", club_id)
     .order("position", { foreignTable: "club_forums", ascending: true })
     .single();
@@ -31,7 +37,7 @@ export default async function ManageClubForumsPage({ params }: ManageClubForumsP
 
   if (club.owner_id !== user.id) {
     // Or show an unauthorized page
-    redirect(`/socialing/club/${club.id}`);
+    redirect(`/club/${club.id}`);
   }
 
   return (

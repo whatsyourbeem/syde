@@ -29,7 +29,7 @@ export default async function ClubPostDetailPage({
     .single();
 
   if (error || !post) {
-    return redirect(`/socialing/club/${club_id}/access-denied`);
+    return redirect(`/club/${club_id}/access-denied`);
   }
 
   const { data: club } = await supabase

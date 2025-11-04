@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
-import { notFound, redirect } from 'next/navigation';
-import ClubEditForm from '@/components/club/club-edit-form';
+import { createClient } from "@/lib/supabase/server";
+import { notFound, redirect } from "next/navigation";
+import ClubEditForm from "@/components/club/club-edit-form";
 
 type ClubEditPageProps = {
   params: Promise<{
@@ -17,13 +17,13 @@ export default async function ClubEditPage({ params }: ClubEditPageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   const { data: club } = await supabase
-    .from('clubs')
-    .select('*')
-    .eq('id', club_id)
+    .from("clubs")
+    .select("*")
+    .eq("id", club_id)
     .single();
 
   if (!club) {
@@ -31,7 +31,7 @@ export default async function ClubEditPage({ params }: ClubEditPageProps) {
   }
 
   if (user.id !== club.owner_id) {
-    redirect(`/socialing/club/${club_id}`);
+    redirect(`/club/${club_id}`);
   }
 
   return (

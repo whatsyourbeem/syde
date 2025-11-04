@@ -3,14 +3,7 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/types/database.types";
-import {
-  MEETUP_CATEGORIES,
-  MEETUP_LOCATION_TYPES,
-  MEETUP_STATUSES,
-  MEETUP_STATUS_DISPLAY_NAMES,
-  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
-  MEETUP_CATEGORY_DISPLAY_NAMES,
-} from "@/lib/constants";
+import { MEETUP_STATUSES, MEETUP_STATUS_DISPLAY_NAMES } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Calendar, MapPin } from "lucide-react";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
@@ -55,32 +48,6 @@ function formatDate(dateString: string, includeYear: boolean = true) {
   }
 }
 
-function getCategoryBadgeClass(category: string) {
-  switch (category) {
-    case MEETUP_CATEGORIES.STUDY:
-      return "border border-orange-500 bg-orange-50 text-orange-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-orange-50 hover:text-orange-700";
-    case MEETUP_CATEGORIES.CHALLENGE:
-      return "border border-red-500 bg-red-50 text-red-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-red-50 hover:text-red-700";
-    case MEETUP_CATEGORIES.NETWORKING:
-      return "border border-purple-500 bg-purple-50 text-purple-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-purple-50 hover:text-purple-700";
-    case MEETUP_CATEGORIES.ETC:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700";
-    default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
-  }
-}
-
-function getLocationTypeBadgeClass(locationType: string) {
-  switch (locationType) {
-    case MEETUP_LOCATION_TYPES.ONLINE:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700";
-    case MEETUP_LOCATION_TYPES.OFFLINE:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700";
-    default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm hover:bg-gray-50 hover:text-gray-700"; // 기본값
-  }
-}
-
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case MEETUP_STATUSES.UPCOMING:
@@ -100,132 +67,122 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
   return (
     <div
       key={meetup.id}
-      className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:shadow-xl hover:scale-[1.01]"
+      className="bg-white overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:scale-[1.01]"
     >
       <Link href={`/meetup/${meetup.id}`}>
-        <div className="relative aspect-w-3 aspect-h-2">
+        <div className="relative w-full aspect-w-1 aspect-h-1">
           <Image
             src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
             alt={meetup.title}
             fill
-            className={`object-cover object-center rounded-t-lg ${
+            className={`object-cover object-center ${
               meetup.status === MEETUP_STATUSES.ENDED ? "grayscale" : ""
             }`}
           />
           {meetup.status === MEETUP_STATUSES.ENDED && (
             <div className="absolute inset-0 bg-white opacity-50"></div>
           )}
-          <div className="absolute top-3 inset-x-0 flex justify-between items-start px-3">
-            <Badge
-              className={`${getStatusBadgeClass(
-                meetup.status
-              )} whitespace-nowrap`}
-            >
-              {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
-            </Badge>
-            <div className="hidden md:flex gap-2">
-              <Badge className={getCategoryBadgeClass(meetup.category)}>
-                {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
-              </Badge>
-              <Badge
-                className={getLocationTypeBadgeClass(meetup.location_type)}
-              >
-                {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
-              </Badge>
-            </div>
-          </div>
         </div>
       </Link>
-      <div className="p-2 md:px-6 md:pb-4 md:pt-4 flex-grow flex-col">
-        <Link href={`/meetup/${meetup.id}`} className="justyfy-between mb-2">
-          <div className="flex justify-between items-start">
-            <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline mr-2">
-              {meetup.title}
-            </h2>
-          </div>
-        </Link>
-        <div className="flex-grow"></div>
-        {meetup.clubs && (
-          <Link
-            href={`/club/${meetup.clubs.id}`}
-            className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline mb-2"
-          >
-            <div className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-              {meetup.clubs.thumbnail_url ? (
-                <Image
-                  src={meetup.clubs.thumbnail_url}
-                  alt={meetup.clubs.name || "Club thumbnail"}
-                  fill
-                  className="aspect-square size-full object-cover"
-                />
-              ) : (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {meetup.clubs.name?.charAt(0) || "C"}
-                </span>
-              )}
+      <div className="flex-grow flex-col mt-2">
+        {/* Group 1: Status Badge, Meetup Title, Host/Club Info */}
+        <div className="flex flex-col flex-grow">
+          <Badge className={`${getStatusBadgeClass(meetup.status)} w-fit mb-2`}>
+            {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
+          </Badge>
+          <Link href={`/meetup/${meetup.id}`} className="mb-2">
+            <div className="flex justify-between items-start">
+              <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline mr-2">
+                {meetup.title}
+              </h2>
             </div>
-            <span className="truncate inline-block max-w-full">
-              {meetup.clubs.name}
-            </span>
           </Link>
-        )}
-
-        {!meetup.clubs && meetup.organizer_profile && (
-          <ProfileHoverCard
-            userId={meetup.organizer_profile.id}
-            profileData={meetup.organizer_profile}
-          >
-            <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2 mb-2">
-              <Link href={`/${meetup.organizer_profile?.username}`}>
-                <Avatar className="size-5">
-                  <AvatarImage
-                    src={meetup.organizer_profile?.avatar_url || undefined}
+          {meetup.clubs && (
+            <Link
+              href={`/club/${meetup.clubs.id}`}
+              className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline mb-2"
+            >
+              <div className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+                {meetup.clubs.thumbnail_url ? (
+                  <Image
+                    src={meetup.clubs.thumbnail_url}
+                    alt={meetup.clubs.name || "Club thumbnail"}
+                    fill
+                    className="aspect-square size-full object-cover"
                   />
-                  <AvatarFallback>
-                    {meetup.organizer_profile?.username?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
-              <p className="flex items-center">
-                <Link
-                  href={`/${meetup.organizer_profile?.username}`}
-                  className="inline-flex items-center gap-1"
-                >
-                  <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">
-                    {meetup.organizer_profile?.full_name ||
-                      meetup.organizer_profile?.username ||
-                      "알 수 없음"}
+                ) : (
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {meetup.clubs.name?.charAt(0) || "C"}
                   </span>
-                  {meetup.organizer_profile?.certified && (
-                    <CertifiedBadge size="sm" />
-                  )}
+                )}
+              </div>
+              <span className="truncate inline-block max-w-full">
+                {meetup.clubs.name}
+              </span>
+            </Link>
+          )}
+
+          {!meetup.clubs && meetup.organizer_profile && (
+            <ProfileHoverCard
+              userId={meetup.organizer_profile.id}
+              profileData={meetup.organizer_profile}
+            >
+              <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2 mb-2">
+                <Link href={`/${meetup.organizer_profile?.username}`}>
+                  <Avatar className="size-5">
+                    <AvatarImage
+                      src={meetup.organizer_profile?.avatar_url || undefined}
+                    />
+                    <AvatarFallback>
+                      {meetup.organizer_profile?.username?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
                 </Link>
-                <span className="ml-1">모임장</span>
-              </p>
-            </div>
-          </ProfileHoverCard>
-        )}
-        <Link href={`/meetup/${meetup.id}`} className="text-sm text-gray-500">
-          <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-2">
-            {meetup.start_datetime && (
-              <>
-                <Calendar className="size-3 md:size-4" />
-                <span>{formatDate(meetup.start_datetime)}</span>
-              </>
-            )}
-          </p>
-          <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2">
-            {meetup.location && (
-              <>
-                <MapPin className="size-3 md:size-4" />
-                <span className="truncate whitespace-nowrap overflow-hidden">
-                  {meetup.location}
-                  {meetup.address && ` (${meetup.address})`}
-                </span>
-              </>
-            )}
-          </p>
-        </Link>
+                <p className="flex items-center">
+                  <Link
+                    href={`/${meetup.organizer_profile?.username}`}
+                    className="inline-flex items-center gap-1"
+                  >
+                    <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">
+                      {meetup.organizer_profile?.full_name ||
+                        meetup.organizer_profile?.username ||
+                        "알 수 없음"}
+                    </span>
+                    {meetup.organizer_profile?.certified && (
+                      <CertifiedBadge size="sm" />
+                    )}
+                  </Link>
+                  <span className="ml-1">호스트</span>
+                </p>
+              </div>
+            </ProfileHoverCard>
+          )}
+        </div>
+
+        {/* Group 2: Date & Location Info */}
+        <div>
+          <Link href={`/meetup/${meetup.id}`} className="text-sm text-gray-500">
+            <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-2">
+              {meetup.start_datetime && (
+                <>
+                  <Calendar className="size-3 md:size-4" />
+                  <span>{formatDate(meetup.start_datetime)}</span>
+                </>
+              )}
+            </p>
+            <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2">
+              {meetup.location && (
+                <>
+                  <MapPin className="size-3 md:size-4" />
+                  <span className="truncate whitespace-nowrap overflow-hidden">
+                    {meetup.location}
+                    {meetup.address && ` (${meetup.address})`}
+                  </span>
+                </>
+              )}
+            </p>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -114,16 +114,14 @@ export async function createMeetup(
     }
 
     // 4. Add organizer as a participant
-    await supabase
-      .from("meetup_participants")
-      .insert({
-        meetup_id: newMeetup.id,
-        user_id: user.id,
-        status: MEETUP_PARTICIPANT_STATUSES.APPROVED,
-      });
+    await supabase.from("meetup_participants").insert({
+      meetup_id: newMeetup.id,
+      user_id: user.id,
+      status: MEETUP_PARTICIPANT_STATUSES.APPROVED,
+    });
 
-    revalidatePath("/socialing/meetup");
-    if (clubId) revalidatePath(`/socialing/club/${clubId}`);
+    revalidatePath("/meetup");
+    if (clubId) revalidatePath(`/club/${clubId}`);
 
     return { meetupId: newMeetup.id };
   } catch (e) {
@@ -251,16 +249,16 @@ export async function updateMeetup(
       throw new Error(updateError.message);
     }
 
-    revalidatePath("/socialing/meetup");
-    revalidatePath(`/socialing/meetup/${meetupId}`);
+    revalidatePath("/meetup");
+    revalidatePath(`/meetup/${meetupId}`);
     const clubId = formData.get("clubId") as string | null;
-    if (clubId) revalidatePath(`/socialing/club/${clubId}`);
+    if (clubId) revalidatePath(`/club/${clubId}`);
   } catch (e) {
     console.error("Update meetup error:", (e as Error).message);
     return { error: (e as Error).message };
   }
 
-  redirect(`/socialing/meetup/${meetupId}`);
+  redirect(`/meetup/${meetupId}`);
 }
 
 export async function joinMeetup(meetupId: string) {
@@ -327,7 +325,7 @@ export async function joinMeetup(meetupId: string) {
     return { error: "모임 참가에 실패했습니다. 다시 시도해주세요." };
   }
 
-  revalidatePath(`/socialing/meetup/${meetupId}`);
+  revalidatePath(`/meetup/${meetupId}`);
   return { success: true };
 }
 
@@ -372,7 +370,7 @@ export async function approveMeetupParticipant(
     return { error: "참가자 승인에 실패했습니다. 다시 시도해주세요." };
   }
 
-  revalidatePath(`/socialing/meetup/${meetupId}`);
+  revalidatePath(`/meetup/${meetupId}`);
   return { success: true };
 }
 
@@ -418,6 +416,6 @@ export async function updateMeetupParticipantStatus(
     return { error: "참가자 상태 변경에 실패했습니다. 다시 시도해주세요." };
   }
 
-  revalidatePath(`/socialing/meetup/${meetupId}`);
+  revalidatePath(`/meetup/${meetupId}`);
   return { success: true };
 }

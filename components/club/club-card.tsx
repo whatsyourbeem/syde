@@ -31,7 +31,7 @@ function ClubCardBase({ club }: ClubCardProps) {
   }, [club.members]);
 
   const handleCardClick = useCallback(() => {
-    router.push(`/socialing/club/${club.id}`);
+    router.push(`/club/${club.id}`);
   }, [club.id, router]);
 
   return (
