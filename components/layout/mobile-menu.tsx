@@ -16,12 +16,6 @@ import { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/auth/auth-actions";
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -61,51 +55,34 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             <Link
               href="/"
               className={`mt-2 p-2 hover:bg-secondary rounded-md transition-all ${
-                pathname === "/" ? "font-bold text-primary" : ""
+                pathname === "/" || pathname.startsWith("/log")
+                  ? "font-bold text-primary"
+                  : ""
               }`}
             >
               로그
             </Link>
           </SheetClose>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="socialing">
-              <AccordionTrigger
-                className={`p-2 text-base font-normal hover:bg-secondary ${
-                  pathname.startsWith("/socialing")
-                    ? "font-bold text-primary"
-                    : ""
-                }`}
-              >
-                소셜링
-              </AccordionTrigger>
-              <AccordionContent>
-                <SheetClose asChild>
-                  <Link
-                    href="/socialing/meetup"
-                    className={`block p-2 pl-6 hover:bg-secondary rounded-md transition-all ${
-                      pathname.startsWith("/socialing/meetup")
-                        ? "font-bold text-primary"
-                        : ""
-                    }`}
-                  >
-                    모임
-                  </Link>
-                </SheetClose>
-                <SheetClose asChild>
-                  <Link
-                    href="/socialing/club"
-                    className={`block p-2 pl-6 hover:bg-secondary rounded-md transition-all ${
-                      pathname.startsWith("/socialing/club")
-                        ? "font-bold text-primary"
-                        : ""
-                    }`}
-                  >
-                    클럽
-                  </Link>
-                </SheetClose>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <SheetClose asChild>
+            <Link
+              href="/meetup"
+              className={`p-2 hover:bg-secondary rounded-md transition-all ${
+                pathname.startsWith("/meetup") ? "font-bold text-primary" : ""
+              }`}
+            >
+              모임
+            </Link>
+          </SheetClose>
+          <SheetClose asChild>
+            <Link
+              href="/club"
+              className={`p-2 hover:bg-secondary rounded-md transition-all ${
+                pathname.startsWith("/club") ? "font-bold text-primary" : ""
+              }`}
+            >
+              클럽
+            </Link>
+          </SheetClose>
         </div>
         {user && (
           <div className="py-2 px-0 border-t">

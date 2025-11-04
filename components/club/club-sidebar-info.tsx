@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, UserPlus, Edit, Settings, CalendarPlus } from "lucide-react";
-import { joinClub } from "@/app/socialing/club/club-actions";
+import { joinClub } from "@/app/club/club-actions";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -67,7 +67,7 @@ export default function ClubSidebarInfo({
 
   return (
     <div className="p-4 rounded-lg bg-white">
-      <Link href={`/socialing/club/${clubId}`}>
+      <Link href={`/club/${clubId}`}>
         <div className="relative w-24 h-24 mb-4 mx-auto">
           <Image
             src={clubThumbnailUrl || "/default_club_thumbnail.png"}
@@ -77,7 +77,7 @@ export default function ClubSidebarInfo({
           />
         </div>
       </Link>
-      <Link href={`/socialing/club/${clubId}`}>
+      <Link href={`/club/${clubId}`}>
         <h1 className="text-2xl font-bold mb-2 text-start hover:underline">{clubName}</h1>
       </Link>
       {clubTagline && (
@@ -109,17 +109,17 @@ export default function ClubSidebarInfo({
           {isOwner && (
             <div className="flex flex-col gap-2 mt-4">
               <Button asChild variant="outline">
-                <Link href={`/socialing/club/${clubId}/edit`}>
+                <Link href={`/club/${clubId}/edit`}>
                   <Edit className="mr-2 size-4" /> 클럽 정보 수정
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={`/socialing/meetup/create?club_id=${clubId}`}>
+                <Link href={`/meetup/create?club_id=${clubId}`}>
                   <CalendarPlus className="mr-2 size-4" /> 모임 만들기
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={`/socialing/club/${clubId}/manage`}>
+                <Link href={`/club/${clubId}/manage`}>
                   <Settings className="mr-2 size-4" /> 게시판 관리
                 </Link>
               </Button>

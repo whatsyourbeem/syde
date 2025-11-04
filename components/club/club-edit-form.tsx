@@ -22,7 +22,7 @@ const TiptapEditorWrapper = dynamic(
   }
 );
 import { JSONContent } from "@tiptap/react";
-import { createClub, updateClub } from "@/app/socialing/club/club-actions";
+import { createClub, updateClub } from "@/app/club/club-actions";
 
 interface ClubFormProps {
   club?: Tables<"clubs">;
@@ -128,7 +128,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
           "id" in result.data
         ? (result.data as { id: string }).id
         : (result as { clubId?: string }).clubId;
-      router.push(`/socialing/club/${clubId}`);
+      router.push(`/club/${clubId}`);
       router.refresh();
     }
     setIsSubmitting(false);

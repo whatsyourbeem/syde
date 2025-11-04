@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteClubPost } from "@/app/socialing/club/club-actions";
+import { deleteClubPost } from "@/app/club/club-actions";
 import { Database } from "@/types/database.types";
 
 type Post = Database["public"]["Tables"]["club_forum_posts"]["Row"];
@@ -41,7 +41,7 @@ export function ClubPostActionsDropdown({ post, clubId, onEditClick }: ClubPostA
       toast.error(result.error);
     } else {
       toast.success("게시글이 삭제되었습니다.");
-      router.push(`/socialing/club/${clubId}`);
+      router.push(`/club/${clubId}`);
     }
   };
 

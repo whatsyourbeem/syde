@@ -171,7 +171,7 @@ export default async function MeetupPage({
               key={meetup.id}
               className="bg-white shadow-md rounded-lg border border-gray-200 overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:shadow-xl hover:scale-[1.01]"
             >
-              <Link href={`/socialing/meetup/${meetup.id}`}>
+              <Link href={`/meetup/${meetup.id}`}>
                 <div className="relative aspect-w-3 aspect-h-2">
                   <Image
                     src={
@@ -215,7 +215,7 @@ export default async function MeetupPage({
               </Link>
               <div className="p-2 md:px-6 md:pb-4 md:pt-4 flex-grow flex flex-col">
                 <Link
-                  href={`/socialing/meetup/${meetup.id}`}
+                  href={`/meetup/${meetup.id}`}
                   className="justyfy-between mb-2"
                 >
                   <div className="flex justify-between items-start">
@@ -227,7 +227,7 @@ export default async function MeetupPage({
                 <div className="flex-grow"></div>
                 {meetup.clubs && (
                   <Link
-                    href={`/socialing/club/${meetup.clubs.id}`}
+                    href={`/club/${meetup.clubs.id}`}
                     className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline mb-2"
                   >
                     <div className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
@@ -289,7 +289,7 @@ export default async function MeetupPage({
                   </ProfileHoverCard>
                 )}
                 <Link
-                  href={`/socialing/meetup/${meetup.id}`}
+                  href={`/meetup/${meetup.id}`}
                   className="text-sm text-gray-500"
                 >
                   <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-2">
@@ -323,7 +323,7 @@ export default async function MeetupPage({
         <div className="flex justify-center items-center gap-2 mt-8">
           {currentPage > 1 && (
             <Link
-              href={`/socialing/meetup?${new URLSearchParams({
+              href={`/meetup?${new URLSearchParams({
                 ...(selectedStatus && { status: selectedStatus }),
                 page: (currentPage - 1).toString(),
               }).toString()}`}
@@ -348,7 +348,7 @@ export default async function MeetupPage({
             return (
               <Link
                 key={pageNum}
-                href={`/socialing/meetup?${new URLSearchParams({
+                href={`/meetup?${new URLSearchParams({
                   ...(selectedStatus && { status: selectedStatus }),
                   page: pageNum.toString(),
                 }).toString()}`}
@@ -365,7 +365,7 @@ export default async function MeetupPage({
 
           {currentPage < totalPages && (
             <Link
-              href={`/socialing/meetup?${new URLSearchParams({
+              href={`/meetup?${new URLSearchParams({
                 ...(selectedStatus && { status: selectedStatus }),
                 page: (currentPage + 1).toString(),
               }).toString()}`}

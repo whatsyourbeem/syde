@@ -42,7 +42,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   joinMeetup,
   updateMeetupParticipantStatus,
-} from "@/app/socialing/meetup/meetup-actions";
+} from "@/app/meetup/meetup-actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
@@ -348,7 +348,7 @@ export default function MeetupDetailClient({
               {meetup.title}
             </h1>
             {isOrganizer && (
-              <Link href={`/socialing/meetup/${meetup.id}/edit`}>
+              <Link href={`/meetup/${meetup.id}/edit`}>
                 <Button>수정</Button>
               </Link>
             )}
@@ -493,7 +493,7 @@ export default function MeetupDetailClient({
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Link href={`/socialing/club/${meetup.club_id}`}>
+                <Link href={`/club/${meetup.club_id}`}>
                   클럽으로 이동
                 </Link>
               </AlertDialogAction>
@@ -579,7 +579,7 @@ export default function MeetupDetailClient({
                   🌟<span className="font-extrabold pl-2">주최 클럽</span>
                 </h2>
                 <Link
-                  href={`/socialing/club/${meetup.clubs.id}`}
+                  href={`/club/${meetup.clubs.id}`}
                   className="flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                 >
                   <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">

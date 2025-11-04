@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ClubPostCommentCard, ProcessedClubPostComment } from "./club-post-comment-card";
 import { Button } from "@/components/ui/button";
 
-import { fetchClubPostComments } from "@/app/socialing/club/club-actions";
+import { fetchClubPostComments } from "@/app/club/club-actions";
 
 interface ClubPostCommentListProps {
   postId: string;

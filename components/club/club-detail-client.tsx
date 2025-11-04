@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 import ClubPostList from "./club-post-list"; // Import ClubPostList
-import { getPaginatedClubPosts } from "@/app/socialing/club/club-post-actions"; // Import the new server action
+import { getPaginatedClubPosts } from "@/app/club/club-post-actions"; // Import the new server action
 import {
   Accordion,
   AccordionContent,
@@ -273,7 +273,7 @@ export default function ClubDetailClient({
             🤝<span className="font-extrabold pl-2">모임</span>
           </h2>
           <div className="flex items-center gap-2">
-            <Link href={`/socialing/club/${club.id}/meetup`}>
+            <Link href={`/club/${club.id}/meetup`}>
               <Button variant="ghost" size="sm" className="text-xs text-gray-500 hover:text-gray-700">
                 모두 보기
               </Button>
@@ -307,7 +307,7 @@ export default function ClubDetailClient({
                         </div>
                         <div className="flex flex-col flex-grow p-4">
                           <Link
-                            href={`/socialing/meetup/${meetup.id}`}
+                            href={`/meetup/${meetup.id}`}
                             className="w-full flex flex-col flex-grow"
                           >
                             <h3 className="font-semibold text-sm line-clamp-2 mb-2">
@@ -388,7 +388,7 @@ export default function ClubDetailClient({
               <div className="flex items-center gap-2 self-end md:self-center">
                 {canWriteForum(activeForum) && (
                   <Link
-                    href={`/socialing/club/${club.id}/post/create?forum_id=${activeForumId}`}
+                    href={`/club/${club.id}/post/create?forum_id=${activeForumId}`}
                   >
                     <Button variant="outline" size="sm">새 글 작성</Button>
                   </Link>

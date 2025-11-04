@@ -4,43 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import React from "react";
-
-
-
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
 
 export function HeaderNavigation() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Tailwind's md breakpoint is 768px
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const handleSocialingClick = () => {
-    if (!isMobile) {
-      // On desktop, navigate to /socialing
-      router.push("/socialing");
-      // Removed e.preventDefault() to allow dropdown to open
-    }
-    // On mobile, let the default behavior (open popover) happen
-  };
-  
 
   return (
     <NavigationMenu className="w-full md:h-auto flex-grow flex justify-center items-center text-base font-semibold">
@@ -61,51 +32,36 @@ export function HeaderNavigation() {
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuTrigger
-            onClick={handleSocialingClick}
-            className={cn(
-              "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 rounded-none h-full flex items-center [&>svg]:hidden",
-              pathname.startsWith("/socialing")
-                ? "font-bold text-primary border-b-2 border-primary"
-                : "text-gray-400"
-            )}
-          >
-            소셜링
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid gap-0 p-0 w-[150px] lg:grid-cols-[1fr]">
-              <ListItem href="/socialing/meetup" title="모임"></ListItem>
-              <ListItem href="/socialing/club" title="클럽"></ListItem>
-            </ul>
-          </NavigationMenuContent>
+          <NavigationMenuLink asChild>
+            <Link
+              href="/meetup"
+              className={cn(
+                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                pathname.startsWith("/meetup")
+                  ? "font-bold text-primary border-b-2 border-primary"
+                  : "text-gray-400"
+              )}
+            >
+              모임
+            </Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link
+              href="/club"
+              className={cn(
+                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                pathname.startsWith("/club")
+                  ? "font-bold text-primary border-b-2 border-primary"
+                  : "text-gray-400"
+              )}
+            >
+              클럽
+            </Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
   );
 }
-
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "flex items-start select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-ListItem.displayName = "ListItem";

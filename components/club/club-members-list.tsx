@@ -23,8 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut, Crown, EllipsisVertical } from "lucide-react";
 import { toast } from "sonner";
-import { leaveClub } from "@/app/socialing/club/club-actions";
-import { updateClubMemberRole } from "@/app/socialing/club/actions";
+import { leaveClub } from "@/app/club/club-actions";
+import { updateClubMemberRole } from "@/app/club/actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import {

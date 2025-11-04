@@ -40,7 +40,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   // Fetch meetups associated with the club
   const { data: meetups, error: meetupsError } = await supabase
     .from("meetups")
-    .select("id, created_at, organizer_id, club_id, title, description, thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*)")
+    .select("id, created_at, organizer_id, club_id, title, description, thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants, fee, type, organizer_profile:profiles!meetups_organizer_id_fkey(*)")
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
 

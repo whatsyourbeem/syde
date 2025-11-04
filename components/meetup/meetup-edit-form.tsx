@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createMeetup, updateMeetup } from "@/app/socialing/meetup/meetup-actions";
+import { createMeetup, updateMeetup } from "@/app/meetup/meetup-actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
 import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
@@ -175,7 +175,7 @@ export default function MeetupEditForm({
     } else {
       toast.success(`모임이 성공적으로 ${isEditMode ? "업데이트되었습니다" : "생성되었습니다"}.`);
       const meetupId = isEditMode ? meetup.id : (result as { meetupId: string }).meetupId;
-      router.push(`/socialing/meetup/${meetupId}`);
+      router.push(`/meetup/${meetupId}`);
     }
     setIsSubmitting(false);
   };

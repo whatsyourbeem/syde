@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { createClubPost, updateClubPost } from '@/app/socialing/club/club-actions';
+import { createClubPost, updateClubPost } from '@/app/club/club-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -122,7 +122,7 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
         toast.success(initialData?.postId ? '게시글이 성공적으로 수정되었습니다.' : '게시글이 성공적으로 등록되었습니다.');
         onSuccess();
         if (!initialData?.postId) {
-          router.push(`/socialing/club/${clubId}/post/${result.postId}`);
+          router.push(`/club/${clubId}/post/${result.postId}`);
         }
       }
     } catch (error) {
