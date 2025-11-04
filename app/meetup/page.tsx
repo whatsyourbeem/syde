@@ -169,14 +169,16 @@ export default async function MeetupPage({
   }
 
   return (
-    <div className="w-full p-4">
-      <MeetupStatusFilter searchParams={awaitedSearchParams} />
+    <div className="w-full">
+      <div className="flex justify-end px-4">
+        <MeetupStatusFilter searchParams={awaitedSearchParams} />
+      </div>
       {meetups.length === 0 ? (
-        <div className="text-center text-gray-500 mt-10">
+        <div className="text-center text-gray-500 mt-10 px-4">
           <p>해당 모임이 없습니다.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 p-4">
           {typedMeetups.map((meetup) => (
             <div
               key={meetup.id}

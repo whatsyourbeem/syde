@@ -1,19 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-
-
-export default function MeetupStatusFilter({ searchParams }: { searchParams: { status?: string } }) {
+export default function MeetupStatusFilter({
+  searchParams,
+}: {
+  searchParams: { status?: string; type?: string; page?: string };
+}) {
   const router = useRouter();
   const currentStatus = searchParams.status || "전체";
 
   const handleStatusChange = (value: string) => {
-    const params = new URLSearchParams();
-    if (searchParams.status) {
-      params.set("status", searchParams.status);
-    }
+    const params = new URLSearchParams(searchParams as Record<string, string>);
 
     if (value === "전체") {
       params.delete("status");
@@ -24,9 +29,9 @@ export default function MeetupStatusFilter({ searchParams }: { searchParams: { s
   };
 
   return (
-    <div className="flex items-center gap-2 mb-6">
+    <div className="flex items-center gap-2">
       <Select value={currentStatus} onValueChange={handleStatusChange}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-32">
           <SelectValue placeholder="모든 상태" />
         </SelectTrigger>
         <SelectContent>
