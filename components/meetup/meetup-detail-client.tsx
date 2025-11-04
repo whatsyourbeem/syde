@@ -354,7 +354,7 @@ export default function MeetupDetailClient({
             )}
           </div>
 
-          {/* 모임장 정보 */}
+          {/* 호스트 정보 */}
           <div className="flex items-center gap-2 mb-6 text-gray-600 text-sm md:text-base">
             <Avatar className="size-6 md:size-7">
               <AvatarImage
@@ -370,8 +370,10 @@ export default function MeetupDetailClient({
                   meetup.organizer_profile?.username ||
                   "알 수 없음"}
               </span>
-              {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" className="ml-1" />}
-              <span className="ml-1">모임장</span>
+              {meetup.organizer_profile?.certified && (
+                <CertifiedBadge size="sm" className="ml-1" />
+              )}
+              <span className="ml-1">호스트</span>
             </p>
           </div>
 
@@ -493,9 +495,7 @@ export default function MeetupDetailClient({
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
               <AlertDialogAction asChild>
-                <Link href={`/club/${meetup.club_id}`}>
-                  클럽으로 이동
-                </Link>
+                <Link href={`/club/${meetup.club_id}`}>클럽으로 이동</Link>
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

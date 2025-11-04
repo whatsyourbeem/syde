@@ -287,9 +287,9 @@ export async function joinMeetup(meetupId: string) {
     return { error: "모임 정보를 찾을 수 없습니다." };
   }
 
-  // 2. 모임장인지 확인
+  // 2. 호스트인지 확인
   if (meetup.organizer_id === user.id) {
-    return { error: "모임장은 자신의 모임에 참가할 수 없습니다." };
+    return { error: "호스트은 자신의 모임에 참가할 수 없습니다." };
   }
 
   // 3. 이미 참가자인지 확인
@@ -355,7 +355,7 @@ export async function approveMeetupParticipant(
   }
 
   if (meetup.organizer_id !== user.id) {
-    return { error: "모임장만 참가자를 승인할 수 있습니다." };
+    return { error: "호스트만 참가자를 승인할 수 있습니다." };
   }
 
   // Update the participant's status to 'approved'
@@ -401,7 +401,7 @@ export async function updateMeetupParticipantStatus(
   }
 
   if (meetup.organizer_id !== user.id) {
-    return { error: "모임장만 참가자 상태를 변경할 수 있습니다." };
+    return { error: "호스트만 참가자 상태를 변경할 수 있습니다." };
   }
 
   // Update the participant\'s status
