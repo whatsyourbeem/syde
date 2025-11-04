@@ -465,6 +465,7 @@ export type Database = {
           status: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url: string | null;
           title: string;
+          type: Database["public"]["Enums"]["meetup_type_enum"] | null;
         };
         Insert: {
           address?: string | null;
@@ -483,6 +484,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url?: string | null;
           title: string;
+          type?: Database["public"]["Enums"]["meetup_type_enum"] | null;
         };
         Update: {
           address?: string | null;
@@ -501,6 +503,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["meetup_status_enum"];
           thumbnail_url?: string | null;
           title?: string;
+          type?: Database["public"]["Enums"]["meetup_type_enum"] | null;
         };
         Relationships: [
           {
@@ -626,10 +629,7 @@ export type Database = {
         Args: { p_club_id: string; p_user_id: string };
         Returns: Database["public"]["Enums"]["club_member_role_enum"];
       };
-      get_club_owner: {
-        Args: { club_id_text: string };
-        Returns: string;
-      };
+      get_club_owner: { Args: { club_id_text: string }; Returns: string };
     };
     Enums: {
       club_member_role_enum: "LEADER" | "FULL_MEMBER" | "GENERAL_MEMBER";
@@ -646,6 +646,7 @@ export type Database = {
         | "APPLY_AVAILABLE"
         | "APPLY_CLOSED"
         | "ENDED";
+      meetup_type_enum: "INSYDE" | "SPINOFF";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -787,6 +788,7 @@ export const Constants = {
         "APPLY_CLOSED",
         "ENDED",
       ],
+      meetup_type_enum: ["INSYDE", "SPINOFF"],
     },
   },
 } as const;
