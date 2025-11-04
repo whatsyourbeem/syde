@@ -232,8 +232,8 @@ export default async function RootLayout({
                 </nav>
                 <Separator />
               </div>
-              <main className="flex-1">
-                <div className="max-w-6xl mx-auto h-full">{children}</div>
+              <main className="flex-1 h-full">
+                {children}
               </main>
               <Toaster />
               <LoginDialog />

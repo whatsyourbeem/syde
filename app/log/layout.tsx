@@ -33,7 +33,7 @@ export default async function LogLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5">
+    <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
       <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
         {user && profile ? (
           <LogEditDialog
