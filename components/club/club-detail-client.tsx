@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tables, Enums } from "@/types/database.types";
-import {
-  MEETUP_STATUSES,
-  MEETUP_STATUS_DISPLAY_NAMES,
-} from "@/lib/constants";
+import { Tables } from "@/types/database.types";
+
 import TiptapViewer from "@/components/common/tiptap-viewer";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -21,8 +18,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 
-
-import { Badge } from "@/components/ui/badge";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 
 import ClubPostList from "./club-post-list"; // Import ClubPostList
@@ -33,17 +28,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Separator } from "@/components/ui/separator";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 import ClubMembersList from "./club-members-list"; // Import ClubMembersList
-import Image from "next/image";
-import { CertifiedBadge } from "@/components/ui/certified-badge";
+
 import MeetupCard from "@/components/meetup/meetup-card";
 
 // Type Definitions
 type Profile = Tables<"profiles">;
-type Meetup = Tables<"meetups"> & {
+type Meetup = Omit<Tables<"meetups">, "type"> & {
   organizer_profile: Profile | null;
   clubs: Tables<"clubs"> | null;
 };

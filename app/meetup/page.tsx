@@ -26,7 +26,7 @@ export default async function MeetupPage({
   let meetupQuery = supabase
     .from("meetups")
     .select(
-      "*, clubs(id, name, thumbnail_url, created_at, description, owner_id, tagline, updated_at), organizer_profile:profiles!meetups_organizer_id_fkey(id, full_name, username, avatar_url, tagline, certified, bio, link, updated_at), thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants"
+      "*, clubs(id, name, thumbnail_url, created_at, description, owner_id, tagline, updated_at), organizer_profile:profiles!meetups_organizer_id_fkey(id, full_name, username, avatar_url, tagline, certified, bio, link, updated_at), thumbnail_url, status, start_datetime, end_datetime, location, address, max_participants"
     )
     .order("created_at", { ascending: false })
     .range(offset, offset + pageSize - 1);

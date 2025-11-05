@@ -450,7 +450,6 @@ export type Database = {
       meetups: {
         Row: {
           address: string | null;
-          category: Database["public"]["Enums"]["meetup_category_enum"];
           club_id: string | null;
           created_at: string;
           description: Json | null;
@@ -458,7 +457,6 @@ export type Database = {
           fee: number | null;
           id: string;
           location: string | null;
-          location_type: Database["public"]["Enums"]["meetup_location_type_enum"];
           max_participants: number | null;
           organizer_id: string;
           start_datetime: string | null;
@@ -469,7 +467,6 @@ export type Database = {
         };
         Insert: {
           address?: string | null;
-          category?: Database["public"]["Enums"]["meetup_category_enum"];
           club_id?: string | null;
           created_at?: string;
           description?: Json | null;
@@ -477,7 +474,6 @@ export type Database = {
           fee?: number | null;
           id?: string;
           location?: string | null;
-          location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           max_participants?: number | null;
           organizer_id: string;
           start_datetime?: string | null;
@@ -488,7 +484,6 @@ export type Database = {
         };
         Update: {
           address?: string | null;
-          category?: Database["public"]["Enums"]["meetup_category_enum"];
           club_id?: string | null;
           created_at?: string;
           description?: Json | null;
@@ -496,7 +491,6 @@ export type Database = {
           fee?: number | null;
           id?: string;
           location?: string | null;
-          location_type?: Database["public"]["Enums"]["meetup_location_type_enum"];
           max_participants?: number | null;
           organizer_id?: string;
           start_datetime?: string | null;
@@ -638,8 +632,6 @@ export type Database = {
         | "MEMBER"
         | "FULL_MEMBER"
         | "LEADER";
-      meetup_category_enum: "STUDY" | "CHALLENGE" | "NETWORKING" | "ETC";
-      meetup_location_type_enum: "ONLINE" | "OFFLINE";
       meetup_participant_status_enum: "PENDING" | "APPROVED" | "REJECTED";
       meetup_status_enum:
         | "UPCOMING"
@@ -779,8 +771,6 @@ export const Constants = {
     Enums: {
       club_member_role_enum: ["LEADER", "FULL_MEMBER", "GENERAL_MEMBER"],
       club_permission_level_enum: ["PUBLIC", "MEMBER", "FULL_MEMBER", "LEADER"],
-      meetup_category_enum: ["STUDY", "CHALLENGE", "NETWORKING", "ETC"],
-      meetup_location_type_enum: ["ONLINE", "OFFLINE"],
       meetup_participant_status_enum: ["PENDING", "APPROVED", "REJECTED"],
       meetup_status_enum: [
         "UPCOMING",

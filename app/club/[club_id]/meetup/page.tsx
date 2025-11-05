@@ -1,21 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { Tables, Enums } from "@/types/database.types";
-import {
-  MEETUP_CATEGORIES,
-  MEETUP_LOCATION_TYPES,
-  MEETUP_STATUSES,
-  MEETUP_CATEGORY_DISPLAY_NAMES,
-  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
-  MEETUP_STATUS_DISPLAY_NAMES,
-} from "@/lib/constants";
-import Link from "next/link";
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, MapPin, Users } from "lucide-react";
-import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { Tables } from "@/types/database.types";
 import MeetupCard from "@/components/meetup/meetup-card";
 
 type Profile = Tables<"profiles">;
@@ -45,7 +30,7 @@ export default async function ClubMeetupListPage({
   const { data: meetups, error: meetupsError } = await supabase
     .from("meetups")
     .select(
-      "id, created_at, organizer_id, club_id, title, description, thumbnail_url, category, location_type, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*), clubs(*)"
+      "id, created_at, organizer_id, club_id, title, description, thumbnail_url, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*), clubs(*)"
     )
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
