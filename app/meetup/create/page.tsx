@@ -1,9 +1,9 @@
 import MeetupEditForm from "@/components/meetup/meetup-edit-form";
 
-export default function MeetupCreatePage({ searchParams }: {
-  searchParams: { club_id?: string; thumbnail_url?: string };
+export default async function MeetupCreatePage({ searchParams }: {
+  searchParams: Promise<{ club_id?: string; thumbnail_url?: string }>;
 }) {
-  const { club_id, thumbnail_url } = searchParams;
+  const { club_id, thumbnail_url } = await searchParams;
 
   return (
     <div className="max-w-3xl mx-auto p-4">

@@ -9,13 +9,9 @@ import TiptapViewer from "@/components/common/tiptap-viewer";
 import { createClient } from "@/lib/supabase/client";
 
 import {
-  MEETUP_CATEGORIES,
-  MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
   MEETUP_PARTICIPANT_STATUSES,
   MEETUP_STATUS_DISPLAY_NAMES,
-  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
-  MEETUP_CATEGORY_DISPLAY_NAMES,
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -76,32 +72,6 @@ function formatFee(fee: number | null) {
     return "무료";
   }
   return `${fee.toLocaleString()}원`;
-}
-
-function getCategoryBadgeClass(category: string) {
-  switch (category) {
-    case MEETUP_CATEGORIES.STUDY:
-      return "border border-orange-500 bg-orange-50 text-orange-700";
-    case MEETUP_CATEGORIES.CHALLENGE:
-      return "border border-red-500 bg-red-50 text-red-700";
-    case MEETUP_CATEGORIES.NETWORKING:
-      return "border border-purple-500 bg-purple-50 text-purple-700";
-    case MEETUP_CATEGORIES.ETC:
-      return "border border-gray-500 bg-gray-50 text-gray-700";
-    default:
-      return "border border-gray-500 bg-gray-50 text-gray-700";
-  }
-}
-
-function getLocationTypeBadgeClass(locationType: string) {
-  switch (locationType) {
-    case MEETUP_LOCATION_TYPES.ONLINE:
-      return "border border-blue-500 bg-blue-50 text-blue-700";
-    case MEETUP_LOCATION_TYPES.OFFLINE:
-      return "border border-green-500 bg-green-50 text-green-700";
-    default:
-      return "border border-gray-500 bg-gray-50 text-gray-700";
-  }
 }
 
 function getStatusBadgeClass(status: string) {
