@@ -51,15 +51,15 @@ function formatDate(dateString: string, includeYear: boolean = true) {
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case MEETUP_STATUSES.UPCOMING:
-      return "border border-gray-400 bg-gray-100 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-gray-100 hover:text-gray-700";
+      return "bg-gray-700 text-white px-2 py-[2px] md:py-1 my-1 text-xs font-medium hover:bg-gray-700 hover:text-gray-100";
     case MEETUP_STATUSES.APPLY_AVAILABLE:
-      return "border border-green-500 bg-green-50 text-green-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-green-50 hover:text-green-700";
+      return "bg-green-700 text-white px-2 py-[2px] md:py-1 my-1 text-xs font-medium hover:bg-green-700 hover:text-green-50";
     case MEETUP_STATUSES.APPLY_CLOSED:
-      return "border border-red-500 bg-red-50 text-red-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-red-50 hover:text-red-700";
+      return "bg-gray-200 text-gray-500 px-2 py-[2px] md:py-1 my-1  text-xs font-medium hover:bg-gray-200 hover:text-gray-700";
     case MEETUP_STATUSES.ENDED:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
+      return "bg-gray-200 text-gray-500 px-2 py-[2px] md:py-1 my-1  text-xs font-medium hover:bg-gray-200 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700 px-1 py-0.5 text-xs md:px-2 md:py-1 md:text-sm font-bold hover:bg-gray-50 hover:text-gray-700";
+      return "bg-gray-700 text-gray-50 px-2 py-[2px] md:py-1 my-1 text-xs font-medium hover:bg-gray-700 hover:text-gray-50";
   }
 }
 
@@ -84,15 +84,15 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
           )}
         </div>
       </Link>
-      <div className="flex-grow flex-col mt-2">
+      <div className="flex-grow flex-col">
         {/* Group 1: Status Badge, Meetup Title, Host/Club Info */}
-        <div className="flex flex-col flex-grow">
-          <Badge className={`${getStatusBadgeClass(meetup.status)} w-fit mb-2`}>
+        <div className="flex flex-col flex-grow gap-[6px] my-[6px]">
+          <Badge className={`${getStatusBadgeClass(meetup.status)} w-fit`}>
             {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
           </Badge>
-          <Link href={`/meetup/${meetup.id}`} className="mb-2">
+          <Link href={`/meetup/${meetup.id}`}>
             <div className="flex justify-between items-start">
-              <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline mr-2">
+              <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline">
                 {meetup.title}
               </h2>
             </div>
@@ -100,7 +100,7 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
           {meetup.clubs && (
             <Link
               href={`/club/${meetup.clubs.id}`}
-              className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline mb-2"
+              className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline"
             >
               <div className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
                 {meetup.clubs.thumbnail_url ? (
@@ -127,7 +127,7 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
               userId={meetup.organizer_profile.id}
               profileData={meetup.organizer_profile}
             >
-              <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2 mb-2">
+              <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2">
                 <Link href={`/${meetup.organizer_profile?.username}`}>
                   <Avatar className="size-5">
                     <AvatarImage
@@ -152,7 +152,7 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
                       <CertifiedBadge size="sm" />
                     )}
                   </Link>
-                  <span className="ml-1">호스트</span>
+                  <span className="ml-2">호스트</span>
                 </p>
               </div>
             </ProfileHoverCard>
@@ -162,7 +162,7 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
         {/* Group 2: Date & Location Info */}
         <div>
           <Link href={`/meetup/${meetup.id}`} className="text-sm text-gray-500">
-            <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-2">
+            <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-1">
               {meetup.start_datetime && (
                 <>
                   <Calendar className="size-3 md:size-4" />
@@ -176,7 +176,6 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
                   <MapPin className="size-3 md:size-4" />
                   <span className="truncate whitespace-nowrap overflow-hidden">
                     {meetup.location}
-                    {meetup.address && ` (${meetup.address})`}
                   </span>
                 </>
               )}
