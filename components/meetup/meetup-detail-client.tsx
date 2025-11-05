@@ -542,7 +542,7 @@ export default function MeetupDetailClient({
       <div className="w-full md:w-1/4 md:mt-0 flex flex-col h-full md:pl-2">
         <div className="flex-grow pb-16">
           {meetup.clubs && (
-            <div className="py-4 md:pl-6">
+            <div className="px-4 py-4 md:pl-6">
               <div>
                 <h2 className="text-2xl md:text-xl font-bold mb-4">
                   🌟<span className="font-extrabold pl-2">주최 클럽</span>
@@ -678,7 +678,7 @@ export default function MeetupDetailClient({
           </div>
 
           {/* Mobile View: Horizontal Scroll */}
-          <div className="py-4 block md:hidden">
+          <div className="px-4 py-4 block md:hidden">
             <div className="mb-6">
               <h2 className="text-2xl font-bold mb-4">
                 👥
