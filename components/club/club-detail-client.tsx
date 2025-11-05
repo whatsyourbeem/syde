@@ -39,10 +39,14 @@ import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 import ClubMembersList from "./club-members-list"; // Import ClubMembersList
 import Image from "next/image";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import MeetupCard from "@/components/meetup/meetup-card";
 
 // Type Definitions
 type Profile = Tables<"profiles">;
-type Meetup = Tables<"meetups"> & { organizer_profile: Profile | null };
+type Meetup = Tables<"meetups"> & {
+  organizer_profile: Profile | null;
+  clubs: Tables<"clubs"> | null;
+};
 type ClubMember = Tables<"club_members"> & { profiles: Profile | null };
 
 type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
@@ -59,38 +63,6 @@ interface ClubDetailClientProps {
   userRole: string | null;
   isOwner: boolean;
 }
-
-// Helper Functions for Meetup Card
-function formatDate(dateString: string | null) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  const weekday = ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
-
-  
-
-  return `${year}.${month}.${day}(${weekday})`;
-}
-
-function getStatusBadgeClass(status: Enums<"meetup_status_enum">) {
-  switch (status) {
-    case MEETUP_STATUSES.UPCOMING:
-      return "border-gray-400 bg-gray-100 text-gray-700 px-2 w-15";
-    case MEETUP_STATUSES.APPLY_AVAILABLE:
-      return "border-green-500 bg-green-50 text-green-700 px-2 w-15";
-    case MEETUP_STATUSES.APPLY_CLOSED:
-      return "border-red-500 bg-red-50 text-red-700 px-2 w-15";
-    case MEETUP_STATUSES.ENDED:
-      return "border-gray-500 bg-gray-50 text-gray-700 px-2 w-10";
-    default:
-      return "border-gray-500 bg-gray-50 text-gray-700";
-  }
-}
-
-
 
 // Main Component
 export default function ClubDetailClient({
@@ -288,71 +260,7 @@ export default function ClubDetailClient({
                   key={meetup.id}
                   className="w-[240px] flex-shrink-0"
                 >
-                  <div className="p-1 h-full">
-                    <Card className="h-full transition-shadow hover:shadow-lg overflow-hidden">
-                      <CardContent className="flex flex-col p-0 h-full">
-                        <div className="w-full h-[160px] relative overflow-hidden rounded-t-lg">
-                          <Image
-                            src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
-                            alt={meetup.title}
-                            fill
-                            className="object-cover object-center"
-                          />
-                          <div className="absolute top-2 left-3">
-                            <Badge className={`${getStatusBadgeClass(meetup.status)} text-xs`}>
-                              {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
-                            </Badge>
-                          </div>
-                          
-                        </div>
-                        <div className="flex flex-col flex-grow p-4">
-                          <Link
-                            href={`/meetup/${meetup.id}`}
-                            className="w-full flex flex-col flex-grow"
-                          >
-                            <h3 className="font-semibold text-sm line-clamp-2 mb-2">
-                              {meetup.title}
-                            </h3>
-                            <div className="flex items-center gap-2 mb-2"> {/* Organizer Info */}
-                                <Avatar className="size-5">
-                                  <AvatarImage
-                                    src={
-                                      meetup.organizer_profile?.avatar_url ||
-                                      undefined
-                                    }
-                                  />
-                                  <AvatarFallback>
-                                    {meetup.organizer_profile?.username?.charAt(
-                                      0
-                                    ) || "U"}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs font-medium">
-                                    {meetup.organizer_profile?.full_name ||
-                                      meetup.organizer_profile?.username}
-                                  </span>
-                                  {meetup.organizer_profile?.certified && <CertifiedBadge size="sm" />}
-                                </div>
-                              </div>
-                            <div className="text-xs text-muted-foreground"> {/* Date and Location Info */}
-                              {meetup.start_datetime && (
-                                <span>
-                                  {formatDate(meetup.start_datetime)}
-                                </span>
-                              )}
-                              {meetup.location && (
-                                <span>
-                                  {" | "}
-                                  {meetup.location}
-                                </span>
-                              )}
-                            </div>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <MeetupCard meetup={meetup} />
                 </div>
               ))}
             </div>
