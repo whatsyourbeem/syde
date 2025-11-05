@@ -114,7 +114,7 @@ export default function ClubSidebarInfo({
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={`/meetup/create?club_id=${clubId}`}>
+                <Link href={`/meetup/create?club_id=${clubId}&thumbnail_url=${encodeURIComponent(clubThumbnailUrl || '')}`}>
                   <CalendarPlus className="mr-2 size-4" /> 모임 만들기
                 </Link>
               </Button>

@@ -33,6 +33,7 @@ export async function createMeetup(
   const title = formData.get("title") as string;
   const descriptionJSON = formData.get("description") as string;
   const thumbnailFile = formData.get("thumbnailFile") as File | null;
+  const defaultThumbnailUrl = formData.get("thumbnailUrl") as string | null;
   const descriptionImageFiles = formData.getAll(
     "descriptionImageFiles"
   ) as File[];
@@ -41,7 +42,7 @@ export async function createMeetup(
   let finalThumbnailUrl: string | null = null;
 
   try {
-    // 1. Upload thumbnail if it exists
+    // 1. Upload thumbnail if it exists, otherwise use default
     if (thumbnailFile && thumbnailFile.size > 0) {
       const fileExt = getFileExtension(thumbnailFile.type);
       const thumbnailPath = `${id}/thumbnail/${uuidv4()}.${fileExt}`;
@@ -51,6 +52,8 @@ export async function createMeetup(
         thumbnailPath,
         thumbnailFile
       );
+    } else if (defaultThumbnailUrl) {
+      finalThumbnailUrl = defaultThumbnailUrl;
     }
 
     // 2. Upload description images and replace blob URLs

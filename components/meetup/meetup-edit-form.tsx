@@ -47,11 +47,13 @@ type Meetup = Tables<"meetups">;
 interface MeetupEditFormProps {
   meetup?: Meetup;
   clubId?: string;
+  thumbnailUrl?: string;
 }
 
 export default function MeetupEditForm({
   meetup,
   clubId,
+  thumbnailUrl,
 }: MeetupEditFormProps) {
   const router = useRouter();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -77,7 +79,9 @@ export default function MeetupEditForm({
   const [maxParticipantsError, setMaxParticipantsError] = useState<string | null>(null);
   
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(meetup?.thumbnail_url || null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+    meetup?.thumbnail_url || (thumbnailUrl ? thumbnailUrl : null)
+  );
   const [descriptionImages, setDescriptionImages] = useState<{ file: File; blobUrl: string }[]>([]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -159,6 +163,8 @@ export default function MeetupEditForm({
     }
     if (thumbnailFile) {
       formData.append("thumbnailFile", thumbnailFile);
+    } else if (thumbnailUrl) {
+      formData.append("thumbnailUrl", thumbnailUrl);
     }
 
     descriptionImages.forEach((img, index) => {
@@ -219,7 +225,7 @@ export default function MeetupEditForm({
             onClick={() => document.getElementById("thumbnailFile")?.click()}
           >
             <Image
-              src={thumbnailPreview || "/default_club_thumbnail.png"}
+              src={thumbnailPreview || "/default_meetup_thumbnail.png"}
               alt="썸네일 미리보기"
               fill
               className={`object-cover object-center w-full h-full transition-opacity duration-300 ${
