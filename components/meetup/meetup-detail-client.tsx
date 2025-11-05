@@ -107,15 +107,15 @@ function getLocationTypeBadgeClass(locationType: string) {
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case MEETUP_STATUSES.UPCOMING:
-      return "border border-gray-400 bg-gray-100 text-gray-700";
+      return "bg-gray-700 text-white px-2 py-[2px] md:py-1 my-1 text-xs font-medium hover:bg-gray-700 hover:text-gray-100";
     case MEETUP_STATUSES.APPLY_AVAILABLE:
-      return "border border-green-500 bg-green-50 text-green-700";
+      return "bg-green-700 text-white px-2 py-[2px] md:py-1 my-1 text-xs font-medium hover:bg-green-700 hover:text-green-50";
     case MEETUP_STATUSES.APPLY_CLOSED:
-      return "border border-red-500 bg-red-50 text-red-700";
+      return "bg-gray-200 text-gray-500 px-2 py-[2px] md:py-1 my-1  text-xs font-medium hover:bg-gray-200 hover:text-gray-700";
     case MEETUP_STATUSES.ENDED:
-      return "border border-gray-500 bg-gray-50 text-gray-700";
+      return "bg-gray-200 text-gray-500 px-2 py-[2px] md:py-1 my-1  text-xs font-medium hover:bg-gray-200 hover:text-gray-700";
     default:
-      return "border border-gray-500 bg-gray-50 text-gray-700";
+      return "bg-gray-700 text-gray-50 px-2 py-[2px] md:py-1 my-1 text-xs font-medium hover:bg-gray-700 hover:text-gray-50";
   }
 }
 
@@ -330,16 +330,10 @@ export default function MeetupDetailClient({
     <div className="flex flex-col md:flex-row max-w-6xl mx-auto px-4 min-h-screen">
       <div className="w-full md:w-3/4 md:border-r md:pr-2 min-h-screen">
         <div className="max-w-3xl mx-auto pt-4 px-0 md:px-4 pb-20">
-          {/* 카테고리, 형태, 상태 배지 */}
+          {/* 상태 배지 */}
           <div className="flex gap-2 mb-4">
             <Badge className={getStatusBadgeClass(meetup.status)}>
               {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
-            </Badge>
-            <Badge className={getCategoryBadgeClass(meetup.category)}>
-              {MEETUP_CATEGORY_DISPLAY_NAMES[meetup.category]}
-            </Badge>
-            <Badge className={getLocationTypeBadgeClass(meetup.location_type)}>
-              {MEETUP_LOCATION_TYPE_DISPLAY_NAMES[meetup.location_type]}
             </Badge>
           </div>
 
