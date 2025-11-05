@@ -34,11 +34,7 @@ import { DatePicker } from "@/components/ui/date-picker-with-time";
 import { TimePicker } from "@/components/ui/time-picker";
 import { JSONContent } from "@tiptap/react";
 import {
-  MEETUP_CATEGORIES,
-  MEETUP_LOCATION_TYPES,
   MEETUP_STATUSES,
-  MEETUP_CATEGORY_DISPLAY_NAMES,
-  MEETUP_LOCATION_TYPE_DISPLAY_NAMES,
   MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
 
@@ -63,8 +59,6 @@ export default function MeetupEditForm({
   const [description, setDescription] = useState<JSONContent | null>(
     meetup?.description ? (meetup.description as JSONContent) : null
   );
-  const [category, setCategory] = useState<Enums<"meetup_category_enum"> | undefined>(meetup?.category);
-  const [locationType, setLocationType] = useState<Enums<"meetup_location_type_enum"> | undefined>(meetup?.location_type);
   const [status, setStatus] = useState<Enums<"meetup_status_enum"> | undefined>(meetup?.status);
   const [startDatetime, setStartDatetime] = useState<Date | undefined>(
     meetup?.start_datetime ? new Date(meetup.start_datetime) : undefined
@@ -137,7 +131,7 @@ export default function MeetupEditForm({
   const clientAction = async (formData: FormData) => {
     setIsSubmitting(true);
 
-    if (!category || !locationType || !status || !startDatetime || !endDatetime) {
+    if (!status || !startDatetime || !endDatetime) {
       toast.error("필수 항목을 모두 입력해주세요.");
       setIsSubmitting(false);
       return;
@@ -145,8 +139,6 @@ export default function MeetupEditForm({
 
     formData.append("title", title);
     formData.append("description", JSON.stringify(description));
-    formData.append("category", category);
-    formData.append("locationType", locationType);
     formData.append("status", status);
     formData.append("startDatetime", startDatetime.toISOString());
     formData.append("endDatetime", endDatetime.toISOString());
@@ -296,35 +288,6 @@ export default function MeetupEditForm({
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-1">
-            카테고리 <span className="text-red-500">*</span>
-          </label>
-          <Select value={category} onValueChange={(value: Enums<"meetup_category_enum">) => setCategory(value)} required>
-            <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
-            <SelectContent>
-              {Object.entries(MEETUP_CATEGORIES).map(([key, value]) => (
-                <SelectItem key={key} value={value}>{MEETUP_CATEGORY_DISPLAY_NAMES[value]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="locationType" className="block text-sm font-semibold text-gray-700 mb-1">
-            진행 방식 <span className="text-red-500">*</span>
-          </label>
-          <Select value={locationType} onValueChange={(value: Enums<"meetup_location_type_enum">) => setLocationType(value)} required>
-            <SelectTrigger><SelectValue placeholder="진행 방식 선택" /></SelectTrigger>
-            <SelectContent>
-              {Object.entries(MEETUP_LOCATION_TYPES).map(([key, value]) => (
-                <SelectItem key={key} value={value}>{MEETUP_LOCATION_TYPE_DISPLAY_NAMES[value]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       <div>
         <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-1">
           상태 <span className="text-red-500">*</span>
@@ -394,7 +357,7 @@ export default function MeetupEditForm({
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button type="button" disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !category || !locationType || !status}>
+            <Button type="button" disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !status}>
               {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
             </Button>
           </AlertDialogTrigger>
@@ -407,7 +370,7 @@ export default function MeetupEditForm({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !category || !locationType || !status}>
+              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !status}>
                 확인
               </AlertDialogAction>
             </AlertDialogFooter>

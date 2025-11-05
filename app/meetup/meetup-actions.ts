@@ -92,10 +92,6 @@ export async function createMeetup(
       title,
       description: descriptionContent,
       thumbnail_url: finalThumbnailUrl,
-      category: formData.get("category") as Enums<"meetup_category_enum">,
-      location_type: formData.get(
-        "locationType"
-      ) as Enums<"meetup_location_type_enum">,
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
@@ -229,10 +225,6 @@ export async function updateMeetup(
       title: formData.get("title") as string,
       description: descriptionContent,
       thumbnail_url: newThumbnailUrl,
-      category: formData.get("category") as Enums<"meetup_category_enum">,
-      location_type: formData.get(
-        "locationType"
-      ) as Enums<"meetup_location_type_enum">,
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
