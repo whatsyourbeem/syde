@@ -344,13 +344,13 @@ export default function MeetupDetailClient({
           {/* 새로운 썸네일 및 정보 영역 */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             {/* 왼쪽: 썸네일 이미지 */}
-            <div className="w-full md:w-1/2">
+            <div className="w-full md:w-1/2 aspect-square">
               <Image
                 src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
                 alt={meetup.title}
-                width={800} // Adjust as needed
-                height={400} // Adjust as needed
-                className="w-full h-48 md:h-64 object-cover object-center rounded-lg"
+                width={800}
+                height={800}
+                className="w-full h-full object-cover object-center rounded-lg aspect-square"
               />
             </div>
             {/* 오른쪽: 모임 장소, 모임일시, 최대인원 정보 */}
