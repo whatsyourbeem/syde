@@ -15,8 +15,8 @@ import NotificationBell from "@/components/notification/notification-bell";
 import { Suspense } from "react";
 
 import { Toaster } from "sonner"; // Import Toaster from sonner
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -27,15 +27,14 @@ export const metadata: Metadata = {
   title: "SYDE - 사이드프로젝트 커뮤니티",
   description:
     "주체적인 삶으로 가득한 세상을 꿈꾸는 사이드프로젝터들의 커뮤니티입니다.",
-  
 };
 
 export const viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: 'cover',
+  viewportFit: "cover",
 };
 
 const pretendard = localFont({
@@ -51,6 +50,21 @@ const pretendard = localFont({
     { path: "../fonts/Pretendard-Black.ttf", weight: "900" },
   ],
   variable: "--font-pretendard",
+  display: "swap",
+});
+
+const paperlogy = localFont({
+  src: [
+    { path: "../fonts/Paperlogy-1Thin.ttf", weight: "100" },
+    { path: "../fonts/Paperlogy-2ExtraLight.ttf", weight: "200" },
+    { path: "../fonts/Paperlogy-3Light.ttf", weight: "300" },
+    { path: "../fonts/Paperlogy-4Regular.ttf", weight: "400" },
+    { path: "../fonts/Paperlogy-5Medium.ttf", weight: "500" },
+    { path: "../fonts/Paperlogy-6SemiBold.ttf", weight: "600" },
+    { path: "../fonts/Paperlogy-7Bold.ttf", weight: "700" },
+    { path: "../fonts/Paperlogy-8ExtraBold.ttf", weight: "800" },
+    { path: "../fonts/Paperlogy-9Black.ttf", weight: "900" },
+  ],
   display: "swap",
 });
 
@@ -120,12 +134,16 @@ export default async function RootLayout({
                           <Image
                             src="/logo_no_bg.png"
                             alt="SYDE"
-                            width={28}
-                            height={28}
+                            width={36}
+                            height={36}
                             priority
                           />
-                          <span className="text-2xl font-extrabold tracking-tight text-sydenightblue">
-                            SYDE
+                          <span
+                            className={`text-2xl font-extrabold text-sydenightblue ${paperlogy.className}`}
+                          >
+                            <span style={{ letterSpacing: "0.01em" }}>S</span>
+                            <span style={{ letterSpacing: "0.01em" }}>Y</span>
+                            <span style={{ letterSpacing: "0em" }}>DE</span>
                           </span>
                         </Link>
                       </div>
@@ -189,12 +207,16 @@ export default async function RootLayout({
                           <Image
                             src="/logo_no_bg.png"
                             alt="SYDE"
-                            width={44}
-                            height={44}
+                            width={52}
+                            height={52}
                             priority
                           />
-                          <span className="text-4xl font-extrabold tracking-tight text-sydenightblue">
-                            SYDE
+                          <span
+                            className={`text-4xl font-extrabold text-sydenightblue ${paperlogy.className}`}
+                          >
+                            <span style={{ letterSpacing: "0.01em" }}>S</span>
+                            <span style={{ letterSpacing: "0.01em" }}>Y</span>
+                            <span style={{ letterSpacing: "0em" }}>DE</span>
                           </span>
                         </Link>
                       </div>
@@ -232,17 +254,15 @@ export default async function RootLayout({
                 </nav>
                 <Separator />
               </div>
-              <main className="flex-1 h-full">
-                {children}
-              </main>
+              <main className="flex-1 h-full">{children}</main>
               <Toaster />
               <LoginDialog />
               <Footer />
             </div>
           </LoginDialogProvider>
         </Providers>
-      <SpeedInsights />
-      <Analytics />
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
