@@ -7,6 +7,7 @@ export type ClubPermissionLevel =
 export type MeetupParticipantStatus =
   Database["public"]["Enums"]["meetup_participant_status_enum"];
 export type MeetupStatus = Database["public"]["Enums"]["meetup_status_enum"];
+export type MeetupType = Database["public"]["Enums"]["meetup_type_enum"];
 
 export const CLUB_MEMBER_ROLES = {
   LEADER: "LEADER",
@@ -20,8 +21,6 @@ export const CLUB_PERMISSION_LEVELS = {
   FULL_MEMBER: "FULL_MEMBER",
   LEADER: "LEADER",
 } as const;
-
-
 
 export const MEETUP_PARTICIPANT_STATUSES = {
   PENDING: "PENDING",
@@ -52,8 +51,6 @@ export const CLUB_PERMISSION_LEVEL_DISPLAY_NAMES: Record<
   LEADER: "클럽장",
 };
 
-
-
 export const MEETUP_PARTICIPANT_STATUS_DISPLAY_NAMES: Record<
   MeetupParticipantStatus,
   string
@@ -68,4 +65,14 @@ export const MEETUP_STATUS_DISPLAY_NAMES: Record<MeetupStatus, string> = {
   APPLY_AVAILABLE: "신청가능",
   APPLY_CLOSED: "신청마감",
   ENDED: "종료",
+};
+
+export const MEETUP_TYPES = {
+  INSYDE: "INSYDE",
+  SPINOFF: "SPINOFF",
+} as const;
+
+export const MEETUP_TYPE_DISPLAY_NAMES: Record<MeetupType, string> = {
+  INSYDE: "정기모임",
+  SPINOFF: "스핀오프",
 };
