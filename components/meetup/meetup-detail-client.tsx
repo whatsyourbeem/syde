@@ -42,6 +42,7 @@ import {
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { useRouter } from "next/navigation";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -239,6 +240,10 @@ export default function MeetupDetailClient({
     (p) => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
   );
 
+  const router = useRouter();
+
+  const reservPageUrl = `/meetup/${meetup.id}/reserv`;
+
   const handleApplyClick = () => {
     if (!user) {
       toast.error("로그인이 필요합니다.");
@@ -258,12 +263,13 @@ export default function MeetupDetailClient({
     }
   };
 
-  const handleConfirmJoin = () => {
+  const handleConfirmJoin = async () => {
     setIsJoinConfirmDialogOpen(false);
     startTransition(async () => {
       const result = await joinMeetup(meetup.id);
       setJoinResult(result);
       setIsJoinResultDialogOpen(true);
+      router.push(reservPageUrl);
     });
   };
 
@@ -490,7 +496,7 @@ export default function MeetupDetailClient({
           </AlertDialogContent>
         </AlertDialog>
 
-        <AlertDialog
+        {/* <AlertDialog
           open={isJoinResultDialogOpen}
           onOpenChange={setIsJoinResultDialogOpen}
         >
@@ -534,7 +540,7 @@ export default function MeetupDetailClient({
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        </AlertDialog>
+        </AlertDialog> */}
       </div>
 
       {meetup.clubs && <Separator className="my-4 block md:hidden" />}
