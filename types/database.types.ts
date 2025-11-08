@@ -413,22 +413,34 @@ export type Database = {
       };
       meetup_participants: {
         Row: {
+          depositor: string | null;
           joined_at: string;
           meetup_id: string;
+          mobile: string | null;
           status: Database["public"]["Enums"]["meetup_participant_status_enum"];
+          story: string | null;
           user_id: string;
+          username: string | null;
         };
         Insert: {
+          depositor?: string | null;
           joined_at?: string;
           meetup_id: string;
+          mobile?: string | null;
           status?: Database["public"]["Enums"]["meetup_participant_status_enum"];
+          story?: string | null;
           user_id: string;
+          username?: string | null;
         };
         Update: {
+          depositor?: string | null;
           joined_at?: string;
           meetup_id?: string;
+          mobile?: string | null;
           status?: Database["public"]["Enums"]["meetup_participant_status_enum"];
+          story?: string | null;
           user_id?: string;
+          username?: string | null;
         };
         Relationships: [
           {
