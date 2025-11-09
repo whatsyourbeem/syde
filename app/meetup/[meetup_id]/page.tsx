@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Database } from "@/types/database.types";
-import MeetupDetailClient from "@/components/meetup/meetup-detail-client"; // Import MeetupDetailClient
+import MeetupDetailClient from "@/components/meetup/meetup-detail-client";
 
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
@@ -11,9 +11,13 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   })[];
 };
 
-export default async function MeetupDetailPage({ params }: { params: Promise<{ meetup_id: string }> }) {
-  const supabase = await createClient();
+// 타입 명시
+interface PageProps {
+  params: Promise<{ meetup_id: string }>;
+}
 
+export default async function MeetupDetailPage({ params }: PageProps) {
+  const supabase = await createClient();
   const { meetup_id } = await params;
 
   const { data: meetup, error } = await supabase
@@ -29,30 +33,31 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ m
     notFound();
   }
 
-  // Ensure description is parsed as JSON if it's a string
-  if (typeof meetup.description === 'string') {
+  // description JSON 파싱 개선
+  if (typeof meetup.description === "string") {
     try {
       meetup.description = JSON.parse(meetup.description);
     } catch (e) {
       console.error("Failed to parse meetup description JSON:", e);
-      // Fallback to null or handle error as appropriate
       meetup.description = null;
     }
   }
 
-  // Fetch user and joinedClubIds here, as MeetupDetailClient needs them
-  const { data: { user } } = await supabase.auth.getUser();
+  // 사용자 정보 및 클럽 가입 여부 확인
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const isOrganizer = user?.id === meetup.organizer_id;
 
   let joinedClubIds: string[] = [];
   if (user) {
     const { data: joinedClubsData } = await supabase
-      .from('club_members')
-      .select('club_id')
-      .eq('user_id', user.id);
+      .from("club_members")
+      .select("club_id")
+      .eq("user_id", user.id);
 
     if (joinedClubsData) {
-      joinedClubIds = joinedClubsData.map(item => item.club_id);
+      joinedClubIds = joinedClubsData.map((item) => item.club_id);
     }
   }
 

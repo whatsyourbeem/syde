@@ -15,7 +15,7 @@ import {
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, HelpCircle } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -35,13 +35,11 @@ import {
 } from "@/components/ui/accordion";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
-import {
-  joinMeetup,
-  updateMeetupParticipantStatus,
-} from "@/app/meetup/meetup-actions";
+import { updateMeetupParticipantStatus } from "@/app/meetup/meetup-actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { useRouter } from "next/navigation";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -239,6 +237,10 @@ export default function MeetupDetailClient({
     (p) => p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
   );
 
+  const router = useRouter();
+
+  const reservPageUrl = `/meetup/${meetup.id}/reserv`;
+
   const handleApplyClick = () => {
     if (!user) {
       toast.error("로그인이 필요합니다.");
@@ -260,11 +262,7 @@ export default function MeetupDetailClient({
 
   const handleConfirmJoin = () => {
     setIsJoinConfirmDialogOpen(false);
-    startTransition(async () => {
-      const result = await joinMeetup(meetup.id);
-      setJoinResult(result);
-      setIsJoinResultDialogOpen(true);
-    });
+    router.push(reservPageUrl);
   };
 
   const getButtonState = () => {
@@ -280,12 +278,7 @@ export default function MeetupDetailClient({
     if (isPendingParticipant) {
       return {
         disabled: false,
-        text: (
-          <>
-            참가대기중
-            <HelpCircle className="size-5" />
-          </>
-        ),
+        text: "참가대기중",
       };
     }
     if (isMeetupFull) {
@@ -437,14 +430,23 @@ export default function MeetupDetailClient({
                     : ""}
                 </span>
               </p>
-              <Button
-                size="sm"
-                className="md:h-10 md:px-8 md:text-sm"
-                disabled={buttonState.disabled}
-                onClick={handleApplyClick}
-              >
-                {buttonState.text}
-              </Button>
+              {buttonState.disabled ? (
+                <Button
+                  size="sm"
+                  className="md:h-10 md:px-8 md:text-sm"
+                  disabled
+                >
+                  {buttonState.text}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  className="md:h-10 md:px-8 md:text-sm"
+                  onClick={handleApplyClick}
+                >
+                  {buttonState.text}
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -497,7 +499,11 @@ export default function MeetupDetailClient({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {joinResult?.error ? "오류" : "신청 완료"}
+                {joinResult?.error
+                  ? "오류"
+                  : isPendingParticipant
+                  ? "참가 대기중"
+                  : "신청 완료"}
               </AlertDialogTitle>
             </AlertDialogHeader>
             <div className="text-sm text-muted-foreground">
@@ -505,9 +511,13 @@ export default function MeetupDetailClient({
                 joinResult.error
               ) : (
                 <>
-                  {!(meetup.fee && meetup.fee > 0) && (
+                  {isPendingParticipant ? (
+                    <div className="mb-4">
+                      호스트의 승인을 기다리고 있습니다.
+                    </div>
+                  ) : !(meetup.fee && meetup.fee > 0) ? (
                     <div className="mb-4">모임 참가 신청이 완료되었습니다.</div>
-                  )}
+                  ) : null}
                   {meetup.fee && meetup.fee > 0 && (
                     <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md mt-4">
                       <div className="font-semibold">참가 확정 안내</div>
