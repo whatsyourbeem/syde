@@ -15,7 +15,7 @@ import {
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, HelpCircle, MapPin, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -278,7 +278,12 @@ export default function MeetupDetailClient({
     if (isPendingParticipant) {
       return {
         disabled: false,
-        text: "참가대기중",
+        text: (
+          <>
+            참가대기중
+            <HelpCircle className="size-5" />
+          </>
+        ),
       };
     }
     if (isMeetupFull) {
