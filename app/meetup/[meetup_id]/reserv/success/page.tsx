@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default function MeetupReservSuccessPage({
+export default async function MeetupReservSuccessPage({
   params,
 }: {
-  params: { meetup_id: string };
+  params: Promise<{ meetup_id: string }>; // Promise 추가
 }) {
+  const { meetup_id } = await params; // await 추가
+
   return (
     <div className="w-full max-w-lg mx-auto text-center text-[#23292F] p-8 rounded-lg shadow-lg bg-white mt-10">
       <div className="mb-6">
@@ -23,7 +25,7 @@ export default function MeetupReservSuccessPage({
           <Link href="/meetup">다른 모임 둘러보기</Link>
         </Button>
         <Button asChild>
-          <Link href={`/meetup/${params.meetup_id}`}>해당 모임으로 돌아가기</Link>
+          <Link href={`/meetup/${meetup_id}`}>해당 모임으로 돌아가기</Link>
         </Button>
       </div>
     </div>

@@ -15,7 +15,7 @@ import {
 } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, HelpCircle } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -35,10 +35,7 @@ import {
 } from "@/components/ui/accordion";
 import { User } from "@supabase/supabase-js";
 import { Separator } from "@/components/ui/separator";
-import {
-  joinMeetup,
-  updateMeetupParticipantStatus,
-} from "@/app/meetup/meetup-actions";
+import { updateMeetupParticipantStatus } from "@/app/meetup/meetup-actions";
 import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
