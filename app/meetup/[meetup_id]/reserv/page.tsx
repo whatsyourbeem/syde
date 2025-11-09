@@ -27,8 +27,10 @@ export default async function MeetupReservPage() {
           <ReservInput
             name="입금자명"
             placeholder="입금 확인을 위해 정확히 입력해주세요."
+            description="참가비를 계좌이체하시면, 호스트가 확인 후 확정해드려요."
           />
           <ReservInput
+            className="h-14 pb-[22px]"
             name="모임에서 나누고 싶은 이야기"
             placeholder="궁금한 것, 요즘 고민 등 자유롭게 적어주세요. 💬"
           />
