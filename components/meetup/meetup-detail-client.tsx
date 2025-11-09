@@ -263,14 +263,9 @@ export default function MeetupDetailClient({
     }
   };
 
-  const handleConfirmJoin = async () => {
+  const handleConfirmJoin = () => {
     setIsJoinConfirmDialogOpen(false);
-    startTransition(async () => {
-      const result = await joinMeetup(meetup.id);
-      setJoinResult(result);
-      setIsJoinResultDialogOpen(true);
-      router.push(reservPageUrl);
-    });
+    router.push(reservPageUrl);
   };
 
   const getButtonState = () => {
@@ -286,12 +281,7 @@ export default function MeetupDetailClient({
     if (isPendingParticipant) {
       return {
         disabled: false,
-        text: (
-          <>
-            참가대기중
-            <HelpCircle className="size-5" />
-          </>
-        ),
+        text: "참가대기중",
       };
     }
     if (isMeetupFull) {
@@ -452,14 +442,13 @@ export default function MeetupDetailClient({
                   {buttonState.text}
                 </Button>
               ) : (
-                <Link href={`/meetup/${meetup.id}/reserv`}>
-                  <Button
-                    size="sm"
-                    className="md:h-10 md:px-8 md:text-sm"
-                  >
-                    {buttonState.text}
-                  </Button>
-                </Link>
+                <Button
+                  size="sm"
+                  className="md:h-10 md:px-8 md:text-sm"
+                  onClick={handleApplyClick}
+                >
+                  {buttonState.text}
+                </Button>
               )}
             </div>
           </div>
@@ -506,14 +495,18 @@ export default function MeetupDetailClient({
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* <AlertDialog
+        <AlertDialog
           open={isJoinResultDialogOpen}
           onOpenChange={setIsJoinResultDialogOpen}
         >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {joinResult?.error ? "오류" : "신청 완료"}
+                {joinResult?.error
+                  ? "오류"
+                  : isPendingParticipant
+                  ? "참가 대기중"
+                  : "신청 완료"}
               </AlertDialogTitle>
             </AlertDialogHeader>
             <div className="text-sm text-muted-foreground">
@@ -521,9 +514,13 @@ export default function MeetupDetailClient({
                 joinResult.error
               ) : (
                 <>
-                  {!(meetup.fee && meetup.fee > 0) && (
+                  {isPendingParticipant ? (
+                    <div className="mb-4">
+                      호스트의 승인을 기다리고 있습니다.
+                    </div>
+                  ) : !(meetup.fee && meetup.fee > 0) ? (
                     <div className="mb-4">모임 참가 신청이 완료되었습니다.</div>
-                  )}
+                  ) : null}
                   {meetup.fee && meetup.fee > 0 && (
                     <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md mt-4">
                       <div className="font-semibold">참가 확정 안내</div>
@@ -550,7 +547,7 @@ export default function MeetupDetailClient({
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        </AlertDialog> */}
+        </AlertDialog>
       </div>
 
       {meetup.clubs && <Separator className="my-4 block md:hidden" />}
