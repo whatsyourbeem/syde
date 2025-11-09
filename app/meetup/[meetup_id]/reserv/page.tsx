@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReservInput from "@/components/meetup/reserv/reserv-input";
 import ReservBtn from "@/components/meetup/reserv/reserv-btn";
@@ -30,7 +29,7 @@ export default function MeetupReservPage({
     null,
     params.meetup_id
   );
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     createMeetupParticipantWithId,
     initialState
   );
@@ -46,12 +45,23 @@ export default function MeetupReservPage({
   }, [state.success]);
 
   const handleDialogConfirm = () => {
-    setShowSuccessDialog(false);
-    router.push(`/meetup/${params.meetup_id}/reserv/success`);
+    if (state.error) {
+      // 에러가 있었을 경우, 특별한 동작 없이 창만 닫습니다.
+      // (또는 이전 페이지로 돌려보낼 수 있습니다)
+      // 이 예시에서는 별도 동작 없이 닫히게 됩니다.
+      setShowSuccessDialog(false); // Close the dialog on error
+    } else if (state.success) {
+      // 성공했을 경우, 성공 페이지로 이동합니다.
+      setShowSuccessDialog(false);
+      router.push(`/meetup/${params.meetup_id}/reserv/success`);
+    }
   };
 
   return (
-    <form action={formAction} className="w-full max-w-lg mx-auto text-[#23292F]">
+    <form
+      action={formAction}
+      className="w-full max-w-lg mx-auto text-[#23292F]"
+    >
       <ReservHeader />
       <div className="w-full flex flex-col border-white border-t-[0.5px] px-5 py-4 gap-9">
         <div className="w-full h-[75px] justify-center flex flex-col gap-1 leading-loose align-middle [hanging-punctuation:first]">
@@ -84,35 +94,46 @@ export default function MeetupReservPage({
         </div>
         <ReservBtn />
         {state.error && (
-          <p className="mt-4 text-center text-sm text-red-500">
-            {state.error}
-          </p>
+          <p className="mt-4 text-center text-sm text-red-500">{state.error}</p>
         )}
       </div>
 
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+      <AlertDialog
+        open={showSuccessDialog || !!state.error}
+        onOpenChange={state.error ? () => router.back() : setShowSuccessDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {!(meetup.fee && meetup.fee > 0) ? "신청 완료" : "참가 확정 안내"}
+              {state.error ? "오류" : "신청 완료"}
             </AlertDialogTitle>
           </AlertDialogHeader>
-          {!(meetup.fee && meetup.fee > 0) ? (
-            <p>모임 참가 신청이 완료되었습니다.</p>
-          ) : (
-            <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-              <div className="mt-2">
-                참가비를 아래 계좌로 입금해주시면 24시간 내로 참가 신청이
-                확정됩니다.
-              </div>
-              <div className="mt-2 text-red-500 font-semibold">
-                * 입금자명은 반드시 본인의 유저네임으로 해주세요.
-              </div>
-              <div className="mt-2 font-mono bg-gray-100 p-2 rounded">
-                신한은행 110-320-955821 (안재현)
-              </div>
-            </div>
-          )}
+          <div className="text-sm text-muted-foreground">
+            {state.error ? (
+              state.error
+            ) : (
+              <>
+                {!(meetup.fee && meetup.fee > 0) && (
+                  <div className="mb-4">모임 참가 신청이 완료되었습니다.</div>
+                )}
+                {meetup.fee && meetup.fee > 0 && (
+                  <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md mt-4">
+                    <div className="font-semibold">참가 확정 안내</div>
+                    <div className="mt-2">
+                      참가비를 아래 계좌로 입금해주시면 24시간 내로 참가 신청이
+                      확정됩니다.
+                    </div>
+                    <div className="mt-2 text-red-500 font-semibold">
+                      * 입금자명은 반드시 본인의 유저네임으로 해주세요.
+                    </div>
+                    <div className="mt-2 font-mono bg-gray-100 p-2 rounded">
+                      신한은행 110-320-955821 (안재현)
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleDialogConfirm}>
               확인
