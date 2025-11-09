@@ -443,14 +443,24 @@ export default function MeetupDetailClient({
                     : ""}
                 </span>
               </p>
-              <Button
-                size="sm"
-                className="md:h-10 md:px-8 md:text-sm"
-                disabled={buttonState.disabled}
-                onClick={handleApplyClick}
-              >
-                {buttonState.text}
-              </Button>
+              {buttonState.disabled ? (
+                <Button
+                  size="sm"
+                  className="md:h-10 md:px-8 md:text-sm"
+                  disabled
+                >
+                  {buttonState.text}
+                </Button>
+              ) : (
+                <Link href={`/meetup/${meetup.id}/reserv`}>
+                  <Button
+                    size="sm"
+                    className="md:h-10 md:px-8 md:text-sm"
+                  >
+                    {buttonState.text}
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

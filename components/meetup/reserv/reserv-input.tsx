@@ -19,6 +19,7 @@ export default function ReservInput({
         {name} <span className="text-red-500">*</span>
       </p>
       <input
+        name={name}
         placeholder={placeholder}
         className={cn(
           "bg-white border border-[#b7b7b7] pl-3 rounded-[10px] h-9 focus:outline-none placeholder:text-sm placeholder:font-normal placeholder:text-[#777777]",
