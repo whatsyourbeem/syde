@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
 import ReservInput from "@/components/meetup/reserv/reserv-input";
 import ReservBtn from "@/components/meetup/reserv/reserv-btn";
@@ -14,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { createClient } from "@/lib/supabase/client";
 
 const initialState: FormState = {};
 
@@ -24,19 +26,40 @@ export default function MeetupReservPage({
 }) {
   const router = useRouter();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [name, setName] = useState(""); // State for the name input
 
   const createMeetupParticipantWithId = createMeetupParticipant.bind(
     null,
     params.meetup_id
   );
-  const [state, formAction] = useActionState(
+  const [state, formAction] = useFormState(
     createMeetupParticipantWithId,
     initialState
   );
 
-  // Placeholder for meetup details, as the original ReservBtn had it.
-  // In a real app, you'd fetch this data.
-  const meetup = { id: params.meetup_id, fee: 5000 }; // Assuming a fee for dialog display
+  // Fetch user's full_name on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        if (profile?.full_name) {
+          setName(profile.full_name);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     if (state.success) {
@@ -46,16 +69,15 @@ export default function MeetupReservPage({
 
   const handleDialogConfirm = () => {
     if (state.error) {
-      // 에러가 있었을 경우, 특별한 동작 없이 창만 닫습니다.
-      // (또는 이전 페이지로 돌려보낼 수 있습니다)
-      // 이 예시에서는 별도 동작 없이 닫히게 됩니다.
-      setShowSuccessDialog(false); // Close the dialog on error
+      setShowSuccessDialog(false);
     } else if (state.success) {
-      // 성공했을 경우, 성공 페이지로 이동합니다.
       setShowSuccessDialog(false);
       router.push(`/meetup/${params.meetup_id}/reserv/success`);
     }
   };
+
+  // Placeholder for meetup details
+  const meetup = { id: params.meetup_id, fee: 5000 };
 
   return (
     <form
@@ -75,6 +97,8 @@ export default function MeetupReservPage({
             name="이름"
             placeholder="닉네임을 입력해주세요."
             description="이 이름으로 이름 스티커를 드릴거에요."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
           <ReservInput
             name="휴대폰 번호"

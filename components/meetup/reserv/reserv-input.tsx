@@ -5,6 +5,8 @@ interface ReservInputProps {
   placeholder?: string;
   description?: string;
   className?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export default function ReservInput({
@@ -12,6 +14,8 @@ export default function ReservInput({
   placeholder,
   description,
   className,
+  value,
+  onChange,
 }: ReservInputProps) {
   return (
     <div className="flex flex-col gap-1 leading-none align-middle [hanging-punctuation:first]">
@@ -26,8 +30,10 @@ export default function ReservInput({
           className
         )}
         required
+        value={value}
+        onChange={onChange}
       ></input>
-      <p className="text-[13px] font-light px-2">{description}</p>
+      <p className="text-[13px] font-light">{description}</p>
     </div>
   );
 }
