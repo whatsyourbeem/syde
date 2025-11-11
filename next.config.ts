@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       },
     ],
     minimumCacheTTL: 604800, // 1 week
-    unoptimized: true, //FIXME: Vercel 요금 절약을 위한 이미지 최적화 비활성화
+    // unoptimized: true, // Vercel 요금 절약을 위한 이미지 최적화 비활성화
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production", // production에서 console.log 제거
