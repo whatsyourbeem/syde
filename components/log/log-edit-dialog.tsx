@@ -422,7 +422,6 @@ export function LogEditDialog({
     div.textContent = textarea.value.substring(0, atIndex);
     const rect = div.getBoundingClientRect();
     document.body.removeChild(div);
-    const textareaRect = textarea.getBoundingClientRect();
     return { top: rect.height, left: 0 };
   };
 
