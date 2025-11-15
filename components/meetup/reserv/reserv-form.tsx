@@ -62,7 +62,7 @@ export default function ReservForm({
   return (
     <form
       action={formAction}
-      className="w-full max-w-lg mx-auto text-[#23292F]"
+      className="w-full max-w-lg mx-auto text-sydenightblue"
     >
       <ReservHeader />
       <div className="w-full flex flex-col border-white border-t-[0.5px] px-5 py-4 gap-9">

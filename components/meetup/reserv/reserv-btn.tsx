@@ -12,14 +12,14 @@ export default function ReservBtn() {
       <button
         type="button"
         onClick={() => router.back()}
-        className="w-1/6 h-9 bg-white border border-[#23292F] rounded-xl px-2 py-1"
+        className="w-1/6 h-9 bg-white border border-sydenightblue rounded-xl px-2 py-1"
       >
         취소
       </button>
       <button
         type="submit"
         disabled={pending}
-        className="w-5/6 h-9 bg-[#23292F] text-white rounded-xl px-2 py-1 disabled:bg-gray-400"
+        className="w-5/6 h-9 bg-sydenightblue text-white rounded-xl px-2 py-1 disabled:bg-gray-400"
       >
         {pending ? "신청 중..." : "신청하기 🚀"}
       </button>

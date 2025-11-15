@@ -23,7 +23,7 @@ export default {
           foreground: "hsl(var(--popover-foreground))",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#002040",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -45,7 +45,7 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        sydenightblue: "#22282E",
+        sydenightblue: "#002040",
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
