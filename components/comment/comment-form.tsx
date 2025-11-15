@@ -16,22 +16,39 @@ interface CommentFormProps {
   logId: string;
   currentUserId: string | null;
   parentCommentId?: string | null;
-  initialCommentData?: Database['public']['Tables']['log_comments']['Row'];
+  initialCommentData?: Database["public"]["Tables"]["log_comments"]["Row"];
   onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
   placeholder?: string;
-  replyTo?: { parentId: string; authorName: string | null; authorUsername: string | null; authorAvatarUrl: string | null; } | null;
+  replyTo?: {
+    parentId: string;
+    authorName: string | null;
+    authorUsername: string | null;
+    authorAvatarUrl: string | null;
+  } | null;
 }
 
-function SubmitButton({ initialCommentData, content, isSubmitting }: { initialCommentData?: Database['public']['Tables']['log_comments']['Row'], content: string, isSubmitting: boolean }) {
+function SubmitButton({
+  initialCommentData,
+  content,
+  isSubmitting,
+}: {
+  initialCommentData?: Database["public"]["Tables"]["log_comments"]["Row"];
+  content: string;
+  isSubmitting: boolean;
+}) {
   const { pending } = useFormStatus();
   const isDisabled = pending || isSubmitting || content.trim() === "";
   return (
     <Button type="submit" disabled={isDisabled}>
       {pending || isSubmitting
-        ? initialCommentData ? "수정 중..." : "작성 중..."
-        : initialCommentData ? "수정" : "작성"}
+        ? initialCommentData
+          ? "수정 중..."
+          : "작성 중..."
+        : initialCommentData
+        ? "수정"
+        : "작성"}
     </Button>
   );
 }
@@ -49,7 +66,7 @@ export function CommentForm({
 }: CommentFormProps) {
   const supabase = createClient();
   const { openLoginDialog } = useLoginDialog();
-  
+
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,14 +80,21 @@ export function CommentForm({
           inputRef.current.focus();
         }
       } else {
-        setContent('');
+        setContent("");
       }
     }
   }, [replyTo, initialCommentData]);
 
   // Mention states
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
-  const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; username: string | null; full_name: string | null; avatar_url: string | null; }>>([]);
+  const [mentionSuggestions, setMentionSuggestions] = useState<
+    Array<{
+      id: string;
+      username: string | null;
+      full_name: string | null;
+      avatar_url: string | null;
+    }>
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
@@ -85,7 +109,7 @@ export function CommentForm({
       initialScrollY = window.scrollY;
 
       if (formRef.current) {
-        formRef.current.classList.add('keyboard-open');
+        formRef.current.classList.add("keyboard-open");
       }
 
       // Prevent iOS viewport shift by restoring scroll position
@@ -98,7 +122,7 @@ export function CommentForm({
 
     const handleBlur = () => {
       if (formRef.current) {
-        formRef.current.classList.remove('keyboard-open');
+        formRef.current.classList.remove("keyboard-open");
       }
 
       // Restore original scroll position if needed
@@ -109,39 +133,42 @@ export function CommentForm({
 
     const inputElement = inputRef.current;
     if (inputElement) {
-      inputElement.addEventListener('focus', handleFocus);
-      inputElement.addEventListener('blur', handleBlur);
+      inputElement.addEventListener("focus", handleFocus);
+      inputElement.addEventListener("blur", handleBlur);
 
       return () => {
-        inputElement.removeEventListener('focus', handleFocus);
-        inputElement.removeEventListener('blur', handleBlur);
+        inputElement.removeEventListener("focus", handleFocus);
+        inputElement.removeEventListener("blur", handleBlur);
       };
     }
   }, []);
 
-  const fetchMentionSuggestions = useCallback(async (term: string) => {
-    if (term.length < 1) {
-      setMentionSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
+  const fetchMentionSuggestions = useCallback(
+    async (term: string) => {
+      if (term.length < 1) {
+        setMentionSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, username, full_name, avatar_url')
-      .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
-      .limit(5);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url")
+        .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
+        .limit(5);
 
-    if (error) {
-      console.error("Error fetching mention suggestions:", error);
-      setMentionSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
+      if (error) {
+        console.error("Error fetching mention suggestions:", error);
+        setMentionSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
 
-    setMentionSuggestions(data || []);
-    setShowSuggestions(true);
-  }, [supabase]);
+      setMentionSuggestions(data || []);
+      setShowSuggestions(true);
+    },
+    [supabase]
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -165,7 +192,7 @@ export function CommentForm({
     const cursorPosition = e.target.selectionStart;
     if (cursorPosition === null) return;
     const textBeforeCursor = newContent.substring(0, cursorPosition);
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
 
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
@@ -184,10 +211,15 @@ export function CommentForm({
     }
   };
 
-  const handleSelectSuggestion = (suggestion: { id: string; username: string | null; full_name: string | null; avatar_url: string | null; }) => {
+  const handleSelectSuggestion = (suggestion: {
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+  }) => {
     if (mentionStartIndex === -1) return;
 
-    const newContent = 
+    const newContent =
       content.substring(0, mentionStartIndex) +
       `@${suggestion.username} ` +
       content.substring(mentionStartIndex + mentionSearchTerm.length + 1);
@@ -196,7 +228,8 @@ export function CommentForm({
     setMentionSearchTerm("");
     setShowSuggestions(false);
     if (inputRef.current) {
-      const newCursorPosition = mentionStartIndex + (suggestion.username?.length || 0) + 2;
+      const newCursorPosition =
+        mentionStartIndex + (suggestion.username?.length || 0) + 2;
       inputRef.current.selectionStart = newCursorPosition;
       inputRef.current.selectionEnd = newCursorPosition;
       inputRef.current.focus();
@@ -205,24 +238,24 @@ export function CommentForm({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (showSuggestions && mentionSuggestions.length > 0) {
-      if (e.key === 'ArrowDown') {
+      if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActiveSuggestionIndex((prevIndex) =>
-          (prevIndex + 1) % mentionSuggestions.length
+        setActiveSuggestionIndex(
+          (prevIndex) => (prevIndex + 1) % mentionSuggestions.length
         );
-      } else if (e.key === 'ArrowUp') {
+      } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setActiveSuggestionIndex((prevIndex) =>
-          (prevIndex - 1 + mentionSuggestions.length) % mentionSuggestions.length
+        setActiveSuggestionIndex(
+          (prevIndex) =>
+            (prevIndex - 1 + mentionSuggestions.length) %
+            mentionSuggestions.length
         );
-      } else if (e.key === 'Enter') {
+      } else if (e.key === "Enter") {
         e.preventDefault();
         handleSelectSuggestion(mentionSuggestions[activeSuggestionIndex]);
       }
     }
   };
-
-  
 
   const handleInputClick = () => {
     if (!currentUserId) {
@@ -232,7 +265,7 @@ export function CommentForm({
 
   const clientAction = async (formData: FormData) => {
     if (!currentUserId) {
-            openLoginDialog();
+      openLoginDialog();
       return;
     }
 
@@ -244,7 +277,7 @@ export function CommentForm({
     const action = initialCommentData ? updateComment : createComment;
     const result = await action(formData);
 
-    if (result?.error) {
+    if (!result.success) {
       alert(`Error: ${result.error}`);
     } else {
       if (initialCommentData) {
@@ -265,8 +298,12 @@ export function CommentForm({
       className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
     >
       <input type="hidden" name="log_id" value={logId} />
-      {initialCommentData && <input type="hidden" name="comment_id" value={initialCommentData.id} />}
-      {parentCommentId && <input type="hidden" name="parent_comment_id" value={parentCommentId} />}
+      {initialCommentData && (
+        <input type="hidden" name="comment_id" value={initialCommentData.id} />
+      )}
+      {parentCommentId && (
+        <input type="hidden" name="parent_comment_id" value={parentCommentId} />
+      )}
       <div className="flex gap-2">
         <div className="flex-grow relative">
           <Input
@@ -283,7 +320,6 @@ export function CommentForm({
             value={content}
             onChange={handleContentChange}
             onKeyDown={handleKeyDown}
-            
             className="w-full text-sm placeholder:text-sm pr-8"
             ref={inputRef}
             onClick={handleInputClick}
@@ -303,7 +339,9 @@ export function CommentForm({
               {mentionSuggestions.map((suggestion, index) => (
                 <li
                   key={suggestion.id}
-                  className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? 'bg-accent' : ''}`}
+                  className={`px-4 py-2 cursor-pointer hover:bg-accent ${
+                    index === activeSuggestionIndex ? "bg-accent" : ""
+                  }`}
                   onClick={() => handleSelectSuggestion(suggestion)}
                 >
                   <div className="flex items-center text-xs">
@@ -316,9 +354,13 @@ export function CommentForm({
                         className="rounded-full object-cover aspect-square mr-2"
                       />
                     )}
-                    <span className="font-semibold truncate">{suggestion.full_name || suggestion.username}</span>
+                    <span className="font-semibold truncate">
+                      {suggestion.full_name || suggestion.username}
+                    </span>
                     {suggestion.full_name && suggestion.username && (
-                      <span className="text-muted-foreground ml-2 truncate">@{suggestion.username}</span>
+                      <span className="text-muted-foreground ml-2 truncate">
+                        @{suggestion.username}
+                      </span>
                     )}
                   </div>
                 </li>
@@ -327,8 +369,21 @@ export function CommentForm({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {initialCommentData && onCancel && <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>취소</Button>}
-          <SubmitButton initialCommentData={initialCommentData} content={content} isSubmitting={isSubmitting} />
+          {initialCommentData && onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              취소
+            </Button>
+          )}
+          <SubmitButton
+            initialCommentData={initialCommentData}
+            content={content}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </div>
     </form>

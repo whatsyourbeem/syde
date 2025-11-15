@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
-import { HeartIcon, Trash2, Edit } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { HeartIcon, Trash2, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Database } from "@/types/database.types";
-import { deleteLog } from '@/app/log/log-actions'; // Import the server action
-import { toast } from 'sonner';
+import { deleteLog } from "@/app/log/log-actions"; // Import the server action
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import {
   AlertDialog,
@@ -18,10 +18,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useLoginDialog } from '@/context/LoginDialogContext';
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 interface LogActionsProps {
-  log: Database['public']['Tables']['logs']['Row'];
+  log: Database["public"]["Tables"]["logs"]["Row"];
   currentUserId: string | null;
   likesCount: number;
   hasLiked: boolean;
@@ -58,28 +58,28 @@ export function LogActions({
     if (hasLiked) {
       // Unlike
       const { error } = await supabase
-        .from('log_likes')
+        .from("log_likes")
         .delete()
-        .eq('log_id', log.id)
-        .eq('user_id', currentUserId);
+        .eq("log_id", log.id)
+        .eq("user_id", currentUserId);
 
       if (!error) {
         newLikesCount = likesCount - 1;
         newHasLiked = false;
       } else {
-        console.error('Error unliking log:', error);
+        console.error("Error unliking log:", error);
       }
     } else {
       // Like
       const { error } = await supabase
-        .from('log_likes')
+        .from("log_likes")
         .insert({ log_id: log.id, user_id: currentUserId });
 
       if (!error) {
         newLikesCount = likesCount + 1;
         newHasLiked = true;
       } else {
-        console.error('Error liking log:', error);
+        console.error("Error liking log:", error);
       }
     }
     setLoading(false);
@@ -92,16 +92,18 @@ export function LogActions({
     setIsDeleting(true);
     try {
       const result = await deleteLog(log.id);
-      if (result?.error) {
-        toast.error('로그 삭제 실패', { description: result.error });
+      if (!result.success) {
+        const errorMessage =
+          result.error?.message || "로그 삭제에 실패했습니다.";
+        toast.error("로그 삭제 실패", { description: errorMessage });
       } else {
-        toast.success('로그가 삭제되었습니다.');
-        // Redirect or refresh logic might be needed here, 
+        toast.success("로그가 삭제되었습니다.");
+        // Redirect or refresh logic might be needed here,
         // but it's better handled by the parent component.
-        router.push('/'); // Simple redirect to home for now
+        router.push("/"); // Simple redirect to home for now
       }
     } catch {
-      toast.error('로그 삭제 중 예기치 않은 오류가 발생했습니다.');
+      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
     } finally {
       setIsDeleting(false);
     }
@@ -115,7 +117,9 @@ export function LogActions({
         className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
         <HeartIcon
-          className={hasLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}
+          className={
+            hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"
+          }
           size={18}
         />
         <span>{likesCount} Likes</span>
@@ -144,13 +148,14 @@ export function LogActions({
               <AlertDialogHeader>
                 <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고 스토리지에서 관련 이미지도 함께 삭제합니다.
+                  이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고
+                  스토리지에서 관련 이미지도 함께 삭제합니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>취소</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                  {isDeleting ? '삭제 중...' : '삭제'}
+                  {isDeleting ? "삭제 중..." : "삭제"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

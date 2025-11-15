@@ -101,7 +101,9 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
                   <AlertDialogCancel>취소</AlertDialogCancel>
                   <form action={logout}>
                     <AlertDialogAction asChild>
-                      <Button type="submit">로그아웃</Button>
+                      <Button className="w-full" type="submit">
+                        로그아웃
+                      </Button>
                     </AlertDialogAction>
                   </form>
                 </AlertDialogFooter>

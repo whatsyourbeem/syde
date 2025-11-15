@@ -13,7 +13,7 @@ export default function ReservHeader() {
       >
         <ChevronLeft onClick={() => router.back()} size={24} />
       </button>
-      <h2 className="w-full h-[29px] text-2xl leading-none font-bold text-foreground">
+      <h2 className="w-full h-[29px] text-2xl text-sydenightblue leading-none font-bold text-foreground">
         모임 참가 신청
       </h2>
     </div>

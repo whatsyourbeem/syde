@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReservInput from "@/components/meetup/reserv/reserv-input";
 import ReservBtn from "@/components/meetup/reserv/reserv-btn";
@@ -43,7 +42,7 @@ export default function ReservForm({
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [name, setName] = useState(initialName); // Initialize with prop
 
-  const [state, formAction] = useFormState(serverAction, initialState);
+  const [state, formAction] = useActionState(serverAction, initialState);
 
   useEffect(() => {
     if (state.success) {
@@ -63,7 +62,7 @@ export default function ReservForm({
   return (
     <form
       action={formAction}
-      className="w-full max-w-lg mx-auto text-[#23292F]"
+      className="w-full max-w-lg mx-auto text-sydenightblue"
     >
       <ReservHeader />
       <div className="w-full flex flex-col border-white border-t-[0.5px] px-5 py-4 gap-9">

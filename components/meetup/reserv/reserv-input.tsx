@@ -26,7 +26,7 @@ export default function ReservInput({
         name={name}
         placeholder={placeholder}
         className={cn(
-          "bg-white border border-[#b7b7b7] pl-3 rounded-[10px] h-9 focus:outline-none placeholder:text-sm placeholder:font-normal placeholder:text-[#777777]",
+          "bg-white border border-[#b7b7b7] pl-3 rounded-[10px] h-9 text-sm focus:outline-none placeholder:text-sm placeholder:font-normal placeholder:text-[#777777]",
           className
         )}
         required
