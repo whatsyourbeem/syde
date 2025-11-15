@@ -1,17 +1,26 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useActionState,
+} from "react";
+import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ImagePlus, X } from "lucide-react";
-import { useLoginDialog } from "@/context/LoginDialogContext";
+import { toast } from "sonner";
 
 import { Database } from "@/types/database.types";
 import { createLog, updateLog } from "@/app/log/log-actions";
-import { useFormStatus } from "react-dom";
-import { useRouter } from "next/navigation";
+import { useLoginDialog } from "@/context/LoginDialogContext";
+import { useMediaQuery } from "@/hooks/use-media-query";
+
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +36,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
@@ -50,38 +58,18 @@ interface LogEditDialogProps {
   onCancel?: () => void;
 }
 
-function useMediaQuery(query: string) {
-  const [value, setValue] = useState(false);
-
-  useEffect(() => {
-    function onChange(event: MediaQueryListEvent) {
-      setValue(event.matches);
-    }
-
-    const result = window.matchMedia(query);
-    result.addEventListener("change", onChange);
-    setValue(result.matches);
-
-    return () => result.removeEventListener("change", onChange);
-  }, [query]);
-
-  return value;
-}
-
 function SubmitButton({
   initialLogData,
   content,
-  isSubmitting,
 }: {
   initialLogData?: Database["public"]["Tables"]["logs"]["Row"];
   content: string;
-  isSubmitting: boolean;
 }) {
   const { pending } = useFormStatus();
-  const isDisabled = pending || isSubmitting || content.trim() === "";
+  const isDisabled = pending || content.trim() === "";
   return (
     <Button type="submit" disabled={isDisabled}>
-      {pending || isSubmitting
+      {pending
         ? initialLogData
           ? "로그 수정 중..."
           : "로그 기록 중..."
@@ -93,13 +81,12 @@ function SubmitButton({
 }
 
 function LogForm({
-  clientAction,
+  formAction,
   initialLogData,
   avatarUrl,
   content,
   handleContentChange,
   handleKeyDown,
-  isSubmitting,
   userId,
   openLoginDialog,
   textareaRef,
@@ -116,13 +103,12 @@ function LogForm({
   ogUrl,
   suggestionPosition,
 }: {
-  clientAction: (formData: FormData) => Promise<void>;
+  formAction: (formData: FormData) => void;
   initialLogData?: LogEditDialogProps["initialLogData"];
   avatarUrl: string | null;
   content: string;
   handleContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  isSubmitting: boolean;
   userId: string | null;
   openLoginDialog: () => void;
   textareaRef: React.Ref<HTMLTextAreaElement>;
@@ -139,19 +125,14 @@ function LogForm({
   ogUrl: string | null;
   suggestionPosition: { top: number; left: number };
 }) {
+  const { pending } = useFormStatus();
+
   return (
-    <form
-      action={clientAction}
-      className="flex flex-col h-full overflow-hidden"
-    >
+    <form action={formAction} className="flex flex-col h-full overflow-hidden">
       <div className="flex-grow flex flex-col p-4 overflow-y-auto">
         {initialLogData && (
           <input type="hidden" name="logId" value={initialLogData.id} />
         )}
-
-        {/* This hidden input is no longer needed as the file itself will be appended to FormData */}
-        {/* <input type="hidden" name="imageUrl" value={imageUrlForForm || ""} /> */}
-
         <div className="flex gap-4 flex-grow min-h-0">
           {avatarUrl && (
             <Image
@@ -169,7 +150,7 @@ function LogForm({
               value={content}
               onChange={handleContentChange}
               onKeyDown={handleKeyDown}
-              disabled={!userId || isSubmitting}
+              disabled={!userId || pending}
               onClick={() => {
                 if (!userId) openLoginDialog();
               }}
@@ -235,7 +216,7 @@ function LogForm({
                 size="icon"
                 className="absolute top-2 right-2 h-6 w-6"
                 onClick={removeImage}
-                disabled={isSubmitting}
+                disabled={pending}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -254,18 +235,23 @@ function LogForm({
           <Input
             id="log-image-input"
             type="file"
+            name="imageFile"
             accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleImageChange}
             className="hidden"
-            disabled={isSubmitting}
+            disabled={pending}
             ref={fileInputRef}
           />
+          {/* This hidden input tells the server action to remove the image */}
+          {!imagePreviewUrl && initialLogData?.image_url && (
+            <input type="hidden" name="imageRemoved" value="true" />
+          )}
           <Button
             type="button"
             variant="link"
             size="icon"
             onClick={() => document.getElementById("log-image-input")?.click()}
-            disabled={isSubmitting}
+            disabled={pending}
             className="hover:bg-secondary"
           >
             <ImagePlus className="h-4 w-4 text-muted-foreground" />
@@ -280,16 +266,12 @@ function LogForm({
                 setOpen(false);
                 onCancel();
               }}
-              disabled={isSubmitting}
+              disabled={pending}
             >
               취소
             </Button>
           )}
-          <SubmitButton
-            initialLogData={initialLogData}
-            content={content}
-            isSubmitting={isSubmitting}
-          />
+          <SubmitButton initialLogData={initialLogData} content={content} />
         </div>
       </div>
     </form>
@@ -310,34 +292,57 @@ export function LogEditDialog({
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const dialogTitle = initialLogData ? "로그 수정" : "새 로그 작성";
+  const router = useRouter();
 
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
     initialLogData?.image_url || null
   );
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { openLoginDialog } = useLoginDialog();
   const [ogUrl, setOgUrl] = useState<string | null>(null);
 
-  // Reset state when dialog is closed
+  const action = initialLogData ? updateLog : createLog;
+  const [state, formAction] = useActionState(action, {
+    error: undefined,
+    id: undefined,
+  });
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Reset form state when dialog is closed
   useEffect(() => {
     if (!open) {
       setContent(initialLogData?.content || "");
       setImagePreviewUrl(initialLogData?.image_url || null);
-      setImageFile(null);
-      setIsSubmitting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [open, initialLogData]);
 
+  // Handle form submission result
+  useEffect(() => {
+    if (state.error) {
+      toast.error(state.error);
+    }
+    if (state.id) {
+      toast.success(
+        initialLogData ? "로그가 수정되었습니다." : "로그가 기록되었습니다."
+      );
+      setOpen(false);
+      if (onSuccess) onSuccess();
+
+      if (!initialLogData && state.id) {
+        router.push(`/log/${state.id}`);
+      } else {
+        router.refresh();
+      }
+    }
+  }, [state, initialLogData, onSuccess, router]);
+
+  // OG URL detection
   useEffect(() => {
     const handler = setTimeout(() => {
       const urlRegex = /(https?:\/\/[^\s]+)/;
@@ -348,12 +353,10 @@ export function LogEditDialog({
         setOgUrl(null);
       }
     }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [content, ogUrl]);
 
+  // Mention suggestions logic
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
   const [mentionSuggestions, setMentionSuggestions] = useState<
     MentionSuggestion[]
@@ -372,7 +375,6 @@ export function LogEditDialog({
       setShowSuggestions(false);
       return;
     }
-    // This requires a client-side supabase instance
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
     const { data, error } = await supabase
@@ -406,7 +408,6 @@ export function LogEditDialog({
     textarea: HTMLTextAreaElement,
     atIndex: number
   ) => {
-    // Create a temporary div to measure text dimensions
     const div = document.createElement("div");
     const style = window.getComputedStyle(textarea);
     div.style.position = "absolute";
@@ -414,33 +415,15 @@ export function LogEditDialog({
     div.style.height = "auto";
     div.style.width = textarea.clientWidth + "px";
     div.style.font = style.font;
-    div.style.fontSize = style.fontSize;
     div.style.lineHeight = style.lineHeight;
-    div.style.padding = style.padding;
-    div.style.border = style.border;
     div.style.whiteSpace = "pre-wrap";
     div.style.wordWrap = "break-word";
-
     document.body.appendChild(div);
-
-    const textBeforeAt = textarea.value.substring(0, atIndex);
-    div.textContent = textBeforeAt;
-
-    const lines = textBeforeAt.split("\n");
-    const currentLineIndex = lines.length - 1;
-
-    // Calculate line height
-    const lineHeight =
-      parseInt(style.lineHeight) || parseInt(style.fontSize) * 1.2;
-
-    // Position the suggestions below the current line
-    const top =
-      (currentLineIndex + 1) * lineHeight + parseInt(style.paddingTop);
-    const left = parseInt(style.paddingLeft);
-
+    div.textContent = textarea.value.substring(0, atIndex);
+    const rect = div.getBoundingClientRect();
     document.body.removeChild(div);
-
-    return { top, left };
+    const textareaRect = textarea.getBoundingClientRect();
+    return { top: rect.height, left: 0 };
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -456,16 +439,12 @@ export function LogEditDialog({
         setMentionSearchTerm(textAfterAt);
         setMentionStartIndex(lastAtIndex);
         setActiveSuggestionIndex(0);
-
-        // Calculate position for the suggestion dropdown
         const position = calculateSuggestionPosition(e.target, lastAtIndex);
         setSuggestionPosition(position);
       } else {
-        setMentionSearchTerm("");
         setShowSuggestions(false);
       }
     } else {
-      setMentionSearchTerm("");
       setShowSuggestions(false);
     }
   };
@@ -477,14 +456,15 @@ export function LogEditDialog({
       `@${suggestion.username} ` +
       content.substring(mentionStartIndex + mentionSearchTerm.length + 1);
     setContent(newContent);
-    setMentionSearchTerm("");
     setShowSuggestions(false);
     if (textareaRef.current) {
       const newCursorPosition =
         mentionStartIndex + (suggestion.username?.length || 0) + 2;
-      textareaRef.current.selectionStart = newCursorPosition;
-      textareaRef.current.selectionEnd = newCursorPosition;
       textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(
+        newCursorPosition,
+        newCursorPosition
+      );
     }
   };
 
@@ -493,14 +473,13 @@ export function LogEditDialog({
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setActiveSuggestionIndex(
-          (prevIndex) => (prevIndex + 1) % mentionSuggestions.length
+          (prev) => (prev + 1) % mentionSuggestions.length
         );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setActiveSuggestionIndex(
-          (prevIndex) =>
-            (prevIndex - 1 + mentionSuggestions.length) %
-            mentionSuggestions.length
+          (prev) =>
+            (prev - 1 + mentionSuggestions.length) % mentionSuggestions.length
         );
       } else if (e.key === "Enter") {
         e.preventDefault();
@@ -510,72 +489,32 @@ export function LogEditDialog({
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
+    if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      setImageFile(file);
       setImagePreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const removeImage = () => {
     setImagePreviewUrl(null);
-    setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const router = useRouter();
-
-  const clientAction = async (formData: FormData) => {
-    if (!userId) {
-      openLoginDialog();
-      return;
-    }
-    setIsSubmitting(true);
-
-    formData.set("content", content);
-    if (imageFile) {
-      formData.append("imageFile", imageFile);
-    } else if (!imagePreviewUrl && initialLogData?.image_url) {
-      // This indicates the user removed the existing image
-      formData.append("imageRemoved", "true");
-    }
-
-    const action = initialLogData ? updateLog : createLog;
-    const result = await action(formData);
-
-    if (!result.success) {
-      alert(`Error: ${result.error.message}`);
-    } else {
-      if (!initialLogData) {
-        // Reset form for creation
-        setContent("");
-        setImagePreviewUrl(null);
-        setImageFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setOpen(false);
-        if (result.data.id) {
-          router.push(`/log/${result.data.id}`);
-        } else {
-          router.refresh();
-        }
-      } else {
-        // Handle success for update
-        if (onSuccess) onSuccess();
-        setOpen(false);
-        router.refresh();
-      }
-    }
-    setIsSubmitting(false);
-  };
-
   const formProps = {
-    clientAction,
+    formAction: (formData: FormData) => {
+      if (!userId) {
+        openLoginDialog();
+        return;
+      }
+      // The 'content' is already in the textarea with the correct name,
+      // so we don't need to manually append it.
+      formAction(formData);
+    },
     initialLogData,
     avatarUrl,
     content,
     handleContentChange,
     handleKeyDown,
-    isSubmitting,
     userId,
     openLoginDialog,
     textareaRef,
@@ -593,6 +532,7 @@ export function LogEditDialog({
     suggestionPosition,
   };
 
+  const dialogTitle = initialLogData ? "로그 수정" : "새 로그 작성";
   const triggerContent = children || (
     <div className="flex flex-col items-center p-4">
       {avatarUrl && (
@@ -617,9 +557,7 @@ export function LogEditDialog({
     </div>
   );
 
-  if (!isMounted) {
-    return <>{triggerContent}</>;
-  }
+  if (!isMounted) return <>{triggerContent}</>;
 
   if (isDesktop) {
     return (

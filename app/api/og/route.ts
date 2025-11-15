@@ -14,9 +14,10 @@ export async function GET(request: Request) {
 
     // Don't cache failures or pages without a title.
     if (!result.success || !result.ogTitle) {
-      console.error(`OGS error for ${url}:`, result.error);
+      const errorMessage = `OGS error for ${url}: ${result.error}`;
+      console.error(errorMessage);
       return NextResponse.json(
-        { error: 'Failed to retrieve OG data or no title found' },
+        { error: 'Failed to retrieve OG data', details: errorMessage },
         { status: 500 }
       );
     }
@@ -34,11 +35,12 @@ export async function GET(request: Request) {
         'Cache-Control': 'public, s-maxage=604800, stale-while-revalidate=86400',
       },
     });
-  } catch (error) {
-    console.error(`Error fetching OG data for ${url}:`, error);
+  } catch (error: any) {
+    const errorMessage = `Error fetching OG data for ${url}: ${error?.message || error}`;
+    console.error(errorMessage);
     // Don't cache errors
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Internal Server Error', details: errorMessage },
       { status: 500 }
     );
   }
