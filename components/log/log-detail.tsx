@@ -84,7 +84,12 @@ export function LogDetail({ log, user }: LogDetailProps) {
   const [copyUrl, setCopyUrl] = useState("");
   const [ogUrl, setOgUrl] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
+  const [replyTo, setReplyTo] = useState<{
+    parentId: string;
+    authorName: string;
+    authorUsername: string | null;
+    authorAvatarUrl: string | null;
+  } | null>(null);
 
   useEffect(() => {
     const urlRegex = /(https?:\/\/[^\s]+)/;
@@ -228,8 +233,10 @@ export function LogDetail({ log, user }: LogDetailProps) {
     setIsDeleting(true);
     try {
       const result = await deleteLog(log.id);
-      if (result?.error) {
-        toast.error("로그 삭제 실패", { description: result.error });
+      if (!result.success) {
+        const errorMessage =
+          result.error?.message || "로그 삭제에 실패했습니다.";
+        toast.error("로그 삭제 실패", { description: errorMessage });
       } else {
         toast.success("로그가 삭제되었습니다.");
         router.push("/"); // Redirect to home after deletion
@@ -243,7 +250,9 @@ export function LogDetail({ log, user }: LogDetailProps) {
 
   const handleCommentAdded = () => {
     setCommentsCount((prev) => prev + 1);
-    queryClient.invalidateQueries({ queryKey: ["comments", { logId: log.id }] });
+    queryClient.invalidateQueries({
+      queryKey: ["comments", { logId: log.id }],
+    });
   };
 
   const handleCopyLink = async () => {
@@ -336,11 +345,10 @@ export function LogDetail({ log, user }: LogDetailProps) {
                     {log.profiles.tagline}
                   </p>
                 )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  ·&nbsp;&nbsp;&nbsp;{formattedLogDate}
-                </p>
-              
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ·&nbsp;&nbsp;&nbsp;{formattedLogDate}
+              </p>
             </div>
           </div>
         </ProfileHoverCard>

@@ -93,8 +93,10 @@ function LogCardBase({
     setLoading(true);
     try {
       const result = await deleteLog(log.id);
-      if (result?.error) {
-        toast.error("로그 삭제 실패", { description: result.error });
+      if (!result.success) {
+        const errorMessage =
+          result.error?.message || "로그 삭제에 실패했습니다.";
+        toast.error("로그 삭제 실패", { description: errorMessage });
         setLoading(false);
       } else {
         toast.success("로그가 삭제되었습니다.");

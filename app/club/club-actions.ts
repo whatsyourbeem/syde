@@ -1,246 +1,119 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Enums } from "@/types/database.types";
-import {
-  SupabaseClient,
-  createClient as createAdminClient,
-} from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
-import { uploadAndGetUrl, getFileExtension } from "@/lib/storage";
+import { handleClubContentImages, handlePostContentImages } from "@/lib/storage";
 import {
   CreateResponse,
   UpdateResponse,
   createSuccessResponse,
 } from "@/lib/types/api";
 import {
-  requireAuth,
   validateRequired,
-  withErrorHandling,
+  withAuth,
 } from "@/lib/error-handler";
+import { createClient } from "@/lib/supabase/server";
 
-export async function createClub(formData: FormData): Promise<CreateResponse> {
-  return withErrorHandling(async () => {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const userId = requireAuth(user?.id);
+export const createClub = withAuth(async ({ supabase, user }, formData: FormData): Promise<CreateResponse> => {
+  const userId = user.id;
+  const id = uuidv4();
 
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+  const name = validateRequired(formData.get("name") as string, "클럽 이름");
+  const tagline = formData.get("tagline") as string;
+  const descriptionJSON = formData.get("description") as string;
 
-    const id = uuidv4();
-    const tagline = formData.get("tagline") as string;
-    const descriptionJSON = formData.get("description") as string;
-    const thumbnailFile = formData.get("thumbnailFile") as File | null;
-    const descriptionImageFiles = formData.getAll(
-      "descriptionImageFiles"
-    ) as File[];
-
-    const name = validateRequired(formData.get("name") as string, "클럽 이름");
-
-    let descriptionContent = JSON.parse(descriptionJSON);
-    let finalThumbnailUrl: string | null = null;
-
-    if (thumbnailFile && thumbnailFile.size > 0) {
-      const fileExt = getFileExtension(thumbnailFile.type);
-      const thumbnailPath = `${id}/thumbnail/${uuidv4()}.${fileExt}`;
-      finalThumbnailUrl = await uploadAndGetUrl(
-        adminClient,
-        "clubs",
-        thumbnailPath,
-        thumbnailFile
-      );
-    }
-
-    if (descriptionImageFiles.length > 0) {
-      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-        if (file.size === 0) return null;
-        const blobUrl = formData.get(
-          `descriptionImageBlobUrl_${index}`
-        ) as string;
-        const fileExt = getFileExtension(file.type);
-        const descriptionPath = `${id}/description/${uuidv4()}.${fileExt}`;
-        const publicUrl = await uploadAndGetUrl(
-          adminClient,
-          "clubs",
-          descriptionPath,
-          file
-        );
-        return { blobUrl, publicUrl };
-      });
-
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(
-        Boolean
-      ) as { blobUrl: string; publicUrl: string }[];
-      let descriptionString = JSON.stringify(descriptionContent);
-      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-        if (blobUrl && publicUrl) {
-          descriptionString = descriptionString.replace(
-            new RegExp(blobUrl, "g"),
-            publicUrl
-          );
-        }
-      });
-      descriptionContent = JSON.parse(descriptionString);
-    }
-
-    const { data: newClub, error } = await supabase
-      .from("clubs")
-      .insert({
-        id,
-        name,
-        tagline,
-        description: descriptionContent,
-        thumbnail_url: finalThumbnailUrl,
-        owner_id: userId,
-      })
-      .select("id")
-      .single();
-
-    if (error || !newClub) {
-      throw new Error(error?.message || "클럽 생성에 실패했습니다");
-    }
-
-    await supabase
-      .from("club_members")
-      .insert({
-        club_id: newClub.id,
-        user_id: userId,
-        role: CLUB_MEMBER_ROLES.LEADER,
-      });
-
-    revalidatePath("/club");
-
-    return createSuccessResponse({ id: newClub.id });
+  const { thumbnailUrl, processedContent } = await handleClubContentImages({
+    formData,
+    resourceId: id,
+    bucketName: "clubs",
+    contentJson: descriptionJSON,
   });
-}
 
-export async function updateClub(formData: FormData): Promise<UpdateResponse> {
-  return withErrorHandling(async () => {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const userId = requireAuth(user?.id);
+  const { data: newClub, error } = await supabase
+    .from("clubs")
+    .insert({
+      id,
+      name,
+      tagline,
+      description: processedContent,
+      thumbnail_url: thumbnailUrl,
+      owner_id: userId,
+    })
+    .select("id")
+    .single();
 
-    const clubId = validateRequired(formData.get("id") as string, "클럽 ID");
-
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data: existingClub, error: fetchError } = await supabase
-      .from("clubs")
-      .select("owner_id, thumbnail_url")
-      .eq("id", clubId)
-      .single();
-
-    if (fetchError || !existingClub) {
-      throw new Error("클럽을 찾을 수 없거나 권한이 없습니다.");
-    }
-
-    if (existingClub.owner_id !== userId) {
-      throw new Error("클럽을 수정할 권한이 없습니다.");
-    }
-
-    const thumbnailFile = formData.get("thumbnailFile") as File | null;
-    let newThumbnailUrl = existingClub.thumbnail_url;
-
-    if (thumbnailFile && thumbnailFile.size > 0) {
-      const fileExt = getFileExtension(thumbnailFile.type);
-      const thumbnailPath = `${clubId}/thumbnail/${uuidv4()}.${fileExt}`;
-      newThumbnailUrl = await uploadAndGetUrl(
-        adminClient,
-        "clubs",
-        thumbnailPath,
-        thumbnailFile
-      );
-
-      if (existingClub.thumbnail_url) {
-        const oldThumbnailPath = existingClub.thumbnail_url.split("/clubs/")[1];
-        await adminClient.storage.from("clubs").remove([oldThumbnailPath]);
-      }
-    }
-
-    const descriptionImageFiles = formData.getAll(
-      "descriptionImageFiles"
-    ) as File[];
-    const descriptionJSON = formData.get("description") as string;
-    let descriptionContent = JSON.parse(descriptionJSON);
-
-    if (descriptionImageFiles.length > 0) {
-      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-        if (file.size === 0) return null;
-        const blobUrl = formData.get(
-          `descriptionImageBlobUrl_${index}`
-        ) as string;
-        const fileExt = getFileExtension(file.type);
-        const descriptionPath = `${clubId}/description/${uuidv4()}.${fileExt}`;
-        const publicUrl = await uploadAndGetUrl(
-          adminClient,
-          "clubs",
-          descriptionPath,
-          file
-        );
-        return { blobUrl, publicUrl };
-      });
-
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(
-        Boolean
-      ) as { blobUrl: string; publicUrl: string }[];
-      let descriptionString = JSON.stringify(descriptionContent);
-      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-        if (blobUrl && publicUrl) {
-          descriptionString = descriptionString.replace(
-            new RegExp(blobUrl, "g"),
-            publicUrl
-          );
-        }
-      });
-      descriptionContent = JSON.parse(descriptionString);
-    }
-
-    const updateData = {
-      name: formData.get("name") as string,
-      tagline: formData.get("tagline") as string,
-      description: descriptionContent,
-      thumbnail_url: newThumbnailUrl,
-    };
-
-    const { error: updateError } = await supabase
-      .from("clubs")
-      .update(updateData)
-      .eq("id", clubId);
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    revalidatePath(`/club`);
-    revalidatePath(`/club/${clubId}`);
-    revalidatePath(`/club/${clubId}/edit`);
-
-    return createSuccessResponse(undefined);
-  });
-}
-
-export async function joinClub(clubId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
+  if (error || !newClub) {
+    throw new Error(error?.message || "클럽 생성에 실패했습니다");
   }
 
+  await supabase
+    .from("club_members")
+    .insert({
+      club_id: newClub.id,
+      user_id: userId,
+      role: CLUB_MEMBER_ROLES.LEADER,
+    });
+
+  revalidatePath("/club");
+
+  return createSuccessResponse({ id: newClub.id });
+});
+
+export const updateClub = withAuth(async ({ supabase, user }, formData: FormData): Promise<UpdateResponse> => {
+  const userId = user.id;
+  const clubId = validateRequired(formData.get("id") as string, "클럽 ID");
+
+  const { data: existingClub, error: fetchError } = await supabase
+    .from("clubs")
+    .select("owner_id, thumbnail_url")
+    .eq("id", clubId)
+    .single();
+
+  if (fetchError || !existingClub) {
+    throw new Error("클럽을 찾을 수 없거나 권한이 없습니다.");
+  }
+
+  if (existingClub.owner_id !== userId) {
+    throw new Error("클럽을 수정할 권한이 없습니다.");
+  }
+
+  const descriptionJSON = formData.get("description") as string;
+
+  const { thumbnailUrl, processedContent } = await handleClubContentImages({
+    formData,
+    resourceId: clubId,
+    bucketName: "clubs",
+    contentJson: descriptionJSON,
+    existingThumbnailUrl: existingClub.thumbnail_url,
+  });
+
+  const updateData = {
+    name: formData.get("name") as string,
+    tagline: formData.get("tagline") as string,
+    description: processedContent,
+    thumbnail_url: thumbnailUrl,
+  };
+
+  const { error: updateError } = await supabase
+    .from("clubs")
+    .update(updateData)
+    .eq("id", clubId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  revalidatePath(`/club`);
+  revalidatePath(`/club/${clubId}`);
+  revalidatePath(`/club/${clubId}/edit`);
+
+  return createSuccessResponse(undefined);
+});
+
+export const joinClub = withAuth(async ({ supabase, user }, clubId: string) => {
   const { error } = await supabase.from("club_members").insert({
     club_id: clubId,
     user_id: user.id,
@@ -254,18 +127,9 @@ export async function joinClub(clubId: string) {
 
   revalidatePath(`/club/${clubId}`);
   return { success: true };
-}
+});
 
-export async function leaveClub(clubId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+export const leaveClub = withAuth(async ({ supabase, user }, clubId: string) => {
   const { error } = await supabase
     .from("club_members")
     .delete()
@@ -279,180 +143,43 @@ export async function leaveClub(clubId: string) {
 
   revalidatePath(`/club/${clubId}`);
   return { success: true };
-}
+});
 
-export async function createClubPost(
-  formData: FormData
-): Promise<{ error?: string; postId?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "로그인이 필요합니다." };
-
-  const title = formData.get("title") as string;
-  const contentJSON = formData.get("content") as string;
-  const forumId = formData.get("forumId") as string;
-  const clubId = formData.get("clubId") as string;
-  const descriptionImageFiles = formData.getAll(
-    "descriptionImageFiles"
-  ) as File[];
-
-  if (!title.trim()) return { error: "제목을 입력해주세요." };
-  if (!contentJSON) return { error: "내용을 입력해주세요." };
-  if (!forumId) return { error: "게시판을 선택해주세요." };
-
-  let content = JSON.parse(contentJSON);
-
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
+export const createClubPost = withAuth(async ({ supabase, user }, formData: FormData): Promise<{ error?: string; postId?: string }> => {
   try {
-    // Insert post first to get an ID
+    const title = validateRequired(formData.get("title") as string, "제목");
+    const contentJSON = validateRequired(formData.get("content") as string, "내용");
+    const forumId = validateRequired(formData.get("forumId") as string, "게시판");
+    const clubId = validateRequired(formData.get("clubId") as string, "클럽 ID");
+
+    // Insert post first to get an ID, with initial empty content
     const { data: newPost, error: insertError } = await supabase
       .from("club_forum_posts")
       .insert({
         forum_id: forumId,
         user_id: user.id,
         title: title,
-        content: content,
+        content: JSON.parse(contentJSON), // Start with blob-URL content
       })
       .select("id")
       .single();
 
     if (insertError) throw new Error(insertError.message);
-
     const postId = newPost.id;
 
-    if (descriptionImageFiles.length > 0) {
-      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-        if (file.size === 0) return null;
-        const blobUrl = formData.get(
-          `descriptionImageBlobUrl_${index}`
-        ) as string;
-        const fileExt = getFileExtension(file.type);
-        const path = `${clubId}/forums/${forumId}/posts/${postId}/${uuidv4()}.${fileExt}`;
-        const publicUrl = await uploadAndGetUrl(
-          adminClient,
-          "clubs",
-          path,
-          file
-        );
-        return { blobUrl, publicUrl };
-      });
+    // Handle image uploads and get processed content
+    const { processedContent } = await handlePostContentImages({
+      formData,
+      clubId,
+      forumId,
+      postId,
+      contentJson: contentJSON,
+    });
 
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(
-        Boolean
-      ) as { blobUrl: string; publicUrl: string }[];
-      let contentString = JSON.stringify(content);
-      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-        if (blobUrl && publicUrl) {
-          contentString = contentString.replace(
-            new RegExp(blobUrl, "g"),
-            publicUrl
-          );
-        }
-      });
-      content = JSON.parse(contentString);
-
-      // Update post with final content containing public URLs
-      const { error: updateError } = await supabase
-        .from("club_forum_posts")
-        .update({ content })
-        .eq("id", postId);
-
-      if (updateError) throw new Error(updateError.message);
-    }
-
-    revalidatePath(`/club/${clubId}`);
-    revalidatePath(`/club/${clubId}/post/${postId}`);
-
-    return { postId };
-  } catch (e) {
-    console.error("Create club post error:", (e as Error).message);
-    return { error: (e as Error).message };
-  }
-}
-
-export async function updateClubPost(
-  formData: FormData
-): Promise<{ error?: string; postId?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "로그인이 필요합니다." };
-
-  const postId = formData.get("postId") as string;
-  const title = formData.get("title") as string;
-  const contentJSON = formData.get("content") as string;
-  const clubId = formData.get("clubId") as string;
-  const descriptionImageFiles = formData.getAll(
-    "descriptionImageFiles"
-  ) as File[];
-
-  if (!postId) return { error: "게시글 ID가 필요합니다." };
-  if (!title.trim()) return { error: "제목을 입력해주세요." };
-  if (!contentJSON) return { error: "내용을 입력해주세요." };
-
-  let content = JSON.parse(contentJSON);
-
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  try {
-    const { data: existingPost, error: fetchError } = await supabase
-      .from("club_forum_posts")
-      .select("user_id, forum_id")
-      .eq("id", postId)
-      .single();
-
-    if (fetchError || !existingPost)
-      throw new Error("게시글을 찾을 수 없거나 수정할 권한이 없습니다.");
-    if (existingPost.user_id !== user.id)
-      throw new Error("게시글을 수정할 권한이 없습니다.");
-
-    if (descriptionImageFiles.length > 0) {
-      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-        if (file.size === 0) return null;
-        const blobUrl = formData.get(
-          `descriptionImageBlobUrl_${index}`
-        ) as string;
-        const fileExt = getFileExtension(file.type);
-        const path = `${clubId}/forums/${
-          existingPost.forum_id
-        }/posts/${postId}/${uuidv4()}.${fileExt}`;
-        const publicUrl = await uploadAndGetUrl(
-          adminClient,
-          "clubs",
-          path,
-          file
-        );
-        return { blobUrl, publicUrl };
-      });
-
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(
-        Boolean
-      ) as { blobUrl: string; publicUrl: string }[];
-      let contentString = JSON.stringify(content);
-      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-        if (blobUrl && publicUrl) {
-          contentString = contentString.replace(
-            new RegExp(blobUrl, "g"),
-            publicUrl
-          );
-        }
-      });
-      content = JSON.parse(contentString);
-    }
-
+    // Update post with final content containing public URLs
     const { error: updateError } = await supabase
       .from("club_forum_posts")
-      .update({ title, content })
+      .update({ content: processedContent })
       .eq("id", postId);
 
     if (updateError) throw new Error(updateError.message);
@@ -462,25 +189,63 @@ export async function updateClubPost(
 
     return { postId };
   } catch (e) {
-    console.error("Update club post error:", (e as Error).message);
-    return { error: (e as Error).message };
+    const error = e as Error;
+    console.error("Create club post error:", error.message);
+    return { error: error.message };
   }
-}
+});
 
-export async function createClubPostComment(
+export const updateClubPost = withAuth(async ({ supabase, user }, formData: FormData): Promise<{ error?: string; postId?: string }> => {
+  try {
+    const postId = validateRequired(formData.get("postId") as string, "게시글 ID");
+    const title = validateRequired(formData.get("title") as string, "제목");
+    const contentJSON = validateRequired(formData.get("content") as string, "내용");
+    const clubId = validateRequired(formData.get("clubId") as string, "클럽 ID");
+
+    const { data: existingPost, error: fetchError } = await supabase
+      .from("club_forum_posts")
+      .select("user_id, forum_id")
+      .eq("id", postId)
+      .single();
+
+    if (fetchError || !existingPost) {
+      throw new Error("게시글을 찾을 수 없거나 수정할 권한이 없습니다.");
+    }
+    if (existingPost.user_id !== user.id) {
+      throw new Error("게시글을 수정할 권한이 없습니다.");
+    }
+
+    const { processedContent } = await handlePostContentImages({
+      formData,
+      clubId,
+      forumId: existingPost.forum_id,
+      postId,
+      contentJson: contentJSON,
+    });
+
+    const { error: updateError } = await supabase
+      .from("club_forum_posts")
+      .update({ title, content: processedContent })
+      .eq("id", postId);
+
+    if (updateError) throw new Error(updateError.message);
+
+    revalidatePath(`/club/${clubId}`);
+    revalidatePath(`/club/${clubId}/post/${postId}`);
+
+    return { postId };
+  } catch (e) {
+    const error = e as Error;
+    console.error("Update club post error:", error.message);
+    return { error: error.message };
+  }
+});
+
+export const createClubPostComment = withAuth(async ({ supabase, user },
   postId: string,
   content: string,
   parentCommentId: string | null = null
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+) => {
   if (!content.trim()) {
     return { error: "댓글 내용을 입력해주세요." };
   }
@@ -524,21 +289,12 @@ export async function createClubPostComment(
   }
 
   return { success: true, commentId: comment.id };
-}
+});
 
-export async function updateClubPostComment(
+export const updateClubPostComment = withAuth(async ({ supabase, user },
   commentId: string,
   content: string
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+) => {
   if (!content.trim()) {
     return { error: "댓글 내용을 입력해주세요." };
   }
@@ -589,7 +345,7 @@ export async function updateClubPostComment(
   }
 
   return { success: true };
-}
+});
 
 export async function fetchClubPostComments(
   postId: string,
@@ -647,16 +403,7 @@ export async function fetchClubPostComments(
   return { comments: commentsWithReplies, count: totalCount, error: null };
 }
 
-export async function deleteClubPostComment(commentId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+export const deleteClubPostComment = withAuth(async ({ supabase, user }, commentId: string) => {
   const { data: commentData, error: commentFetchError } = await supabase
     .from("club_forum_post_comments")
     .select("post_id")
@@ -702,23 +449,15 @@ export async function deleteClubPostComment(commentId: string) {
   }
 
   return { success: true };
-}
+});
 
-export async function updateForumPermissions(params: {
+export const updateForumPermissions = withAuth(async ({ supabase, user }, params: {
   forumId: string;
   clubId: string;
   readPermission: Enums<"club_permission_level_enum">;
   writePermission: Enums<"club_permission_level_enum">;
-}) {
+}) => {
   const { forumId, clubId, readPermission, writePermission } = params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
 
   const { data: club, error: fetchError } = await supabase
     .from("clubs")
@@ -751,7 +490,7 @@ export async function updateForumPermissions(params: {
   revalidatePath(`/club/${clubId}`);
   revalidatePath(`/club/${clubId}/manage`);
   return { success: true };
-}
+});
 
 async function isClubOwner(
   supabase: SupabaseClient,
@@ -771,16 +510,7 @@ async function isClubOwner(
   return club.owner_id === userId;
 }
 
-export async function createForum(clubId: string, forumName: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+export const createForum = withAuth(async ({ supabase, user }, clubId: string, forumName: string) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판을 생성할 수 있습니다." };
   }
@@ -803,22 +533,13 @@ export async function createForum(clubId: string, forumName: string) {
 
   revalidatePath(`/club/${clubId}/manage`);
   return { success: true };
-}
+});
 
-export async function updateForumName(
+export const updateForumName = withAuth(async ({ supabase, user },
   forumId: string,
   newName: string,
   clubId: string
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판을 수정할 수 있습니다." };
   }
@@ -838,18 +559,9 @@ export async function updateForumName(
 
   revalidatePath(`/club/${clubId}/manage`);
   return { success: true };
-}
+});
 
-export async function deleteForum(forumId: string, clubId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+export const deleteForum = withAuth(async ({ supabase, user }, forumId: string, clubId: string) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판을 삭제할 수 있습니다." };
   }
@@ -880,21 +592,12 @@ export async function deleteForum(forumId: string, clubId: string) {
 
   revalidatePath(`/club/${clubId}/manage`);
   return { success: true };
-}
+});
 
-export async function updateForumOrder(
+export const updateForumOrder = withAuth(async ({ supabase, user },
   clubId: string,
   orderedForumIds: string[]
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
     return { error: "클럽장만 게시판 순서를 변경할 수 있습니다." };
   }
@@ -940,18 +643,9 @@ export async function updateForumOrder(
   revalidatePath(`/club/${clubId}/manage`);
   revalidatePath(`/club/${clubId}`);
   return { success: true };
-}
+});
 
-export async function deleteClubPost(postId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
+export const deleteClubPost = withAuth(async ({ supabase, user }, postId: string) => {
   const { data: post, error: fetchError } = await supabase
     .from("club_forum_posts")
     .select("user_id, forum_id")
@@ -987,4 +681,4 @@ export async function deleteClubPost(postId: string) {
   }
 
   return { success: true };
-}
+});
