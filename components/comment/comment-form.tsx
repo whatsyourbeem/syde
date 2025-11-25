@@ -3,9 +3,10 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createComment as createLogComment, updateComment as updateLogComment } from "@/app/log/log-actions";
+import { createComment as createShowcaseComment, updateComment as updateShowcaseComment } from "@/app/showcase/showcase-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-
-import { createComment, updateComment } from "@/app/log/log-actions";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useFormStatus } from "react-dom";
 import { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
@@ -13,10 +14,11 @@ import Image from "next/image";
 import { X } from "lucide-react";
 
 interface CommentFormProps {
-  logId: string;
+  logId?: string;
+  showcaseId?: string;
   currentUserId: string | null;
   parentCommentId?: string | null;
-  initialCommentData?: Database["public"]["Tables"]["log_comments"]["Row"];
+  initialCommentData?: Database["public"]["Tables"]["log_comments"]["Row"]; // This type might need adjustment if comments are separate for showcase
   onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
@@ -55,6 +57,7 @@ function SubmitButton({
 
 export function CommentForm({
   logId,
+  showcaseId,
   currentUserId,
   parentCommentId,
   initialCommentData,
@@ -271,15 +274,20 @@ export function CommentForm({
 
     setIsSubmitting(true);
 
-    // The server action will process mentions
     formData.set("content", content);
+    if (logId) {
+      formData.set("log_id", logId);
+    } else if (showcaseId) {
+      formData.set("showcase_id", showcaseId);
+    }
 
-    const action = initialCommentData ? updateComment : createComment;
-    const result = await action(formData);
+    const isLog = !!logId;
+    const createAction = isLog ? createLogComment : createShowcaseComment;
+    const updateAction = isLog ? updateLogComment : updateShowcaseComment;
+    const actionToCall = initialCommentData ? updateAction : createAction;
 
-    if (!result.success) {
-      alert(`Error: ${result.error}`);
-    } else {
+    try {
+      await actionToCall(formData);
       if (initialCommentData) {
         if (onCommentUpdated) onCommentUpdated();
       } else {
@@ -287,8 +295,11 @@ export function CommentForm({
         setContent("");
         if (onCommentAdded) onCommentAdded();
       }
+    } catch (e) {
+      alert(`Error: ${(e as Error).message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   return (
@@ -297,7 +308,8 @@ export function CommentForm({
       action={clientAction}
       className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
     >
-      <input type="hidden" name="log_id" value={logId} />
+      {logId && <input type="hidden" name="log_id" value={logId} />}
+      {showcaseId && <input type="hidden" name="showcase_id" value={showcaseId} />}
       {initialCommentData && (
         <input type="hidden" name="comment_id" value={initialCommentData.id} />
       )}

@@ -70,7 +70,7 @@ export async function getOptimizedLogs({
     created_at,
     updated_at,
     user_id,
-    profiles (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
+    profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
     log_bookmarks(user_id),
     log_comments(id),
     likes_count:log_likes(count)

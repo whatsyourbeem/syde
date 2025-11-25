@@ -1,0 +1,613 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { User } from "@supabase/supabase-js";
+import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreVertical,
+  HeartIcon,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  ChevronLeft,
+  Copy,
+  Link2,
+  Trash2,
+  Edit,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { ShowcaseEditDialog } from "@/components/showcase/showcase-edit-dialog";
+import { useLoginDialog } from "@/context/LoginDialogContext";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { toast } from "sonner";
+import { CommentForm } from "@/components/comment/comment-form";
+import { CommentList } from "@/components/comment/comment-list";
+import { Database } from "@/types/database.types";
+import { OgPreviewCard } from "@/components/common/og-preview-card";
+import { deleteShowcase, toggleShowcaseBookmark } from "@/app/showcase/showcase-actions"; // Import the centralized server action
+
+type ShowcaseWithRelations = Database["public"]["Tables"]["showcases"]["Row"] & {
+  profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  showcase_likes: Array<{ user_id: string }>;
+  showcase_bookmarks: Array<{ user_id: string }>;
+  showcase_comments: Array<{ id: string }>;
+};
+
+interface ShowcaseDetailProps {
+  showcase: ShowcaseWithRelations;
+  user: User | null;
+}
+
+export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
+  const supabase = createClient();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const [mentionedProfiles, setMentionedProfiles] = useState<
+    Array<{ id: string; username: string | null }>
+  >([]);
+  const [commentsCount, setCommentsCount] = useState(showcase.showcase_comments.length);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageStyle, setImageStyle] = useState<{
+    aspectRatio: string;
+    objectFit: "cover" | "contain";
+  } | null>(null);
+  const [showCopyDialog, setShowCopyDialog] = useState(false);
+  const [copyUrl, setCopyUrl] = useState("");
+  const [ogUrl, setOgUrl] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [replyTo, setReplyTo] = useState<{
+    parentId: string;
+    authorName: string;
+    authorUsername: string | null;
+    authorAvatarUrl: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const urlRegex = /(https?:\/\/[^\s]+)/;
+    const match = showcase.content.match(urlRegex);
+    if (match) {
+      setOgUrl(match[0]);
+    }
+  }, [showcase.content]);
+
+  useEffect(() => {
+    if (showcase.image_url) {
+      const img = new window.Image();
+      img.src = showcase.image_url;
+      img.onload = () => {
+        if (img.naturalHeight > 0) {
+          const originalAspectRatio = img.naturalWidth / img.naturalHeight;
+          setImageStyle({
+            aspectRatio: `${originalAspectRatio}`,
+            objectFit: "contain",
+          });
+        }
+      };
+      img.onerror = () => {
+        setImageStyle(null);
+      };
+    } else {
+      setImageStyle(null);
+    }
+  }, [showcase.image_url]);
+
+  useEffect(() => {
+    const fetchMentionedProfiles = async () => {
+      const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
+      const mentionedUserIds = new Set<string>();
+      const matches = showcase.content.matchAll(mentionRegex);
+      for (const match of matches) {
+        mentionedUserIds.add(match[1]);
+      }
+
+      if (mentionedUserIds.size > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, username")
+          .in("id", Array.from(mentionedUserIds));
+
+        if (profilesError) {
+          console.error("Error fetching mentioned profiles:", profilesError);
+        } else {
+          setMentionedProfiles(profilesData || []);
+        }
+      } else {
+        setMentionedProfiles([]);
+      }
+    };
+
+    fetchMentionedProfiles();
+  }, [showcase.content, supabase]);
+
+  const [currentLikesCount, setCurrentLikesCount] = useState(
+    showcase.showcase_likes.length
+  );
+  const [currentHasLiked, setCurrentHasLiked] = useState(
+    user
+      ? showcase.showcase_likes.some(
+          (like: { user_id: string }) => like.user_id === user.id
+        )
+      : false
+  );
+  const [currentBookmarksCount, setCurrentBookmarksCount] = useState(
+    showcase.showcase_bookmarks.length
+  );
+  const [currentHasBookmarked, setCurrentHasBookmarked] = useState(
+    user
+      ? showcase.showcase_bookmarks.some(
+          (bookmark: { user_id: string }) => bookmark.user_id === user.id
+        )
+      : false
+  );
+
+  const { openLoginDialog } = useLoginDialog();
+
+  const handleLike = async () => {
+    if (!user?.id) {
+      openLoginDialog();
+      return;
+    }
+
+    if (currentHasLiked) {
+      const { error } = await supabase
+        .from("showcase_likes")
+        .delete()
+        .eq("showcase_id", showcase.id)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        setCurrentLikesCount((prev) => prev - 1);
+        setCurrentHasLiked(false);
+      } else {
+        console.error("Error unliking showcase:", error);
+      }
+    } else {
+      const { error } = await supabase
+        .from("showcase_likes")
+        .insert({ showcase_id: showcase.id, user_id: user.id });
+
+      if (!error) {
+        setCurrentLikesCount((prev) => prev + 1);
+        setCurrentHasLiked(true);
+      } else {
+        console.error("Error liking showcase:", error);
+      }
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user?.id) {
+      openLoginDialog();
+      return;
+    }
+
+    const newHasBookmarked = !currentHasBookmarked;
+    const newBookmarksCount = newHasBookmarked
+      ? currentBookmarksCount + 1
+      : currentBookmarksCount - 1;
+
+    setCurrentHasBookmarked(newHasBookmarked);
+    setCurrentBookmarksCount(newBookmarksCount);
+
+    const result = await toggleShowcaseBookmark(showcase.id, currentHasBookmarked);
+
+    if ("error" in result && result.error) {
+      toast.error(result.error.message);
+      // Revert state on error
+      setCurrentHasBookmarked(!newHasBookmarked);
+      setCurrentBookmarksCount(currentBookmarksCount);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (user?.id !== showcase.user_id) return;
+    setIsDeleting(true);
+    try {
+      const result = await deleteShowcase(showcase.id);
+      if (!result.success) {
+        const errorMessage =
+          result.error?.message || "쇼케이스 삭제에 실패했습니다.";
+        toast.error("쇼케이스 삭제 실패", { description: errorMessage });
+      } else {
+        toast.success("쇼케이스가 삭제되었습니다.");
+        router.push("/"); // Redirect to home after deletion
+      }
+    } catch {
+      toast.error("쇼케이스 삭제 중 예기치 않은 오류가 발생했습니다.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCommentAdded = () => {
+    setCommentsCount((prev) => prev + 1);
+    queryClient.invalidateQueries({
+      queryKey: ["comments", { showcaseId: showcase.id }],
+    });
+  };
+
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/showcase/${showcase.id}`;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("링크를 복사했어요!");
+      } catch {
+        setCopyUrl(url);
+        setShowCopyDialog(true);
+      }
+    } else {
+      setCopyUrl(url);
+      setShowCopyDialog(true);
+    }
+  };
+
+  const handleShareAll = async () => {
+    const url = `${window.location.origin}/showcase/${showcase.id}`;
+    const text = "Check out this showcase on SYDE!";
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "SYDE Showcase",
+          text: text,
+          url: url,
+        });
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          console.error("Error sharing:", error);
+        }
+      }
+    } else {
+      toast.info("Web Share is not supported on your browser.");
+    }
+  };
+
+  const avatarUrlWithCacheBuster = showcase.profiles?.avatar_url
+    ? `${showcase.profiles.avatar_url}?t=${
+        showcase.profiles.updated_at
+          ? new Date(showcase.profiles.updated_at).getTime()
+          : ""
+      }`
+    : null;
+
+  const formattedShowcaseDate = showcase.created_at
+    ? formatRelativeTime(showcase.created_at)
+    : "";
+
+  return (
+    <div className="px-4 pb-4 mb-4 bg-card flex flex-col">
+      {/* Back Button Bar */}
+      <div className="flex items-center mb-2 mt-2">
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
+          aria-label="Go back"
+        >
+          <ChevronLeft size={24} />
+        </button>
+      </div>
+      <div className="border-b border-border mb-4"></div> {/* Separator */}
+      {/* Section 1: Profile Header */}
+      <div className="flex items-center justify-between">
+        <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
+          <div className="flex items-center">
+            <Link href={`/${showcase.profiles?.username || showcase.user_id}`}>
+              {avatarUrlWithCacheBuster && (
+                <Image
+                  src={avatarUrlWithCacheBuster}
+                  alt={`${showcase.profiles?.username || "User"}'s avatar`}
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover aspect-square mr-3"
+                />
+              )}
+            </Link>
+            <div className="flex items-baseline gap-1">
+              <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
+                <Link href={`/${showcase.profiles?.username || showcase.user_id}`}>
+                  <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
+                    {showcase.profiles?.full_name ||
+                      showcase.profiles?.username ||
+                      "Anonymous"}
+                  </p>
+                </Link>
+                {showcase.profiles?.tagline && (
+                  <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
+                    {showcase.profiles.tagline}
+                  </p>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ·&nbsp;&nbsp;&nbsp;{formattedShowcaseDate}
+              </p>
+            </div>
+          </div>
+        </ProfileHoverCard>
+        {user?.id === showcase.user_id && (
+          <AlertDialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 text-muted-foreground hover:text-blue-500">
+                  <MoreVertical size={18} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <ShowcaseEditDialog
+                  userId={user?.id || null}
+                  avatarUrl={showcase.profiles?.avatar_url || null}
+                  username={showcase.profiles?.username || null}
+                  full_name={showcase.profiles?.full_name || null}
+                  initialShowcaseData={showcase}
+                  onSuccess={() => router.refresh()}
+                >
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="cursor-pointer"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>수정</span>
+                  </DropdownMenuItem>
+                </ShowcaseEditDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-red-500 cursor-pointer"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>삭제</span>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  이 작업은 되돌릴 수 없습니다. 이 쇼케이스를 영구적으로 삭제하고
+                  스토리지에서 관련 이미지도 함께 삭제합니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>취소</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                  {isDeleting ? "삭제 중..." : "삭제"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
+      {/* Showcase Content */}
+      <div className="py-1 pl-11">
+        <p className="mb-3 text-sm md:text-showcase-content whitespace-pre-wrap leading-relaxed">
+          {linkifyMentions(showcase.content, mentionedProfiles)}
+        </p>
+        {showcase.image_url && imageStyle && (
+          <div
+            className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
+            style={{ aspectRatio: imageStyle.aspectRatio }}
+            onClick={() => setShowImageModal(true)}
+          >
+            <Image
+              src={showcase.image_url!}
+              alt="Showcase image"
+              fill
+              style={{ objectFit: imageStyle.objectFit }}
+              sizes="(max-width: 768px) 100vw, 672px"
+            />
+          </div>
+        )}
+        {ogUrl && !showcase.image_url && <OgPreviewCard url={ogUrl} />}
+      </div>
+      {/* Image Modal */}
+      {showImageModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div
+            className="relative max-w-full max-h-full p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={showcase.image_url!}
+              alt="Full size showcase image"
+              width={0}
+              height={0}
+              sizes="100vw"
+              style={{
+                width: "auto",
+                height: "auto",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                objectFit: "contain",
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {/* Actions */}
+      <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
+              >
+                <HeartIcon
+                  className={
+                    currentHasLiked
+                      ? "fill-red-500 text-red-500"
+                      : "text-muted-foreground group-hover:text-red-500"
+                  }
+                  size={18}
+                />
+                <span className="group-hover:text-red-500">
+                  {currentLikesCount}
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>좋아요</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => {}}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+              >
+                <MessageCircle size={18} />
+                <span>{commentsCount}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>댓글</p>
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20">
+                    <Share2 size={18} />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-gray-100">
+                <p>공유</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={handleCopyLink}
+                className="cursor-pointer"
+              >
+                <Link2 className="mr-2 h-4 w-4" />
+                <span>링크 복사하기</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleShareAll}
+                className="cursor-pointer"
+              >
+                <span>모두 보기</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleBookmark}
+                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20 group"
+              >
+                <Bookmark
+                  className={
+                    currentHasBookmarked
+                      ? "fill-yellow-500 text-yellow-500"
+                      : "text-muted-foreground group-hover:text-yellow-500"
+                  }
+                  size={18}
+                />
+                <span className="group-hover:text-yellow-500">
+                  {currentBookmarksCount}
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-gray-100">
+              <p>저장</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      {/* Comments Section */}
+      <div className="mt-4 pt-4 border-t">
+        <h2 className="text-xl font-semibold mb-4 ml-2">댓글</h2>
+        <CommentList
+          showcaseId={showcase.id}
+          currentUserId={user?.id || null}
+          pageSize={10}
+          isDetailPage={true}
+          setReplyTo={setReplyTo}
+        />
+        <CommentForm
+          showcaseId={showcase.id}
+          currentUserId={user?.id || null}
+          onCommentAdded={handleCommentAdded}
+          replyTo={replyTo}
+        />
+      </div>
+      <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
+        <AlertDialogContent className="w-[350px] rounded-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>링크 복사</AlertDialogTitle>
+            <AlertDialogDescription>
+              자동 복사를 지원하지 않는 환경입니다. 수동으로 복사해주세요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2 flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={copyUrl}
+              className="w-full p-2 border rounded bg-muted text-muted-foreground flex-grow"
+              onFocus={(e) => e.target.select()}
+            />
+            <button
+              onClick={async () => {
+                if (navigator.clipboard && window.isSecureContext) {
+                  try {
+                    await navigator.clipboard.writeText(copyUrl);
+                    toast.success("링크를 복사했어요!");
+                  } catch {
+                    toast.error("복사에 실패했어요. 수동으로 복사해주세요.");
+                  }
+                } else {
+                  toast.error("브라우저에서 클립보드 복사를 지원하지 않아요.");
+                }
+              }}
+              className="p-2 rounded-md hover:bg-secondary"
+              aria-label="Copy link"
+            >
+              <Copy size={18} />
+            </button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowCopyDialog(false)}>
+              닫기
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

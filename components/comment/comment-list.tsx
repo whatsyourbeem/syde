@@ -9,7 +9,8 @@ import { Database } from "@/types/database.types";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 
 interface CommentListProps {
-  logId: string;
+  logId?: string;
+  showcaseId?: string;
   currentUserId: string | null;
   pageSize?: number;
   isDetailPage?: boolean;
@@ -38,6 +39,7 @@ type ProcessedComment = CommentRow & {
 
 export function CommentList({
   logId,
+  showcaseId,
   currentUserId,
   pageSize = 10, // Changed to 10 as requested
   isDetailPage = false,
@@ -49,7 +51,12 @@ export function CommentList({
   const supabase = createClient();
   const queryClient = useQueryClient();
 
-  const queryKey = useMemo(() => ["comments", { logId }], [logId]);
+  const parentId = logId || showcaseId;
+  const parentTable = logId ? "log_comments" : "showcase_comments";
+  const parentColumn = logId ? "log_id" : "showcase_id";
+  const channelName = logId ? `comments-for-log-${logId}` : `comments-for-showcase-${showcaseId}`;
+
+  const queryKey = useMemo(() => ["comments", { parentId }], [parentId]);
 
   const {
     data,
@@ -66,7 +73,7 @@ export function CommentList({
       const to = from + pageSize - 1;
 
       const { data, error, count } = await supabase
-        .from("log_comments")
+        .from(parentTable)
         .select(
           `
           id,
@@ -74,14 +81,14 @@ export function CommentList({
           created_at,
           updated_at,
           user_id,
-          log_id,
+          ${parentColumn},
           parent_comment_id,
-          profiles!log_comments_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
-          comment_likes(user_id)
+          profiles!${parentTable}_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
+          ${parentTable === "log_comments" ? "comment_likes(user_id)" : ""}
         `,
           { count: "exact" }
         )
-        .eq("log_id", logId)
+        .eq(parentColumn, parentId)
         .is('parent_comment_id', null) // Fetch only top-level comments
         .order("created_at", { ascending: true })
         .range(from, to);
@@ -93,17 +100,17 @@ export function CommentList({
       // Fetch replies for the fetched top-level comments
       const commentIds = data.map(c => c.id);
       const { data: repliesData, error: repliesError } = await supabase
-        .from("log_comments")
+        .from(parentTable)
         .select(`
           id,
           content,
           created_at,
           updated_at,
           user_id,
-          log_id,
+          ${parentColumn},
           parent_comment_id,
-          profiles!log_comments_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
-          comment_likes(user_id)
+          profiles!${parentTable}_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
+          ${parentTable === "log_comments" ? "comment_likes(user_id)" : ""}
         `)
         .in('parent_comment_id', commentIds);
 
@@ -212,10 +219,10 @@ export function CommentList({
 
   useEffect(() => {
     const channel = supabase
-      .channel(`comments-for-log-${logId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "log_comments", filter: `log_id=eq.${logId}` },
+        { event: "*", schema: "public", table: parentTable, filter: `${parentColumn}=eq.${parentId}` },
         () => {
           queryClient.invalidateQueries({ queryKey });
         }
@@ -232,7 +239,7 @@ export function CommentList({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, logId, queryClient, queryKey]);
+  }, [supabase, parentId, queryClient, queryKey, parentTable, parentColumn, channelName]);
 
   useEffect(() => {
     if (newCommentId) {
@@ -272,7 +279,8 @@ export function CommentList({
             initialLikesCount={comment.initialLikesCount}
             initialHasLiked={comment.initialHasLiked}
             onLikeStatusChange={handleLikeStatusChange}
-            logId={logId}
+            logId={logId} // Pass logId if available
+            showcaseId={showcaseId} // Pass showcaseId if available
             level={0}
             isDetailPage={isDetailPage}
             isMobile={isMobile}

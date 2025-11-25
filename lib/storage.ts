@@ -381,3 +381,76 @@ export async function deleteLogStorage(logId: string): Promise<void> {
     }
   }
 }
+
+export async function handleShowcaseImage(
+  showcaseId: string,
+  imageFile: File | null,
+  imageRemoved: boolean,
+  currentImageUrl?: string | null
+): Promise<string | null | undefined> {
+  if (!imageFile && !imageRemoved) {
+    return undefined; // No change
+  }
+
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Delete the old image if a new one is uploaded or if removal is requested
+  if (currentImageUrl && (imageFile || imageRemoved)) {
+    try {
+      const oldPath = currentImageUrl.split("/showcases/").pop();
+      if (oldPath) {
+        await deleteFile(adminClient, "showcases", oldPath);
+      }
+    } catch (error) {
+      console.warn("Failed to delete old showcase image:", error);
+    }
+  }
+
+  // Upload a new image if provided
+  if (imageFile) {
+    const fileName = `${showcaseId}/${uuidv4()}`;
+    return await uploadAndGetUrl(adminClient, "showcases", fileName, imageFile);
+  }
+
+  // Return null if the image was removed
+  if (imageRemoved) {
+    return null;
+  }
+
+  return undefined;
+}
+
+export async function deleteShowcaseStorage(showcaseId: string): Promise<void> {
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: files, error: listError } = await adminClient.storage
+    .from("showcases")
+    .list(showcaseId);
+
+  if (listError) {
+    console.error(
+      `Error listing showcase files for deletion (showcaseId: ${showcaseId}):`,
+      listError
+    );
+    // Do not throw, allow showcase deletion to proceed
+    return;
+  }
+
+  if (files && files.length > 0) {
+    const filePaths = files.map((file) => `${showcaseId}/${file.name}`);
+    const { error: removeError } = await adminClient.storage
+      .from("showcases")
+      .remove(filePaths);
+
+    if (removeError) {
+      console.error(`Error removing showcase files (showcaseId: ${showcaseId}):`, removeError);
+      // Do not throw, allow showcase deletion to proceed
+    }
+  }
+}
