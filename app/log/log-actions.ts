@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
@@ -173,7 +174,7 @@ export const deleteLog = withAuth(async ({ supabase, user }, logId: string) => {
     throw new Error(deleteLogError.message);
   }
 
-  await deleteLogStorage(logId);
+  await deleteLogStorage(logId); // Re-enabled storage deletion
 
   revalidatePath("/");
   revalidatePath("/log");

@@ -36,6 +36,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { useQueryClient } from "@tanstack/react-query";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
@@ -293,6 +294,7 @@ export function LogEditDialog({
   const [isMounted, setIsMounted] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
@@ -334,13 +336,16 @@ export function LogEditDialog({
       setOpen(false);
       if (onSuccess) onSuccess();
 
+      // Invalidate the logs query to ensure the list is fresh
+      queryClient.invalidateQueries({ queryKey: ["logs"] });
+
       if (!initialLogData && state.id) {
         router.push(`/log/${state.id}`);
       } else {
         router.refresh();
       }
     }
-  }, [state, initialLogData, onSuccess, router]);
+  }, [state, initialLogData, onSuccess, router, queryClient]);
 
   // OG URL detection
   useEffect(() => {

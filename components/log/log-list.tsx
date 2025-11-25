@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "@/components/log/log-card";
@@ -52,17 +52,22 @@ export function LogList({
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const queryKey = [
-    "logs",
-    {
-      currentPage,
-      filterByUserId,
-      filterByCommentedUserId,
-      filterByLikedUserId,
-      filterByBookmarkedUserId,
-      searchQuery,
-    },
-  ];
+  const queryKey = useMemo(() => {
+    const filters: { [key: string]: string | number } = { currentPage };
+    if (filterByUserId) filters.filterByUserId = filterByUserId;
+    if (filterByCommentedUserId) filters.filterByCommentedUserId = filterByCommentedUserId;
+    if (filterByLikedUserId) filters.filterByLikedUserId = filterByLikedUserId;
+    if (filterByBookmarkedUserId) filters.filterByBookmarkedUserId = filterByBookmarkedUserId;
+    if (searchQuery) filters.searchQuery = searchQuery;
+    return ["logs", filters];
+  }, [
+    currentPage,
+    filterByUserId,
+    filterByCommentedUserId,
+    filterByLikedUserId,
+    filterByBookmarkedUserId,
+    searchQuery,
+  ]);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
@@ -81,11 +86,16 @@ export function LogList({
   });
 
   const logs: OptimizedLog[] = useMemo(() => data?.logs || [], [data?.logs]);
+  const logsRef = useRef(logs);
   const totalLogsCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
 
   useEffect(() => {
-    const logIdsForFilter: string[] = logs
+    logsRef.current = logs;
+  }, [logs]);
+
+  useEffect(() => {
+    const logIdsForFilter: string[] = logsRef.current
       .map((log) => log.id)
       .filter((id): id is string => id !== null);
 
@@ -114,7 +124,7 @@ export function LogList({
               .log_id ||
             (payload.old as Database["public"]["Tables"]["log_likes"]["Row"])
               .log_id;
-          if (logs.some((log) => log.id === changedLogId)) {
+          if (logsRef.current.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
         }
@@ -133,7 +143,7 @@ export function LogList({
               .log_id ||
             (payload.old as Database["public"]["Tables"]["log_bookmarks"]["Row"])
               .log_id;
-          if (logs.some((log) => log.id === changedLogId)) {
+          if (logsRef.current.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
         }
@@ -152,7 +162,7 @@ export function LogList({
               .log_id ||
             (payload.old as Database["public"]["Tables"]["log_comments"]["Row"])
               .log_id;
-          if (logs.some((log) => log.id === changedLogId)) {
+          if (logsRef.current.some((log) => log.id === changedLogId)) {
             queryClient.invalidateQueries({ queryKey: ["logs"] });
           }
         }
@@ -162,7 +172,7 @@ export function LogList({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, logs]); // Add logs to dependencies
+  }, [supabase, queryClient, logsRef]); // Changed dependency from `logs` to `logsRef`
 
   if (isLoading) {
     return (

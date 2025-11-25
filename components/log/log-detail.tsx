@@ -233,13 +233,12 @@ export function LogDetail({ log, user }: LogDetailProps) {
     setIsDeleting(true);
     try {
       const result = await deleteLog(log.id);
-      if (!result.success) {
-        const errorMessage =
-          result.error?.message || "로그 삭제에 실패했습니다.";
-        toast.error("로그 삭제 실패", { description: errorMessage });
-      } else {
+      if (result.success) {
         toast.success("로그가 삭제되었습니다.");
-        router.push("/"); // Redirect to home after deletion
+        queryClient.invalidateQueries({ queryKey: ["logs"] });
+        router.push("/log");
+      } else {
+        toast.error(result.error.message || "로그 삭제에 실패했습니다.");
       }
     } catch {
       toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
