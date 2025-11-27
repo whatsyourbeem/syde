@@ -202,3 +202,42 @@ export function formatRelativeTime(dateString: string): string {
     }
   }
 }
+
+/**
+ * Converts HTTP URLs to HTTPS for security
+ * @param url - The URL to convert
+ * @returns The URL with HTTPS protocol, or null if invalid
+ */
+export function upgradeToHttps(url: string | null | undefined): string | null {
+  if (!url) return null;
+
+  try {
+    const urlObj = new URL(url);
+
+    // If already HTTPS or other secure protocol, return as is
+    if (urlObj.protocol === "https:" || urlObj.protocol === "data:") {
+      return url;
+    }
+
+    // Convert HTTP to HTTPS
+    if (urlObj.protocol === "http:") {
+      urlObj.protocol = "https:";
+      return urlObj.toString();
+    }
+
+    // For other protocols, return as is
+    return url;
+  } catch (error) {
+    console.warn("Invalid URL provided to upgradeToHttps:", url);
+    return null;
+  }
+}
+
+/**
+ * Ensures an image URL is secure (HTTPS)
+ * @param imageUrl - The image URL to check
+ * @returns Secure image URL or null
+ */
+export function ensureSecureImageUrl(imageUrl: string | null | undefined): string | null {
+  return upgradeToHttps(imageUrl);
+}

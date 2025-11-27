@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
-import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
+import { linkifyMentions, formatRelativeTime, ensureSecureImageUrl } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -121,9 +121,10 @@ export function LogDetail({ log, user }: LogDetailProps) {
   }, [log.content]);
 
   useEffect(() => {
-    if (log.image_url) {
+    const secureImageUrl = ensureSecureImageUrl(log.image_url);
+    if (secureImageUrl) {
       const img = new window.Image();
-      img.src = log.image_url;
+      img.src = secureImageUrl;
       img.onload = () => {
         if (img.naturalHeight > 0) {
           const originalAspectRatio = img.naturalWidth / img.naturalHeight;
@@ -428,14 +429,14 @@ export function LogDetail({ log, user }: LogDetailProps) {
         <p className="mb-3 text-sm md:text-log-content whitespace-pre-wrap leading-relaxed">
           {linkifyMentions(log.content, mentionedProfiles)}
         </p>
-        {log.image_url && imageStyle && (
+        {log.image_url && ensureSecureImageUrl(log.image_url) && imageStyle && (
           <div
             className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
             style={{ aspectRatio: imageStyle.aspectRatio }}
             onClick={() => setShowImageModal(true)}
           >
             <Image
-              src={log.image_url!}
+              src={ensureSecureImageUrl(log.image_url)!}
               alt="Log image"
               fill
               style={{ objectFit: imageStyle.objectFit }}
@@ -446,7 +447,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
         {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
       </div>
       {/* Image Modal */}
-      {showImageModal && (
+      {showImageModal && log.image_url && ensureSecureImageUrl(log.image_url) && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
           onClick={() => setShowImageModal(false)}
@@ -456,7 +457,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={log.image_url!}
+              src={ensureSecureImageUrl(log.image_url)!}
               alt="Full size log image"
               width={0}
               height={0}
