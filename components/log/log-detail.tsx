@@ -45,7 +45,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
@@ -83,13 +83,34 @@ export function LogDetail({ log, user }: LogDetailProps) {
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const [ogUrl, setOgUrl] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [replyTo, setReplyTo] = useState<{
     parentId: string;
     authorName: string;
     authorUsername: string | null;
     authorAvatarUrl: string | null;
   } | null>(null);
+
+  const {
+    mutate: deleteLogMutation,
+    isPending: isDeleting,
+  } = useMutation({
+    mutationFn: async (id: string) => {
+      return await deleteLog(id);
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        // Use hard redirect to ensure clean navigation and fresh data
+        const redirectUrl = result.data?.redirectTo || "/log";
+        window.location.href = redirectUrl;
+      } else {
+        toast.error(result.error?.message || "로그 삭제에 실패했습니다.");
+      }
+    },
+    onError: (error) => {
+      console.error("Delete error:", error);
+      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
+    },
+  });
 
   useEffect(() => {
     const urlRegex = /(https?:\/\/[^\s]+)/;
@@ -228,23 +249,9 @@ export function LogDetail({ log, user }: LogDetailProps) {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (user?.id !== log.user_id) return;
-    setIsDeleting(true);
-    try {
-      const result = await deleteLog(log.id);
-      if (result.success) {
-        toast.success("로그가 삭제되었습니다.");
-        queryClient.invalidateQueries({ queryKey: ["logs"] });
-        router.push("/log");
-      } else {
-        toast.error(result.error.message || "로그 삭제에 실패했습니다.");
-      }
-    } catch {
-      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
-    } finally {
-      setIsDeleting(false);
-    }
+    deleteLogMutation(log.id);
   };
 
   const handleCommentAdded = () => {
@@ -303,18 +310,29 @@ export function LogDetail({ log, user }: LogDetailProps) {
     : "";
 
   return (
-    <div className="px-4 pb-4 mb-4 bg-card flex flex-col">
-      {/* Back Button Bar */}
-      <div className="flex items-center mb-2 mt-2">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
-          aria-label="Go back"
-        >
-          <ChevronLeft size={24} />
-        </button>
-      </div>
-      <div className="border-b border-border mb-4"></div> {/* Separator */}
+    <>
+      {/* Loading Overlay during deletion */}
+      {isDeleting && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
+          <div className="bg-card p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-lg font-medium">로그 삭제 중...</p>
+          </div>
+        </div>
+      )}
+
+      <div className="px-4 pb-4 mb-4 bg-card flex flex-col">
+        {/* Back Button Bar */}
+        <div className="flex items-center mb-2 mt-2">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
+            aria-label="Go back"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        </div>
+        <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header */}
       <div className="flex items-center justify-between">
         <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
@@ -608,5 +626,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }
