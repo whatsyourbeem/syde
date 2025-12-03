@@ -26,15 +26,25 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
       setIsLoading(true);
       try {
         const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
+
+        // Silently ignore errors - just don't show preview
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          if (isMounted) {
+            setOgData(null);
+          }
+          return;
         }
+
         const data = await response.json();
         if (isMounted) {
           setOgData(data);
         }
       } catch (error) {
-        console.error("Failed to fetch OG data", error);
+        // Silently fail - OG preview is optional, don't disturb user
+        // Only log for debugging purposes
+        if (process.env.NODE_ENV === 'development') {
+          console.log("OG preview unavailable for:", url);
+        }
         if (isMounted) {
           setOgData(null);
         }
