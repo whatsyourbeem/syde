@@ -124,7 +124,7 @@ export default async function RootLayout({
         <Providers>
           <LoginDialogProvider>
             <div className="flex flex-col min-h-dvh">
-              <div className="sticky top-0 z-50 w-full bg-background md:contents">
+              <div className="contents">
                 <header>
                   <div className="w-full bg-background">
                     <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
@@ -249,7 +249,7 @@ export default async function RootLayout({
                     </div>
                   </div>
                 </header>
-                <div className="w-full bg-background md:sticky md:top-0 md:z-40">
+                <div className="w-full bg-background sticky top-0 z-40">
                   <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
                     <HeaderNavigation />
                   </nav>
