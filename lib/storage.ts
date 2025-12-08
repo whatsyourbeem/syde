@@ -337,7 +337,7 @@ export async function handleLogImage(
   }
 
   // Upload a new image if provided
-  if (imageFile) {
+  if (imageFile && imageFile.size > 0) {
     const fileName = `${logId}/${uuidv4()}`;
     return await uploadAndGetUrl(adminClient, "logs", fileName, imageFile);
   }

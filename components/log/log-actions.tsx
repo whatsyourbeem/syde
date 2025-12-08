@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { HeartIcon, Trash2, Edit } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Database } from "@/types/database.types";
 import { deleteLog } from "@/app/log/log-actions"; // Import the server action
 import { toast } from "sonner";
@@ -38,7 +38,7 @@ export function LogActions({
   onLikeStatusChange,
 }: LogActionsProps) {
   const supabase = createClient();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -92,15 +92,11 @@ export function LogActions({
     setIsDeleting(true);
     try {
       const result = await deleteLog(log.id);
-      if (!result.success) {
-        const errorMessage =
-          result.error?.message || "로그 삭제에 실패했습니다.";
-        toast.error("로그 삭제 실패", { description: errorMessage });
-      } else {
+      if (result.success) {
         toast.success("로그가 삭제되었습니다.");
-        // Redirect or refresh logic might be needed here,
-        // but it's better handled by the parent component.
-        router.push("/"); // Simple redirect to home for now
+        queryClient.invalidateQueries({ queryKey: ["logs"] });
+      } else {
+        toast.error(result.error.message || "로그 삭제에 실패했습니다.");
       }
     } catch {
       toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");

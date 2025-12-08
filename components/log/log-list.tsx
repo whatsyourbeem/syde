@@ -33,41 +33,35 @@ export function LogList({
   const supabase = createClient();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId);
-
-  // Fetch current user ID if not provided
-  useEffect(() => {
-    if (!propCurrentUserId) {
-      async function fetchCurrentUserId() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setCurrentUserId(user.id);
-        }
-      }
-      fetchCurrentUserId();
-    }
-  }, [supabase, propCurrentUserId]);
 
   useEffect(() => {
+    console.log("LogList: useEffect - Scroll to Top. Deps:", { currentPage });
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const queryKey = [
-    "logs",
-    {
-      currentPage,
-      filterByUserId,
-      filterByCommentedUserId,
-      filterByLikedUserId,
-      filterByBookmarkedUserId,
-      searchQuery,
-    },
-  ];
+  const queryKey = useMemo(() => {
+    const filters: { [key: string]: string | number } = { currentPage };
+    if (filterByUserId) filters.filterByUserId = filterByUserId;
+    if (filterByCommentedUserId) filters.filterByCommentedUserId = filterByCommentedUserId;
+    if (filterByLikedUserId) filters.filterByLikedUserId = filterByLikedUserId;
+    if (filterByBookmarkedUserId) filters.filterByBookmarkedUserId = filterByBookmarkedUserId;
+    if (searchQuery) filters.searchQuery = searchQuery;
+    console.log("LogList: useMemo - Query Key. Result:", ["logs", filters]);
+    return ["logs", filters];
+  }, [
+    currentPage,
+    filterByUserId,
+    filterByCommentedUserId,
+    filterByLikedUserId,
+    filterByBookmarkedUserId,
+    searchQuery,
+  ]);
 
+  console.log("LogList: Before useQuery. QueryKey:", queryKey);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
     queryFn: () => getOptimizedLogs({
-      currentUserId,
+      currentUserId: propCurrentUserId,
       currentPage,
       logsPerPage: LOGS_PER_PAGE,
       filterByUserId,
@@ -81,80 +75,48 @@ export function LogList({
   });
 
   const logs: OptimizedLog[] = useMemo(() => data?.logs || [], [data?.logs]);
+  console.log("LogList: After logs memo. logsLength:", logs.length, "isLoading:", isLoading, "data:", data);
   const totalLogsCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
 
   useEffect(() => {
-    const logIdsForFilter: string[] = logs
-      .map((log) => log.id)
-      .filter((id): id is string => id !== null);
-
-    if (logIdsForFilter.length === 0) return;
-
+    console.log("LogList: useEffect - Realtime. Deps:", { supabase, queryClient });
+    // We will listen for any changes in relevant tables and invalidate the query.
+    // This decouples the subscription from specific log IDs on the current page,
+    // which prevents complex dependency loops and ensures a stable `useEffect`.
+    // The `queryClient.invalidateQueries` will ensure the latest data is fetched.
     const channel = supabase
       .channel("syde-log-feed")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "logs" },
         () => {
+          console.log("Realtime: Invalidating logs query - table: logs");
           queryClient.invalidateQueries({ queryKey: ["logs"] });
         }
       )
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "log_likes",
-          filter: `log_id=in.(${logIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedLogId =
-            (payload.new as Database["public"]["Tables"]["log_likes"]["Row"])
-              .log_id ||
-            (payload.old as Database["public"]["Tables"]["log_likes"]["Row"])
-              .log_id;
-          if (logs.some((log) => log.id === changedLogId)) {
-            queryClient.invalidateQueries({ queryKey: ["logs"] });
-          }
+        { event: "*", schema: "public", table: "log_likes" },
+        () => {
+          console.log("Realtime: Invalidating logs query - table: log_likes");
+          queryClient.invalidateQueries({ queryKey: ["logs"] });
         }
       )
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "log_bookmarks",
-          filter: `log_id=in.(${logIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedLogId =
-            (payload.new as Database["public"]["Tables"]["log_bookmarks"]["Row"])
-              .log_id ||
-            (payload.old as Database["public"]["Tables"]["log_bookmarks"]["Row"])
-              .log_id;
-          if (logs.some((log) => log.id === changedLogId)) {
-            queryClient.invalidateQueries({ queryKey: ["logs"] });
-          }
+        { event: "*", schema: "public", table: "log_bookmarks" },
+        () => {
+          console.log("Realtime: Invalidating logs query - table: log_bookmarks");
+          queryClient.invalidateQueries({ queryKey: ["logs"] });
         }
       )
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "log_comments",
-          filter: `log_id=in.(${logIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedLogId =
-            (payload.new as Database["public"]["Tables"]["log_comments"]["Row"])
-              .log_id ||
-            (payload.old as Database["public"]["Tables"]["log_comments"]["Row"])
-              .log_id;
-          if (logs.some((log) => log.id === changedLogId)) {
-            queryClient.invalidateQueries({ queryKey: ["logs"] });
-          }
+        { event: "*", schema: "public", table: "log_comments" },
+        () => {
+          console.log("Realtime: Invalidating logs query - table: log_comments");
+          queryClient.invalidateQueries({ queryKey: ["logs"] });
         }
       )
       .subscribe();
@@ -162,7 +124,7 @@ export function LogList({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, logs]); // Add logs to dependencies
+  }, [supabase, queryClient]); // Stable dependencies only. No `logs`.
 
   if (isLoading) {
     return (
@@ -189,6 +151,7 @@ export function LogList({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
+      {console.log("LogList: Rendering JSX with", { logsLength: logs.length, isLoading })}
       {logs.length === 0 && !isLoading ? (
         <div className="px-4">
           <p className="text-center text-muted-foreground">
@@ -200,7 +163,7 @@ export function LogList({
           <div key={log.id} className="px-4">
             <LogCard
               log={log}
-              currentUserId={currentUserId}
+              currentUserId={propCurrentUserId}
               initialLikesCount={log.likesCount}
               initialHasLiked={log.hasLiked}
               initialBookmarksCount={log.bookmarksCount}

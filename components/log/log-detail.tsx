@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
-import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
+import { linkifyMentions, formatRelativeTime, ensureSecureImageUrl } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +45,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
@@ -83,13 +83,34 @@ export function LogDetail({ log, user }: LogDetailProps) {
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const [ogUrl, setOgUrl] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [replyTo, setReplyTo] = useState<{
     parentId: string;
     authorName: string;
     authorUsername: string | null;
     authorAvatarUrl: string | null;
   } | null>(null);
+
+  const {
+    mutate: deleteLogMutation,
+    isPending: isDeleting,
+  } = useMutation({
+    mutationFn: async (id: string) => {
+      return await deleteLog(id);
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        // Use hard redirect to ensure clean navigation and fresh data
+        const redirectUrl = result.data?.redirectTo || "/log";
+        window.location.href = redirectUrl;
+      } else {
+        toast.error(result.error?.message || "로그 삭제에 실패했습니다.");
+      }
+    },
+    onError: (error) => {
+      console.error("Delete error:", error);
+      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
+    },
+  });
 
   useEffect(() => {
     const urlRegex = /(https?:\/\/[^\s]+)/;
@@ -100,9 +121,10 @@ export function LogDetail({ log, user }: LogDetailProps) {
   }, [log.content]);
 
   useEffect(() => {
-    if (log.image_url) {
+    const secureImageUrl = ensureSecureImageUrl(log.image_url);
+    if (secureImageUrl) {
       const img = new window.Image();
-      img.src = log.image_url;
+      img.src = secureImageUrl;
       img.onload = () => {
         if (img.naturalHeight > 0) {
           const originalAspectRatio = img.naturalWidth / img.naturalHeight;
@@ -228,24 +250,9 @@ export function LogDetail({ log, user }: LogDetailProps) {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (user?.id !== log.user_id) return;
-    setIsDeleting(true);
-    try {
-      const result = await deleteLog(log.id);
-      if (!result.success) {
-        const errorMessage =
-          result.error?.message || "로그 삭제에 실패했습니다.";
-        toast.error("로그 삭제 실패", { description: errorMessage });
-      } else {
-        toast.success("로그가 삭제되었습니다.");
-        router.push("/"); // Redirect to home after deletion
-      }
-    } catch {
-      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
-    } finally {
-      setIsDeleting(false);
-    }
+    deleteLogMutation(log.id);
   };
 
   const handleCommentAdded = () => {
@@ -304,18 +311,29 @@ export function LogDetail({ log, user }: LogDetailProps) {
     : "";
 
   return (
-    <div className="px-4 pb-4 mb-4 bg-card flex flex-col">
-      {/* Back Button Bar */}
-      <div className="flex items-center mb-2 mt-2">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
-          aria-label="Go back"
-        >
-          <ChevronLeft size={24} />
-        </button>
-      </div>
-      <div className="border-b border-border mb-4"></div> {/* Separator */}
+    <>
+      {/* Loading Overlay during deletion */}
+      {isDeleting && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
+          <div className="bg-card p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-lg font-medium">로그 삭제 중...</p>
+          </div>
+        </div>
+      )}
+
+      <div className="px-4 pb-4 mb-4 bg-card flex flex-col">
+        {/* Back Button Bar */}
+        <div className="flex items-center mb-2 mt-2">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-full text-muted-foreground hover:bg-secondary"
+            aria-label="Go back"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        </div>
+        <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header */}
       <div className="flex items-center justify-between">
         <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
@@ -411,14 +429,14 @@ export function LogDetail({ log, user }: LogDetailProps) {
         <p className="mb-3 text-sm md:text-log-content whitespace-pre-wrap leading-relaxed">
           {linkifyMentions(log.content, mentionedProfiles)}
         </p>
-        {log.image_url && imageStyle && (
+        {log.image_url && ensureSecureImageUrl(log.image_url) && imageStyle && (
           <div
             className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
             style={{ aspectRatio: imageStyle.aspectRatio }}
             onClick={() => setShowImageModal(true)}
           >
             <Image
-              src={log.image_url!}
+              src={ensureSecureImageUrl(log.image_url)!}
               alt="Log image"
               fill
               style={{ objectFit: imageStyle.objectFit }}
@@ -429,7 +447,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
         {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
       </div>
       {/* Image Modal */}
-      {showImageModal && (
+      {showImageModal && log.image_url && ensureSecureImageUrl(log.image_url) && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
           onClick={() => setShowImageModal(false)}
@@ -439,7 +457,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={log.image_url!}
+              src={ensureSecureImageUrl(log.image_url)!}
               alt="Full size log image"
               width={0}
               height={0}
@@ -609,5 +627,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 }

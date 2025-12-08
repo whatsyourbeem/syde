@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
@@ -173,15 +174,15 @@ export const deleteLog = withAuth(async ({ supabase, user }, logId: string) => {
     throw new Error(deleteLogError.message);
   }
 
-  await deleteLogStorage(logId);
+  // Delete storage in background (don't wait for completion)
+  deleteLogStorage(logId).catch(err =>
+    console.error("Storage deletion error:", err)
+  );
 
-  revalidatePath("/");
-  revalidatePath("/log");
-  if (user.user_metadata.username) {
-    revalidatePath(`/${user.user_metadata.username}`);
-  }
+  // Note: revalidatePath is not needed here because window.location.href
+  // on the client side will do a full page reload, fetching fresh data
 
-  return createSuccessResponse(null);
+  return createSuccessResponse({ redirectTo: "/log" });
 });
 
 export const toggleLogBookmark = withAuth(
