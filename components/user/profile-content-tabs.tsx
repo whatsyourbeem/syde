@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useEffect, useState } from "react";
 
 interface ProfileContentTabsProps {
   isOwnProfile: boolean;
@@ -33,6 +34,16 @@ export function ProfileContentTabs({
   currentUserId,
   className,
 }: ProfileContentTabsProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <Tabs
       defaultValue="bio"
