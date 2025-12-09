@@ -151,7 +151,6 @@ export function LogList({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
-      {console.log("LogList: Rendering JSX with", { logsLength: logs.length, isLoading })}
       {logs.length === 0 && !isLoading ? (
         <div className="px-4">
           <p className="text-center text-muted-foreground">
