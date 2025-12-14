@@ -6,10 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 import { ShowcaseCard } from "@/components/showcase/showcase-card";
 import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
-import { getOptimizedShowcases, OptimizedShowcase, ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
+import { fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
+import {
+  OptimizedShowcase,
+  ShowcaseQueryResult,
+} from "@/lib/queries/showcase-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
-
 
 const SHOWCASES_PER_PAGE = 20; // Define showcases per page
 
@@ -33,13 +36,17 @@ export function ShowcaseList({
   const supabase = createClient();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(
+    propCurrentUserId
+  );
 
   // Fetch current user ID if not provided
   useEffect(() => {
     if (!propCurrentUserId) {
       async function fetchCurrentUserId() {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           setCurrentUserId(user.id);
         }
@@ -66,21 +73,33 @@ export function ShowcaseList({
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
-    queryFn: () => getOptimizedShowcases({
-      currentUserId,
-      currentPage,
-      showcasesPerPage: SHOWCASES_PER_PAGE,
-      filterByUserId,
-      filterByCommentedUserId,
-      filterByLikedUserId,
-      filterByBookmarkedUserId,
-      searchQuery,
-    }),
+    queryFn: () =>
+      fetchShowcasesAction({
+        currentUserId,
+        currentPage,
+        showcasesPerPage: SHOWCASES_PER_PAGE,
+        filterByUserId,
+        filterByCommentedUserId,
+        filterByLikedUserId,
+        filterByBookmarkedUserId,
+        searchQuery,
+      }),
     staleTime: 30000,
-    initialData: currentPage === 1 && !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery ? initialShowcases : undefined,
+    initialData:
+      currentPage === 1 &&
+      !filterByUserId &&
+      !filterByCommentedUserId &&
+      !filterByLikedUserId &&
+      !filterByBookmarkedUserId &&
+      !searchQuery
+        ? initialShowcases
+        : undefined,
   });
 
-  const showcases: OptimizedShowcase[] = useMemo(() => data?.showcases || [], [data?.showcases]);
+  const showcases: OptimizedShowcase[] = useMemo(
+    () => data?.showcases || [],
+    [data?.showcases]
+  );
   const totalShowcasesCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
 
@@ -110,10 +129,12 @@ export function ShowcaseList({
         },
         (payload) => {
           const changedShowcaseId =
-            (payload.new as Database["public"]["Tables"]["showcase_likes"]["Row"])
-              .showcase_id ||
-            (payload.old as Database["public"]["Tables"]["showcase_likes"]["Row"])
-              .showcase_id;
+            (
+              payload.new as Database["public"]["Tables"]["showcase_likes"]["Row"]
+            ).showcase_id ||
+            (
+              payload.old as Database["public"]["Tables"]["showcase_likes"]["Row"]
+            ).showcase_id;
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
           }
@@ -129,10 +150,12 @@ export function ShowcaseList({
         },
         (payload) => {
           const changedShowcaseId =
-            (payload.new as Database["public"]["Tables"]["showcase_bookmarks"]["Row"])
-              .showcase_id ||
-            (payload.old as Database["public"]["Tables"]["showcase_bookmarks"]["Row"])
-              .showcase_id;
+            (
+              payload.new as Database["public"]["Tables"]["showcase_bookmarks"]["Row"]
+            ).showcase_id ||
+            (
+              payload.old as Database["public"]["Tables"]["showcase_bookmarks"]["Row"]
+            ).showcase_id;
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
           }
@@ -148,10 +171,12 @@ export function ShowcaseList({
         },
         (payload) => {
           const changedShowcaseId =
-            (payload.new as Database["public"]["Tables"]["showcase_comments"]["Row"])
-              .showcase_id ||
-            (payload.old as Database["public"]["Tables"]["showcase_comments"]["Row"])
-              .showcase_id;
+            (
+              payload.new as Database["public"]["Tables"]["showcase_comments"]["Row"]
+            ).showcase_id ||
+            (
+              payload.old as Database["public"]["Tables"]["showcase_comments"]["Row"]
+            ).showcase_id;
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
           }
@@ -178,9 +203,13 @@ export function ShowcaseList({
     return (
       <div className="w-full max-w-2xl mx-auto pb-4">
         <div className="px-4">
-          <InlineError 
-            error={error?.message || "쇼케이스를 불러오는 중 오류가 발생했습니다."}
-            retry={() => queryClient.invalidateQueries({ queryKey: ["showcases"] })}
+          <InlineError
+            error={
+              error?.message || "쇼케이스를 불러오는 중 오류가 발생했습니다."
+            }
+            retry={() =>
+              queryClient.invalidateQueries({ queryKey: ["showcases"] })
+            }
           />
         </div>
       </div>
@@ -227,7 +256,10 @@ export function ShowcaseList({
           >
             이전
           </Button>
-          {Array.from({ length: Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) }, (_, i) => i + 1).map((page) => (
+          {Array.from(
+            { length: Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) },
+            (_, i) => i + 1
+          ).map((page) => (
             <Button
               key={page}
               variant={page === currentPage ? "default" : "outline"}
@@ -246,7 +278,10 @@ export function ShowcaseList({
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) || isLoading}
+            disabled={
+              currentPage ===
+                Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) || isLoading
+            }
           >
             다음
           </Button>
