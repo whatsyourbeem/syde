@@ -44,6 +44,9 @@ next-env.d.ts
 /.gemini
 GEMINI.md
 
+/ .claude
+CLAUDE.md
+
 /claude
 CLAUDE.md
 

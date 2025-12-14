@@ -23,9 +23,13 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "k.kakaocdn.net",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
     minimumCacheTTL: 604800, // 1 week
-    unoptimized: true, //FIXME: Vercel 요금 절약을 위한 이미지 최적화 비활성화
+    // unoptimized: true, // Vercel 요금 절약을 위한 이미지 최적화 비활성화
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production", // production에서 console.log 제거
@@ -61,64 +65,65 @@ const nextConfig: NextConfig = {
       "embla-carousel-react",
     ],
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.optimization.splitChunks = {
-        chunks: "all",
-        minSize: 20000,
-        maxSize: 250000,
-        cacheGroups: {
-          // Radix UI components in separate chunk
-          radix: {
-            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-            name: "radix-ui",
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-          // TipTap editor components
-          tiptap: {
-            test: /[\\/]node_modules[\\/]@tiptap[\\/]/,
-            name: "tiptap",
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-          // React Query
-          reactQuery: {
-            test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
-            name: "react-query",
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-          // Supabase
-          supabase: {
-            test: /[\\/]node_modules[\\/]@supabase[\\/]/,
-            name: "supabase",
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-          // Other vendors
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: "vendors",
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-          common: {
-            name: "common",
-            minChunks: 2,
-            priority: 5,
-            reuseExistingChunk: true,
-          },
-        },
-      };
-    }
+  turbopack: {},
+  // webpack: (config, { isServer }) => {
+  //   if (!isServer) {
+  //     config.optimization.splitChunks = {
+  //       chunks: "all",
+  //       minSize: 20000,
+  //       maxSize: 250000,
+  //       cacheGroups: {
+  //         // Radix UI components in separate chunk
+  //         radix: {
+  //           test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+  //           name: "radix-ui",
+  //           priority: 20,
+  //           reuseExistingChunk: true,
+  //         },
+  //         // TipTap editor components
+  //         tiptap: {
+  //           test: /[\\/]node_modules[\\/]@tiptap[\\/]/,
+  //           name: "tiptap",
+  //           priority: 20,
+  //           reuseExistingChunk: true,
+  //         },
+  //         // React Query
+  //         reactQuery: {
+  //           test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
+  //           name: "react-query",
+  //           priority: 20,
+  //           reuseExistingChunk: true,
+  //         },
+  //         // Supabase
+  //         supabase: {
+  //           test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+  //           name: "supabase",
+  //           priority: 20,
+  //           reuseExistingChunk: true,
+  //         },
+  //         // Other vendors
+  //         vendor: {
+  //           test: /[\\/]node_modules[\\/]/,
+  //           name: "vendors",
+  //           priority: 10,
+  //           reuseExistingChunk: true,
+  //         },
+  //         common: {
+  //           name: "common",
+  //           minChunks: 2,
+  //           priority: 5,
+  //           reuseExistingChunk: true,
+  //         },
+  //       },
+  //     };
+  //   }
 
-    // Tree shaking improvements
-    config.optimization.usedExports = true;
-    config.optimization.sideEffects = false;
+  //   // Tree shaking improvements
+  //   config.optimization.usedExports = true;
+  //   config.optimization.sideEffects = false;
 
-    return config;
-  },
+  //   return config;
+  // },
   /* config options here */
 };
 

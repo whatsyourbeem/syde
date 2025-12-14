@@ -24,6 +24,11 @@ const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropd
   const [notifications, setNotifications] = useState<NotificationType[] | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,6 +53,19 @@ const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropd
     setUnreadCount(prev => Math.max(0, prev - 1));
     router.push(`/log/${logId}`);
   };
+
+  if (!isMounted) {
+    return (
+      <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-secondary">
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            {unreadCount}
+          </span>
+        )}
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu onOpenChange={setIsOpen}>

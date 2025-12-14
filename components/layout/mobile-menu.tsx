@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useEffect, useState } from "react";
 
 interface MobileMenuProps {
   user: User | null;
@@ -33,6 +34,20 @@ interface MobileMenuProps {
 
 export function MobileMenu({ user, authButton }: MobileMenuProps) {
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <Button variant="ghost" size="icon" className="md:hidden rounded-full">
+        <Menu />
+      </Button>
+    );
+  }
+
   return (
     <Sheet>
       <SheetTrigger asChild>

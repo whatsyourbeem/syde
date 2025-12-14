@@ -124,135 +124,137 @@ export default async function RootLayout({
         <Providers>
           <LoginDialogProvider>
             <div className="flex flex-col min-h-dvh">
-              <header>
-                <div className="w-full bg-background">
-                  <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
-                    {/* Mobile specific layout */}
-                    <div className="flex md:hidden w-full justify-between items-center">
-                      <div className="flex items-center">
-                        <Link href={"/"} className="flex items-center gap-1">
-                          <Image
-                            src="/logo_no_bg.png"
-                            alt="SYDE"
-                            width={36}
-                            height={36}
-                            priority
-                          />
-                          <span
-                            className={`text-2xl font-extrabold text-sydenightblue ${paperlogy.className}`}
-                          >
-                            <span style={{ letterSpacing: "0.01em" }}>S</span>
-                            <span style={{ letterSpacing: "0.01em" }}>Y</span>
-                            <span style={{ letterSpacing: "0em" }}>DE</span>
-                          </span>
-                        </Link>
-                      </div>
-                      <div className="flex justify-end items-center gap-4">
-                        <Link
-                          href="/search"
-                          className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                        >
-                          <Search size={20} />
-                        </Link>
-                        <Suspense
-                          fallback={
-                            <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                          }
-                        >
-                          <NotificationBell
-                            initialUnreadCount={unreadNotifCount}
-                            userId={user?.id || null}
-                          />
-                        </Suspense>
-                        <MobileMenu
-                          user={user}
-                          authButton={
-                            <AuthButton
-                              avatarUrl={avatarUrl}
-                              username={usernameForAuthButton}
-                              fullName={fullNameForAuthButton}
-                              sheetHeader={true}
-                            />
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    {/* Desktop specific layout */}
-                    <div className="hidden md:flex w-full justify-between items-center">
-                      <div className="w-1/3">
-                        <Link
-                          href="https://open.kakao.com/o/gduSGmtf"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button
-                            variant="ghost"
-                            className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
-                          >
+              <div className="contents">
+                <header>
+                  <div className="w-full bg-background">
+                    <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
+                      {/* Mobile specific layout */}
+                      <div className="flex md:hidden w-full justify-between items-center">
+                        <div className="flex items-center">
+                          <Link href={"/"} className="flex items-center gap-1">
                             <Image
-                              src="/kakao-talk.png"
-                              alt="Kakao"
-                              width={24}
-                              height={24}
+                              src="/logo_no_bg.png"
+                              alt="SYDE"
+                              width={36}
+                              height={36}
+                              priority
                             />
-                            <span className="hidden md:inline text-[#4B4737]">
-                              SYDE 오픈채팅
+                            <span
+                              className={`text-2xl font-extrabold text-sydenightblue ${paperlogy.className}`}
+                            >
+                              <span style={{ letterSpacing: "0.01em" }}>S</span>
+                              <span style={{ letterSpacing: "0.01em" }}>Y</span>
+                              <span style={{ letterSpacing: "0em" }}>DE</span>
                             </span>
-                          </Button>
-                        </Link>
-                      </div>
-                      <div className="w-1/3 flex justify-center items-center font-semibold">
-                        <Link href={"/"} className="flex items-center gap-1">
-                          <Image
-                            src="/logo_no_bg.png"
-                            alt="SYDE"
-                            width={52}
-                            height={52}
-                            priority
-                          />
-                          <span
-                            className={`text-4xl font-extrabold text-sydenightblue ${paperlogy.className}`}
+                          </Link>
+                        </div>
+                        <div className="flex justify-end items-center gap-4">
+                          <Link
+                            href="/search"
+                            className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
                           >
-                            <span style={{ letterSpacing: "0.01em" }}>S</span>
-                            <span style={{ letterSpacing: "0.01em" }}>Y</span>
-                            <span style={{ letterSpacing: "0em" }}>DE</span>
-                          </span>
-                        </Link>
-                      </div>
-                      <div className="w-1/3 flex justify-end items-center gap-4">
-                        <Link
-                          href="/search"
-                          className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                        >
-                          <Search size={20} />
-                        </Link>
-                        <Suspense
-                          fallback={
-                            <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                          }
-                        >
-                          <NotificationBell
-                            initialUnreadCount={unreadNotifCount}
-                            userId={user?.id || null}
+                            <Search size={20} />
+                          </Link>
+                          <Suspense
+                            fallback={
+                              <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                            }
+                          >
+                            <NotificationBell
+                              initialUnreadCount={unreadNotifCount}
+                              userId={user?.id || null}
+                            />
+                          </Suspense>
+                          <MobileMenu
+                            user={user}
+                            authButton={
+                              <AuthButton
+                                avatarUrl={avatarUrl}
+                                username={usernameForAuthButton}
+                                fullName={fullNameForAuthButton}
+                                sheetHeader={true}
+                              />
+                            }
                           />
-                        </Suspense>
-                        <AuthButton
-                          avatarUrl={avatarUrl}
-                          username={usernameForAuthButton}
-                          fullName={fullNameForAuthButton}
-                          sheetHeader={false}
-                        />
+                        </div>
+                      </div>
+
+                      {/* Desktop specific layout */}
+                      <div className="hidden md:flex w-full justify-between items-center">
+                        <div className="w-1/3">
+                          <Link
+                            href="https://open.kakao.com/o/gduSGmtf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Button
+                              variant="ghost"
+                              className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
+                            >
+                              <Image
+                                src="/kakao-talk.png"
+                                alt="Kakao"
+                                width={24}
+                                height={24}
+                              />
+                              <span className="hidden md:inline text-[#4B4737]">
+                                SYDE 오픈채팅
+                              </span>
+                            </Button>
+                          </Link>
+                        </div>
+                        <div className="w-1/3 flex justify-center items-center font-semibold">
+                          <Link href={"/"} className="flex items-center gap-1">
+                            <Image
+                              src="/logo_no_bg.png"
+                              alt="SYDE"
+                              width={52}
+                              height={52}
+                              priority
+                            />
+                            <span
+                              className={`text-4xl font-extrabold text-sydenightblue ${paperlogy.className}`}
+                            >
+                              <span style={{ letterSpacing: "0.01em" }}>S</span>
+                              <span style={{ letterSpacing: "0.01em" }}>Y</span>
+                              <span style={{ letterSpacing: "0em" }}>DE</span>
+                            </span>
+                          </Link>
+                        </div>
+                        <div className="w-1/3 flex justify-end items-center gap-4">
+                          <Link
+                            href="/search"
+                            className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
+                          >
+                            <Search size={20} />
+                          </Link>
+                          <Suspense
+                            fallback={
+                              <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                            }
+                          >
+                            <NotificationBell
+                              initialUnreadCount={unreadNotifCount}
+                              userId={user?.id || null}
+                            />
+                          </Suspense>
+                          <AuthButton
+                            avatarUrl={avatarUrl}
+                            username={usernameForAuthButton}
+                            fullName={fullNameForAuthButton}
+                            sheetHeader={false}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
+                </header>
+                <div className="w-full bg-background sticky top-0 z-40">
+                  <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
+                    <HeaderNavigation />
+                  </nav>
+                  <Separator />
                 </div>
-              </header>
-              <div className="sticky top-0 z-40 w-full bg-background">
-                <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
-                  <HeaderNavigation />
-                </nav>
-                <Separator />
               </div>
               <main className="flex-1 h-full">{children}</main>
               <Toaster />

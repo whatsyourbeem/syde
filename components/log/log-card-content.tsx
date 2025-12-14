@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, memo, useRef } from "react";
-import { linkifyMentions } from "@/lib/utils";
+import { linkifyMentions, ensureSecureImageUrl } from "@/lib/utils";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 
@@ -90,13 +90,13 @@ function LogCardContentBase({
           <OgPreviewCard url={previewUrl} />
         </div>
       )}
-      {log.image_url && (
+      {log.image_url && ensureSecureImageUrl(log.image_url) && (
         <div
           className="relative w-full mt-3 rounded-md overflow-hidden bg-sydenightblue"
           style={{ aspectRatio: "16 / 9" }}
         >
           <Image
-            src={log.image_url}
+            src={ensureSecureImageUrl(log.image_url)!}
             alt="Log image"
             fill
             style={{ objectFit: "contain" }}

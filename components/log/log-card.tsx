@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, memo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
@@ -44,6 +45,7 @@ function LogCardBase({
   isDetailPage = false,
 }: LogCardProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
   const [bookmarksCount, setBookmarksCount] = useState(initialBookmarksCount);
@@ -93,17 +95,21 @@ function LogCardBase({
     setLoading(true);
     try {
       const result = await deleteLog(log.id);
-      if (!result.success) {
-        const errorMessage =
-          result.error?.message || "로그 삭제에 실패했습니다.";
-        toast.error("로그 삭제 실패", { description: errorMessage });
-        setLoading(false);
-      } else {
+      if (result.success) {
         toast.success("로그가 삭제되었습니다.");
-        router.refresh();
+        queryClient.invalidateQueries({ queryKey: ["logs"] });
+
+        // Hard redirect if specified (used in detail pages)
+        if (result.data?.redirectTo) {
+          window.location.href = result.data.redirectTo;
+        }
+      } else {
+        toast.error(result.error?.message || "로그 삭제에 실패했습니다.");
       }
-    } catch {
+    } catch (error) {
+      console.error("Delete error:", error);
       toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
+    } finally {
       setLoading(false);
     }
   };
@@ -166,8 +172,7 @@ const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
     prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
     prevProps.searchQuery === nextProps.searchQuery &&
     prevProps.isDetailPage === nextProps.isDetailPage &&
-    JSON.stringify(prevProps.log.profiles) ===
-      JSON.stringify(nextProps.log.profiles)
+    prevProps.log.profiles?.id === nextProps.log.profiles?.id
   );
 });
 

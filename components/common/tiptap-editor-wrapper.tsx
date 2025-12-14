@@ -5,6 +5,7 @@ import { commonTiptapExtensions } from "./tiptap-extensions";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { upgradeToHttps } from "@/lib/utils";
 
 interface TiptapEditorWrapperProps {
   initialContent: JSONContent | null;
@@ -40,9 +41,11 @@ export default function TiptapEditorWrapper({
           try {
             const url = new URL(text);
             if (url.protocol === "http:" || url.protocol === "https:") {
+              // Upgrade HTTP to HTTPS for security
+              const secureUrl = upgradeToHttps(text) || text;
               view.dispatch(
                 view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.linkPreview.create({ src: text })
+                  view.state.schema.nodes.linkPreview.create({ src: secureUrl })
                 )
               );
               return true; // Mark as handled
@@ -91,7 +94,9 @@ export default function TiptapEditorWrapper({
         loading: "이미지를 업로드하는 중입니다...",
         success: (publicUrl) => {
           if (publicUrl && editor) {
-            editor.chain().focus().setImage({ src: publicUrl }).run();
+            // Ensure HTTPS for security
+            const secureUrl = upgradeToHttps(publicUrl) || publicUrl;
+            editor.chain().focus().setImage({ src: secureUrl }).run();
           }
           return "이미지가 성공적으로 삽입되었습니다.";
         },
