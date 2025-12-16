@@ -52,14 +52,18 @@ import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
-import { deleteShowcase, toggleShowcaseBookmark } from "@/app/showcase/showcase-actions"; // Import the centralized server action
+import {
+  deleteShowcase,
+  toggleShowcaseBookmark,
+} from "@/app/showcase/showcase-actions"; // Import the centralized server action
 
-type ShowcaseWithRelations = Database["public"]["Tables"]["showcases"]["Row"] & {
-  profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
-  showcase_likes: Array<{ user_id: string }>;
-  showcase_bookmarks: Array<{ user_id: string }>;
-  showcase_comments: Array<{ id: string }>;
-};
+type ShowcaseWithRelations =
+  Database["public"]["Tables"]["showcases"]["Row"] & {
+    profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    showcase_likes: Array<{ user_id: string }>;
+    showcase_bookmarks: Array<{ user_id: string }>;
+    showcase_comments: Array<{ id: string }>;
+  };
 
 interface ShowcaseDetailProps {
   showcase: ShowcaseWithRelations;
@@ -74,7 +78,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const [mentionedProfiles, setMentionedProfiles] = useState<
     Array<{ id: string; username: string | null }>
   >([]);
-  const [commentsCount, setCommentsCount] = useState(showcase.showcase_comments.length);
+  const [commentsCount, setCommentsCount] = useState(
+    showcase.showcase_comments.length
+  );
   const [showImageModal, setShowImageModal] = useState(false);
   const [imageStyle, setImageStyle] = useState<{
     aspectRatio: string;
@@ -218,7 +224,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     setCurrentHasBookmarked(newHasBookmarked);
     setCurrentBookmarksCount(newBookmarksCount);
 
-    const result = await toggleShowcaseBookmark(showcase.id, currentHasBookmarked);
+    const result = await toggleShowcaseBookmark(
+      showcase.id,
+      currentHasBookmarked
+    );
 
     if ("error" in result && result.error) {
       toast.error(result.error.message);
@@ -318,7 +327,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       <div className="border-b border-border mb-4"></div> {/* Separator */}
       {/* Section 1: Profile Header */}
       <div className="flex items-center justify-between">
-        <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
+        <ProfileHoverCard
+          userId={showcase.user_id}
+          profileData={showcase.profiles}
+        >
           <div className="flex items-center">
             <Link href={`/${showcase.profiles?.username || showcase.user_id}`}>
               {avatarUrlWithCacheBuster && (
@@ -333,7 +345,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             </Link>
             <div className="flex items-baseline gap-1">
               <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
-                <Link href={`/${showcase.profiles?.username || showcase.user_id}`}>
+                <Link
+                  href={`/${showcase.profiles?.username || showcase.user_id}`}
+                >
                   <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
                     {showcase.profiles?.full_name ||
                       showcase.profiles?.username ||
@@ -346,7 +360,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                   </p>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 ·&nbsp;&nbsp;&nbsp;{formattedShowcaseDate}
               </p>
             </div>
@@ -392,8 +406,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  이 작업은 되돌릴 수 없습니다. 이 쇼케이스를 영구적으로 삭제하고
-                  스토리지에서 관련 이미지도 함께 삭제합니다.
+                  이 작업은 되돌릴 수 없습니다. 이 쇼케이스를 영구적으로
+                  삭제하고 스토리지에서 관련 이미지도 함께 삭제합니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -456,7 +470,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
       )}
       {/* Actions */}
-      <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
+      <div className="flex justify-center items-center gap-5 text-sm text-muted-foreground px-4 pt-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

@@ -2,13 +2,30 @@
 
 import { useState, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { HeartIcon, MessageCircle, Share2, Bookmark, Link2, Copy } from "lucide-react";
+import {
+  HeartIcon,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  Link2,
+  Copy,
+} from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { useLoginDialog } from '@/context/LoginDialogContext';
+import { useLoginDialog } from "@/context/LoginDialogContext";
 import { LoadingSpinner } from "@/components/ui/loading-states";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +46,10 @@ interface ShowcaseCardActionsProps {
   hasBookmarked: boolean;
   commentsCount: number;
   onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
-  onBookmarkStatusChange: (newBookmarksCount: number, newHasBookmarked: boolean) => void;
+  onBookmarkStatusChange: (
+    newBookmarksCount: number,
+    newHasBookmarked: boolean
+  ) => void;
 }
 
 function ShowcaseCardActionsBase({
@@ -68,20 +88,34 @@ function ShowcaseCardActionsBase({
 
     const supabase = createClient();
     if (hasLiked) {
-      const { error } = await supabase.from("showcase_likes").delete().eq("showcase_id", showcaseId).eq("user_id", currentUserId);
+      const { error } = await supabase
+        .from("showcase_likes")
+        .delete()
+        .eq("showcase_id", showcaseId)
+        .eq("user_id", currentUserId);
       if (error) {
         toast.error("좋아요 취소 실패");
         onLikeStatusChange(likesCount, hasLiked); // Revert on error
       }
     } else {
-      const { error } = await supabase.from("showcase_likes").insert({ showcase_id: showcaseId, user_id: currentUserId });
+      const { error } = await supabase
+        .from("showcase_likes")
+        .insert({ showcase_id: showcaseId, user_id: currentUserId });
       if (error) {
         toast.error("좋아요 실패");
         onLikeStatusChange(likesCount, hasLiked); // Revert on error
       }
     }
     setLikeLoading(false);
-  }, [currentUserId, showcaseId, hasLiked, likesCount, likeLoading, openLoginDialog, onLikeStatusChange]);
+  }, [
+    currentUserId,
+    showcaseId,
+    hasLiked,
+    likesCount,
+    likeLoading,
+    openLoginDialog,
+    onLikeStatusChange,
+  ]);
 
   const handleBookmark = useCallback(async () => {
     if (!currentUserId) {
@@ -91,7 +125,9 @@ function ShowcaseCardActionsBase({
     if (bookmarkLoading) return;
 
     setBookmarkLoading(true);
-    const newBookmarksCount = hasBookmarked ? bookmarksCount - 1 : bookmarksCount + 1;
+    const newBookmarksCount = hasBookmarked
+      ? bookmarksCount - 1
+      : bookmarksCount + 1;
     const newHasBookmarked = !hasBookmarked;
     onBookmarkStatusChange(newBookmarksCount, newHasBookmarked);
 
@@ -101,7 +137,15 @@ function ShowcaseCardActionsBase({
       onBookmarkStatusChange(bookmarksCount, hasBookmarked); // Revert on error
     }
     setBookmarkLoading(false);
-  }, [currentUserId, showcaseId, hasBookmarked, bookmarksCount, bookmarkLoading, openLoginDialog, onBookmarkStatusChange]);
+  }, [
+    currentUserId,
+    showcaseId,
+    hasBookmarked,
+    bookmarksCount,
+    bookmarkLoading,
+    openLoginDialog,
+    onBookmarkStatusChange,
+  ]);
 
   const handleCopyLink = useCallback(async () => {
     const url = `${window.location.origin}/showcase/${showcaseId}`;
@@ -130,7 +174,7 @@ function ShowcaseCardActionsBase({
           url: url,
         });
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if ((error as Error).name !== "AbortError") {
           console.error("Error sharing:", error);
         }
       }
@@ -158,7 +202,7 @@ function ShowcaseCardActionsBase({
 
   return (
     <>
-      <div className="flex justify-between items-center text-xs md:text-sm text-muted-foreground px-[44px] pt-2">
+      <div className="flex justify-center items-center gap-5 text-xs md:text-sm text-muted-foreground px-4 pt-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -172,7 +216,9 @@ function ShowcaseCardActionsBase({
                 ) : (
                   <HeartIcon
                     className={
-                      hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500"
+                      hasLiked
+                        ? "fill-red-500 text-red-500"
+                        : "text-muted-foreground group-hover:text-red-500"
                     }
                     size={18}
                   />
@@ -184,7 +230,7 @@ function ShowcaseCardActionsBase({
               <p>좋아요</p>
             </TooltipContent>
           </Tooltip>
-          
+
           {commentButton}
 
           <DropdownMenu>
@@ -201,11 +247,17 @@ function ShowcaseCardActionsBase({
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleCopyLink}
+                className="cursor-pointer"
+              >
                 <Link2 className="mr-2 h-4 w-4" />
                 <span>링크 복사하기</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShareAll} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleShareAll}
+                className="cursor-pointer"
+              >
                 <span>모두 보기</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -222,12 +274,16 @@ function ShowcaseCardActionsBase({
                 ) : (
                   <Bookmark
                     className={
-                      hasBookmarked ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground group-hover:text-yellow-500"
+                      hasBookmarked
+                        ? "fill-yellow-500 text-yellow-500"
+                        : "text-muted-foreground group-hover:text-yellow-500"
                     }
                     size={18}
                   />
                 )}
-                <span className="group-hover:text-yellow-500">{bookmarksCount}</span>
+                <span className="group-hover:text-yellow-500">
+                  {bookmarksCount}
+                </span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -283,16 +339,19 @@ function ShowcaseCardActionsBase({
   );
 }
 
-export const ShowcaseCardActions = memo(ShowcaseCardActionsBase, (prevProps, nextProps) => {
-  return (
-    prevProps.showcaseId === nextProps.showcaseId &&
-    prevProps.currentUserId === nextProps.currentUserId &&
-    prevProps.likesCount === nextProps.likesCount &&
-    prevProps.hasLiked === nextProps.hasLiked &&
-    prevProps.bookmarksCount === nextProps.bookmarksCount &&
-    prevProps.hasBookmarked === nextProps.hasBookmarked &&
-    prevProps.commentsCount === nextProps.commentsCount
-  );
-});
+export const ShowcaseCardActions = memo(
+  ShowcaseCardActionsBase,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.showcaseId === nextProps.showcaseId &&
+      prevProps.currentUserId === nextProps.currentUserId &&
+      prevProps.likesCount === nextProps.likesCount &&
+      prevProps.hasLiked === nextProps.hasLiked &&
+      prevProps.bookmarksCount === nextProps.bookmarksCount &&
+      prevProps.hasBookmarked === nextProps.hasBookmarked &&
+      prevProps.commentsCount === nextProps.commentsCount
+    );
+  }
+);
 
-ShowcaseCardActions.displayName = 'ShowcaseCardActions';
+ShowcaseCardActions.displayName = "ShowcaseCardActions";
