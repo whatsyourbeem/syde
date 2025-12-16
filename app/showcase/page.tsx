@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
+import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 
 export default async function ShowcasePage() {
   const supabase = await createClient();
@@ -16,5 +17,10 @@ export default async function ShowcasePage() {
       ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
       : null;
 
-  return <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />;
+  return (
+    <>
+      <ShowcaseHeader />
+      <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />
+    </>
+  );
 }
