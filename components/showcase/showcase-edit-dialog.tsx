@@ -10,7 +10,7 @@ import {
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, X, CirclePlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Database } from "@/types/database.types";
@@ -567,16 +567,20 @@ export function ShowcaseEditDialog({
           {certified && <CertifiedBadge size="sm" />}
         </div>
       )}
-      {username && (
-        <p className="text-xs leading-[12px] font-normal">@{username}</p>
-      )}
+      {username && <p className="text-xs leading-3 font-normal">@{username}</p>}
       {tagline && (
-        <p className="text-xs leading-[12px] font-normal text-[#777777]">
+        <p className="text-xs leading-3 font-normal text-[#777777]">
           {tagline}
         </p>
       )}
-      <Button variant="default" className="mt-4">
-        쇼케이스 작성하기
+      <Button
+        variant="default"
+        className="mt-4 h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px]"
+      >
+        <CirclePlus className="size-5" strokeWidth={2.5} />
+        <span className="text-sm leading-[14px] font-semibold">
+          내 SYDE 프로젝트 등록하기
+        </span>
       </Button>
     </div>
   );
