@@ -551,24 +551,30 @@ export function ShowcaseEditDialog({
     ? "쇼케이스 수정"
     : "새 쇼케이스 작성";
   const triggerContent = children || (
-    <div className="flex flex-col items-center py-5 px-[10px]">
+    <div className="flex flex-col items-center py-5 px-[10px] text-sydenightblue gap-[10px]">
       {avatarUrl && (
         <Image
           src={avatarUrl}
           alt="User Avatar"
           width={36}
           height={36}
-          className="rounded-full object-cover aspect-square mb-4"
+          className="rounded-full object-cover aspect-square"
         />
       )}
       {full_name && (
         <div className="flex items-center gap-1">
-          <p className="text-base font-bold">{full_name}</p>
-          {certified && <CertifiedBadge size="md" />}
+          <p className="text-sm leading-[14px] font-bold ">{full_name}</p>
+          {certified && <CertifiedBadge size="sm" />}
         </div>
       )}
-      {username && <p className="text-sm text-gray-500">@{username}</p>}
-      {tagline && <p className="text-xs text-gray-400 mt-1">{tagline}</p>}
+      {username && (
+        <p className="text-xs leading-[12px] font-normal">@{username}</p>
+      )}
+      {tagline && (
+        <p className="text-xs leading-[12px] font-normal text-[#777777]">
+          {tagline}
+        </p>
+      )}
       <Button variant="default" className="mt-4">
         쇼케이스 작성하기
       </Button>
