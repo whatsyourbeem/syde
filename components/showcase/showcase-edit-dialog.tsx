@@ -14,7 +14,10 @@ import { ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Database } from "@/types/database.types";
-import { createShowcase, updateShowcase } from "@/app/showcase/showcase-actions";
+import {
+  createShowcase,
+  updateShowcase,
+} from "@/app/showcase/showcase-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
@@ -51,6 +54,7 @@ interface ShowcaseEditDialogProps {
   avatarUrl: string | null;
   username: string | null;
   full_name: string | null;
+  tagline?: string | null;
   certified?: boolean | null;
   initialShowcaseData?: Database["public"]["Tables"]["showcases"]["Row"];
   children?: React.ReactNode;
@@ -131,7 +135,11 @@ function ShowcaseForm({
     <form action={formAction} className="flex flex-col h-full overflow-hidden">
       <div className="flex-grow flex flex-col p-4 overflow-y-auto">
         {initialShowcaseData && (
-          <input type="hidden" name="showcaseId" value={initialShowcaseData.id} />
+          <input
+            type="hidden"
+            name="showcaseId"
+            value={initialShowcaseData.id}
+          />
         )}
         <div className="flex gap-4 flex-grow min-h-0">
           {avatarUrl && (
@@ -250,7 +258,9 @@ function ShowcaseForm({
             type="button"
             variant="link"
             size="icon"
-            onClick={() => document.getElementById("showcase-image-input")?.click()}
+            onClick={() =>
+              document.getElementById("showcase-image-input")?.click()
+            }
             disabled={pending}
             className="hover:bg-secondary"
           >
@@ -271,7 +281,10 @@ function ShowcaseForm({
               취소
             </Button>
           )}
-          <SubmitButton initialShowcaseData={initialShowcaseData} content={content} />
+          <SubmitButton
+            initialShowcaseData={initialShowcaseData}
+            content={content}
+          />
         </div>
       </div>
     </form>
@@ -283,6 +296,7 @@ export function ShowcaseEditDialog({
   avatarUrl,
   username,
   full_name,
+  tagline,
   certified,
   initialShowcaseData,
   children,
@@ -329,7 +343,9 @@ export function ShowcaseEditDialog({
     }
     if (state.id) {
       toast.success(
-        initialShowcaseData ? "쇼케이스가 수정되었습니다." : "쇼케이스가 기록되었습니다."
+        initialShowcaseData
+          ? "쇼케이스가 수정되었습니다."
+          : "쇼케이스가 기록되었습니다."
       );
       setOpen(false);
       if (onSuccess) onSuccess();
@@ -531,15 +547,17 @@ export function ShowcaseEditDialog({
     suggestionPosition,
   };
 
-  const dialogTitle = initialShowcaseData ? "쇼케이스 수정" : "새 쇼케이스 작성";
+  const dialogTitle = initialShowcaseData
+    ? "쇼케이스 수정"
+    : "새 쇼케이스 작성";
   const triggerContent = children || (
-    <div className="flex flex-col items-center p-4">
+    <div className="flex flex-col items-center py-5 px-[10px]">
       {avatarUrl && (
         <Image
           src={avatarUrl}
           alt="User Avatar"
-          width={60}
-          height={60}
+          width={36}
+          height={36}
           className="rounded-full object-cover aspect-square mb-4"
         />
       )}
@@ -550,6 +568,7 @@ export function ShowcaseEditDialog({
         </div>
       )}
       {username && <p className="text-sm text-gray-500">@{username}</p>}
+      {tagline && <p className="text-xs text-gray-400 mt-1">{tagline}</p>}
       <Button variant="default" className="mt-4">
         쇼케이스 작성하기
       </Button>

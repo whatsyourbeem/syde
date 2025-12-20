@@ -4,7 +4,11 @@ import { LoginPromptCard } from "@/components/auth/login-prompt-card";
 import Image from "next/image";
 import Link from "next/link";
 
-export default async function ShowcaseLayout({ children }: { children: React.ReactNode }) {
+export default async function ShowcaseLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,9 +29,7 @@ export default async function ShowcaseLayout({ children }: { children: React.Rea
       profile = data;
       avatarUrl =
         profile.avatar_url && profile.updated_at
-          ? `${profile.avatar_url}?t=${new Date(
-              profile.updated_at
-            ).getTime()}`
+          ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
           : profile.avatar_url;
     }
   }
@@ -41,6 +43,7 @@ export default async function ShowcaseLayout({ children }: { children: React.Rea
             avatarUrl={avatarUrl}
             username={profile.username}
             full_name={profile.full_name}
+            tagline={profile.tagline}
             certified={profile.certified}
           />
         ) : (
@@ -86,12 +89,7 @@ export default async function ShowcaseLayout({ children }: { children: React.Rea
               rel="noopener noreferrer"
               className="text-blue-500 hover:underline text-sm"
             >
-              <Image
-                src="/threads.png"
-                alt="Threads"
-                width={24}
-                height={24}
-              />
+              <Image src="/threads.png" alt="Threads" width={24} height={24} />
             </Link>
           </div>
         </div>
