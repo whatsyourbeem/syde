@@ -109,7 +109,7 @@ export default function Footer() {
           </div>
 
           {/* Policy & Info */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-4 text-[10px] text-[#999999]">
               <Link href="/guideline" className="hover:text-gray-600">
                 커뮤니티 가이드라인
@@ -128,12 +128,12 @@ export default function Footer() {
               </Link>
             </div>
 
-            <Accordion type="single" collapsible className="border-none">
+            <Accordion type="single" collapsible className="border-none w-auto">
               <AccordionItem value="item-1" className="border-none">
-                <AccordionTrigger className="text-[10px] text-[#999999] py-0 hover:no-underline gap-1 [&>svg]:w-3 [&>svg]:h-3">
+                <AccordionTrigger className="text-[10px] text-[#999999] py-0 hover:no-underline gap-1justify-end [&>svg]:w-3 [&>svg]:h-3 h-4">
                   사업자정보
                 </AccordionTrigger>
-                <AccordionContent className="absolute right-0 mt-2 p-3 bg-white border border-gray-100 rounded shadow-sm min-w-[200px] z-10 text-[10px] text-[#999999]">
+                <AccordionContent className="absolute right-0 mt-1 p-3 bg-white border border-gray-100 rounded shadow-sm min-w-[200px] z-10 text-[10px] text-[#999999]">
                   <p>BEEM | 대표: 안재현</p>
                   <p>사업자등록번호: 859-68-00509</p>
                   <p>이메일: whatsyourbeem@gmail.com</p>
