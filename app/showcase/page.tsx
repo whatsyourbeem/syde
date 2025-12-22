@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
 import { ShowcaseHeader } from "@/components/showcase/showcase-header";
+import { MainAwardBanner } from "@/components/showcase/main-award-banner";
 
 export default async function ShowcasePage() {
   const supabase = await createClient();
@@ -20,6 +21,7 @@ export default async function ShowcasePage() {
   return (
     <>
       <ShowcaseHeader />
+      <MainAwardBanner />
       <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />
     </>
   );
