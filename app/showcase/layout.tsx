@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseEditDialog } from "@/components/showcase/showcase-edit-dialog";
 import { ShowcaseRightSidebar } from "@/components/showcase/right-sidebar";
+import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,25 +37,28 @@ export default async function ShowcaseLayout({
   }
 
   return (
-    <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
-      <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-        {user && profile ? (
-          <ShowcaseEditDialog
-            userId={user.id}
-            avatarUrl={avatarUrl}
-            username={profile.username}
-            full_name={profile.full_name}
-            tagline={profile.tagline}
-            certified={profile.certified}
-          />
-        ) : (
-          <LoginPromptCard />
-        )}
-      </div>
-      <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
-        {children}
-      </div>
-      <ShowcaseRightSidebar />
-    </main>
+    <>
+      <ShowcaseHeader />
+      <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
+        <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
+          {user && profile ? (
+            <ShowcaseEditDialog
+              userId={user.id}
+              avatarUrl={avatarUrl}
+              username={profile.username}
+              full_name={profile.full_name}
+              tagline={profile.tagline}
+              certified={profile.certified}
+            />
+          ) : (
+            <LoginPromptCard />
+          )}
+        </div>
+        <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
+          {children}
+        </div>
+        <ShowcaseRightSidebar />
+      </main>
+    </>
   );
 }
