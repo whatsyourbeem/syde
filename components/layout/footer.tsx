@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,9 +19,22 @@ const paperlogy = localFont({
   display: "swap",
 });
 
+const TriangleDownIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+  >
+    <path d="M12 15L7 10H17L12 15Z" />
+  </svg>
+);
+
 export default function Footer() {
   return (
-    <footer className="w-full bg-white border-t border-gray-100 py-6">
+    <footer className="w-full bg-[#FAFAFA] border-t-[0.5px] border-[#B7B7B7] px-[50px] py-5 flex justify-between">
       <div className="w-full max-w-6xl mx-auto px-5 flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-0">
         {/* Left Section: Logo & Copyright */}
         <div className="flex items-center gap-4">
@@ -41,7 +56,7 @@ export default function Footer() {
         {/* Right Section: All Horizontal */}
         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 w-full lg:w-auto">
           {/* Main Nav Links */}
-          <div className="flex gap-6 font-bold text-[#002040] text-xs">
+          <div className="flex items-center justify-center w-[253px] h-[44px] gap-[24px] font-bold text-[#002040] text-xs px-[50px] py-[10px]">
             <Link href="/about" className="hover:opacity-80">
               SYDE 소개
             </Link>
@@ -110,7 +125,7 @@ export default function Footer() {
 
           {/* Policy & Info */}
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-4 text-[10px] text-[#999999]">
+            <div className="flex items-center gap-4 text-[14px] text-[#999999]">
               <Link href="/guideline" className="hover:text-gray-600">
                 커뮤니티 가이드라인
               </Link>
@@ -130,7 +145,11 @@ export default function Footer() {
 
             <Accordion type="single" collapsible className="border-none w-auto">
               <AccordionItem value="item-1" className="border-none">
-                <AccordionTrigger className="text-[10px] text-[#999999] py-0 hover:no-underline gap-1justify-end [&>svg]:w-3 [&>svg]:h-3 h-4">
+                <AccordionTrigger
+                  icon={TriangleDownIcon}
+                  iconClassName="w-3 h-3"
+                  className="text-[12px] text-[#999999] py-0 hover:no-underline justify-end h-4 gap-2"
+                >
                   사업자정보
                 </AccordionTrigger>
                 <AccordionContent className="absolute right-0 mt-1 p-3 bg-white border border-gray-100 rounded shadow-sm min-w-[200px] z-10 text-[10px] text-[#999999]">
