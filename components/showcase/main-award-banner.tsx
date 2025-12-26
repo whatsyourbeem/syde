@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MessageCircle, Heart, Bookmark, Share2 } from "lucide-react";
 
 // Mock Data (Shared concept with Right Sidebar)
@@ -25,17 +26,37 @@ export function MainAwardBanner() {
   return (
     <div className="w-full mb-6">
       {/* Dark Blue Banner Container */}
-      <div className="w-full bg-[#0F172A] rounded-[20px] p-6 md:p-8 relative overflow-hidden text-center">
-        {/* Background Visual Elements (Sunburst/Rays effect simulation) */}
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400 via-[#0F172A] to-[#0F172A]"></div>
+      <div className="w-full bg-[#0F172A] p-6 md:p-8 relative overflow-hidden text-center">
+        {/* Background Visual Elements (Spotlight Image) */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/spotlight.png"
+            alt="Spotlight Background"
+            fill
+            className="object-cover opacity-80"
+            priority
+          />
+        </div>
 
         {/* Title Section */}
-        <div className="relative z-10 flex items-center justify-center gap-3 mb-6">
-          <span className="text-3xl">🌿</span>
+        <div className="relative z-10 flex items-center justify-center gap-4 mb-6">
+          <Image
+            src="/crown.png"
+            alt="Laurel Left"
+            width={32}
+            height={32}
+            className="w-8 h-8 md:w-10 md:h-10 object-contain transform scale-x-[-1]"
+          />
           <h2 className="text-xl md:text-2xl font-bold text-amber-500 tracking-wider">
             {AWARD_ITEM.awardDate} SYDE AWARDS
           </h2>
-          <span className="text-3xl transform scale-x-[-1]">🌿</span>
+          <Image
+            src="/crown.png"
+            alt="Laurel Right"
+            width={32}
+            height={32}
+            className="w-8 h-8 md:w-10 md:h-10 object-contain"
+          />
         </div>
 
         {/* Card Content */}

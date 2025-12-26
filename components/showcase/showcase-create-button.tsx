@@ -10,7 +10,10 @@ interface ShowcaseCreateButtonProps {
   avatarUrl: string | null;
 }
 
-export function ShowcaseCreateButton({ user, avatarUrl }: ShowcaseCreateButtonProps) {
+export function ShowcaseCreateButton({
+  user,
+  avatarUrl,
+}: ShowcaseCreateButtonProps) {
   const { openLoginDialog } = useLoginDialog();
 
   const buttonContent = (
