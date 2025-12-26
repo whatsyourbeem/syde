@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
-import { ShowcaseCreateButton } from "@/components/showcase/showcase-create-button";
 import { Database } from "@/types/database.types";
 import { ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
 
@@ -29,12 +28,6 @@ export function ShowcaseListWrapper({
 
   return (
     <div className="space-y-6">
-      {!filterByUserId &&
-        !filterByCommentedUserId &&
-        !filterByLikedUserId &&
-        !searchQuery && (
-        <ShowcaseCreateButton user={user} avatarUrl={avatarUrl} />
-      )}
       <ShowcaseList
         currentUserId={user?.id || null}
         filterByUserId={filterByUserId}
