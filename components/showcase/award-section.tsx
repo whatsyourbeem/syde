@@ -27,16 +27,28 @@ export function AwardSection() {
     <div className="flex flex-col items-center mt-8">
       {/* Award Title Header */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-2xl">🏆</span>
+        <Image
+          src="/crown.png"
+          alt="Crown Left"
+          width={24}
+          height={24}
+          className="w-6 h-6 object-contain transform scale-x-[-1]"
+        />
         <div className="text-center">
-          <p className="text-amber-500 font-bold text-sm tracking-widest">
+          <p className="text-[#ED6D34] font-bold text-sm tracking-widest">
             {AWARD_ITEM.awardDate}
           </p>
-          <h3 className="text-amber-500 font-extrabold text-lg leading-tight">
+          <h3 className="text-[#ED6D34] font-extrabold text-lg leading-tight whitespace-nowrap">
             SYDE AWARDS
           </h3>
         </div>
-        <span className="text-2xl">🏆</span>
+        <Image
+          src="/crown.png"
+          alt="Crown Right"
+          width={24}
+          height={24}
+          className="w-6 h-6 object-contain"
+        />
       </div>
 
       {/* Award Card */}

@@ -47,7 +47,7 @@ export function MainAwardBanner() {
             height={32}
             className="w-8 h-8 md:w-10 md:h-10 object-contain transform scale-x-[-1]"
           />
-          <h2 className="text-xl md:text-2xl font-bold text-amber-500 tracking-wider">
+          <h2 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#BC572B] via-[#FF8D5B] to-[#BC572B] tracking-wider">
             {AWARD_ITEM.awardDate} SYDE AWARDS
           </h2>
           <Image
