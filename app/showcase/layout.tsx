@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { ShowcaseEditDialog } from "@/components/showcase/showcase-edit-dialog";
+import { ShowcaseSidebarButton } from "@/components/showcase/showcase-sidebar-button";
 import { ShowcaseRightSidebar } from "@/components/showcase/right-sidebar";
 import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
@@ -42,7 +42,7 @@ export default async function ShowcaseLayout({
       <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
           {user && profile ? (
-            <ShowcaseEditDialog
+            <ShowcaseSidebarButton
               userId={user.id}
               avatarUrl={avatarUrl}
               username={profile.username}
