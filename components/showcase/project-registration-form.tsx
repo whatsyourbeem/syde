@@ -84,7 +84,7 @@ export function ProjectRegistrationForm() {
   return (
     <div className="max-w-3xl mx-auto pb-20">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 mb-8 px-5 py-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ChevronLeft className="h-6 w-6" />
         </Button>
@@ -93,7 +93,7 @@ export function ProjectRegistrationForm() {
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8 px-[68px] py-5">
         {/* Project Name */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-bold text-[#111827]">
