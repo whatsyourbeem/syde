@@ -179,7 +179,12 @@ export function ProjectRegistrationForm() {
                   </button>
                 </>
               ) : (
-                <Box className="w-16 h-16 text-white/20" />
+                <Image
+                  src="/logo_showcase.png"
+                  alt="Default Project Image"
+                  fill
+                  className="object-cover"
+                />
               )}
             </div>
           </div>
