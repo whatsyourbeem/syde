@@ -205,11 +205,11 @@ export function ProjectRegistrationForm() {
         </div>
 
         {/* Detail Images */}
-        <div className="space-y-2">
-          <Label className="text-sm font-bold text-[#111827]">
-            상세 설정 이미지
-          </Label>
+        <div className="w-full">
           <div className="border border-gray-200 rounded-[12px] bg-white p-6">
+            <Label className="text-sm font-bold text-[#111827] block mb-1">
+              상세 설명 이미지
+            </Label>
             <p className="text-xs text-gray-500 mb-1">
               프로덕트의 스크린샷 또는 관련 설명 이미지가 있다면 추가해주세요.
               (최대 5장)
@@ -218,7 +218,7 @@ export function ProjectRegistrationForm() {
               추천 사이즈 : 1600 x 900
             </p>
 
-            <div className="flex flex-col items-center justify-center bg-gray-50 rounded-[12px] h-[180px] mb-6 cursor-pointer border-dashed border-2 border-gray-100 hover:border-gray-200 transition-colors">
+            <div className="flex flex-col items-center justify-center bg-gray-50 rounded-[12px] h-[180px] mb-6 cursor-pointer border-dashed border-2 border-gray-100 hover:border-gray-200 transition-colors w-[320px] mx-auto">
               <div className="flex flex-col items-center gap-2 text-gray-400">
                 <ImagePlus className="w-8 h-8" />
                 <span className="text-sm">이미지 업로드</span>
@@ -228,12 +228,7 @@ export function ProjectRegistrationForm() {
             {/* Thumbnail Placeholders match the design */}
             <div className="flex gap-2">
               <div className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative">
-                <Image
-                  src="/logo_showcase.png"
-                  alt="Default Project Image"
-                  fill
-                  className="object-cover rounded-[8px]"
-                />
+                <Box className="w-6 h-6 text-white" />
               </div>
               <div className="w-12 h-12 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center">
                 {/* Placeholder for chart icon */}
