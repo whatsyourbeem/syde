@@ -125,14 +125,12 @@ export function ProjectRegistrationForm() {
         </div>
 
         {/* Main Image */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-baseline">
-            <Label className="text-sm font-bold text-[#111827]">
-              대표 이미지
-            </Label>
-          </div>
+        <div className="w-full">
           <div className="border border-gray-200 rounded-[12px] bg-white p-6 flex justify-between items-center h-[200px]">
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1">
+              <Label className="text-sm font-bold text-[#111827] block mb-2">
+                대표 이미지
+              </Label>
               <div className="space-y-1">
                 <p className="text-sm font-bold text-gray-900">
                   프로덕트의 얼굴!
@@ -141,7 +139,7 @@ export function ProjectRegistrationForm() {
                   대표 이미지를 설정해주세요.
                 </p>
               </div>
-              <div className="relative">
+              <div className="relative pt-2">
                 <input
                   type="file"
                   id="main-image"
@@ -153,7 +151,7 @@ export function ProjectRegistrationForm() {
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-[#111827] text-white hover:bg-[#1f2937]"
+                  className="bg-[#111827] text-white hover:bg-[#1f2937] rounded-full px-6"
                 >
                   사진 선택
                 </Button>
@@ -161,7 +159,7 @@ export function ProjectRegistrationForm() {
             </div>
 
             {/* Image Preview Area */}
-            <div className="relative w-[160px] h-[160px] bg-[#1C1F26] rounded-[16px] overflow-hidden flex items-center justify-center">
+            <div className="relative w-[160px] h-[160px] bg-[#1C1F26] rounded-[16px] overflow-hidden flex items-center justify-center shrink-0 ml-4">
               {mainImagePreview ? (
                 <>
                   <Image
@@ -173,18 +171,20 @@ export function ProjectRegistrationForm() {
                   <button
                     type="button"
                     onClick={removeMainImage}
-                    className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white hover:bg-black/70"
+                    className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white hover:bg-black/70 z-10"
                   >
                     <X size={16} />
                   </button>
                 </>
               ) : (
-                <Image
-                  src="/logo_showcase.png"
-                  alt="Default Project Image"
-                  fill
-                  className="object-cover"
-                />
+                <div className="w-full h-full relative">
+                  <Image
+                    src="/logo_showcase.png"
+                    alt="Default Project Image"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -227,8 +227,13 @@ export function ProjectRegistrationForm() {
 
             {/* Thumbnail Placeholders match the design */}
             <div className="flex gap-2">
-              <div className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center">
-                <Box className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative">
+                <Image
+                  src="/logo_showcase.png"
+                  alt="Default Project Image"
+                  fill
+                  className="object-cover rounded-[8px]"
+                />
               </div>
               <div className="w-12 h-12 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center">
                 {/* Placeholder for chart icon */}
