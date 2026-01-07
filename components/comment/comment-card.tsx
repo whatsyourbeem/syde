@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { CommentForm } from "@/components/comment/comment-form";
 import { useQueryClient } from "@tanstack/react-query";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
-import { useLoginDialog } from '@/context/LoginDialogContext';
+import { useLoginDialog } from "@/context/LoginDialogContext";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 import { useRouter } from "next/navigation";
@@ -17,8 +17,8 @@ import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
 
-type ProcessedComment = Database['public']['Tables']['log_comments']['Row'] & {
-  profiles: Database['public']['Tables']['profiles']['Row'] | null;
+type ProcessedComment = Database["public"]["Tables"]["log_comments"]["Row"] & {
+  profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
   initialLikesCount: number;
   initialHasLiked: boolean;
   replies?: ProcessedComment[]; // Add replies property
@@ -28,7 +28,8 @@ import { Button } from "../ui/button";
 
 interface CommentCardProps {
   comment: ProcessedComment;
-  logId: string;
+  logId?: string;
+  showcaseId?: string;
   userId: string | null;
   isLiked: boolean;
   likeCount: number;
@@ -38,10 +39,19 @@ interface CommentCardProps {
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   initialLikesCount: number;
   initialHasLiked: boolean;
-  onLikeStatusChange: (commentId: string, newLikesCount: number, newHasLiked: boolean) => void;
+  onLikeStatusChange: (
+    commentId: string,
+    newLikesCount: number,
+    newHasLiked: boolean
+  ) => void;
   isDetailPage?: boolean;
   isMobile?: boolean;
-  setReplyTo?: (replyTo: { parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null }) => void;
+  setReplyTo?: (replyTo: {
+    parentId: string;
+    authorName: string;
+    authorUsername: string | null;
+    authorAvatarUrl: string | null;
+  }) => void;
   newCommentId?: string;
   newParentCommentId?: string;
 }
@@ -53,9 +63,10 @@ export function CommentCard({
   initialLikesCount,
   initialHasLiked,
   onLikeStatusChange,
-  logId, // Destructure logId
-  level = 0, // Destructure level with default value
-  isDetailPage = false, // Destructure isDetailPage with default value
+  logId,
+  showcaseId,
+  level = 0,
+  isDetailPage = false,
   isMobile = false,
   setReplyTo,
   newCommentId,
@@ -70,7 +81,15 @@ export function CommentCard({
   const [hasLiked, setHasLiked] = useState(initialHasLiked); // New state
   const [showReplies, setShowReplies] = useState(false); // New state for showing replies
   const [displayReplyCount, setDisplayReplyCount] = useState(5); // New state for replies to display
-  const [internalReplyTo, setInternalReplyTo] = useState<{ parentId: string; authorName: string | null; authorUsername: string | null; authorAvatarUrl: string | null } | undefined>(undefined);
+  const [internalReplyTo, setInternalReplyTo] = useState<
+    | {
+        parentId: string;
+        authorName: string | null;
+        authorUsername: string | null;
+        authorAvatarUrl: string | null;
+      }
+    | undefined
+  >(undefined);
 
   useEffect(() => {
     setLikesCount(initialLikesCount);
@@ -81,7 +100,7 @@ export function CommentCard({
     if (newCommentId && newParentCommentId === comment.id) {
       setShowReplies(true);
       // Ensure the new reply is visible by increasing displayReplyCount if needed
-      setDisplayReplyCount(prevCount => {
+      setDisplayReplyCount((prevCount) => {
         if (comment.replies && comment.replies.length > prevCount) {
           return comment.replies.length; // Show all replies if new one is added
         }
@@ -91,12 +110,16 @@ export function CommentCard({
   }, [newCommentId, newParentCommentId, comment.id, comment.replies]);
 
   const avatarUrlWithCacheBuster = comment.profiles?.avatar_url
-    ? `${comment.profiles.avatar_url}?t=${comment.profiles.updated_at ? new Date(comment.profiles.updated_at).getTime() : ''}`
+    ? `${comment.profiles.avatar_url}?t=${
+        comment.profiles.updated_at
+          ? new Date(comment.profiles.updated_at).getTime()
+          : ""
+      }`
     : null;
 
-  const formattedCommentDate = comment.created_at ? formatRelativeTime(comment.created_at) : '';
-
-  
+  const formattedCommentDate = comment.created_at
+    ? formatRelativeTime(comment.created_at)
+    : "";
 
   const { openLoginDialog } = useLoginDialog();
 
@@ -152,20 +175,27 @@ export function CommentCard({
 
     setLoading(true);
     try {
+      const parentTable = logId ? "log_comments" : "showcase_comments";
       const { error } = await supabase
-        .from("log_comments")
+        .from(parentTable)
         .delete()
         .eq("id", comment.id);
 
       if (error) {
         throw error;
       }
+
+      const parentId = logId || showcaseId;
       queryClient.invalidateQueries({
-        queryKey: ["comments", { logId: comment.log_id }],
+        queryKey: ["comments", { parentId }],
       });
     } catch (error: unknown) {
       console.error("Error deleting comment:", error);
-      alert(`댓글 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      alert(
+        `댓글 삭제 중 오류가 발생했습니다: ${
+          error instanceof Error ? error.message : "알 수 없는 오류"
+        }`
+      );
     } finally {
       setLoading(false);
     }
@@ -175,7 +205,10 @@ export function CommentCard({
     <div className="flex flex-col p-2">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
-          <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
+          <ProfileHoverCard
+            userId={comment.user_id}
+            profileData={comment.profiles}
+          >
             <Link href={`/${comment.profiles?.username || comment.user_id}`}>
               {avatarUrlWithCacheBuster && (
                 <Image
@@ -190,24 +223,36 @@ export function CommentCard({
           </ProfileHoverCard>
         </div>
         <div className="flex-grow min-w-0">
-          <ProfileHoverCard userId={comment.user_id} profileData={comment.profiles}>
+          <ProfileHoverCard
+            userId={comment.user_id}
+            profileData={comment.profiles}
+          >
             <div className="flex items-baseline gap-1">
-                <div className="flex flex-col md:flex-row md:gap-2">
-                  <Link href={`/${comment.profiles?.username || comment.user_id}`} className="min-w-0">
-                    <div className="flex items-center gap-1">
-                      <p className="font-semibold text-sm hover:underline truncate max-w-48">
-                        {comment.profiles?.full_name ||
-                          comment.profiles?.username ||
-                          "Anonymous"}
-                      </p>
-                      {comment.profiles?.certified && <CertifiedBadge size="sm" />}
-                    </div>
-                  </Link>
+              <div className="flex flex-col md:flex-row md:gap-2">
+                <Link
+                  href={`/${comment.profiles?.username || comment.user_id}`}
+                  className="min-w-0"
+                >
+                  <div className="flex items-center gap-1">
+                    <p className="font-semibold text-sm hover:underline truncate max-w-48">
+                      {comment.profiles?.full_name ||
+                        comment.profiles?.username ||
+                        "Anonymous"}
+                    </p>
+                    {comment.profiles?.certified && (
+                      <CertifiedBadge size="sm" />
+                    )}
+                  </div>
+                </Link>
                 {comment.profiles?.tagline && (
-                  <p className="text-xs text-muted-foreground truncate min-w-0 max-w-48">{comment.profiles.tagline}</p>
+                  <p className="text-xs text-muted-foreground truncate min-w-0 max-w-48">
+                    {comment.profiles.tagline}
+                  </p>
                 )}
-                </div>
-              <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedCommentDate}</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ·&nbsp;&nbsp;{formattedCommentDate}
+              </p>
             </div>
           </ProfileHoverCard>
           {isEditing ? (
@@ -220,7 +265,9 @@ export function CommentCard({
             />
           ) : (
             <>
-              <p className="text-sm mt-1 whitespace-pre-wrap">{linkifyMentions(comment.content, mentionedProfiles)}</p>
+              <p className="text-sm mt-1 whitespace-pre-wrap">
+                {linkifyMentions(comment.content, mentionedProfiles)}
+              </p>
               <div className="flex items-center gap-1 mt-2">
                 <button
                   onClick={handleLike}
@@ -229,7 +276,11 @@ export function CommentCard({
                   aria-label="Like comment"
                 >
                   <HeartIcon
-                    className={hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"}
+                    className={
+                      hasLiked
+                        ? "fill-red-500 text-red-500"
+                        : "text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500"
+                    }
                     size={14}
                   />
                   <span className="text-xs">{likesCount}</span>
@@ -244,9 +295,12 @@ export function CommentCard({
                       if (setReplyTo) {
                         setReplyTo({
                           parentId: comment.parent_comment_id || comment.id,
-                          authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                          authorName:
+                            comment.profiles?.full_name ||
+                            comment.profiles?.username ||
+                            "Anonymous",
                           authorUsername: comment.profiles?.username || null,
-                          authorAvatarUrl: comment.profiles?.avatar_url || null
+                          authorAvatarUrl: comment.profiles?.avatar_url || null,
                         });
                       }
                     }}
@@ -258,15 +312,20 @@ export function CommentCard({
                   <button
                     onClick={() => {
                       setShowReplies(!showReplies);
-                      if (!showReplies) { // If replies are about to be shown
+                      if (!showReplies) {
+                        // If replies are about to be shown
                         setInternalReplyTo(undefined); // Clear any previous replyTo for the internal form
                       }
                     }}
-                    className={`p-1 text-muted-foreground hover:text-green-500 flex items-center gap-1 ${showReplies ? 'text-green-500' : ''}`}
+                    className={`p-1 text-muted-foreground hover:text-green-500 flex items-center gap-1 ${
+                      showReplies ? "text-green-500" : ""
+                    }`}
                     aria-label="Reply to comment"
                   >
                     <MessageCircle size={14} />
-                    <span className="text-xs">{comment.replies?.length || 0}</span>
+                    <span className="text-xs">
+                      {comment.replies?.length || 0}
+                    </span>
                   </button>
                 )}
                 {level < 1 && (
@@ -277,9 +336,12 @@ export function CommentCard({
                     onClick={() => {
                       setInternalReplyTo({
                         parentId: comment.id,
-                        authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
+                        authorName:
+                          comment.profiles?.full_name ||
+                          comment.profiles?.username ||
+                          "Anonymous",
                         authorUsername: comment.profiles?.username || null,
-                        authorAvatarUrl: comment.profiles?.avatar_url || null
+                        authorAvatarUrl: comment.profiles?.avatar_url || null,
                       });
                       setShowReplies(true);
                     }}
@@ -314,79 +376,91 @@ export function CommentCard({
           )}
         </div>
       </div>
-      <div className="w-full pl-4"> 
+      <div className="w-full pl-4">
         {showReplies && comment.replies && comment.replies.length > 0 && (
-                <div className="mt-1 space-y-1 border-l pl-2">
-                  {comment.replies.slice(0, displayReplyCount).map((reply: ProcessedComment) => (
-                    <CommentCard
-                      key={reply.id}
-                      comment={reply}
-                      currentUserId={currentUserId}
-                      mentionedProfiles={mentionedProfiles}
-                      initialLikesCount={reply.initialLikesCount}
-                      initialHasLiked={reply.initialHasLiked}
-                      onLikeStatusChange={onLikeStatusChange}
-                      logId={logId}
-                      level={level + 1}
-                      isMobile={isMobile}
-                      setReplyTo={(replyData) => {
-                        // 답글의 답글달기 버튼이 클릭되면 이 댓글의 답글 입력란에 멘션을 설정
-                        setInternalReplyTo({
-                          parentId: comment.id,
-                          authorName: replyData.authorName,
-                          authorUsername: replyData.authorUsername,
-                          authorAvatarUrl: replyData.authorAvatarUrl
-                        });
-                        setShowReplies(true);
-                      }}
-                      // Pass props required by CommentCard for each reply
-                      userId={reply.user_id} // Assuming user_id is the userId for the reply
-                      isLiked={reply.initialHasLiked}
-                      likeCount={reply.initialLikesCount}
-                      
-                    />
-                  ))}
-                  {comment.replies.length > displayReplyCount && (
-                    <div className="flex justify-start mt-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (isDetailPage) {
-                            setDisplayReplyCount(prevCount => prevCount + 5);
-                          } else {
-                            router.push(`/log/${logId}`);
-                          }
-                        }}
-                        className="text-xs text-muted-foreground"
-                      >
-                        {isDetailPage
-                          ? `답글 ${Math.max(0, comment.replies.length - displayReplyCount)}개 더보기...`
-                          : `답글 ${comment.replies.length-5}개 더보기...`}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-        )}
-        {showReplies && comment.replies && comment.replies.length > 0 && comment.replies.length <= displayReplyCount && (
-          <div className="flex justify-start mt-0 ml-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowReplies(false)}
-              className="text-xs text-muted-foreground"
-            >
-              답글 숨기기
-            </Button>
+          <div className="mt-1 space-y-1 border-l pl-2">
+            {comment.replies
+              .slice(0, displayReplyCount)
+              .map((reply: ProcessedComment) => (
+                <CommentCard
+                  key={reply.id}
+                  comment={reply}
+                  currentUserId={currentUserId}
+                  mentionedProfiles={mentionedProfiles}
+                  initialLikesCount={reply.initialLikesCount}
+                  initialHasLiked={reply.initialHasLiked}
+                  onLikeStatusChange={onLikeStatusChange}
+                  logId={logId}
+                  level={level + 1}
+                  isMobile={isMobile}
+                  setReplyTo={(replyData) => {
+                    // 답글의 답글달기 버튼이 클릭되면 이 댓글의 답글 입력란에 멘션을 설정
+                    setInternalReplyTo({
+                      parentId: comment.id,
+                      authorName: replyData.authorName,
+                      authorUsername: replyData.authorUsername,
+                      authorAvatarUrl: replyData.authorAvatarUrl,
+                    });
+                    setShowReplies(true);
+                  }}
+                  // Pass props required by CommentCard for each reply
+                  userId={reply.user_id} // Assuming user_id is the userId for the reply
+                  isLiked={reply.initialHasLiked}
+                  likeCount={reply.initialLikesCount}
+                />
+              ))}
+            {comment.replies.length > displayReplyCount && (
+              <div className="flex justify-start mt-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (isDetailPage) {
+                      setDisplayReplyCount((prevCount) => prevCount + 5);
+                    } else {
+                      router.push(`/log/${logId}`);
+                    }
+                  }}
+                  className="text-xs text-muted-foreground"
+                >
+                  {isDetailPage
+                    ? `답글 ${Math.max(
+                        0,
+                        comment.replies.length - displayReplyCount
+                      )}개 더보기...`
+                    : `답글 ${comment.replies.length - 5}개 더보기...`}
+                </Button>
+              </div>
+            )}
           </div>
         )}
+        {showReplies &&
+          comment.replies &&
+          comment.replies.length > 0 &&
+          comment.replies.length <= displayReplyCount && (
+            <div className="flex justify-start mt-0 ml-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowReplies(false)}
+                className="text-xs text-muted-foreground"
+              >
+                답글 숨기기
+              </Button>
+            </div>
+          )}
         {showReplies && !isMobile && level === 0 && (
           <div className="mt-2 ml-4">
             <CommentForm
               logId={logId}
               currentUserId={currentUserId}
               parentCommentId={comment.id}
-              onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", { logId }] })}
+              onCommentAdded={() => {
+                const parentId = logId || showcaseId;
+                queryClient.invalidateQueries({
+                  queryKey: ["comments", { parentId }],
+                });
+              }}
               onCancel={() => setShowReplies(false)}
               replyTo={internalReplyTo}
             />
@@ -395,23 +469,26 @@ export function CommentCard({
         {showReplies && isMobile && setReplyTo && (
           <div className="ml-4">
             <Button
-                onClick={() => {
-                  setReplyTo({
-                    parentId: comment.id,
-                    authorName: comment.profiles?.full_name || comment.profiles?.username || "Anonymous",
-                    authorUsername: comment.profiles?.username || null,
-                    authorAvatarUrl: comment.profiles?.avatar_url || null
-                  });
-                  // For mobile, we still want to use the parent's setReplyTo to open the main comment form
-                  // and pre-fill it. The setShowReplies(true) is not needed here as the mobile button
-                  // itself is within the showReplies block.
-                }}
-                className="w-full justify-start px-3 py-2 h-auto text-xs text-muted-foreground"
-                variant="ghost"
+              onClick={() => {
+                setReplyTo({
+                  parentId: comment.id,
+                  authorName:
+                    comment.profiles?.full_name ||
+                    comment.profiles?.username ||
+                    "Anonymous",
+                  authorUsername: comment.profiles?.username || null,
+                  authorAvatarUrl: comment.profiles?.avatar_url || null,
+                });
+                // For mobile, we still want to use the parent's setReplyTo to open the main comment form
+                // and pre-fill it. The setShowReplies(true) is not needed here as the mobile button
+                // itself is within the showReplies block.
+              }}
+              className="w-full justify-start px-3 py-2 h-auto text-xs text-muted-foreground"
+              variant="ghost"
             >
               <div className="flex items-center gap-2">
                 {comment.profiles?.avatar_url && (
-                  <Image 
+                  <Image
                     src={comment.profiles.avatar_url}
                     alt={comment.profiles.username || "User"}
                     width={16}
@@ -419,12 +496,16 @@ export function CommentCard({
                     className="rounded-full"
                   />
                 )}
-                {`${comment.profiles?.full_name || comment.profiles?.username || "Anonymous"}에게 답글 달기...`}
+                {`${
+                  comment.profiles?.full_name ||
+                  comment.profiles?.username ||
+                  "Anonymous"
+                }에게 답글 달기...`}
               </div>
             </Button>
           </div>
         )}
-        </div>
+      </div>
     </div>
   );
 }
