@@ -96,7 +96,7 @@ export function ProjectRegistrationForm() {
       <form onSubmit={handleSubmit} className="space-y-8 px-[68px] py-5">
         {/* Project Name */}
         <div className="space-y-2">
-          <Label htmlFor="title" className="text-sm font-bold text-[#111827]">
+          <Label htmlFor="title" className="text-sm font-medium text-[#002040]">
             프로덕트 이름 <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -104,14 +104,17 @@ export function ProjectRegistrationForm() {
             placeholder="SYDE 프로덕트 이름을 적어주세요."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="h-12 bg-white border-gray-200"
+            className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
             required
           />
         </div>
 
         {/* Tagline */}
         <div className="space-y-2">
-          <Label htmlFor="tagline" className="text-sm font-bold text-[#111827]">
+          <Label
+            htmlFor="tagline"
+            className="text-sm font-medium text-[#002040]"
+          >
             한 줄 소개 <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -119,23 +122,23 @@ export function ProjectRegistrationForm() {
             placeholder="SYDE 프로덕트를 한 줄로 소개해주세요."
             value={tagline}
             onChange={(e) => setTagline(e.target.value)}
-            className="h-12 bg-white border-gray-200"
+            className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
             required
           />
         </div>
 
         {/* Main Image */}
         <div className="w-full">
-          <div className="border border-gray-200 rounded-[12px] bg-white p-6 flex justify-between items-center h-[200px]">
+          <div className="border border-[#B7B7B7] rounded-[12px] bg-white p-6 flex justify-between items-center h-[200px]">
             <div className="space-y-4 flex-1">
-              <Label className="text-sm font-bold text-[#111827] block mb-2">
+              <Label className="text-sm font-medium text-[#002040] block mb-2">
                 대표 이미지
               </Label>
               <div className="space-y-1">
-                <p className="text-sm font-bold text-gray-900">
+                <p className="text-sm font-medium text-[#002040]">
                   프로덕트의 얼굴!
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#777777]">
                   대표 이미지를 설정해주세요.
                 </p>
               </div>
@@ -151,7 +154,7 @@ export function ProjectRegistrationForm() {
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-[#111827] text-white hover:bg-[#1f2937] rounded-full px-6"
+                  className="bg-[#002040] text-white hover:bg-[#002040]/90 rounded-full px-6"
                 >
                   사진 선택
                 </Button>
@@ -191,30 +194,37 @@ export function ProjectRegistrationForm() {
         </div>
 
         {/* Project Description (TipTap) */}
-        <div className="space-y-2">
-          <Label className="text-sm font-bold text-[#111827]">
-            프로덕트 설명
-          </Label>
-          <div className="border border-gray-200 rounded-[12px] bg-white min-h-[300px]">
-            {/* Toolbar placeholders could go here */}
-            <div className="p-4 border-b border-gray-100 text-center text-sm text-gray-400">
-              TIP TAP EDITOR
+        <div className="w-full">
+          <div className="border border-[#B7B7B7] rounded-[12px] bg-white h-[237px] flex flex-col">
+            <div className="p-6 pb-2">
+              <Label className="text-sm font-medium text-[#002040]">
+                프로덕트 설명
+              </Label>
             </div>
-            <EditorContent editor={editor} className="p-4 min-h-[250px]" />
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Toolbar placeholders could go here */}
+              <div className="px-4 py-3 border-y border-[#F1F1F1] text-center text-sm text-[#777777] bg-gray-50/50">
+                TIP TAP EDITOR
+              </div>
+              <EditorContent
+                editor={editor}
+                className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+              />
+            </div>
           </div>
         </div>
 
         {/* Detail Images */}
         <div className="w-full">
-          <div className="border border-gray-200 rounded-[12px] bg-white p-6">
-            <Label className="text-sm font-bold text-[#111827] block mb-1">
+          <div className="border border-[#B7B7B7] rounded-[12px] bg-white p-6">
+            <Label className="text-sm font-medium text-[#002040] block mb-1">
               상세 설명 이미지
             </Label>
-            <p className="text-xs text-gray-500 mb-1">
+            <p className="text-xs text-[#777777] mb-1">
               프로덕트의 스크린샷 또는 관련 설명 이미지가 있다면 추가해주세요.
               (최대 5장)
             </p>
-            <p className="text-xs text-gray-400 mb-6">
+            <p className="text-xs text-[#777777] mb-6">
               추천 사이즈 : 1600 x 900
             </p>
 
@@ -246,42 +256,48 @@ export function ProjectRegistrationForm() {
 
         {/* Project Links */}
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-[#111827]">
+          <Label className="text-sm font-medium text-[#002040]">
             프로덕트 링크 <span className="text-red-500">*</span>
           </Label>
-          <div className="bg-white border border-gray-200 rounded-[12px] p-4 space-y-4">
+          <div className="bg-white border border-[#B7B7B7] rounded-[12px] p-4 space-y-4">
             {/* Website Link */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🌐</span>
-                <span className="text-sm font-bold">웹사이트 링크</span>
-                <Plus className="ml-auto w-5 h-5 text-gray-400 cursor-pointer" />
+                <span className="text-sm font-medium text-[#002040]">
+                  웹사이트 링크
+                </span>
+                <Plus className="ml-auto w-5 h-5 text-[#777777] cursor-pointer" />
               </div>
               <Input
                 placeholder="https://www.syde.kr"
-                className="bg-gray-50 border-none"
+                className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
               />
-              <p className="text-xs text-gray-400">예) https://www.syde.kr</p>
+              <p className="text-xs text-[#777777]">예) https://www.syde.kr</p>
             </div>
-            <div className="h-px bg-gray-100 my-2" />
+            <div className="h-px bg-[#F1F1F1] my-2" />
             {/* Google Play */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-lg">▶️</span>
-                <span className="text-sm font-bold">Google Play 링크</span>
+                <span className="text-sm font-medium text-[#002040]">
+                  Google Play 링크
+                </span>
               </div>
-              <p className="text-xs text-gray-400 pl-8">
+              <p className="text-xs text-[#777777] pl-8">
                 예) https://www.syde.kr
               </p>
             </div>
-            <div className="h-px bg-gray-100 my-2" />
+            <div className="h-px bg-[#F1F1F1] my-2" />
             {/* App Store */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🍎</span>
-                <span className="text-sm font-bold">App Store 링크</span>
+                <span className="text-sm font-medium text-[#002040]">
+                  App Store 링크
+                </span>
               </div>
-              <p className="text-xs text-gray-400 pl-8">
+              <p className="text-xs text-[#777777] pl-8">
                 예) https://www.syde.kr
               </p>
             </div>
@@ -290,12 +306,14 @@ export function ProjectRegistrationForm() {
 
         {/* Team Members */}
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-[#111827]">팀원 등록</Label>
-          <p className="text-xs text-gray-500">
+          <Label className="text-sm font-medium text-[#002040]">
+            팀원 등록
+          </Label>
+          <p className="text-xs text-[#777777]">
             SYDE 프로덕트를 같이 만든 팀원이 있다면 추가해주세요.
           </p>
 
-          <div className="flex items-center gap-2 border border-gray-200 rounded-[12px] bg-white p-2">
+          <div className="flex items-center gap-2 border border-[#B7B7B7] rounded-[12px] bg-white p-2">
             <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-600">
               DAKomm
             </span>
@@ -311,14 +329,14 @@ export function ProjectRegistrationForm() {
           <Button
             type="button"
             variant="outline"
-            className="rounded-full w-24 border-gray-300"
+            className="rounded-full w-24 border-[#B7B7B7] text-[#777777] hover:bg-gray-50"
             onClick={() => router.back()}
           >
             취소
           </Button>
           <Button
             type="submit"
-            className="flex-1 rounded-[12px] bg-[#0F172A] hover:bg-[#1e293b]"
+            className="flex-1 rounded-[12px] bg-[#002040] hover:bg-[#002040]/90"
             disabled={isSubmitting}
           >
             등록하기
