@@ -335,9 +335,6 @@ export function ProjectRegistrationForm() {
           </p>
 
           <div className="flex items-center gap-2 border border-[#B7B7B7] rounded-[12px] bg-white p-2">
-            <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-600">
-              DAKomm
-            </span>
             <Input
               placeholder="닉네임 또는 프로필네임을 검색해보세요."
               className="border-none shadow-none focus-visible:ring-0 flex-1"
