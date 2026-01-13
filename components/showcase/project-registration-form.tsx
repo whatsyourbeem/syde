@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { ImagePlus, X, Box, BarChart2, ChevronLeft, Plus } from "lucide-react";
+import { ImagePlus, X, ChevronLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -237,12 +237,21 @@ export function ProjectRegistrationForm() {
 
             {/* Thumbnail Placeholders match the design */}
             <div className="flex gap-2">
-              <div className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative">
-                <Box className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative overflow-hidden">
+                <Image
+                  src="/logo_showcase.png"
+                  alt="Showcase Logo"
+                  fill
+                  className="object-cover"
+                />
               </div>
-              <div className="w-12 h-12 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center">
-                {/* Placeholder for chart icon */}
-                <BarChart2 className="w-6 h-6 text-red-500" />
+              <div className="w-12 h-12 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center relative overflow-hidden">
+                <Image
+                  src="/up_arrow.png"
+                  alt="Up Arrow"
+                  fill
+                  className="object-cover"
+                />
               </div>
               {[1, 2, 3].map((i) => (
                 <div
