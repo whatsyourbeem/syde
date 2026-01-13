@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { ImagePlus, X, ChevronLeft, Plus } from "lucide-react";
+import { ImagePlus, X, ChevronLeft, Plus, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -272,7 +272,7 @@ export function ProjectRegistrationForm() {
             {/* Website Link */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🌐</span>
+                <Globe className="w-5 h-5 text-black" />
                 <span className="text-sm font-medium text-[#002040]">
                   웹사이트 링크
                 </span>
@@ -288,7 +288,13 @@ export function ProjectRegistrationForm() {
             {/* Google Play */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-lg">▶️</span>
+                <svg
+                  className="w-5 h-5 text-black fill-current"
+                  viewBox="0 0 512 512"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
+                </svg>
                 <span className="text-sm font-medium text-[#002040]">
                   Google Play 링크
                 </span>
@@ -301,7 +307,13 @@ export function ProjectRegistrationForm() {
             {/* App Store */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🍎</span>
+                <svg
+                  className="w-5 h-5 text-black fill-current"
+                  viewBox="0 0 64 64"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M49.424 34c-.1-8.1 6.581-12 6.88-12.2a14.581 14.581 0 0 0-11.667-6.3c-4.986-.5-9.672 2.9-12.265 2.9-2.493 0-6.382-2.9-10.57-2.8a15.75 15.75 0 0 0-13.162 8c-5.584 9.8-1.4 24.4 4.088 32.3 2.692 3.9 5.883 8.3 10.071 8.1 4.088-.2 5.584-2.6 10.47-2.6s6.282 2.6 10.57 2.5c4.388-.1 7.08-4 9.772-7.9A31.77 31.77 0 0 0 58 46.9 13.956 13.956 0 0 1 49.424 34zm-8.077-23.8A14.32 14.32 0 0 0 44.638 0a14.075 14.075 0 0 0-9.373 4.8c-2.094 2.4-3.889 6.2-3.39 9.9 3.589.3 7.279-1.8 9.472-4.5z" />
+                </svg>
                 <span className="text-sm font-medium text-[#002040]">
                   App Store 링크
                 </span>
