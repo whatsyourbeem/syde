@@ -13,12 +13,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createShowcase } from "@/app/showcase/showcase-actions";
+import { TiptapMenu } from "@/components/editor/tiptap-menu";
 
 export function ProjectRegistrationForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [detailImagePreviews, setDetailImagePreviews] = useState<string[]>([]);
+  const detailInputRef = useRef<HTMLInputElement>(null);
+
+  // Website Links State
+  const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
 
   // Form States
   const [title, setTitle] = useState("");
@@ -38,7 +44,7 @@ export function ProjectRegistrationForm() {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4 border rounded-md",
+          "prose prose-sm mx-auto focus:outline-none h-full p-4 [&_*]:text-[13px] [&_p]:leading-normal",
       },
     },
   });
@@ -56,6 +62,47 @@ export function ProjectRegistrationForm() {
   const removeMainImage = () => {
     setMainImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDetailImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const newFiles = Array.from(event.target.files);
+      const validFiles = newFiles.slice(0, 5 - detailImagePreviews.length);
+
+      if (validFiles.length < newFiles.length) {
+        toast.error("최대 5장까지 업로드할 수 있습니다.");
+      }
+
+      const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+      setDetailImagePreviews((prev) => [...prev, ...newPreviews]);
+
+      // Reset input so same files can be selected again
+      if (detailInputRef.current) detailInputRef.current.value = "";
+    }
+  };
+
+  const removeDetailImage = (indexToRemove: number) => {
+    setDetailImagePreviews((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  const addWebsiteLink = () => {
+    setWebsiteLinks((prev) => [...prev, ""]);
+  };
+
+  const handleWebsiteLinkChange = (index: number, value: string) => {
+    setWebsiteLinks((prev) => {
+      const newLinks = [...prev];
+      newLinks[index] = value;
+      return newLinks;
+    });
+  };
+
+  const removeWebsiteLink = (index: number) => {
+    setWebsiteLinks((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,22 +242,20 @@ export function ProjectRegistrationForm() {
 
         {/* Project Description (TipTap) */}
         <div className="w-full">
+          <div className="pb-2">
+            <Label
+              htmlFor="title"
+              className="text-sm font-medium text-[#002040]"
+            >
+              프로덕트 설명
+            </Label>
+          </div>
           <div className="border border-[#B7B7B7] rounded-[12px] bg-white h-[237px] flex flex-col">
-            <div className="p-6 pb-2">
-              <Label className="text-sm font-medium text-[#002040]">
-                프로덕트 설명
-              </Label>
-            </div>
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Toolbar placeholders could go here */}
-              <div className="px-4 py-3 border-y border-[#F1F1F1] text-center text-sm text-[#777777] bg-gray-50/50">
-                TIP TAP EDITOR
-              </div>
-              <EditorContent
-                editor={editor}
-                className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-              />
-            </div>
+            <TiptapMenu editor={editor} />
+            <EditorContent
+              editor={editor}
+              className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+            />
           </div>
         </div>
 
@@ -228,7 +273,18 @@ export function ProjectRegistrationForm() {
               추천 사이즈 : 1600 x 900
             </p>
 
-            <div className="flex flex-col items-center justify-center bg-gray-50 rounded-[12px] h-[180px] mb-6 cursor-pointer border-dashed border-2 border-gray-100 hover:border-gray-200 transition-colors w-[320px] mx-auto">
+            <div
+              className="flex flex-col items-center justify-center bg-gray-50 rounded-[12px] h-[180px] mb-6 cursor-pointer border-dashed border-2 border-gray-100 hover:border-gray-200 transition-colors w-[320px] mx-auto"
+              onClick={() => detailInputRef.current?.click()}
+            >
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                ref={detailInputRef}
+                onChange={handleDetailImageChange}
+              />
               <div className="flex flex-col items-center gap-2 text-gray-400">
                 <ImagePlus className="w-8 h-8" />
                 <span className="text-sm">이미지 업로드</span>
@@ -236,27 +292,37 @@ export function ProjectRegistrationForm() {
             </div>
 
             {/* Thumbnail Placeholders match the design */}
-            <div className="flex gap-2">
-              <div className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative overflow-hidden">
-                <Image
-                  src="/logo_showcase.png"
-                  alt="Showcase Logo"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="w-12 h-12 bg-white border border-gray-200 rounded-[8px] flex items-center justify-center relative overflow-hidden">
-                <Image
-                  src="/up_arrow.png"
-                  alt="Up Arrow"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              {[1, 2, 3].map((i) => (
+            <div className="flex gap-2 flex-wrap">
+              {detailImagePreviews.map((preview, index) => (
                 <div
-                  key={i}
-                  className="w-12 h-12 border border-gray-100 rounded-[8px]"
+                  key={index}
+                  className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative overflow-hidden group"
+                >
+                  <Image
+                    src={preview}
+                    alt={`Detail ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeDetailImage(index);
+                    }}
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              ))}
+              {/* Show placeholder slots if fewer than 5 images */}
+              {Array.from({
+                length: Math.max(0, 5 - detailImagePreviews.length),
+              }).map((_, i) => (
+                <div
+                  key={`placeholder-${i}`}
+                  className="w-12 h-12 border border-gray-100 rounded-[8px] bg-gray-50"
                 />
               ))}
             </div>
@@ -276,13 +342,34 @@ export function ProjectRegistrationForm() {
                 <span className="text-sm font-medium text-[#002040]">
                   웹사이트 링크
                 </span>
-                <Plus className="ml-auto w-5 h-5 text-[#777777] cursor-pointer" />
+                <Plus
+                  className="ml-auto w-5 h-5 text-[#777777] cursor-pointer hover:text-[#002040]"
+                  onClick={addWebsiteLink}
+                />
               </div>
-              <Input
-                placeholder="https://www.syde.kr"
-                className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
-              />
-              <p className="text-xs text-[#777777]">예) https://www.syde.kr</p>
+              {websiteLinks.map((link, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder="https://www.syde.kr"
+                    value={link}
+                    onChange={(e) =>
+                      handleWebsiteLinkChange(index, e.target.value)
+                    }
+                    className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777] flex-1"
+                  />
+                  {index > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      className="h-[36px] w-[36px] shrink-0"
+                      onClick={() => removeWebsiteLink(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
             <div className="h-px bg-[#F1F1F1] my-2" />
             {/* Google Play */}
@@ -299,9 +386,10 @@ export function ProjectRegistrationForm() {
                   Google Play 링크
                 </span>
               </div>
-              <p className="text-xs text-[#777777] pl-8">
-                예) https://www.syde.kr
-              </p>
+              <Input
+                placeholder="https://www.syde.kr"
+                className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
+              />
             </div>
             <div className="h-px bg-[#F1F1F1] my-2" />
             {/* App Store */}
@@ -318,9 +406,10 @@ export function ProjectRegistrationForm() {
                   App Store 링크
                 </span>
               </div>
-              <p className="text-xs text-[#777777] pl-8">
-                예) https://www.syde.kr
-              </p>
+              <Input
+                placeholder="https://www.syde.kr"
+                className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
+              />
             </div>
           </div>
         </div>
