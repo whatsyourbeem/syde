@@ -219,7 +219,13 @@ export function upgradeToHttps(url: string | null | undefined): string | null {
       return url;
     }
 
-    // Convert HTTP to HTTPS
+    // 로컬 개발 환경(127.0.0.1 또는 localhost)인 경우 HTTP 그대로 사용
+    const isLocalHost = urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1";
+    if (isLocalHost) {
+      return url;
+    }
+
+    // Convert HTTP to HTTPS for other domains
     if (urlObj.protocol === "http:") {
       urlObj.protocol = "https:";
       return urlObj.toString();
