@@ -46,3 +46,10 @@ GEMINI.md
 
 / .claude
 CLAUDE.md
+
+# Supabase
+/supabase/.branches
+/supabase/.temp
+/supabase/.supabase
+# 라이브 데이터가 포함될 수 있으므로 git에서 제외 (각자 로컬에서 dump 받아 사용)
+/supabase/seed.sql
