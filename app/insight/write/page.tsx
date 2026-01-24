@@ -1,29 +1,61 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import Link from "next/link";
 import {
-    ChevronLeft,
-    Search,
-    Bell,
-    Menu,
-    Plus
+    Plus,
+    Image as ImageIcon,
+    Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
-export default function InsightWritePage() {
+function InsightWriteForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const id = searchParams.get("id");
+    const isEditMode = !!id;
     const supabase = createClient();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [fetching, setFetching] = useState(isEditMode);
     const [title, setTitle] = useState("");
     const [summary, setSummary] = useState("");
     const [content, setContent] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+
+    useEffect(() => {
+        if (isEditMode && id) {
+            async function fetchInsight() {
+                try {
+                    const { data, error } = await supabase
+                        .from("insights")
+                        .select("*")
+                        .eq("id", id as string)
+                        .single();
+
+                    if (error) throw error;
+                    if (data) {
+                        setTitle(data.title);
+                        setSummary(data.summary || "");
+                        setContent(data.content);
+                        setImageUrl(data.image_url || "");
+                    }
+                } catch (error) {
+                    console.error("Error fetching insight for edit:", error);
+                    toast.error("데이터를 불러오는 중 오류가 발생했습니다.");
+                } finally {
+                    setFetching(false);
+                }
+            }
+            fetchInsight();
+        }
+    }, [id, isEditMode, supabase]);
 
     const handleSubmit = async () => {
         if (!title || !summary || !content) {
@@ -40,42 +72,109 @@ export default function InsightWritePage() {
                 return;
             }
 
-            const { data, error } = await supabase
-                .from("insights")
-                .insert([
-                    {
-                        user_id: user.id,
+            if (isEditMode) {
+                const { error } = await supabase
+                    .from("insights")
+                    .update({
                         title,
                         summary,
                         content,
                         image_url: imageUrl || null
-                    }
-                ])
-                .select()
-                .single();
+                    })
+                    .eq("id", id as string)
+                    .eq("user_id", user.id);
 
-            if (error) throw error;
+                if (error) throw error;
+                toast.success("인사이트가 수정되었습니다!");
+                router.push(`/insight/${id}`);
+            } else {
+                const { data, error } = await supabase
+                    .from("insights")
+                    .insert([
+                        {
+                            user_id: user.id,
+                            title,
+                            summary,
+                            content,
+                            image_url: imageUrl || null
+                        }
+                    ])
+                    .select()
+                    .single();
 
-            toast.success("인사이트가 등록되었습니다!");
-            router.push(`/insight/${data.id}`);
+                if (error) throw error;
+
+                toast.success("인사이트가 등록되었습니다!");
+                router.push(`/insight/${data.id}`);
+            }
         } catch (error: any) {
             console.error("Error submitting insight:", error);
-            toast.error(`등록 실패: ${error.message}`);
+            toast.error(`${isEditMode ? '수정' : '등록'} 실패: ${error.message}`);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // 용량 제한 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("이미지 크기는 5MB를 초과할 수 없습니다.");
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error("로그인이 필요합니다.");
+                return;
+            }
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('insight-images')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('insight-images')
+                .getPublicUrl(filePath);
+
+            setImageUrl(publicUrl);
+            toast.success("이미지가 업로드되었습니다.");
+        } catch (error: any) {
+            console.error("Error uploading image:", error);
+            toast.error(`이미지 업로드 실패: ${error.message}`);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    if (fetching) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#002040]"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col bg-white max-w-[393px] mx-auto font-[Pretendard]">
             {/* Page Title Section */}
             <section className="w-full flex flex-col items-center py-5 px-4 gap-4">
                 <h1 className="text-[24px] font-bold leading-[29px] text-[#002040] text-center w-full">
-                    SYDE 인사이트 등록하기
+                    SYDE 인사이트 {isEditMode ? '수정하기' : '등록하기'}
                 </h1>
             </section>
 
-            {/* Main Inputs Area (Based on Figma CSS) */}
+            {/* Main Inputs Area */}
             <main className="flex-grow flex flex-col p-5 gap-5 pb-10">
                 {/* Title Input */}
                 <div className="flex flex-col gap-1 w-full">
@@ -111,20 +210,24 @@ export default function InsightWritePage() {
                 <div className="flex flex-col gap-1 w-full">
                     <label className="text-[14px] font-medium text-[#002040]">대표 이미지</label>
                     <div className="w-full h-[180px] border-[0.5px] border-[#B7B7B7] rounded-[10px] flex items-center justify-between p-0 overflow-hidden bg-gray-50/30">
-                        {/* Left side info */}
                         <div className="flex flex-col justify-center items-center flex-1 px-4 gap-5">
                             <p className="text-[12px] leading-[14px] text-[#777777] text-center">
                                 인사이트를 잘 표현하는<br />대표 이미지를 설정해주세요.
                             </p>
                             <div className="flex flex-col gap-2">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    accept="image/*"
+                                />
                                 <Button
                                     className="w-20 h-8 bg-[#002040] hover:bg-[#003060] text-white text-[14px] rounded-[12px] font-normal"
-                                    onClick={() => {
-                                        const url = prompt("이미지 URL을 입력해주세요. (실제 업로드 기능은 추후 연동 가능)");
-                                        if (url) setImageUrl(url);
-                                    }}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploading}
                                 >
-                                    설정
+                                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "설정"}
                                 </Button>
                                 {imageUrl && (
                                     <button
@@ -137,7 +240,6 @@ export default function InsightWritePage() {
                             </div>
                         </div>
 
-                        {/* Right side preview (Component 2 in Figma) */}
                         <div className="w-[180px] h-full bg-[#222E35] flex items-center justify-center relative">
                             {imageUrl ? (
                                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -155,7 +257,6 @@ export default function InsightWritePage() {
                                     </div>
                                 </div>
                             )}
-                            {/* Plus icon overlay for add feel */}
                             {!imageUrl && (
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                     <Plus className="w-10 h-10 text-white/20" />
@@ -165,7 +266,7 @@ export default function InsightWritePage() {
                     </div>
                 </div>
 
-                {/* Content Area (Tiptap placeholder) */}
+                {/* Content Area */}
                 <div className="flex flex-col gap-1 w-full">
                     <label className="text-[14px] font-medium text-[#002040]">내용 <span className="text-red-500">*</span></label>
                     <div className="w-full min-h-[400px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
@@ -192,10 +293,18 @@ export default function InsightWritePage() {
                         onClick={handleSubmit}
                         disabled={loading}
                     >
-                        {loading ? "등록 중..." : "인사이트 등록하기"}
+                        {loading ? "처리 중..." : `인사이트 ${isEditMode ? '수정하기' : '등록하기'}`}
                     </Button>
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function InsightWritePage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#002040]"></div></div>}>
+            <InsightWriteForm />
+        </Suspense>
     );
 }
