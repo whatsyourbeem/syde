@@ -146,3 +146,64 @@ npx supabase db reset
 | `npx supabase status` | 로컬 서비스 상태 및 접속 정보 확인 |
 | `npx supabase db reset` | 로컬 DB 초기화 및 `seed.sql` 재적용 |
 | `npx supabase db pull` | 라이브 DB 스키마를 프로젝트 파일로 가져오기 |
+
+---
+
+> [!IMPORTANT]
+> **Storage 데이터 복사는 선택 사항입니다 (Optional)**
+> 아래의 "7. Storage 처리 방법" 및 "8. 파일 저장소 동기화" 섹션은 **라이브 서버의 실제 이미지 파일을 로컬 환경으로 물리적으로 복제하고 싶을 때만** 사용하세요.
+> 
+> 실제로는 **이 과정을 수행하지 않아도 개발에 큰 지장이 없는 경우가 많습니다.** 대부분의 스토리지 파일은 라이브 서버의 public URL을 통해 로컬 개발 환경에서도 바로 접근하여 화면에 보여줄 수 있기 때문입니다. 정말로 로컬 독립 환경에서 파일을 직접 수정/삭제하는 테스트가 필요한 경우에만 진행하는 것을 권장합니다.
+
+## 7. (선택 사항) Storage (파일 저장소) 처리 방법
+
+### 7.1 격리된 환경 (Safety)
+로컬 Supabase는 파일 저장소(Storage) 또한 완벽하게 격리된 로컬 환경을 사용합니다.
+- **안전함**: 로컬에서 `supabase.storage.from('bucket').remove(...)`를 호출해도, 이는 로컬 Docker 컨테이너 내부의 가상 스토리지에만 영향을 줍니다.
+- **라이브 영향 없음**: 라이브 S3 버킷의 파일은 절대 삭제되거나 변경되지 않습니다. 안심하고 테스트하세요.
+
+### 7.2 로컬 스토리지 데이터
+`npx supabase db pull`이나 `dump`를 수행해도 **라이브의 실제 파일(이미지 등)은 로컬로 다운로드되지 않습니다.**
+- 로컬 개발 환경의 버킷은 초기에는 비어 있습니다.
+- 개발을 위해 필요한 테스트 이미지는 로컬 환경에서 직접 업로드해서 사용해야 합니다.
+- 스토리지 버킷 생성 정책(Policy)과 설정은 `db push` 등으로 동기화되지만, 실제 파일 데이터는 동기화되지 않습니다.
+
+> [!TIP]
+> **이미지가 엑박(Broken Image)으로 보일 때**
+> 로컬 DB에는 라이브 DB의 데이터(이미지 URL 문자열)가 복사되어 있을 수 있지만, 실제 그 파일이 로컬 스토리지에는 없기 때문에 이미지가 깨져 보일 수 있습니다. 이는 정상적인 현상입니다. 새 이미지를 로컬에서 업로드하여 테스트하세요.
+
+---
+
+## 8. (선택 사항) 파일 저장소 동기화 (Storage Sync)
+
+로컬 개발 중 "엑박(이미지 깨짐)"이 보기 불편하다면, 라이브 서버의 파일들을 로컬로 한 번에 복사해올 수 있습니다.
+이를 위해 `scripts/sync-storage.ts` 스크립트를 준비했습니다.
+
+### 8.1 준비물
+이 스크립트는 라이브 서버의 모든 파일을 읽어야 하므로, **`service_role` 키(관리자 키)**가 필요합니다.
+- [Supabase Dashboard](https://supabase.com/dashboard/project/_/settings/api) -> Project Settings -> API -> **service_role secret** 확인
+
+### 8.2 실행 방법
+터미널에서 다음 명령어를 실행하세요.
+
+```bash
+# 사용법: npx tsx scripts/sync-storage.ts <PROEJCT_REF_ID> <SERVICE_ROLE_KEY>
+npx tsx scripts/sync-storage.ts abcdefghijklmno eyJhbGciOiJIUzI1NiIsInR5c...
+```
+
+- **Project Ref ID**: URL에서 확인 (`https://supabase.com/dashboard/project/abcdefghijklmno` -> `abcdefghijklmno`)
+- **Service Role Key**: 위에서 확인한 `service_role` 키 (절대 외부에 노출하지 마세요!)
+
+> [!WARNING]
+> 이 스크립트는 로컬 스토리지에 파일을 **추가(Upload/Upsert)**합니다.
+> 라이브 서버의 엄청난 양의 파일을 모두 다운로드하므로, 데이터 양이 많다면 시간이 오래 걸릴 수 있습니다.
+
+### 8.3 비용(Egress) 및 최적화
+이 스크립트는 **'이어받기(Incremental Sync)'** 기능을 지원합니다.
+- **최초 실행 시**: 버킷의 모든 파일을 라이브에서 로컬로 다운로드합니다. 이 때 **대역폭(Egress) 비용**이 발생할 수 있습니다.
+- **이후 실행 시**: 이미 로컬에 존재하는 파일은 **자동으로 건너뛰고(Skip)**, 새로 추가된 파일만 다운로드합니다.
+
+> [!CAUTION]
+> **Supabase 대역폭(Egress) 비용 주의**
+> - **Free Plan**: 매월 **2GB**의 Egress가 무료로 제공됩니다. 2GB를 초과하면 프로젝트가 일시 중지될 수 있습니다. (Pro 플랜의 경우 초과 $0.09/GB)
+> - 저장된 파일의 총 용량이 크다면(예: 수 GB), 스크립트 실행 시 무료 한도를 쉽게 초과할 수 있으니 주의하세요.
