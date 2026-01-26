@@ -22,6 +22,11 @@ export function ProjectRegistrationForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [detailImagePreviews, setDetailImagePreviews] = useState<string[]>([]);
   const detailInputRef = useRef<HTMLInputElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Website Links State
   const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
@@ -111,36 +116,55 @@ export function ProjectRegistrationForm() {
 
     try {
       const formData = new FormData();
-      formData.append("content", editor?.getHTML() || "");
-      // Mocking other data appending. In reality, you'd append all fields.
-      // This is a placeholder for the actual server action call logic reuse
-      // We might need to adjust createShowcase to accept these specific fields if it doesn't already
+      formData.append("name", title);
+      formData.append("shortDescription", tagline);
+      formData.append("description", editor?.getHTML() || "");
 
-      // For now, simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const thumbnailFile = fileInputRef.current?.files?.[0];
+      if (thumbnailFile) {
+        formData.append("thumbnailFile", thumbnailFile);
+      }
+
+      const result = await createShowcase(formData);
+
+      if (result && "error" in result) {
+        toast.error(result.error);
+        return;
+      }
 
       toast.success("프로젝트가 등록되었습니다.");
       router.push("/showcase");
     } catch (error) {
+      console.error("Submission error:", error);
       toast.error("등록 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (!isMounted) return null;
+
   return (
-    <div className="max-w-3xl mx-auto pb-20">
+    <div className="w-[850px] mx-auto pb-20 border-x border-[#B7B7B7] bg-white min-h-screen">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-8 px-5 py-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ChevronLeft className="h-6 w-6" />
+      <div className="flex items-center gap-6 h-[76px] px-5 py-[16px] border-b border-[#B7B7B7]">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          className="h-11 w-6 p-0 hover:bg-transparent"
+        >
+          <ChevronLeft className="h-6 w-6 text-[#434343]" />
         </Button>
-        <h1 className="text-2xl font-bold text-[#111827]">
+        <h1 className="text-[32px] font-bold text-[#002040] leading-[38px]">
           SYDE 프로덕트 등록하기
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 px-[68px] py-5">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 px-[68px] py-5"
+      >
         {/* Project Name */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-medium text-[#002040]">
@@ -436,9 +460,6 @@ export function ProjectRegistrationForm() {
           </p>
 
           <div className="flex items-center gap-2 border border-[#B7B7B7] rounded-[10px] bg-white p-[6px] px-[10px] h-[45px]">
-            <div className="px-[12px] py-[8px] bg-[#FAFAFA] rounded-[12px] text-sm font-normal text-[#002040] flex items-center justify-center">
-              DAKomm
-            </div>
             <Input
               placeholder="닉네임 또는 프로필네임을 검색해보세요."
               className="border-none shadow-none focus-visible:ring-0 flex-1 text-sm placeholder:text-[#777777] h-full"
@@ -451,14 +472,14 @@ export function ProjectRegistrationForm() {
           <Button
             type="button"
             variant="outline"
-            className="rounded-full w-24 border-[#B7B7B7] text-[#777777] hover:bg-gray-50"
+            className="rounded-[12px] w-[53px] h-[36px] border-[#002040] text-[#002040] font-normal hover:bg-gray-50 p-0"
             onClick={() => router.back()}
           >
             취소
           </Button>
           <Button
             type="submit"
-            className="flex-1 rounded-[12px] bg-[#002040] hover:bg-[#002040]/90"
+            className="flex-1 h-[36px] rounded-[12px] bg-[#002040] hover:bg-[#002040]/90 text-white font-normal"
             disabled={isSubmitting}
           >
             등록하기

@@ -6,17 +6,21 @@ import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
 import { handleShowcaseImage, deleteShowcaseStorage } from "@/lib/storage";
 
-export const createShowcase = withAuthForm(
+export const createShowcase = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "내용");
-    const imageFile = formData.get("imageFile") as File | null;
+    const name = formData.get("name") as string;
+    const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
+    const description = formData.get("description") as string;
+    const thumbnailFile = formData.get("thumbnailFile") as File | null;
 
-    const processedContent = await processMentionsForSave(content, supabase);
+    const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
 
     const { data, error: insertError } = await supabase
       .from("showcases")
       .insert({
-        content: processedContent,
+        name,
+        short_description: shortDescription,
+        description: processedDescription,
         user_id: user.id,
       })
       .select("id")
@@ -29,19 +33,17 @@ export const createShowcase = withAuthForm(
 
     const showcaseId = data.id;
 
-    const imageUrl = await handleShowcaseImage(showcaseId, imageFile, false, null);
+    const thumbnailUrl = await handleShowcaseImage(showcaseId, thumbnailFile, false, null);
 
-    if (imageUrl) {
+    if (thumbnailUrl) {
       const { error: updateError } = await supabase
         .from("showcases")
-        .update({ image_url: imageUrl })
+        .update({ thumbnail_url: thumbnailUrl })
         .eq("id", showcaseId);
 
       if (updateError) {
-        console.error("Failed to update showcase with image:", updateError);
-        // Optionally, you might want to delete the showcase record here
-        // or handle the dangling image file. For now, we'll return an error.
-        return { error: "쇼케이스 이미지 정보 업데이트에 실패했습니다." };
+        console.error("Failed to update showcase with thumbnail:", updateError);
+        return { error: "쇼케이스 대표 이미지 정보 업데이트에 실패했습니다." };
       }
     }
 
@@ -56,16 +58,18 @@ export const createShowcase = withAuthForm(
   }
 );
 
-export const updateShowcase = withAuthForm(
+export const updateShowcase = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const showcaseId = validateRequired(formData.get("showcaseId") as string, "쇼케이스 ID");
-    const content = validateRequired(formData.get("content") as string, "내용");
-    const imageFile = formData.get("imageFile") as File | null;
-    const imageRemoved = formData.get("imageRemoved") === "true";
+    const name = formData.get("name") as string;
+    const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
+    const description = formData.get("description") as string;
+    const thumbnailFile = formData.get("thumbnailFile") as File | null;
+    const thumbnailRemoved = formData.get("thumbnailRemoved") === "true";
 
     const { data: oldShowcaseData } = await supabase
       .from("showcases")
-      .select("image_url, user_id")
+      .select("thumbnail_url, user_id")
       .eq("id", showcaseId)
       .single();
 
@@ -73,19 +77,26 @@ export const updateShowcase = withAuthForm(
       return { error: "수정할 권한이 없습니다." };
     }
 
-    const imageUrl = await handleShowcaseImage(
+    const thumbnailUrl = await handleShowcaseImage(
       showcaseId,
-      imageFile,
-      imageRemoved,
-      oldShowcaseData?.image_url
+      thumbnailFile,
+      thumbnailRemoved,
+      oldShowcaseData?.thumbnail_url
     );
-    const processedContent = await processMentionsForSave(content, supabase);
+    const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
 
-    const updateData: { content: string; image_url?: string | null } = {
-      content: processedContent,
+    const updateData: { 
+      name: string; 
+      short_description: string; 
+      description: string | null; 
+      thumbnail_url?: string | null 
+    } = {
+      name,
+      short_description: shortDescription,
+      description: processedDescription,
     };
-    if (imageUrl !== undefined) {
-      updateData.image_url = imageUrl;
+    if (thumbnailUrl !== undefined) {
+      updateData.thumbnail_url = thumbnailUrl;
     }
 
     const { error } = await supabase

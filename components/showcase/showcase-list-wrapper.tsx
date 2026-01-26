@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
+import { MainAwardBanner } from "@/components/showcase/main-award-banner";
 import { Database } from "@/types/database.types";
 import { ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
 
@@ -27,15 +28,19 @@ export function ShowcaseListWrapper({
   const searchQuery = searchParams.get("q") || "";
 
   return (
-    <div className="space-y-6">
-      <ShowcaseList
-        currentUserId={user?.id || null}
-        filterByUserId={filterByUserId}
-        filterByCommentedUserId={filterByCommentedUserId}
-        filterByLikedUserId={filterByLikedUserId}
-        searchQuery={searchQuery}
-        initialShowcases={initialShowcases}
-      />
+    <div className="w-full flex flex-col gap-6">
+      {/* Main Content Area: Awards + List */}
+      <div className="w-full flex flex-col gap-6">
+        <MainAwardBanner />
+        <ShowcaseList
+          currentUserId={user?.id || null}
+          filterByUserId={filterByUserId}
+          filterByCommentedUserId={filterByCommentedUserId}
+          filterByLikedUserId={filterByLikedUserId}
+          searchQuery={searchQuery}
+          initialShowcases={initialShowcases}
+        />
+      </div>
     </div>
   );
 }

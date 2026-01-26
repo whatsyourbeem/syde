@@ -37,7 +37,7 @@ export function ShowcaseList({
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [currentUserId, setCurrentUserId] = useState<string | null>(
-    propCurrentUserId
+    propCurrentUserId,
   );
 
   // Fetch current user ID if not provided
@@ -98,7 +98,7 @@ export function ShowcaseList({
 
   const showcases: OptimizedShowcase[] = useMemo(
     () => data?.showcases || [],
-    [data?.showcases]
+    [data?.showcases],
   );
   const totalShowcasesCount = data?.count || 0;
   const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
@@ -117,7 +117,7 @@ export function ShowcaseList({
         { event: "*", schema: "public", table: "showcases" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["showcases"] });
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -138,7 +138,7 @@ export function ShowcaseList({
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
           }
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -159,7 +159,7 @@ export function ShowcaseList({
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
           }
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -180,7 +180,7 @@ export function ShowcaseList({
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
           }
-        }
+        },
       )
       .subscribe();
 
@@ -217,7 +217,7 @@ export function ShowcaseList({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
+    <div className="w-full space-y-4 py-4">
       {showcases.length === 0 && !isLoading ? (
         <div className="px-4">
           <p className="text-center text-muted-foreground">
@@ -226,7 +226,7 @@ export function ShowcaseList({
         </div>
       ) : (
         showcases.map((showcase, index) => (
-          <div key={showcase.id} className="px-4">
+          <div key={showcase.id} className="w-full">
             <ShowcaseCard
               showcase={showcase}
               currentUserId={currentUserId}
@@ -235,13 +235,9 @@ export function ShowcaseList({
               initialBookmarksCount={showcase.bookmarksCount}
               initialHasBookmarked={showcase.hasBookmarked}
               initialCommentsCount={showcase.showcase_comments.length}
-              mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to ShowcaseCard
-              searchQuery={searchQuery} // Pass searchQuery to ShowcaseCard
-              isDetailPage={false} // Add this prop
+              mentionedProfiles={mentionedProfiles}
+              isDetailPage={false}
             />
-            {index < showcases.length - 1 && (
-              <div className="border-b border-gray-200 my-4"></div>
-            )}
           </div>
         ))
       )}
@@ -258,7 +254,7 @@ export function ShowcaseList({
           </Button>
           {Array.from(
             { length: Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) },
-            (_, i) => i + 1
+            (_, i) => i + 1,
           ).map((page) => (
             <Button
               key={page}

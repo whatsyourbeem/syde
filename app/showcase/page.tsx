@@ -17,10 +17,5 @@ export default async function ShowcasePage() {
       ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
       : null;
 
-  return (
-    <>
-      <MainAwardBanner />
-      <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />
-    </>
-  );
+  return <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />;
 }

@@ -2,14 +2,11 @@
 
 import { useState, useEffect, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
 import { deleteShowcase } from "@/app/showcase/showcase-actions";
-
-import { ShowcaseCardHeader } from "./showcase-card-header";
-import { ShowcaseCardContent } from "./showcase-card-content";
 import { ShowcaseCardActions } from "./showcase-card-actions";
-
 import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
@@ -19,6 +16,9 @@ interface ShowcaseCardProps {
     showcase_likes: Array<{ user_id: string }>;
     showcase_bookmarks: Array<{ user_id: string }>;
     showcase_comments: Array<{ id: string }>;
+    name?: string | null;
+    short_description?: string | null;
+    thumbnail_url?: string | null;
   };
   currentUserId: string | null;
   initialLikesCount: number;
@@ -39,8 +39,6 @@ function ShowcaseCardBase({
   initialBookmarksCount,
   initialHasBookmarked,
   initialCommentsCount,
-  mentionedProfiles,
-  searchQuery,
   isDetailPage = false,
 }: ShowcaseCardProps) {
   const router = useRouter();
@@ -49,13 +47,11 @@ function ShowcaseCardBase({
   const [bookmarksCount, setBookmarksCount] = useState(initialBookmarksCount);
   const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
-  const [loading, setLoading] = useState(false);
 
-  // Intersection observer for performance optimization
   const { ref: cardRef, isVisible } = useIntersectionObserver({
     threshold: 0.1,
     rootMargin: "100px",
-    enabled: !isDetailPage, // Disable on detail pages
+    enabled: !isDetailPage,
   });
 
   useEffect(() => {
@@ -77,7 +73,7 @@ function ShowcaseCardBase({
       setLikesCount(newLikesCount);
       setHasLiked(newHasLiked);
     },
-    []
+    [],
   );
 
   const handleBookmarkStatusChange = useCallback(
@@ -85,100 +81,103 @@ function ShowcaseCardBase({
       setBookmarksCount(newBookmarksCount);
       setHasBookmarked(newHasBookmarked);
     },
-    []
+    [],
   );
-
-  const handleDelete = async () => {
-    if (currentUserId !== showcase.user_id) return;
-    setLoading(true);
-    try {
-      const result = await deleteShowcase(showcase.id);
-      if (!result.success) {
-        const errorMessage =
-          result.error?.message || "쇼케이스 삭제에 실패했습니다.";
-        toast.error("쇼케이스 삭제 실패", { description: errorMessage });
-        setLoading(false);
-      } else {
-        toast.success("쇼케이스가 삭제되었습니다.");
-        router.refresh();
-      }
-    } catch {
-      toast.error("쇼케이스 삭제 중 예기치 않은 오류가 발생했습니다.");
-      setLoading(false);
-    }
-  };
 
   const handleCardClick = useCallback(() => {
     if (isDetailPage) return;
     router.push(`/showcase/${showcase.id}`);
   }, [isDetailPage, showcase.id, router]);
 
+  if (!isDetailPage && !isVisible) {
+    return (
+      <div
+        ref={cardRef}
+        className="h-[180px] bg-gray-50/50 animate-pulse rounded-xl"
+      />
+    );
+  }
+
   return (
-    <div ref={cardRef} className="rounded-lg bg-card flex flex-col">
-      {isDetailPage || isVisible ? (
-        <>
-          <ShowcaseCardHeader
-            showcase={showcase}
-            currentUserId={currentUserId}
-            onDelete={handleDelete}
-            loading={loading}
-          />
+    <div
+      ref={cardRef}
+      className="bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-all p-4 md:p-5 flex flex-col gap-4"
+    >
+      <div
+        className="flex gap-4 items-start cursor-pointer"
+        onClick={handleCardClick}
+      >
+        {/* Left: Thumbnail */}
+        <div className="relative w-[60px] h-[60px] md:w-[70px] md:h-[70px] shrink-0 bg-[#f8f9fa] rounded-xl overflow-hidden border border-gray-50 flex items-center justify-center">
+          {showcase.thumbnail_url ? (
+            <Image
+              src={showcase.thumbnail_url}
+              alt={showcase.name || "Showcase"}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="text-gray-300 text-xs">No Image</div>
+          )}
+        </div>
 
-          <ShowcaseCardContent
-            showcase={showcase}
-            mentionedProfiles={mentionedProfiles}
-            searchQuery={searchQuery}
-            isDetailPage={isDetailPage}
-            onCardClick={handleCardClick}
-          />
+        {/* Right: Content */}
+        <div className="flex flex-col gap-1 min-w-0 flex-grow">
+          <h3 className="text-base md:text-lg font-bold text-sydenightblue line-clamp-1">
+            {showcase.name || "제목 없음"}
+          </h3>
+          <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed h-[40px]">
+            {showcase.short_description || "설명이 없습니다."}
+          </p>
 
-          <ShowcaseCardActions
-            showcaseId={showcase.id}
-            currentUserId={currentUserId}
-            likesCount={likesCount}
-            hasLiked={hasLiked}
-            bookmarksCount={bookmarksCount}
-            hasBookmarked={hasBookmarked}
-            commentsCount={commentsCount}
-            onLikeStatusChange={handleLikeStatusChange}
-            onBookmarkStatusChange={handleBookmarkStatusChange}
-          />
-        </>
-      ) : (
-        <div
-          className="h-32 bg-card-foreground/10 animate-pulse rounded-lg"
-          style={{ height: "200px" }}
+          {/* Author line */}
+          <div className="flex items-center gap-2 mt-1">
+            <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-gray-100">
+              <Image
+                src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                alt="author"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <span className="text-xs font-bold text-sydenightblue truncate">
+              {showcase.profiles?.username}
+            </span>
+            {showcase.profiles?.tagline && (
+              <span className="text-[10px] text-gray-400 truncate hidden sm:inline">
+                {showcase.profiles.tagline}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Action Bar */}
+      <div className="pt-3 border-t border-gray-50">
+        <ShowcaseCardActions
+          showcaseId={showcase.id}
+          currentUserId={currentUserId}
+          likesCount={likesCount}
+          hasLiked={hasLiked}
+          bookmarksCount={bookmarksCount}
+          hasBookmarked={hasBookmarked}
+          commentsCount={commentsCount}
+          onLikeStatusChange={handleLikeStatusChange}
+          onBookmarkStatusChange={handleBookmarkStatusChange}
         />
-      )}
+      </div>
     </div>
   );
 }
 
-const MemoizedShowcaseCardBase = memo(ShowcaseCardBase, (prevProps, nextProps) => {
-  // Custom comparison for better performance
+export const ShowcaseCard = memo(ShowcaseCardBase, (prev, next) => {
   return (
-    prevProps.showcase.id === nextProps.showcase.id &&
-    prevProps.currentUserId === nextProps.currentUserId &&
-    prevProps.initialLikesCount === nextProps.initialLikesCount &&
-    prevProps.initialHasLiked === nextProps.initialHasLiked &&
-    prevProps.initialBookmarksCount === nextProps.initialBookmarksCount &&
-    prevProps.initialHasBookmarked === nextProps.initialHasBookmarked &&
-    prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
-    prevProps.searchQuery === nextProps.searchQuery &&
-    prevProps.isDetailPage === nextProps.isDetailPage &&
-    JSON.stringify(prevProps.showcase.profiles) ===
-      JSON.stringify(nextProps.showcase.profiles)
+    prev.showcase.id === next.showcase.id &&
+    prev.currentUserId === next.currentUserId &&
+    prev.initialLikesCount === next.initialLikesCount &&
+    prev.initialHasLiked === next.initialHasLiked &&
+    prev.initialBookmarksCount === next.initialBookmarksCount &&
+    prev.initialHasBookmarked === next.initialHasBookmarked &&
+    prev.initialCommentsCount === next.initialCommentsCount
   );
-});
-
-MemoizedShowcaseCardBase.displayName = "MemoizedShowcaseCardBase";
-
-export const ShowcaseCard = withErrorBoundary(MemoizedShowcaseCardBase, {
-  fallback: (
-    <div className="rounded-lg bg-card p-6 border border-red-200">
-      <p className="text-center text-red-600">
-        쇼케이스를 불러오는 중 오류가 발생했습니다.
-      </p>
-    </div>
-  ),
 });

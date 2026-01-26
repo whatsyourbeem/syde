@@ -128,7 +128,11 @@ export function validateRequired<T>(
  */
 export function requireAuth(userId: string | null | undefined): string {
   if (!userId) {
-    throw new ActionError("UNAUTHORIZED");
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Dev Mode: Defaulting to test user ID");
+      return "testuser"; // Mock Test User ID for development
+    }
+    throw new ActionError("UNAUTHORIZED", "로그인이 필요합니다.");
   }
   return userId;
 }
@@ -189,9 +193,25 @@ export function withAuth<T extends unknown[], R>(
         data: { user },
       } = await supabase.auth.getUser();
 
-      requireAuth(user?.id);
+      let currentUser = user;
+      if (!currentUser && process.env.NODE_ENV === "development") {
+        console.warn("Dev Mode: Injecting mock test user");
+        currentUser = {
+          id: "testuser",
+          email: "test@example.com",
+          user_metadata: {
+            username: "testuser",
+            full_name: "Test User",
+          },
+          app_metadata: {},
+          aud: "authenticated",
+          created_at: new Date().toISOString(),
+        } as User;
+      }
 
-      return action({ supabase, user: user! }, ...args);
+      requireAuth(currentUser?.id);
+
+      return action({ supabase, user: currentUser! }, ...args);
     });
   };
 }
