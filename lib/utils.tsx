@@ -12,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export async function processMentionsForSave(
   content: string,
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database>,
 ) {
   const mentionRegex = /@([a-zA-Z0-9_.]+)/g;
   const usernames = Array.from(content.matchAll(mentionRegex), (m) => m[1]);
@@ -37,11 +37,11 @@ export async function processMentionsForSave(
   for (const profile of profiles) {
     const userMentionRegex = new RegExp(
       `@${profile.username}(?![a-zA-Z0-9_.]|$)`,
-      "g"
+      "g",
     );
     processedContent = processedContent.replace(
       userMentionRegex,
-      `[mention:${profile.id}]`
+      `[mention:${profile.id}]`,
     );
   }
 
@@ -49,10 +49,11 @@ export async function processMentionsForSave(
 }
 
 export function linkifyMentions(
-  text: string,
+  text: string | null | undefined,
   profiles: Array<{ id: string; username: string | null }>,
-  searchQuery?: string
+  searchQuery?: string,
 ) {
+  if (!text) return null;
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const parts = text.split(mentionRegex);
 
@@ -129,7 +130,7 @@ export function getPlainTextFromTiptapJson(jsonContent: Json | null): string {
 export function highlightText(
   text: string,
   query: string,
-  baseKey: string = ""
+  baseKey: string = "",
 ): React.ReactNode[] {
   if (!query || typeof text !== "string") {
     return [text]; // Always return an array, even if just a string
@@ -147,14 +148,14 @@ export function highlightText(
       parts.push(
         <React.Fragment key={`${baseKey}-str-${keyCounter++}`}>
           {text.substring(lastIndex, match.index)}
-        </React.Fragment>
+        </React.Fragment>,
       );
     }
     // Add the highlighted match
     parts.push(
       <span key={`${baseKey}-highlight-${keyCounter++}`} className="font-bold">
         {match[0]}
-      </span>
+      </span>,
     );
     lastIndex = regex.lastIndex;
   }
@@ -164,7 +165,7 @@ export function highlightText(
     parts.push(
       <React.Fragment key={`${baseKey}-str-${keyCounter++}`}>
         {text.substring(lastIndex)}
-      </React.Fragment>
+      </React.Fragment>,
     );
   }
 
@@ -220,7 +221,8 @@ export function upgradeToHttps(url: string | null | undefined): string | null {
     }
 
     // 로컬 개발 환경(127.0.0.1 또는 localhost)인 경우 HTTP 그대로 사용
-    const isLocalHost = urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1";
+    const isLocalHost =
+      urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1";
     if (isLocalHost) {
       return url;
     }
@@ -244,6 +246,8 @@ export function upgradeToHttps(url: string | null | undefined): string | null {
  * @param imageUrl - The image URL to check
  * @returns Secure image URL or null
  */
-export function ensureSecureImageUrl(imageUrl: string | null | undefined): string | null {
+export function ensureSecureImageUrl(
+  imageUrl: string | null | undefined,
+): string | null {
   return upgradeToHttps(imageUrl);
 }
