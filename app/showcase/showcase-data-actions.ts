@@ -39,8 +39,10 @@ export async function fetchShowcasesAction({
   // 2. Build the main query.
   const selectQuery = `
     id,
-    content,
-    image_url,
+    name,
+    short_description,
+    description,
+    thumbnail_url,
     created_at,
     updated_at,
     user_id,
@@ -81,7 +83,7 @@ export async function fetchShowcasesAction({
   }
 
   // Execute the main query
-  const { data: showcasesData, error: showcasesError, count } = await query
+  const { data: showcasesData, error: showcasesError, count } = await (query as any)
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -95,14 +97,14 @@ export async function fetchShowcasesAction({
   const mentionedProfiles = await getMentionedProfiles(supabase, showcasesData || []);
 
   // 3. Process showcases and determine 'hasLiked' using the Set.
-  const processedShowcases: OptimizedShowcase[] = (showcasesData || []).map((showcase) => ({
+  const processedShowcases: OptimizedShowcase[] = (showcasesData || []).map((showcase: any) => ({
     ...showcase,
     profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
     likesCount: showcase.likes_count?.[0]?.count || 0,
     hasLiked: likedShowcaseIdsSet.has(showcase.id),
     bookmarksCount: showcase.showcase_bookmarks?.length || 0,
     hasBookmarked: currentUserId
-      ? showcase.showcase_bookmarks?.some((bookmark) => bookmark.user_id === currentUserId)
+      ? showcase.showcase_bookmarks?.some((bookmark: any) => bookmark.user_id === currentUserId)
       : false,
     showcase_likes: [], // Keep interface consistent
     showcase_comments: showcase.showcase_comments || [],
@@ -123,11 +125,14 @@ async function buildOptimizedSearchConditions(supabase: any, searchQuery: string
     .select("id")
     .or(`username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`);
 
-  const conditions: string[] = [`content.ilike.%${searchQuery}%`];
+  const conditions: string[] = [
+    `name.ilike.%${searchQuery}%`,
+    `short_description.ilike.%${searchQuery}%`
+  ];
 
   if (matchingProfiles && matchingProfiles.length > 0) {
     const mentionConditions = matchingProfiles.map(
-      (profile: { id: string }) => `content.ilike.%[mention:${profile.id}]%`
+      (profile: { id: string }) => `description.ilike.%[mention:${profile.id}]%`
     );
     conditions.push(...mentionConditions);
   }
@@ -162,12 +167,14 @@ async function getBookmarkedShowcaseIds(supabase: any, userId: string): Promise<
   return data.map((item: { showcase_id: string }) => item.showcase_id).filter((id: string | null): id is string => id !== null);
 }
 
-async function getMentionedProfiles(supabase: any, showcases: Array<{ content: string }>): Promise<Array<{ id: string; username: string | null }>> {
+async function getMentionedProfiles(supabase: any, showcases: any[]): Promise<Array<{ id: string; username: string | null }>> {
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const mentionedUserIds = new Set<string>();
   
   showcases.forEach((showcase) => {
-    const matches = showcase.content.matchAll(mentionRegex);
+    // Check both descriptions for mentions
+    const textToSearch = `${showcase.short_description || ''} ${showcase.description || ''}`;
+    const matches = textToSearch.matchAll(mentionRegex);
     for (const match of matches) {
       mentionedUserIds.add(match[1]);
     }
