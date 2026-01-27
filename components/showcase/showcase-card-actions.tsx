@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   HeartIcon,
   MessageCircle,
-  Share2,
+  Share,
   Bookmark,
   Link2,
   Copy,
@@ -48,7 +48,7 @@ interface ShowcaseCardActionsProps {
   onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
   onBookmarkStatusChange: (
     newBookmarksCount: number,
-    newHasBookmarked: boolean
+    newHasBookmarked: boolean,
   ) => void;
 }
 
@@ -183,114 +183,142 @@ function ShowcaseCardActionsBase({
     }
   }, [showcaseId]);
 
-  const commentButton = (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          onClick={handleCommentClick}
-          className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
-        >
-          <MessageCircle size={18} />
-          <span>{commentsCount}</span>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">
-        <p>댓글</p>
-      </TooltipContent>
-    </Tooltip>
-  );
-
   return (
     <>
-      <div className="flex justify-center items-center gap-5 text-xs md:text-sm text-muted-foreground px-4 pt-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleLike}
-                disabled={likeLoading}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group disabled:opacity-50"
-              >
-                {likeLoading ? (
-                  <LoadingSpinner size="sm" className="text-red-500" />
-                ) : (
-                  <HeartIcon
-                    className={
-                      hasLiked
-                        ? "fill-red-500 text-red-500"
-                        : "text-muted-foreground group-hover:text-red-500"
-                    }
-                    size={18}
-                  />
-                )}
-                <span className="group-hover:text-red-500">{likesCount}</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>좋아요</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {commentButton}
-
-          <DropdownMenu>
+      <div className="grid grid-cols-4 gap-1 text-[#999999]">
+        {/* 1. Like Action */}
+        <div className="flex justify-center items-center h-10">
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20">
-                    <Share2 size={18} />
-                  </button>
-                </DropdownMenuTrigger>
+                <button
+                  onClick={handleLike}
+                  disabled={likeLoading}
+                  className="flex items-center gap-2 transition-colors hover:text-red-500 group disabled:opacity-50"
+                >
+                  {likeLoading ? (
+                    <LoadingSpinner size="sm" className="text-red-500" />
+                  ) : (
+                    <HeartIcon
+                      className={
+                        hasLiked
+                          ? "fill-red-500 text-red-500"
+                          : "text-[#999999] group-hover:text-red-500"
+                      }
+                      size={22}
+                      strokeWidth={1.5}
+                    />
+                  )}
+                  <span
+                    className={
+                      hasLiked
+                        ? "text-red-500 font-medium"
+                        : "group-hover:text-red-500"
+                    }
+                  >
+                    {likesCount}
+                  </span>
+                </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p>공유</p>
+                <p>좋아요</p>
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={handleCopyLink}
-                className="cursor-pointer"
-              >
-                <Link2 className="mr-2 h-4 w-4" />
-                <span>링크 복사하기</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleShareAll}
-                className="cursor-pointer"
-              >
-                <span>모두 보기</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleBookmark}
-                disabled={bookmarkLoading}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 dark:hover:bg-yellow-900/20 group disabled:opacity-50"
-              >
-                {bookmarkLoading ? (
-                  <LoadingSpinner size="sm" className="text-yellow-500" />
-                ) : (
-                  <Bookmark
-                    className={
-                      hasBookmarked
-                        ? "fill-yellow-500 text-yellow-500"
-                        : "text-muted-foreground group-hover:text-yellow-500"
-                    }
-                    size={18}
+          </TooltipProvider>
+        </div>
+
+        {/* 2. Comment Action */}
+        <div className="flex justify-center items-center h-10">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleCommentClick}
+                  className="flex items-center gap-2 transition-colors hover:text-green-500 group"
+                >
+                  <MessageCircle
+                    size={22}
+                    strokeWidth={1.5}
+                    className="text-[#999999] group-hover:text-green-500"
                   />
-                )}
-                <span className="group-hover:text-yellow-500">
-                  {bookmarksCount}
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>저장</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+                  <span className="font-medium group-hover:text-green-500">
+                    {commentsCount}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>댓글</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {/* 3. Share Action */}
+        <div className="flex justify-center items-center h-10">
+          <TooltipProvider>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center transition-colors hover:text-blue-500">
+                      <Share size={22} strokeWidth={1.5} />
+                    </button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>공유</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={handleCopyLink}
+                  className="cursor-pointer"
+                >
+                  <Link2 className="mr-2 h-4 w-4" />
+                  <span>링크 복사하기</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleShareAll}
+                  className="cursor-pointer"
+                >
+                  <span>모두 보기</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TooltipProvider>
+        </div>
+
+        {/* 4. Bookmark Action */}
+        <div className="flex justify-center items-center h-10">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleBookmark}
+                  disabled={bookmarkLoading}
+                  className="flex items-center transition-colors group disabled:opacity-50"
+                >
+                  {bookmarkLoading ? (
+                    <LoadingSpinner size="sm" className="text-yellow-500" />
+                  ) : (
+                    <Bookmark
+                      className={
+                        hasBookmarked
+                          ? "fill-[#FFD700] text-[#FFD700]"
+                          : "text-[#999999] group-hover:text-yellow-500"
+                      }
+                      size={22}
+                      strokeWidth={1.5}
+                    />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>저장</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
@@ -351,7 +379,7 @@ export const ShowcaseCardActions = memo(
       prevProps.hasBookmarked === nextProps.hasBookmarked &&
       prevProps.commentsCount === nextProps.commentsCount
     );
-  }
+  },
 );
 
 ShowcaseCardActions.displayName = "ShowcaseCardActions";

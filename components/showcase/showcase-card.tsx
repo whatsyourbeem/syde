@@ -101,14 +101,14 @@ function ShowcaseCardBase({
   return (
     <div
       ref={cardRef}
-      className="bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-all p-4 md:p-5 flex flex-col gap-4"
+      className="w-full max-w-[600px] bg-[#FAFAFA] rounded-[16px] border border-gray-100 hover:border-gray-200 transition-all p-6 flex flex-col gap-5 mx-auto"
     >
       <div
-        className="flex gap-4 items-start cursor-pointer"
+        className="flex gap-5 items-start cursor-pointer"
         onClick={handleCardClick}
       >
         {/* Left: Thumbnail */}
-        <div className="relative w-[60px] h-[60px] md:w-[70px] md:h-[70px] shrink-0 bg-[#f8f9fa] rounded-xl overflow-hidden border border-gray-50 flex items-center justify-center">
+        <div className="relative w-[80px] h-[80px] shrink-0 bg-[#f0f0f0] rounded-[12px] overflow-hidden border border-gray-50 flex items-center justify-center">
           {showcase.thumbnail_url ? (
             <Image
               src={showcase.thumbnail_url}
@@ -117,21 +117,21 @@ function ShowcaseCardBase({
               className="object-cover"
             />
           ) : (
-            <div className="text-gray-300 text-xs">No Image</div>
+            <div className="text-gray-400 text-[10px]">No Image</div>
           )}
         </div>
 
         {/* Right: Content */}
-        <div className="flex flex-col gap-1 min-w-0 flex-grow">
-          <h3 className="text-base md:text-lg font-bold text-sydenightblue line-clamp-1">
+        <div className="flex flex-col gap-1.5 min-w-0 flex-grow">
+          <h3 className="text-[18px] font-bold text-sydenightblue line-clamp-1 leading-[24px]">
             {showcase.name || "제목 없음"}
           </h3>
-          <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed h-[40px]">
+          <p className="text-[14px] text-[#666666] line-clamp-2 leading-[20px] h-[40px]">
             {showcase.short_description || "설명이 없습니다."}
           </p>
 
           {/* Author line */}
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1.5">
             <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-gray-100">
               <Image
                 src={showcase.profiles?.avatar_url || "/default_avatar.png"}
@@ -140,11 +140,11 @@ function ShowcaseCardBase({
                 className="object-cover"
               />
             </div>
-            <span className="text-xs font-bold text-sydenightblue truncate">
+            <span className="text-[12px] font-bold text-sydenightblue truncate">
               {showcase.profiles?.username}
             </span>
             {showcase.profiles?.tagline && (
-              <span className="text-[10px] text-gray-400 truncate hidden sm:inline">
+              <span className="text-[11px] text-gray-400 truncate hidden sm:inline">
                 {showcase.profiles.tagline}
               </span>
             )}
@@ -153,7 +153,7 @@ function ShowcaseCardBase({
       </div>
 
       {/* Action Bar */}
-      <div className="pt-3 border-t border-gray-50">
+      <div className="pt-5 border-t border-gray-100/50">
         <ShowcaseCardActions
           showcaseId={showcase.id}
           currentUserId={currentUserId}

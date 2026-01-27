@@ -338,14 +338,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       <div className="px-5">
         {/* Header Info */}
         <div className="flex items-start gap-4 mb-6">
-          <div className="relative w-16 h-16 flex-shrink-0 bg-gray-900 rounded-[14px] flex items-center justify-center overflow-hidden">
-            {/* Project Logo Placeholder - Using Author Avatar or Default */}
+          {/* Project Thumbnail (100x100 on desktop, 64x64 on mobile) */}
+          <div className="relative w-16 h-16 lg:w-[100px] lg:h-[100px] flex-shrink-0 bg-gray-900 rounded-[10px] flex items-center justify-center overflow-hidden">
             {showcase.profiles?.avatar_url ? (
               <Image
                 src={showcase.profiles.avatar_url}
                 alt="Logo"
-                width={64}
-                height={64}
+                fill
                 className="object-cover"
               />
             ) : (
@@ -353,64 +352,69 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-gray-900 truncate">
+            {/* Title: 28px on desktop, 20px on mobile */}
+            <h1 className="text-xl lg:text-[28px] font-bold leading-[150%] text-black truncate">
               {projectTitle}
             </h1>
-            <p className="text-sm text-gray-500 truncate mt-1">
+            {/* Short Description: 14px */}
+            <p className="text-[14px] leading-[150%] text-black truncate mt-1">
               {projectTagline}
             </p>
-            <div className="flex items-center gap-2 mt-2">
-              <Avatar className="w-5 h-5">
+            {/* Profile Info */}
+            <div className="flex items-center gap-[5px] mt-2">
+              <Avatar className="w-[20px] h-[20px]">
                 <AvatarImage src={showcase.profiles?.avatar_url || ""} />
-                <AvatarFallback>
+                <AvatarFallback className="text-[8px]">
                   {showcase.profiles?.username?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs font-bold text-gray-700">
+              <span className="text-[12px] font-semibold text-[#002040]">
                 {showcase.profiles?.full_name}
               </span>
-              <span className="text-[10px] text-gray-400">|</span>
-              <span className="text-[10px] text-gray-400 truncate">
-                {authorRole}
-              </span>
+              <span className="text-[11px] text-[#777777]">{authorRole}</span>
             </div>
           </div>
         </div>
 
-        {/* Stats Action Bar */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-[8px] px-6 py-3 mb-6">
-          <button
-            onClick={handleLike}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-red-500 transition-colors"
-          >
-            <HeartIcon
-              className={`w-4 h-4 ${
-                hasLiked ? "fill-red-500 text-red-500" : ""
-              }`}
-            />
-            <span className="text-xs font-medium">{likesCount}</span>
-          </button>
-          <button className="flex items-center gap-1.5 text-gray-500 hover:text-blue-500 transition-colors">
-            <MessageCircle className="w-4 h-4" />
-            <span className="text-xs font-medium">{commentsCount}</span>
-          </button>
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleBookmark}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-yellow-500 transition-colors"
-          >
-            <Bookmark
-              className={`w-4 h-4 ${
-                hasBookmarked ? "fill-yellow-500 text-yellow-500" : ""
-              }`}
-            />
-            <span className="text-xs font-medium">{bookmarksCount}</span>
-          </button>
+        {/* Stats Action Bar (h-44px, rounded-12px, bg-FAFAFA) */}
+        <div className="flex items-center h-[44px] bg-[#FAFAFA] rounded-[12px] p-[12px] mb-6">
+          <div className="grid grid-cols-4 gap-1 w-full h-full text-[#777777]">
+            {/* Like */}
+            <button
+              onClick={handleLike}
+              className="flex justify-center items-center gap-[5px] hover:text-red-500 transition-colors"
+            >
+              <HeartIcon
+                className={`w-[18px] h-[17px] ${hasLiked ? "fill-red-500 text-red-500" : ""}`}
+                strokeWidth={1.5}
+              />
+              <span className="text-[14px] leading-[150%]">{likesCount}</span>
+            </button>
+            {/* Comment */}
+            <button className="flex justify-center items-center gap-[5px] hover:text-blue-500 transition-colors">
+              <MessageCircle className="w-[18px] h-[16px]" strokeWidth={1.5} />
+              <span className="text-[14px] leading-[150%]">
+                {commentsCount}
+              </span>
+            </button>
+            {/* Share */}
+            <button
+              onClick={handleCopyLink}
+              className="flex justify-center items-center hover:text-gray-900 transition-colors"
+            >
+              <Share2 className="w-[14px] h-[20px]" strokeWidth={1.5} />
+            </button>
+            {/* Bookmark */}
+            <button
+              onClick={handleBookmark}
+              className="flex justify-center items-center hover:text-yellow-500 transition-colors"
+            >
+              <Bookmark
+                className={`w-[10px] h-[16px] ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : ""}`}
+                strokeWidth={1.5}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Gallery Section */}
@@ -519,39 +523,44 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </Button>
         </div>
 
-        {/* Team Section */}
-        <div className="mb-10">
+        {/* Team Section (Horizontal Scroll, 128x118 cards, 48px avatars) */}
+        <div className="mb-10 border-t border-[#B7B7B7]/50 pt-5">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-4 h-1 bg-[#ED6D34] rounded-full" />
-            <span className="font-bold text-lg text-gray-900">
-              SYDERS의 손 끝에서 탄생했어요.
+            <span className="text-[20px] font-bold text-[#002040]">
+              🛠️ SYDERS의 손 끝에서 탄생했어요.
             </span>
           </div>
-          <div className="grid grid-cols-5 gap-2">
+          {/* Horizontal scroll list */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
             {teamMembers.map((member) => (
-              <div key={member.id} className="flex flex-col items-center">
-                <div className="w-16 h-16 rounded-[20px] bg-gray-100 mb-2 overflow-hidden border border-gray-50">
-                  <Image
-                    src={member.avatar || "/default_avatar.png"}
-                    alt={member.name}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                  />
+              <div
+                key={member.id}
+                className="flex flex-col justify-center items-center p-2 gap-1 w-[128px] h-[118px] bg-[#FAFAFA] rounded-[10px] flex-shrink-0"
+              >
+                {/* Avatar (48x48) */}
+                <div className="relative w-[48px] h-[48px]">
+                  <Avatar className="w-full h-full">
+                    <AvatarImage src={member.avatar || ""} />
+                    <AvatarFallback className="bg-[#D9D9D9] text-[12px]">
+                      {member.name?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
-                <span className="text-[12px] font-bold text-gray-900 text-center truncate w-full">
+                {/* Name (12px bold) */}
+                <span className="text-[12px] font-bold text-[#002040] text-center truncate w-full">
                   {member.name}
                 </span>
-                <span className="text-[10px] text-gray-400 text-center truncate w-full">
+                {/* Username (12px) */}
+                <span className="text-[12px] text-[#777777] text-center truncate w-full">
                   @{member.username}
                 </span>
-                <span className="text-[10px] text-gray-400 text-center mt-0.5">
+                {/* Tagline (12px) */}
+                <span className="text-[12px] text-[#777777] text-center truncate w-full">
                   [JobTitle]
                 </span>
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-100 mt-6" />
         </div>
 
         {/* Comments Section */}
