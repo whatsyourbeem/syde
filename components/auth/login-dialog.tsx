@@ -4,11 +4,13 @@ import { useLoginDialog } from "@/context/LoginDialogContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { loginWithGoogle, loginWithKakao } from "@/app/auth/login/actions";
+import { loginWithGoogle, loginWithKakao, loginWithTestAccount } from "@/app/auth/login/actions";
 
 
 export function LoginDialog() {
   const { isLoginDialogOpen, closeLoginDialog } = useLoginDialog();
+  // 보안: Next.js 빌드 도구가 배포용 빌드 시 이 코드 블록을 아예 제거하도록 환경변수 체크로 변경
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   return (
     <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginDialog}>
@@ -46,6 +48,17 @@ export function LoginDialog() {
               </div>
             </Button>
           </form>
+
+          {isDevelopment && (
+            <div className="mt-2 pt-4 border-t border-dashed border-gray-200">
+              <p className="text-[10px] text-gray-400 mb-2 text-center">로컬 개발용 (테스트 계정)</p>
+              <form action={loginWithTestAccount}>
+                <Button type="submit" variant="outline" className="w-full border-[#002040] text-[#002040] hover:bg-gray-50">
+                  테스트 계정으로 즉시 로그인
+                </Button>
+              </form>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

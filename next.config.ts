@@ -27,6 +27,21 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
+      {
+        protocol: "https",
+        hostname: "127.0.0.1",
+        port: "54321",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "54321",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "54321",
+      },
     ],
     minimumCacheTTL: 604800, // 1 week
     // unoptimized: true, // Vercel 요금 절약을 위한 이미지 최적화 비활성화
