@@ -25,7 +25,7 @@ interface CommentListProps {
       authorName: string;
       authorUsername: string | null;
       authorAvatarUrl: string | null;
-    } | null
+    } | null,
   ) => void;
   newCommentId?: string;
   newParentCommentId?: string;
@@ -36,7 +36,8 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 type CommentWithRelations = CommentRow & {
   profiles: ProfileRow | null;
-  comment_likes: Array<{ user_id: string }>;
+  comment_likes?: Array<{ user_id: string }>; // For log comments
+  showcase_likes?: Array<{ user_id: string }>; // For showcase comments
   replies?: CommentWithRelations[];
 };
 
@@ -94,6 +95,12 @@ export function CommentList({
       const from = (pageParam - 1) * pageSize;
       const to = from + pageSize - 1;
 
+      // Determine which likes relation to fetch
+      const likesRelation =
+        parentTable === "log_comments"
+          ? "comment_likes(user_id)"
+          : "showcase_likes!showcase_likes_comment_id_fkey(user_id)";
+
       const { data, error, count } = await supabase
         .from(parentTable)
         .select(
@@ -106,9 +113,9 @@ export function CommentList({
           ${parentColumn},
           parent_comment_id,
           profiles!${parentTable}_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
-          ${parentTable === "log_comments" ? "comment_likes(user_id)" : ""}
+          ${likesRelation}
         `,
-          { count: "exact" }
+          { count: "exact" },
         )
         .eq(parentColumn, parentId)
         .is("parent_comment_id", null) // Fetch only top-level comments
@@ -134,8 +141,8 @@ export function CommentList({
           ${parentColumn},
           parent_comment_id,
           profiles!${parentTable}_user_id_fkey (id, username, full_name, avatar_url, updated_at, bio, link, tagline, certified),
-          ${parentTable === "log_comments" ? "comment_likes(user_id)" : ""}
-        `
+          ${likesRelation}
+        `,
         )
         .in("parent_comment_id", commentIds)
         .returns<CommentWithRelations[]>();
@@ -187,26 +194,29 @@ export function CommentList({
       }
 
       const processComment = (
-        comment: CommentWithRelations
-      ): ProcessedComment => ({
-        ...comment,
-        profiles: Array.isArray(comment.profiles)
-          ? comment.profiles[0]
-          : comment.profiles,
-        initialLikesCount: comment.comment_likes?.length || 0,
-        initialHasLiked: currentUserId
-          ? comment.comment_likes?.some(
-              (like) => like.user_id === currentUserId
-            )
-          : false,
-        replies: (comment.replies || [])
-          .map(processComment)
-          .sort(
-            (a, b) =>
-              new Date(a.created_at!).getTime() -
-              new Date(b.created_at!).getTime()
-          ),
-      });
+        comment: CommentWithRelations,
+      ): ProcessedComment => {
+        // Get likes from appropriate field based on comment type
+        const likes = comment.comment_likes || comment.showcase_likes || [];
+        return {
+          ...comment,
+          profiles: Array.isArray(comment.profiles)
+            ? comment.profiles[0]
+            : comment.profiles,
+          comment_likes: likes,
+          initialLikesCount: likes.length,
+          initialHasLiked: currentUserId
+            ? likes.some((like) => like.user_id === currentUserId)
+            : false,
+          replies: (comment.replies || [])
+            .map(processComment)
+            .sort(
+              (a, b) =>
+                new Date(a.created_at!).getTime() -
+                new Date(b.created_at!).getTime(),
+            ),
+        };
+      };
 
       const commentsWithProcessedData: ProcessedComment[] =
         commentsWithReplies.map(processComment);
@@ -233,7 +243,7 @@ export function CommentList({
   const allMentionedProfiles =
     data?.pages.flatMap((page) => page.mentionedProfiles) || [];
   const uniqueMentionedProfiles = Array.from(
-    new Map(allMentionedProfiles.map((item) => [item.id, item])).values()
+    new Map(allMentionedProfiles.map((item) => [item.id, item])).values(),
   );
 
   type PageData = {
@@ -260,14 +270,14 @@ export function CommentList({
                       initialLikesCount: newLikesCount,
                       initialHasLiked: newHasLiked,
                     }
-                  : comment
+                  : comment,
               ),
             })),
           };
-        }
+        },
       );
     },
-    [queryClient, queryKey]
+    [queryClient, queryKey],
   );
 
   useEffect(() => {
@@ -283,14 +293,21 @@ export function CommentList({
         },
         () => {
           queryClient.invalidateQueries({ queryKey });
-        }
+        },
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "comment_likes" },
         () => {
           queryClient.invalidateQueries({ queryKey });
-        }
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "showcase_likes" },
+        () => {
+          queryClient.invalidateQueries({ queryKey });
+        },
       )
       .subscribe();
 

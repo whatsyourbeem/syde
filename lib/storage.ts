@@ -454,3 +454,26 @@ export async function deleteShowcaseStorage(showcaseId: string): Promise<void> {
     }
   }
 }
+
+export async function handleShowcaseDetailImages(
+  showcaseId: string,
+  detailImageFiles: File[]
+): Promise<string[]> {
+  if (!detailImageFiles || detailImageFiles.length === 0) {
+    return [];
+  }
+
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const uploadPromises = detailImageFiles.map(async (file) => {
+    if (file.size === 0) return null;
+    const fileName = `${showcaseId}/details/${uuidv4()}`;
+    return await uploadAndGetUrl(adminClient, "showcases", fileName, file);
+  });
+
+  const urls = await Promise.all(uploadPromises);
+  return urls.filter((url): url is string => url !== null);
+}

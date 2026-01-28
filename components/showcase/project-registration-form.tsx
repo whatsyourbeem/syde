@@ -21,6 +21,7 @@ export function ProjectRegistrationForm() {
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [detailImagePreviews, setDetailImagePreviews] = useState<string[]>([]);
+  const [detailImageFiles, setDetailImageFiles] = useState<File[]>([]);
   const detailInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -82,6 +83,7 @@ export function ProjectRegistrationForm() {
 
       const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
       setDetailImagePreviews((prev) => [...prev, ...newPreviews]);
+      setDetailImageFiles((prev) => [...prev, ...validFiles]);
 
       // Reset input so same files can be selected again
       if (detailInputRef.current) detailInputRef.current.value = "";
@@ -90,6 +92,9 @@ export function ProjectRegistrationForm() {
 
   const removeDetailImage = (indexToRemove: number) => {
     setDetailImagePreviews((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
+    setDetailImageFiles((prev) =>
       prev.filter((_, index) => index !== indexToRemove),
     );
   };
@@ -124,6 +129,11 @@ export function ProjectRegistrationForm() {
       if (thumbnailFile) {
         formData.append("thumbnailFile", thumbnailFile);
       }
+
+      // Append detail images
+      detailImageFiles.forEach((file) => {
+        formData.append("detailImageFiles", file);
+      });
 
       const result = await createShowcase(formData);
 
@@ -205,9 +215,6 @@ export function ProjectRegistrationForm() {
           </Label>
           <div className="border border-[#B7B7B7] rounded-[10px] bg-white px-5 flex justify-between items-center h-[180px]">
             <div className="space-y-4 flex-1">
-              <Label className="text-sm font-medium text-[#002040] block mb-2">
-                대표 이미지
-              </Label>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-[#002040]">
                   프로덕트의 얼굴!
@@ -288,9 +295,6 @@ export function ProjectRegistrationForm() {
           </Label>
           <div className="border border-[#B7B7B7] rounded-[10px] bg-white p-4 flex flex-col gap-4 h-[291px] overflow-hidden">
             <div className="flex flex-col gap-[4px] h-[38px] shrink-0">
-              <p className="text-sm font-medium text-[#002040]">
-                상세 설명 이미지
-              </p>
               <p className="text-[14px] leading-[120%] text-[#777777]">
                 프로덕트의 스크린샷 또는 관련 설명 이미지가 있다면 추가해주세요.
                 (최대 5장)

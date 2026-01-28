@@ -42,7 +42,7 @@ interface CommentCardProps {
   onLikeStatusChange: (
     commentId: string,
     newLikesCount: number,
-    newHasLiked: boolean
+    newHasLiked: boolean,
   ) => void;
   isDetailPage?: boolean;
   isMobile?: boolean;
@@ -134,10 +134,14 @@ export function CommentCard({
     let newLikesCount = likesCount;
     let newHasLiked = hasLiked;
 
+    // Determine which table to use for likes
+    const isLog = !!logId;
+    const likesTable = isLog ? "comment_likes" : "showcase_likes";
+
     if (hasLiked) {
       // Unlike
       const { error } = await supabase
-        .from("comment_likes")
+        .from(likesTable)
         .delete()
         .eq("comment_id", comment.id)
         .eq("user_id", currentUserId);
@@ -150,9 +154,11 @@ export function CommentCard({
       }
     } else {
       // Like
-      const { error } = await supabase
-        .from("comment_likes")
-        .insert({ comment_id: comment.id, user_id: currentUserId });
+      const insertData = isLog
+        ? { comment_id: comment.id, user_id: currentUserId }
+        : { comment_id: comment.id, user_id: currentUserId, showcase_id: null };
+
+      const { error } = await supabase.from(likesTable).insert(insertData);
 
       if (!error) {
         newLikesCount = likesCount + 1;
@@ -194,7 +200,7 @@ export function CommentCard({
       alert(
         `댓글 삭제 중 오류가 발생했습니다: ${
           error instanceof Error ? error.message : "알 수 없는 오류"
-        }`
+        }`,
       );
     } finally {
       setLoading(false);
@@ -426,7 +432,7 @@ export function CommentCard({
                   {isDetailPage
                     ? `답글 ${Math.max(
                         0,
-                        comment.replies.length - displayReplyCount
+                        comment.replies.length - displayReplyCount,
                       )}개 더보기...`
                     : `답글 ${comment.replies.length - 5}개 더보기...`}
                 </Button>

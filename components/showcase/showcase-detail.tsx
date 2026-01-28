@@ -424,7 +424,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             {showcase.image_url ? (
               <Image
                 src={showcase.image_url}
-                alt="Main"
+                alt={showcase.name || "Main Image"}
                 fill
                 className="object-cover"
               />
@@ -433,7 +433,6 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 <span className="text-xs">No Image</span>
               </div>
             )}
-            {/* Mock Overlay Text from Design */}
             {!showcase.image_url && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-[10px]">
                 <p>설명 이미지</p>
@@ -442,17 +441,27 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               </div>
             )}
           </div>
-          {/* Sub Image (Placeholder) */}
-          <div className="flex-none w-[200px] aspect-video bg-gray-200 rounded-[12px] relative overflow-hidden">
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-[10px]">
-              <p>설명 이미지</p>
-              <p>16:9</p>
-              <p>320x180</p>
+
+          {/* Sub Images from Database */}
+          {showcase.showcases_images?.map((img: any, index: number) => (
+            <div
+              key={img.id || index}
+              className="flex-none w-[200px] aspect-video bg-gray-200 rounded-[12px] relative overflow-hidden group"
+            >
+              {img.image_url ? (
+                <Image
+                  src={img.image_url}
+                  alt={`Detail Image ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                  No Image
+                </div>
+              )}
             </div>
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 shadow-sm">
-              <ChevronLeft className="w-4 h-4 rotate-180 text-gray-600" />
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Content Section */}

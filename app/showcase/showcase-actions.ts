@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
-import { handleShowcaseImage, deleteShowcaseStorage } from "@/lib/storage";
+import { handleShowcaseImage, handleShowcaseDetailImages, deleteShowcaseStorage } from "@/lib/storage";
 
 export const createShowcase = withAuth(
   async ({ supabase, user }, formData: FormData) => {
@@ -12,6 +12,7 @@ export const createShowcase = withAuth(
     const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
     const description = formData.get("description") as string;
     const thumbnailFile = formData.get("thumbnailFile") as File | null;
+    const detailImageFiles = formData.getAll("detailImageFiles") as File[];
 
     const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
 
@@ -47,6 +48,24 @@ export const createShowcase = withAuth(
       }
     }
 
+    if (detailImageFiles && detailImageFiles.length > 0) {
+      const detailImageUrls = await handleShowcaseDetailImages(showcaseId, detailImageFiles);
+      if (detailImageUrls.length > 0) {
+        const { error: imagesError } = await supabase.from("showcases_images").insert(
+          detailImageUrls.map((url, index) => ({
+            showcase_id: showcaseId,
+            image_url: url,
+            display_order: index,
+          }))
+        );
+
+        if (imagesError) {
+           console.error("Failed to save showcase detail images:", imagesError);
+           // Not returning error here to allow partial success, but logging it.
+        }
+      }
+    }
+
     revalidatePath("/");
     revalidatePath("/showcase");
     if (user?.user_metadata?.username) {
@@ -66,6 +85,7 @@ export const updateShowcase = withAuth(
     const description = formData.get("description") as string;
     const thumbnailFile = formData.get("thumbnailFile") as File | null;
     const thumbnailRemoved = formData.get("thumbnailRemoved") === "true";
+    const detailImageFiles = formData.getAll("detailImageFiles") as File[];
 
     const { data: oldShowcaseData } = await supabase
       .from("showcases")

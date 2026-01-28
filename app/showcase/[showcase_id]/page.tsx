@@ -8,7 +8,9 @@ type ShowcaseDetailPageProps = {
   }>;
 };
 
-export default async function ShowcaseDetailPage({ params }: ShowcaseDetailPageProps) {
+export default async function ShowcaseDetailPage({
+  params,
+}: ShowcaseDetailPageProps) {
   const { showcase_id } = await params;
   const supabase = await createClient();
 
@@ -18,8 +20,14 @@ export default async function ShowcaseDetailPage({ params }: ShowcaseDetailPageP
 
   const { data: showcase, error } = await supabase
     .from("showcases")
-    .select("*, profiles(*), showcase_likes(user_id), showcase_bookmarks(user_id), showcase_comments(id)")
+    .select(
+      "*, profiles(*), showcase_likes(user_id), showcase_bookmarks(user_id), showcase_comments(id), showcases_images(*)",
+    )
     .eq("id", showcase_id)
+    .order("display_order", {
+      referencedTable: "showcases_images",
+      ascending: true,
+    })
     .single();
 
   if (error || !showcase) {
