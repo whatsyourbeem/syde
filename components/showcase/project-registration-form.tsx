@@ -343,10 +343,6 @@ export function ProjectRegistrationForm({
         return;
       }
 
-      if (initialData) {
-        toast.success("프로젝트가 수정되었습니다.");
-      }
-
       await queryClient.invalidateQueries({ queryKey: ["showcases"] });
       // Invalidate specific showcase query if updating
       if (initialData) {
@@ -355,14 +351,14 @@ export function ProjectRegistrationForm({
         });
       }
 
-      if (initialData) {
-        router.push(`/showcase/${initialData.id}`);
-      } else {
-        setShowSuccessDialog(true);
-        setTimeout(() => {
+      setShowSuccessDialog(true);
+      setTimeout(() => {
+        if (initialData) {
+          router.push(`/showcase/${initialData.id}`);
+        } else {
           router.push("/showcase");
-        }, 1500);
-      }
+        }
+      }, 1500);
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("등록 중 오류가 발생했습니다.");
@@ -796,7 +792,9 @@ export function ProjectRegistrationForm({
         >
           <DialogHeader className="flex flex-col justify-center items-center gap-[8px] p-0 w-[428px] h-[28px]">
             <DialogTitle className="flex items-center justify-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040]">
-              🎉 SYDE 프로덕트를 등록했습니다. 🎉
+              {initialData
+                ? "🎉 SYDE 프로덕트를 수정했습니다. 🎉"
+                : "🎉 SYDE 프로덕트를 등록했습니다. 🎉"}
             </DialogTitle>
           </DialogHeader>
         </DialogContent>
