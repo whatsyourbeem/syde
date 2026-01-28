@@ -18,7 +18,16 @@ import { TiptapMenu } from "@/components/editor/tiptap-menu";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function ProjectRegistrationForm() {
+import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
+import { updateShowcase } from "@/app/showcase/showcase-actions";
+
+interface ProjectRegistrationFormProps {
+  initialData?: OptimizedShowcase;
+}
+
+export function ProjectRegistrationForm({
+  initialData,
+}: ProjectRegistrationFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const supabase = createClient();
@@ -29,10 +38,6 @@ export function ProjectRegistrationForm() {
   const [detailImageFiles, setDetailImageFiles] = useState<File[]>([]);
   const detailInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Website Links State
   const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
@@ -157,6 +162,61 @@ export function ProjectRegistrationForm() {
     },
   });
 
+  useEffect(() => {
+    setIsMounted(true);
+    if (initialData) {
+      setTitle(initialData.name || "");
+      setTagline(initialData.short_description || "");
+      if (initialData.description) {
+        // Use setTimeout to ensure editor is ready, or check editor existence
+        // editor.commands might be available immediately if useEditor finished
+        // But useEditor is synchronous hook, rendering is async?
+        // editor might be null initially?
+        if (editor) {
+          editor.commands.setContent(initialData.description);
+        }
+      }
+      if (initialData.thumbnail_url) {
+        setMainImagePreview(initialData.thumbnail_url);
+      }
+
+      // Initialize Detail Images
+      if (initialData.showcases_images) {
+        const sortedImages = [...initialData.showcases_images]
+          .sort((a: any, b: any) => a.display_order - b.display_order)
+          .map((img: any) => img.image_url);
+        setDetailImagePreviews(sortedImages);
+      }
+
+      // Initialize Links
+      const websites: string[] = [];
+      let googlePlay = "";
+      let appStore = "";
+
+      if (initialData.showcases_links) {
+        initialData.showcases_links.forEach((link: any) => {
+          if (link.type === "website") websites.push(link.url);
+          else if (link.type === "google_play") googlePlay = link.url;
+          else if (link.type === "app_store") appStore = link.url;
+        });
+      }
+      if (websites.length > 0) setWebsiteLinks(websites);
+      if (googlePlay) setGooglePlayLink(googlePlay);
+      if (appStore) setAppStoreLink(appStore);
+
+      // Initialize Members
+      if (initialData.members) {
+        const members = initialData.members.map((m: any) => ({
+          id: m.user_id,
+          username: m.profile?.username || "unknown",
+          avatar_url: m.profile?.avatar_url || null,
+          full_name: m.profile?.full_name,
+        }));
+        setSelectedTeamMembers(members);
+      }
+    }
+  }, [initialData, editor]);
+
   const handleMainImageChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -253,16 +313,42 @@ export function ProjectRegistrationForm() {
         formData.append("teamMembers", JSON.stringify(teamMemberIds));
       }
 
-      const result = await createShowcase(formData);
+      // Append remaining images (for update)
+      if (initialData) {
+        formData.append("showcaseId", initialData.id);
+
+        // Filter out blob URLs (newly added files) to get only existing remote URLs
+        const remainingImages = detailImagePreviews.filter(
+          (url) => url.startsWith("http") || url.startsWith("/"),
+        );
+        formData.append("remainingImages", JSON.stringify(remainingImages));
+
+        // Handle thumbnail removal/change logic could be refined but basic override works
+      }
+
+      const result = initialData
+        ? await updateShowcase(formData)
+        : await createShowcase(formData);
 
       if (result && "error" in result) {
         toast.error(result.error);
         return;
       }
 
-      toast.success("프로젝트가 등록되었습니다.");
+      toast.success(
+        initialData
+          ? "프로젝트가 수정되었습니다."
+          : "프로젝트가 등록되었습니다.",
+      );
       await queryClient.invalidateQueries({ queryKey: ["showcases"] });
-      router.push("/showcase");
+      // Invalidate specific showcase query if updating
+      if (initialData) {
+        await queryClient.invalidateQueries({
+          queryKey: ["showcase", initialData.id],
+        });
+      }
+
+      router.push(initialData ? `/showcase/${initialData.id}` : "/showcase");
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("등록 중 오류가 발생했습니다.");
@@ -370,6 +456,7 @@ export function ProjectRegistrationForm() {
                     alt="Preview"
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                   <button
                     type="button"
@@ -453,6 +540,7 @@ export function ProjectRegistrationForm() {
                     alt={`Detail ${index + 1}`}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                   <button
                     type="button"

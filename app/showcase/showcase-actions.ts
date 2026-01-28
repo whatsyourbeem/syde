@@ -149,6 +149,10 @@ export const updateShowcase = withAuth(
     const thumbnailRemoved = formData.get("thumbnailRemoved") === "true";
     const detailImageFiles = formData.getAll("detailImageFiles") as File[];
 
+    const websiteLinks = formData.getAll("links_website") as string[];
+    const googlePlayLink = formData.get("links_google_play") as string | null;
+    const appStoreLink = formData.get("links_app_store") as string | null;
+
     const { data: oldShowcaseData } = await supabase
       .from("showcases")
       .select("thumbnail_url, user_id")
@@ -188,6 +192,82 @@ export const updateShowcase = withAuth(
 
     if (error) {
       return { error: `쇼케이스 업데이트 실패: ${error.message}` };
+    }
+
+    // --- Update Links ---
+    // Strategy: Delete all existing, Insert new
+    await supabase.from("showcases_links").delete().eq("showcase_id", showcaseId);
+    
+    const linksToInsert = [];
+    if (websiteLinks && websiteLinks.length > 0) {
+      websiteLinks.forEach(url => {
+        linksToInsert.push({ showcase_id: showcaseId, type: 'website', url });
+      });
+    }
+    if (googlePlayLink) {
+      linksToInsert.push({ showcase_id: showcaseId, type: 'google_play', url: googlePlayLink });
+    }
+    if (appStoreLink) {
+      linksToInsert.push({ showcase_id: showcaseId, type: 'app_store', url: appStoreLink });
+    }
+    if (linksToInsert.length > 0) {
+      await supabase.from("showcases_links").insert(linksToInsert);
+    }
+
+    // --- Update Members ---
+    await supabase.from("showcases_members").delete().eq("showcase_id", showcaseId);
+    
+    const teamMembersJson = formData.get("teamMembers") as string | null;
+    if (teamMembersJson) {
+      try {
+        const teamMemberIds = JSON.parse(teamMembersJson) as string[];
+        if (teamMemberIds.length > 0) {
+          const membersToInsert = teamMemberIds.map((userId, index) => ({
+            showcase_id: showcaseId,
+            user_id: userId,
+            display_order: index,
+          }));
+          await supabase.from("showcases_members").insert(membersToInsert);
+        }
+      } catch (e) {
+        console.error("Error parsing team members JSON:", e);
+      }
+    }
+
+    // --- Update Detail Images ---
+    const remainingImagesJson = formData.get("remainingImages") as string | null;
+    let remainingImages: string[] = [];
+    if (remainingImagesJson) {
+      try {
+        remainingImages = JSON.parse(remainingImagesJson) as string[];
+      } catch(e) {
+        console.error("Error parsing remaining images JSON:", e);
+      }
+    }
+
+    // Upload new files
+    let newImageUrls: string[] = [];
+    if (detailImageFiles && detailImageFiles.length > 0) {
+      try {
+         newImageUrls = await handleShowcaseDetailImages(showcaseId, detailImageFiles);
+      } catch (e) {
+        console.error("Error uploading new detail images:", e);
+        // Continue with preserving old ones at least
+      }
+    }
+
+    const finalImages = [...remainingImages, ...newImageUrls];
+
+    // Replace images in DB
+    await supabase.from("showcases_images").delete().eq("showcase_id", showcaseId);
+
+    if (finalImages.length > 0) {
+      const imagesToInsert = finalImages.map((url, index) => ({
+        showcase_id: showcaseId,
+        image_url: url,
+        display_order: index,
+      }));
+      await supabase.from("showcases_images").insert(imagesToInsert);
     }
 
     revalidatePath("/");

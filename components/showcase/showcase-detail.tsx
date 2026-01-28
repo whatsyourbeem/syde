@@ -50,7 +50,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
-import { ShowcaseEditDialog } from "@/components/showcase/showcase-edit-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import {
   deleteShowcase,
@@ -291,22 +290,15 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <ShowcaseEditDialog
-                  userId={user?.id || null}
-                  avatarUrl={showcase.profiles?.avatar_url || null}
-                  username={showcase.profiles?.username || null}
-                  full_name={showcase.profiles?.full_name || null}
-                  initialShowcaseData={showcase}
-                  onSuccess={() => router.refresh()}
-                >
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="cursor-pointer"
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/showcase/edit/${showcase.id}`}
+                    className="flex items-center cursor-pointer w-full"
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     <span>수정</span>
-                  </DropdownMenuItem>
-                </ShowcaseEditDialog>
+                  </Link>
+                </DropdownMenuItem>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
                     onSelect={(e) => e.preventDefault()}
