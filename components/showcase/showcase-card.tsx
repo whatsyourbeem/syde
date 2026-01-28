@@ -115,6 +115,7 @@ function ShowcaseCardBase({
               alt={showcase.name || "Showcase"}
               fill
               className="object-cover"
+              unoptimized
             />
           ) : (
             <div className="text-gray-400 text-[10px]">No Image</div>

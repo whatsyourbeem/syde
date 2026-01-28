@@ -422,19 +422,20 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
           {/* Main Image */}
           <div className="flex-none w-[280px] aspect-video bg-gray-200 rounded-[12px] overflow-hidden relative">
-            {showcase.image_url ? (
+            {showcase.thumbnail_url ? (
               <Image
-                src={showcase.image_url}
+                src={showcase.thumbnail_url}
                 alt={showcase.name || "Main Image"}
                 fill
                 className="object-cover"
+                unoptimized
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
                 <span className="text-xs">No Image</span>
               </div>
             )}
-            {!showcase.image_url && (
+            {!showcase.thumbnail_url && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-[10px]">
                 <p>설명 이미지</p>
                 <p>16:9</p>

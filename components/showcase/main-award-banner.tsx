@@ -33,7 +33,6 @@ export function MainAwardBanner() {
             src="/spotlight.png"
             alt="Spotlight Background"
             fill
-            className="object-cover opacity-80"
             priority
           />
         </div>
