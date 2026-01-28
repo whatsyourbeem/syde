@@ -130,7 +130,7 @@ export function requireAuth(userId: string | null | undefined): string {
   if (!userId) {
     if (process.env.NODE_ENV === "development") {
       console.warn("Dev Mode: Defaulting to test user ID");
-      return "testuser"; // Mock Test User ID for development
+      return "11111111-1111-1111-1111-111111111111"; // Mock Test User ID for development
     }
     throw new ActionError("UNAUTHORIZED", "로그인이 필요합니다.");
   }
@@ -197,7 +197,7 @@ export function withAuth<T extends unknown[], R>(
       if (!currentUser && process.env.NODE_ENV === "development") {
         console.warn("Dev Mode: Injecting mock test user");
         currentUser = {
-          id: "testuser",
+          id: "11111111-1111-1111-1111-111111111111",
           email: "test@example.com",
           user_metadata: {
             username: "testuser",

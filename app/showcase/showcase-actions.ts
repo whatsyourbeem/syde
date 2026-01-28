@@ -13,6 +13,7 @@ export const createShowcase = withAuth(
     const description = formData.get("description") as string;
     const thumbnailFile = formData.get("thumbnailFile") as File | null;
     const detailImageFiles = formData.getAll("detailImageFiles") as File[];
+    console.log(`[createShowcase] Received ${detailImageFiles.length} detail images.`);
 
     const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
 
@@ -29,7 +30,7 @@ export const createShowcase = withAuth(
 
     if (insertError) {
       console.error("Failed to create showcase:", insertError);
-      return { error: "쇼케이스 생성에 실패했습니다." };
+      return { error: `쇼케이스 생성 실패: ${insertError.message} (Code: ${insertError.code})` };
     }
 
     const showcaseId = data.id;
@@ -49,20 +50,30 @@ export const createShowcase = withAuth(
     }
 
     if (detailImageFiles && detailImageFiles.length > 0) {
-      const detailImageUrls = await handleShowcaseDetailImages(showcaseId, detailImageFiles);
-      if (detailImageUrls.length > 0) {
-        const { error: imagesError } = await supabase.from("showcases_images").insert(
-          detailImageUrls.map((url, index) => ({
-            showcase_id: showcaseId,
-            image_url: url,
-            display_order: index,
-          }))
-        );
+      console.log("[createShowcase] Uploading detail images to storage...");
+      try {
+        const detailImageUrls = await handleShowcaseDetailImages(showcaseId, detailImageFiles);
+        console.log(`[createShowcase] Uploaded ${detailImageUrls.length} images. URLs:`, detailImageUrls);
 
-        if (imagesError) {
-           console.error("Failed to save showcase detail images:", imagesError);
-           // Not returning error here to allow partial success, but logging it.
+        if (detailImageUrls.length > 0) {
+          const { error: imagesError } = await supabase.from("showcases_images").insert(
+            detailImageUrls.map((url, index) => ({
+              showcase_id: showcaseId,
+              image_url: url,
+              display_order: index,
+            }))
+          );
+
+          if (imagesError) {
+             console.error("[createShowcase] Failed to insert showcase detail images to DB:", imagesError);
+             return { error: `상세 이미지 저장 실패: ${imagesError.message}` };
+          } else {
+             console.log("[createShowcase] Successfully inserted images to DB.");
+          }
         }
+      } catch (uploadError) {
+          console.error("[createShowcase] Storage upload error:", uploadError);
+          return { error: "상세 이미지 업로드 중 오류가 발생했습니다." };
       }
     }
 
