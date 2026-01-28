@@ -13,6 +13,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { createShowcase } from "@/app/showcase/showcase-actions";
 import { TiptapMenu } from "@/components/editor/tiptap-menu";
 import { createClient } from "@/lib/supabase/client";
@@ -38,6 +44,7 @@ export function ProjectRegistrationForm({
   const [detailImageFiles, setDetailImageFiles] = useState<File[]>([]);
   const detailInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   // Website Links State
   const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
@@ -335,11 +342,10 @@ export function ProjectRegistrationForm({
         return;
       }
 
-      toast.success(
-        initialData
-          ? "프로젝트가 수정되었습니다."
-          : "프로젝트가 등록되었습니다.",
-      );
+      if (initialData) {
+        toast.success("프로젝트가 수정되었습니다.");
+      }
+
       await queryClient.invalidateQueries({ queryKey: ["showcases"] });
       // Invalidate specific showcase query if updating
       if (initialData) {
@@ -348,7 +354,14 @@ export function ProjectRegistrationForm({
         });
       }
 
-      router.push(initialData ? `/showcase/${initialData.id}` : "/showcase");
+      if (initialData) {
+        router.push(`/showcase/${initialData.id}`);
+      } else {
+        setShowSuccessDialog(true);
+        setTimeout(() => {
+          router.push("/showcase");
+        }, 1500);
+      }
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("등록 중 오류가 발생했습니다.");
@@ -372,7 +385,7 @@ export function ProjectRegistrationForm({
           <ChevronLeft className="h-6 w-6 text-[#434343]" />
         </Button>
         <h1 className="text-[32px] font-bold text-[#002040] leading-[38px]">
-          SYDE 프로덕트 등록하기
+          {initialData ? "SYDE 프로덕트 수정하기" : "SYDE 프로덕트 등록하기"}
         </h1>
       </div>
 
@@ -770,10 +783,23 @@ export function ProjectRegistrationForm({
             className="flex-1 h-[36px] rounded-[12px] bg-[#002040] hover:bg-[#002040]/90 text-white font-normal"
             disabled={isSubmitting}
           >
-            등록하기
+            {initialData ? "수정하기" : "등록하기"}
           </Button>
         </div>
       </form>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-[500px] h-[100px] p-[36px] gap-[16px] bg-white border-[0.91px] border-black/10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] rounded-[10px] flex flex-col justify-center items-center focus:outline-none overflow-hidden"
+        >
+          <DialogHeader className="flex flex-col justify-center items-center gap-[8px] p-0 w-[428px] h-[28px]">
+            <DialogTitle className="flex items-center justify-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040]">
+              🎉 SYDE 프로덕트를 등록했습니다. 🎉
+            </DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
