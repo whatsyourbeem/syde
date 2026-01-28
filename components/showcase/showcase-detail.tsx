@@ -23,6 +23,7 @@ import {
   Apple,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatRelativeTime, linkifyMentions } from "@/lib/utils";
@@ -69,7 +70,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const queryClient = useQueryClient();
   const { openLoginDialog } = useLoginDialog();
 
-  // --- States ---
+  // Gallery State
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // existing state code...
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
@@ -103,6 +107,19 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const [commentsCount, setCommentsCount] = useState(
     showcase.showcase_comments?.length || 0,
   );
+
+  // Gallery Logic
+  const galleryImages = showcase.showcases_images
+    ? [...showcase.showcases_images].sort(
+        (a: any, b: any) => a.display_order - b.display_order,
+      )
+    : [];
+
+  const handleNextImage = () => {
+    if (galleryImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+    }
+  };
 
   // Mention State (Legacy support for content rendering)
   const [mentionedProfiles, setMentionedProfiles] = useState<
@@ -394,6 +411,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               className="flex items-center gap-[5px] hover:scale-105 transition-transform"
             >
               <HeartIcon
+                suppressHydrationWarning
                 className={`w-[18px] h-[17px] ${hasLiked ? "fill-[#ED6D34] text-[#ED6D34]" : "text-[#777777]"}`}
               />
               <span className="font-['Pretendard'] text-[14px] text-[#777777]">
@@ -423,6 +441,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               className="flex items-center justify-center hover:scale-105 transition-transform"
             >
               <Bookmark
+                suppressHydrationWarning
                 className={`w-[10px] h-[16px] ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
               />
             </button>
@@ -430,37 +449,57 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Gallery Section */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] py-3 px-8 flex items-center gap-2 overflow-x-auto no-scrollbar min-h-[294px]">
-          {/* Note: The CSS mockup shows detailed images in a slider. We use the existing gallery array. */}
-          {/* If no images, we show the main thumbnail as first item? Or just what we have. */}
-          {/* Main Image again? Usually context suggests gallery. Let's show all available images. */}
-          <div className="flex-none flex flex-col justify-center items-center p-3 w-[480px] h-[270px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden">
-            {showcase.thumbnail_url ? (
+        <div className="w-full h-[294px] border-t-[0.5px] border-[#B7B7B7] flex items-center px-[32px] py-[12px] overflow-hidden">
+          {/* Large Image (480x270) */}
+          <div
+            key={galleryImages[currentImageIndex]?.id || "main-empty"}
+            className="flex-none w-[480px] h-[270px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500"
+          >
+            {galleryImages[currentImageIndex] ? (
               <Image
-                src={showcase.thumbnail_url}
+                src={galleryImages[currentImageIndex].image_url}
                 alt="Main"
                 fill
                 className="object-cover"
                 unoptimized
               />
             ) : (
-              <span className="text-[14px]">No Image</span>
+              <span className="text-[14px] text-gray-500">No Image</span>
             )}
           </div>
 
-          {showcase.showcases_images?.map((img: any, idx: number) => (
+          {/* Arrow */}
+          {galleryImages.length > 1 && (
+            <button
+              onClick={handleNextImage}
+              className="flex-none w-[26px] h-[30px] flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 rounded mx-[10px]"
+            >
+              <ChevronRight className="w-[10px] h-[14px] text-[#808080]" />
+            </button>
+          )}
+
+          {/* Small Image (320x180) - Next Preview */}
+          {galleryImages.length > 1 && (
             <div
-              key={idx}
-              className="flex-none w-[320px] h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden"
+              key={
+                galleryImages[(currentImageIndex + 1) % galleryImages.length]
+                  ?.id || "next-empty"
+              }
+              className="flex-none w-[320px] h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500"
             >
               <Image
-                src={img.image_url}
-                alt={`Gallery ${idx}`}
+                src={
+                  galleryImages[(currentImageIndex + 1) % galleryImages.length]
+                    .image_url
+                }
+                alt="Next"
                 fill
                 className="object-cover"
+                unoptimized
               />
+              <div className="absolute inset-0 bg-black/10 pointer-events-none" />
             </div>
-          ))}
+          )}
         </div>
 
         {/* Club Description Box */}
