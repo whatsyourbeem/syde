@@ -5,7 +5,20 @@ import { createClient } from "@/lib/supabase/client"; // Keep for types if impli
 type ShowcaseRow = Database["public"]["Tables"]["showcases"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
+export interface ShowcaseMember {
+  id: string;
+  user_id: string;
+  display_order: number;
+  profile: ProfileRow | null; // Joined profile data
+}
+
+// Redeclare common properties to ensure availability
 export interface OptimizedShowcase extends ShowcaseRow {
+  name: string;
+  short_description: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  user_id: string;
   profiles: ProfileRow | null;
   showcase_likes: Array<{ user_id: string }>;
   showcase_bookmarks: Array<{ user_id: string }>;
@@ -14,6 +27,18 @@ export interface OptimizedShowcase extends ShowcaseRow {
   hasLiked: boolean;
   bookmarksCount: number;
   hasBookmarked: boolean;
+  members: ShowcaseMember[]; // Added members array
+  // Joined tables
+  showcases_images?: Array<{
+    id: string;
+    image_url: string;
+    display_order: number;
+  }>;
+  showcases_links?: Array<{
+    id: string;
+    type: string;
+    url: string;
+  }>;
 }
 
 export interface ShowcaseQueryOptions {

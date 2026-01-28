@@ -267,9 +267,9 @@ export function ProjectRegistrationForm() {
   if (!isMounted) return null;
 
   return (
-    <div className="w-[850px] mx-auto pb-20 border-x border-[#B7B7B7] bg-white min-h-screen">
+    <div className="w-[850px] mx-auto pb-20  bg-white min-h-screen">
       {/* Header */}
-      <div className="flex items-center gap-6 h-[76px] px-5 py-[16px] border-b border-[#B7B7B7]">
+      <div className="flex items-center gap-6 h-[76px] px-5 py-[16px]">
         <Button
           variant="ghost"
           size="icon"

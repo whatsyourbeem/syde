@@ -49,7 +49,13 @@ export async function fetchShowcasesAction({
     profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
     showcase_bookmarks(user_id),
     showcase_comments(id),
-    likes_count:showcase_likes(count)
+    likes_count:showcase_likes(count),
+    members:showcases_members(
+      id,
+      user_id,
+      display_order,
+      profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
+    )
   `;
 
   let query = supabase.from("showcases").select(selectQuery, { count: "exact" });
@@ -108,6 +114,10 @@ export async function fetchShowcasesAction({
       : false,
     showcase_likes: [], // Keep interface consistent
     showcase_comments: showcase.showcase_comments || [],
+    members: (showcase.members || []).map((m: any) => ({
+      ...m,
+      profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
+    })).sort((a: any, b: any) => a.display_order - b.display_order),
   }));
 
   return {

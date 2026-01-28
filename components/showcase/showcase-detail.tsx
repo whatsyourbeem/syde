@@ -57,7 +57,9 @@ import {
   toggleShowcaseBookmark,
 } from "@/app/showcase/showcase-actions";
 
-type ShowcaseWithRelations = any; // Temporary bypass for schema mismatch
+import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
+
+type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
 interface ShowcaseDetailProps {
   showcase: ShowcaseWithRelations;
@@ -248,44 +250,25 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const projectTagline = showcase.short_description || "설명이 없습니다.";
   const authorRole = showcase.profiles?.tagline || "[JobTitle]";
 
-  // Mock Team Members
-  const teamMembers = [
-    {
-      id: "mock1",
-      name: showcase.profiles?.full_name || "제이현",
-      role: "author",
-      username: showcase.profiles?.username || "unknown",
-      avatar: showcase.profiles?.avatar_url,
-    },
-    {
-      id: "mock2",
-      name: "Nickname",
-      role: "member",
-      username: "username",
-      avatar: null,
-    },
-    {
-      id: "mock3",
-      name: "Nickname",
-      role: "member",
-      username: "username",
-      avatar: null,
-    },
-    {
-      id: "mock4",
-      name: "Nickname",
-      role: "member",
-      username: "username",
-      avatar: null,
-    },
-    {
-      id: "mock5",
-      name: "Nickname",
-      role: "member",
-      username: "username",
-      avatar: null,
-    },
-  ];
+  // Combine Author and Members
+  const authorMember = {
+    id: `author-${showcase.user_id}`,
+    name:
+      showcase.profiles?.full_name || showcase.profiles?.username || "Unknown",
+    role: "author", // Special role for styling
+    username: showcase.profiles?.username || "unknown",
+    avatar: showcase.profiles?.avatar_url,
+  };
+
+  const otherMembers = (showcase.members || []).map((m) => ({
+    id: m.id,
+    name: m.profile?.full_name || m.profile?.username || "Unknown",
+    role: "member", // Default role since DB has no role column
+    username: m.profile?.username || "unknown",
+    avatar: m.profile?.avatar_url,
+  }));
+
+  const teamMembers = [authorMember, ...otherMembers];
 
   return (
     <div className="bg-white min-h-screen pb-20">
