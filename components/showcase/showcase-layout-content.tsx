@@ -22,12 +22,13 @@ export function ShowcaseLayoutContent({
   children,
 }: ShowcaseLayoutContentProps) {
   const pathname = usePathname();
-  const isCreatePage = pathname === "/showcase/create";
+  // Left Sidebar는 /showcase 메인 페이지에서만 표시
+  const showLeftSidebar = pathname === "/showcase";
 
   return (
     <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
-      {/* Left Sidebar: Create 페이지가 아닐 때만 표시 */}
-      {!isCreatePage && (
+      {/* Left Sidebar: 메인 페이지에서만 표시 */}
+      {showLeftSidebar && (
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
           {user && profile ? (
             <ShowcaseSidebarButton
@@ -47,9 +48,9 @@ export function ShowcaseLayoutContent({
       {/* Main Content Area */}
       <div
         className={
-          isCreatePage
-            ? "w-full lg:w-4/5 border-x border-gray-200" // Create 페이지: 왼쪽 공간만큼 확장 (1/5 제거 -> 4/5 사용)
-            : "w-full md:w-4/5 lg:w-3/5 border-x border-gray-200" // 기본: 중앙 3/5
+          !showLeftSidebar
+            ? "w-full lg:w-4/5 border-x border-gray-200" // 사이드바가 없을 때 (Create, Detail 등): 확장 (4/5)
+            : "w-full md:w-4/5 lg:w-3/5 border-x border-gray-200" // 기본 (Main): 중앙 3/5
         }
       >
         {children}
