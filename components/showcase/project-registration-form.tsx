@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -17,6 +18,7 @@ import { TiptapMenu } from "@/components/editor/tiptap-menu";
 
 export function ProjectRegistrationForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -143,6 +145,7 @@ export function ProjectRegistrationForm() {
       }
 
       toast.success("프로젝트가 등록되었습니다.");
+      await queryClient.invalidateQueries({ queryKey: ["showcases"] });
       router.push("/showcase");
     } catch (error) {
       console.error("Submission error:", error);

@@ -209,6 +209,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         toast.error("쇼케이스 삭제 실패");
       } else {
         toast.success("쇼케이스가 삭제되었습니다.");
+        await queryClient.invalidateQueries({ queryKey: ["showcases"] });
         router.push("/showcase");
       }
     } catch {
@@ -221,7 +222,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const handleCommentAdded = () => {
     setCommentsCount((prev: number) => prev + 1);
     queryClient.invalidateQueries({
-      queryKey: ["comments", { showcaseId: showcase.id }],
+      queryKey: ["comments", { parentId: showcase.id }],
     });
   };
 
