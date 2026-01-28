@@ -336,7 +336,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         )}
       </div>
 
-      <div className="flex flex-col items-center w-full max-w-[850px] mx-auto border-x border-[#B7B7B7] bg-white">
+      <div className="flex flex-col items-center w-full max-w-[850px] mx-auto  bg-white">
         {/* Header Section (Title + Thumbnail) */}
         <div className="w-full flex flex-col md:flex-row items-start p-4 md:p-5 gap-6 md:gap-[132px] justify-between">
           <div className="flex-1 flex flex-row items-center gap-6 w-full">
@@ -489,7 +489,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 flex flex-col gap-6">
           <div className="flex flex-row justify-between items-center w-full">
             <div className="flex items-center gap-2">
-              <span className="text-[24px]">💬</span>
+              <Image
+                src="/orange_line.png"
+                alt="icon"
+                width={26}
+                height={26}
+                className="object-contain"
+              />
               <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
                 소개
               </span>
@@ -509,11 +515,29 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             className={`w-full overflow-hidden transition-all ${isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0"}`}
           >
             <h3 className="font-['Pretendard'] font-bold text-[16px] leading-[19px] text-black mb-2 whitespace-pre-wrap">
-              {showcase.short_description}
+              이 앱에 대한 설명
             </h3>
-            <div className="text-[14px] leading-[150%] text-black whitespace-pre-wrap">
-              {linkifyMentions(showcase.description, mentionedProfiles)}
-            </div>
+            {(() => {
+              let content = showcase.description || "";
+              const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
+              const processedContent = content.replace(
+                mentionRegex,
+                (match, userId) => {
+                  const profile = mentionedProfiles.find(
+                    (p) => p.id === userId,
+                  );
+                  const username = profile ? profile.username : "unknown";
+                  return `<a href="/${username}" class="text-blue-500 hover:underline font-semibold" target="_self">@${username}</a>`;
+                },
+              );
+
+              return (
+                <div
+                  className="text-[14px] leading-[150%] text-black link-reset"
+                  dangerouslySetInnerHTML={{ __html: processedContent }}
+                />
+              );
+            })()}
           </div>
         </div>
 
