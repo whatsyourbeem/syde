@@ -336,238 +336,250 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         )}
       </div>
 
-      <div className="px-5">
-        {/* Header Info */}
-        <div className="flex items-start gap-4 mb-6">
-          {/* Project Thumbnail (100x100 on desktop, 64x64 on mobile) */}
-          <div className="relative w-16 h-16 lg:w-[100px] lg:h-[100px] flex-shrink-0 bg-gray-900 rounded-[10px] flex items-center justify-center overflow-hidden">
-            {showcase.profiles?.avatar_url ? (
-              <Image
-                src={showcase.profiles.avatar_url}
-                alt="Logo"
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <BoxIcon className="text-white w-8 h-8" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            {/* Title: 28px on desktop, 20px on mobile */}
-            <h1 className="text-xl lg:text-[28px] font-bold leading-[150%] text-black truncate">
-              {projectTitle}
-            </h1>
-            {/* Short Description: 14px */}
-            <p className="text-[14px] leading-[150%] text-black truncate mt-1">
-              {projectTagline}
-            </p>
-            {/* Profile Info */}
-            <div className="flex items-center gap-[5px] mt-2">
-              <Avatar className="w-[20px] h-[20px]">
-                <AvatarImage src={showcase.profiles?.avatar_url || ""} />
-                <AvatarFallback className="text-[8px]">
-                  {showcase.profiles?.username?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-[12px] font-semibold text-[#002040]">
-                {showcase.profiles?.full_name}
-              </span>
-              <span className="text-[11px] text-[#777777]">{authorRole}</span>
+      <div className="flex flex-col items-center w-full max-w-[850px] mx-auto border-x border-[#B7B7B7] bg-white">
+        {/* Header Section (Title + Thumbnail) */}
+        <div className="w-full flex flex-col md:flex-row items-start p-4 md:p-5 gap-6 md:gap-[132px] justify-between">
+          <div className="flex-1 flex flex-row items-center gap-6 w-full">
+            {/* Thumbnail Image (100x100) */}
+            <div className="flex-none w-[100px] h-[100px] bg-gray-100 rounded-[10px] overflow-hidden border border-gray-100 relative">
+              {showcase.thumbnail_url ? (
+                <Image
+                  src={showcase.thumbnail_url}
+                  alt={projectTitle}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <BoxIcon className="w-8 h-8" />
+                </div>
+              )}
+            </div>
+
+            {/* Title & Info */}
+            <div className="flex flex-col justify-center gap-[5px] flex-1">
+              <h1 className="font-['Pretendard'] font-bold text-[22px] md:text-[28px] leading-[150%] text-black line-clamp-2">
+                {projectTitle}
+              </h1>
+              <p className="font-['Pretendard'] text-[14px] leading-[150%] text-black line-clamp-1">
+                {projectTagline}
+              </p>
+
+              {/* Profile */}
+              <div className="flex items-center gap-[5px] mt-[1px]">
+                <Avatar className="w-[20px] h-[20px]">
+                  <AvatarImage src={showcase.profiles?.avatar_url || ""} />
+                  <AvatarFallback className="text-[8px] bg-[#D9D9D9]">
+                    {showcase.profiles?.username?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-['Pretendard'] font-semibold text-[12px] text-[#002040]">
+                  {showcase.profiles?.full_name || showcase.profiles?.username}
+                </span>
+                <span className="font-['Pretendard'] text-[11px] text-[#777777]">
+                  | {authorRole}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Action Bar (h-44px, rounded-12px, bg-FAFAFA) */}
-        <div className="flex items-center h-[44px] bg-[#FAFAFA] rounded-[12px] p-[12px] mb-6">
-          <div className="grid grid-cols-4 gap-1 w-full h-full text-[#777777]">
+        {/* Action Bar */}
+        <div className="w-full px-4 md:px-8 py-3">
+          <div className="w-full h-[44px] bg-[#FAFAFA] rounded-[12px] flex items-center justify-between px-6 md:px-12 relative">
             {/* Like */}
             <button
               onClick={handleLike}
-              className="flex justify-center items-center gap-[5px] hover:text-red-500 transition-colors"
+              className="flex items-center gap-[5px] hover:scale-105 transition-transform"
             >
               <HeartIcon
-                className={`w-[18px] h-[17px] ${hasLiked ? "fill-red-500 text-red-500" : ""}`}
-                strokeWidth={1.5}
+                className={`w-[18px] h-[17px] ${hasLiked ? "fill-[#ED6D34] text-[#ED6D34]" : "text-[#777777]"}`}
               />
-              <span className="text-[14px] leading-[150%]">{likesCount}</span>
+              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
+                {likesCount}
+              </span>
             </button>
+
             {/* Comment */}
-            <button className="flex justify-center items-center gap-[5px] hover:text-blue-500 transition-colors">
-              <MessageCircle className="w-[18px] h-[16px]" strokeWidth={1.5} />
-              <span className="text-[14px] leading-[150%]">
+            <button className="flex items-center gap-[5px] hover:scale-105 transition-transform">
+              <MessageCircle className="w-[18px] h-[16px] text-[#777777]" />
+              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
                 {commentsCount}
               </span>
             </button>
+
             {/* Share */}
             <button
               onClick={handleCopyLink}
-              className="flex justify-center items-center hover:text-gray-900 transition-colors"
+              className="flex items-center justify-center hover:scale-105 transition-transform"
             >
-              <Share2 className="w-[14px] h-[20px]" strokeWidth={1.5} />
+              <Share2 className="w-[14px] h-[20px] text-[#808080]" />
             </button>
+
             {/* Bookmark */}
             <button
               onClick={handleBookmark}
-              className="flex justify-center items-center hover:text-yellow-500 transition-colors"
+              className="flex items-center justify-center hover:scale-105 transition-transform"
             >
               <Bookmark
-                className={`w-[10px] h-[16px] ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : ""}`}
-                strokeWidth={1.5}
+                className={`w-[10px] h-[16px] ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
               />
             </button>
           </div>
         </div>
 
         {/* Gallery Section */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
-          {/* Main Image */}
-          <div className="flex-none w-[280px] aspect-video bg-gray-200 rounded-[12px] overflow-hidden relative">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] py-3 px-8 flex items-center gap-2 overflow-x-auto no-scrollbar min-h-[294px]">
+          {/* Note: The CSS mockup shows detailed images in a slider. We use the existing gallery array. */}
+          {/* If no images, we show the main thumbnail as first item? Or just what we have. */}
+          {/* Main Image again? Usually context suggests gallery. Let's show all available images. */}
+          <div className="flex-none flex flex-col justify-center items-center p-3 w-[480px] h-[270px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden">
             {showcase.thumbnail_url ? (
               <Image
                 src={showcase.thumbnail_url}
-                alt={showcase.name || "Main Image"}
+                alt="Main"
                 fill
                 className="object-cover"
                 unoptimized
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                <span className="text-xs">No Image</span>
-              </div>
-            )}
-            {!showcase.thumbnail_url && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-[10px]">
-                <p>설명 이미지</p>
-                <p>16:9</p>
-                <p>480x270</p>
-              </div>
+              <span className="text-[14px]">No Image</span>
             )}
           </div>
 
-          {/* Sub Images from Database */}
-          {showcase.showcases_images?.map((img: any, index: number) => (
+          {showcase.showcases_images?.map((img: any, idx: number) => (
             <div
-              key={img.id || index}
-              className="flex-none w-[200px] aspect-video bg-gray-200 rounded-[12px] relative overflow-hidden group"
+              key={idx}
+              className="flex-none w-[320px] h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden"
             >
-              {img.image_url ? (
-                <Image
-                  src={img.image_url}
-                  alt={`Detail Image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                  No Image
-                </div>
-              )}
+              <Image
+                src={img.image_url}
+                alt={`Gallery ${idx}`}
+                fill
+                className="object-cover"
+              />
             </div>
           ))}
         </div>
 
-        {/* Content Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between border-b-2 border-transparent relative mb-4">
-            <div className="flex items-center gap-2 pb-2 border-b-2 border-[#ED6D34] -mb-[2px] z-10">
-              <div className="w-4 h-1 bg-[#ED6D34] rounded-full" />
-              <span className="font-bold text-lg text-gray-900">소개</span>
+        {/* Club Description Box */}
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 flex flex-col gap-6">
+          <div className="flex flex-row justify-between items-center w-full">
+            <div className="flex items-center gap-2">
+              <span className="text-[24px]">💬</span>
+              <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
+                소개
+              </span>
             </div>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 pb-2"
+              className="flex items-center gap-2 text-[12px] text-[#777777]"
             >
               {isExpanded ? "접기" : "펼쳐보기"}
-              {isExpanded ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
-              )}
+              <ChevronDown
+                className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+              />
             </button>
           </div>
-          <div className="border-b border-gray-100 mb-6" />{" "}
-          {/* Full width line */}
-          {isExpanded && (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-              <h3 className="font-bold text-sm text-gray-900 mb-2">
-                사이드 프로젝트 소개
-              </h3>
-              <div className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed min-h-[100px]">
-                {linkifyMentions(showcase.description, mentionedProfiles)}
-              </div>
+
+          <div
+            className={`w-full overflow-hidden transition-all ${isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0"}`}
+          >
+            <h3 className="font-['Pretendard'] font-bold text-[16px] leading-[19px] text-black mb-2 whitespace-pre-wrap">
+              {showcase.short_description}
+            </h3>
+            <div className="text-[14px] leading-[150%] text-black whitespace-pre-wrap">
+              {linkifyMentions(showcase.description, mentionedProfiles)}
+            </div>
+          </div>
+        </div>
+
+        {/* Links Section */}
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] p-4 flex flex-col gap-2">
+          {/* Website */}
+          {showcase.showcases_links
+            ?.filter((l: any) => l.type === "website")
+            .map((link: any) => (
+              <a
+                key={link.id}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full max-w-[400px]"
+              >
+                <div className="flex items-center gap-3">
+                  <Globe className="w-6 h-6" />
+                  <span className="font-['Pretendard'] text-[14px] text-black">
+                    웹사이트 방문하기
+                  </span>
+                </div>
+                <Share2 className="w-4 h-6 text-[#808080]" />
+              </a>
+            ))}
+          {(!showcase.showcases_links ||
+            showcase.showcases_links.length === 0) && (
+            <div className="flex items-center justify-center h-[100px] text-gray-400 text-sm">
+              등록된 링크가 없습니다.
             </div>
           )}
         </div>
 
-        {/* Links Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-10">
-          <Button
-            variant="outline"
-            className="h-12 justify-start bg-gray-50 border-gray-100 hover:bg-gray-100 rounded-[12px] gap-3"
-          >
-            <Globe className="w-5 h-5 text-gray-900" />
-            <span className="text-xs font-medium text-gray-600">
-              웹사이트 방문하기
-            </span>
-            <Share2 className="w-4 h-4 text-gray-300 ml-auto" />
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 justify-start bg-gray-50 border-gray-100 hover:bg-gray-100 rounded-[12px] gap-3"
-          >
-            <Play className="w-5 h-5 fill-gray-900 text-gray-900" />{" "}
-            {/* Google Play Icon approx */}
-            <span className="text-xs font-medium text-gray-600">
-              Google Play에서 다운로드하기
-            </span>
-            <Share2 className="w-4 h-4 text-gray-300 ml-auto" />
-          </Button>
-          <Button
-            variant="outline"
-            className="h-12 justify-start bg-gray-50 border-gray-100 hover:bg-gray-100 rounded-[12px] gap-3"
-          >
-            <Apple className="w-5 h-5 text-gray-900" />
-            <span className="text-xs font-medium text-gray-600">
-              App Store에서 다운로드하기
-            </span>
-            <Share2 className="w-4 h-4 text-gray-300 ml-auto" />
-          </Button>
-        </div>
-
-        {/* Team Section (Horizontal Scroll, 128x118 cards, 48px avatars) */}
-        <div className="mb-10 border-t border-[#B7B7B7]/50 pt-5">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-[20px] font-bold text-[#002040]">
-              🛠️ SYDERS의 손 끝에서 탄생했어요.
+        {/* Participant List */}
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[24px]">🛠️</span>
+            <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
+              SYDERS의 손 끝에서 탄생했어요.
             </span>
           </div>
-          {/* Horizontal scroll list */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar">
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex flex-col justify-center items-center p-2 gap-1 w-[128px] h-[118px] bg-[#FAFAFA] rounded-[10px] flex-shrink-0"
+                className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] bg-[#FAFAFA] rounded-[10px] flex-shrink-0 relative"
               >
-                {/* Avatar (48x48) */}
+                {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
+                {member.role === "author" && (
+                  <div className="absolute top-2 left-2 text-[#ED6D34]">
+                    {/* Crown Icon placeholder or small customized svg */}
+                    <svg
+                      width="20"
+                      height="16"
+                      viewBox="0 0 20 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
+                        fill="white"
+                        fillOpacity="0.01"
+                      />
+                      <path
+                        d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
+                        fill="#ED6D34"
+                      />
+                    </svg>
+                  </div>
+                )}
+
                 <div className="relative w-[48px] h-[48px]">
                   <Avatar className="w-full h-full">
                     <AvatarImage src={member.avatar || ""} />
-                    <AvatarFallback className="bg-[#D9D9D9] text-[12px]">
-                      {member.name?.charAt(0) || "U"}
+                    <AvatarFallback className="bg-[#D9D9D9]">
+                      {member.name?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                {/* Name (12px bold) */}
-                <span className="text-[12px] font-bold text-[#002040] text-center truncate w-full">
+                <span className="font-['Pretendard'] font-bold text-[12px] text-[#002040] w-full text-center truncate px-1">
                   {member.name}
                 </span>
-                {/* Username (12px) */}
-                <span className="text-[12px] text-[#777777] text-center truncate w-full">
+                <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
                   @{member.username}
                 </span>
-                {/* Tagline (12px) */}
-                <span className="text-[12px] text-[#777777] text-center truncate w-full">
-                  [JobTitle]
+                <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                  {member.role}
                 </span>
               </div>
             ))}
@@ -575,13 +587,14 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Comments Section */}
-        <div className="mb-20">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-4 h-1 bg-[#ED6D34] rounded-full" />
-            <span className="font-bold text-lg text-gray-900">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-8 py-5 flex flex-col gap-4 mb-20">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-6 h-6 text-[#002040]" />
+            <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
               댓글 및 리뷰
             </span>
           </div>
+
           <div className="space-y-6">
             <CommentList
               showcaseId={showcase.id}
