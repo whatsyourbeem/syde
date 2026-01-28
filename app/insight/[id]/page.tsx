@@ -35,6 +35,11 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [activeCommentMenuId, setActiveCommentMenuId] = useState<string | null>(null);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editingContent, setEditingContent] = useState("");
+    const [isCommentDeleteDialogOpen, setIsCommentDeleteDialogOpen] = useState(false);
+    const [commentToDeleteId, setCommentToDeleteId] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -200,6 +205,61 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
             toast.error("댓글 등록 중 오류가 발생했습니다.");
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleCommentUpdate = async () => {
+        if (!editingCommentId || !editingContent.trim()) return;
+
+        try {
+            const { error } = await supabase
+                .from("insight_comments")
+                .update({ content: editingContent.trim() })
+                .eq("id", editingCommentId);
+
+            if (error) throw error;
+
+            setComments(prev => prev.map(c =>
+                c.id === editingCommentId ? { ...c, content: editingContent.trim() } : c
+            ));
+            setEditingCommentId(null);
+            setEditingContent("");
+            toast.success("댓글이 수정되었습니다.");
+        } catch (error) {
+            console.error("Error updating comment:", error);
+            toast.error("수정 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleCommentDeleteRequest = (commentId: string) => {
+        setCommentToDeleteId(commentId);
+        setActiveCommentMenuId(null);
+        setIsCommentDeleteDialogOpen(true);
+    };
+
+    const confirmCommentDelete = async () => {
+        if (!commentToDeleteId) return;
+
+        // Use the same 'deleting' state for simplicity or add a new one if needed
+        setDeleting(true);
+        try {
+            const { error } = await supabase
+                .from("insight_comments")
+                .delete()
+                .eq("id", commentToDeleteId);
+
+            if (error) throw error;
+
+            setComments(prev => prev.filter(c => c.id !== commentToDeleteId));
+            setStats(prev => ({ ...prev, comments: Math.max(0, prev.comments - 1) }));
+            toast.success("댓글이 삭제되었습니다.");
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            toast.error("삭제 중 오류가 발생했습니다.");
+        } finally {
+            setDeleting(false);
+            setIsCommentDeleteDialogOpen(false);
+            setCommentToDeleteId(null);
         }
     };
 
@@ -437,11 +497,76 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                             <span className="text-sm font-bold text-[#002040]">{comment.profiles?.username}</span>
                                             <span className="text-[11px] text-[#777777] bg-gray-100 px-1.5 py-0.5 rounded">{comment.profiles?.tagline || '멤버'}</span>
                                         </div>
-                                        <span className="text-[11px] text-[#999999]">
-                                            {isMounted ? new Date(comment.created_at).toLocaleDateString() : ""}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[11px] text-[#999999]">
+                                                {isMounted ? new Date(comment.created_at).toLocaleDateString() : ""}
+                                            </span>
+                                            {currentUserId === comment.user_id && (
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setActiveCommentMenuId(activeCommentMenuId === comment.id ? null : comment.id)}
+                                                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-ellipsis w-4 h-4 text-[#777777]"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                                                    </button>
+                                                    {activeCommentMenuId === comment.id && (
+                                                        <>
+                                                            <div
+                                                                className="fixed inset-0 z-40"
+                                                                onClick={() => setActiveCommentMenuId(null)}
+                                                            />
+                                                            <div className="absolute right-0 top-6 w-[103px] h-[72px] bg-white shadow-[2px_4px_10px_rgba(0,0,0,0.25)] rounded-[10px] p-1 flex flex-col items-start z-50">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingCommentId(comment.id);
+                                                                        setEditingContent(comment.content);
+                                                                        setActiveCommentMenuId(null);
+                                                                    }}
+                                                                    className="w-[95px] h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#002040" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                                    <span className="text-[14px] leading-[17px] font-[Pretendard] text-[#002040]">수정</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleCommentDeleteRequest(comment.id)}
+                                                                    className="w-[95px] h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                                    <span className="text-[14px] leading-[17px] font-[Pretendard] text-[#FF0004]">삭제</span>
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className="text-sm leading-relaxed text-gray-800">{comment.content}</p>
+                                    {editingCommentId === comment.id ? (
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            <textarea
+                                                value={editingContent}
+                                                onChange={(e) => setEditingContent(e.target.value)}
+                                                className="w-full bg-white border border-[#B7B7B7] rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow min-h-[60px] resize-none"
+                                                autoFocus
+                                            />
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => setEditingCommentId(null)}
+                                                    className="text-xs text-[#777777] hover:text-black font-medium"
+                                                >
+                                                    취소
+                                                </button>
+                                                <button
+                                                    onClick={handleCommentUpdate}
+                                                    className="text-xs text-[#002040] hover:underline font-bold"
+                                                >
+                                                    저장
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm leading-relaxed text-gray-800">{comment.content}</p>
+                                    )}
                                 </div>
                                 {index < comments.length - 1 && (
                                     <div className="absolute left-[18px] top-10 w-[0.5px] h-6 bg-[#B7B7B7]/50" />
@@ -485,6 +610,15 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                 onClose={() => setIsDeleteDialogOpen(false)}
                 onConfirm={confirmDelete}
                 loading={deleting}
+            />
+
+            <InsightDeleteDialog
+                isOpen={isCommentDeleteDialogOpen}
+                onClose={() => setIsCommentDeleteDialogOpen(false)}
+                onConfirm={confirmCommentDelete}
+                loading={deleting}
+                title="잠깐! 정말 댓글을 삭제하실건가요?"
+                description="삭제 후에는 되돌릴 수 없어요."
             />
         </div>
     );
