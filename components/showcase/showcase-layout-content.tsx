@@ -26,7 +26,7 @@ export function ShowcaseLayoutContent({
   const showLeftSidebar = pathname === "/showcase";
 
   return (
-    <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
+    <main className="flex justify-center gap-x-5 md:px-5 max-w-6xl mx-auto">
       {/* Left Sidebar: 메인 페이지에서만 표시 */}
       {showLeftSidebar && (
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
