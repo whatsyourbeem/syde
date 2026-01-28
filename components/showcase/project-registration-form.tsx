@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
@@ -15,10 +15,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createShowcase } from "@/app/showcase/showcase-actions";
 import { TiptapMenu } from "@/components/editor/tiptap-menu";
+import { createClient } from "@/lib/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function ProjectRegistrationForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const supabase = createClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +42,102 @@ export function ProjectRegistrationForm() {
   const [tagline, setTagline] = useState("");
   const [googlePlayLink, setGooglePlayLink] = useState("");
   const [appStoreLink, setAppStoreLink] = useState("");
-  // Additional link states can be added here
+
+  // Team Member Search State
+  const [teamSearchTerm, setTeamSearchTerm] = useState("");
+  const [teamSearchResults, setTeamSearchResults] = useState<
+    Array<{
+      id: string;
+      username: string | null;
+      full_name: string | null;
+      avatar_url: string | null;
+    }>
+  >([]);
+  const [showTeamSearch, setShowTeamSearch] = useState(false);
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<
+    Array<{
+      id: string;
+      username: string | null;
+      full_name: string | null;
+      avatar_url: string | null;
+    }>
+  >([]);
+  const teamInputRef = useRef<HTMLInputElement>(null);
+  const teamSearchRef = useRef<HTMLDivElement>(null);
+
+  // Close search overlay when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        teamSearchRef.current &&
+        !teamSearchRef.current.contains(event.target as Node)
+      ) {
+        setShowTeamSearch(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const fetchTeamMemberSuggestions = useCallback(async (term: string) => {
+    if (term.length === 0) {
+      // Fetch recent or random users if empty? Or just show nothing/loading?
+      // For now, let's fetch some initial users if term is empty but focused
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url")
+        .limit(5);
+
+      if (!error) {
+        setTeamSearchResults(data || []);
+        setShowTeamSearch(true);
+      }
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, full_name, avatar_url")
+      .or(`username.ilike.%${term}%,full_name.ilike.%${term}%`)
+      .limit(5);
+
+    if (!error) {
+      setTeamSearchResults(data || []);
+      setShowTeamSearch(true);
+    }
+  }, []);
+
+  const handleTeamSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTeamSearchTerm(value);
+    fetchTeamMemberSuggestions(value);
+  };
+
+  const handleTeamInputFocus = () => {
+    fetchTeamMemberSuggestions(teamSearchTerm);
+  };
+
+  const handleSelectTeamMember = (member: {
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+  }) => {
+    if (selectedTeamMembers.some((m) => m.id === member.id)) {
+      toast.error("이미 추가된 팀원입니다.");
+      return;
+    }
+    setSelectedTeamMembers((prev) => [...prev, member]);
+    setTeamSearchTerm("");
+    setShowTeamSearch(false);
+  };
+
+  const removeTeamMember = (id: string) => {
+    setSelectedTeamMembers((prev) => prev.filter((m) => m.id !== id));
+  };
 
   // Tiptap Editor
   const editor = useEditor({
@@ -481,11 +579,84 @@ export function ProjectRegistrationForm() {
             SYDE 프로덕트를 같이 만든 팀원이 있다면 추가해주세요.
           </p>
 
-          <div className="flex items-center gap-2 border border-[#B7B7B7] rounded-[10px] bg-white p-[6px] px-[10px] h-[45px]">
-            <Input
-              placeholder="닉네임 또는 프로필네임을 검색해보세요."
-              className="border-none shadow-none focus-visible:ring-0 flex-1 text-sm placeholder:text-[#777777] h-full"
-            />
+          <div className="relative" ref={teamSearchRef}>
+            <div className="flex flex-wrap items-center gap-2 border border-[#B7B7B7] rounded-[10px] bg-white p-[6px] px-[10px] min-h-[45px]">
+              {selectedTeamMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-1 bg-[#FAFAFA] border border-[#E5E5E5] px-2 py-0.5 rounded-[6px]"
+                >
+                  <Avatar className="w-4 h-4">
+                    <AvatarImage src={member.avatar_url || ""} />
+                    <AvatarFallback className="text-[8px] bg-[#D9D9D9]">
+                      {member.username?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-[12px] text-[#002040] font-medium">
+                    {member.username}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeTeamMember(member.id)}
+                    className="text-[#777777] hover:text-[#002040] ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <Input
+                placeholder={
+                  selectedTeamMembers.length === 0
+                    ? "닉네임 또는 프로필네임을 검색해보세요."
+                    : ""
+                }
+                className="border-none shadow-none focus-visible:ring-0 flex-1 min-w-[120px] text-sm placeholder:text-[#777777] h-[30px] p-0"
+                value={teamSearchTerm}
+                onChange={handleTeamSearchChange}
+                onFocus={handleTeamInputFocus}
+                ref={teamInputRef}
+              />
+            </div>
+
+            {/* User Search Overlay */}
+            {showTeamSearch && teamSearchResults.length > 0 && (
+              <div
+                className="absolute z-50 flex flex-col justify-start items-start p-[8px] bg-[#FAFAFA] rounded-[12px] shadow-lg mt-2 overflow-y-auto"
+                style={{
+                  width: "280px",
+                  maxHeight: "220px",
+                  left: "0px",
+                }}
+              >
+                {teamSearchResults.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex flex-row items-center p-[8px] gap-[8px] w-full h-[44px] rounded-[10px] cursor-pointer hover:bg-gray-200 transition-colors shrink-0"
+                    onClick={() => handleSelectTeamMember(user)}
+                  >
+                    {/* Avatar */}
+                    <div className="flex flex-col items-start p-0 gap-[10px] w-[24px] h-[24px] shrink-0">
+                      <Avatar className="w-[24px] h-[24px]">
+                        <AvatarImage src={user.avatar_url || ""} />
+                        <AvatarFallback className="bg-[#D9D9D9] text-[10px]">
+                          {user.username?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+
+                    {/* Frame 130 (Name/Nickname container) */}
+                    <div className="flex flex-col justify-center items-start p-0 gap-[4px] h-[28px] grow">
+                      <span
+                        className="w-full h-[28px] font-normal text-[12px] leading-[14px] text-[#000000] flex items-center truncate"
+                        style={{ fontFamily: "Pretendard" }}
+                      >
+                        {user.username || "Unknown"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
