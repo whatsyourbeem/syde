@@ -8,7 +8,6 @@ import {
     MoreHorizontal,
     Heart,
     MessageCircle,
-    Share2,
     Bookmark
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
+import { ShareButton } from "@/components/common/share-button";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -467,9 +467,12 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                         </button>
                     </div>
                     <div className="flex gap-5">
-                        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <Share2 className="w-5 h-5 text-[#808080]" />
-                        </button>
+                        <ShareButton
+                            url={`/insight/${id}`}
+                            title={insight.title}
+                            iconSize={20}
+                            className="text-[#808080]"
+                        />
                         <button onClick={toggleBookmark} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                             <Bookmark className={cn("w-5 h-5 transition-colors", isBookmarked ? "text-[#FFD60A] fill-current" : "text-[#777777] hover:text-[#FFD60A]")} />
                         </button>

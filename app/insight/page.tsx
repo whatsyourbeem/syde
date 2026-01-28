@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MessageCircle, Share2, Bookmark, Plus } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/common/share-button";
 
 interface InsightCardProps {
     id: string;
@@ -86,7 +87,12 @@ function InsightCard({ id, title, summary, imageUrl, author, stats }: InsightCar
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Share2 className="w-5 h-5 text-gray-400" />
+                            <ShareButton
+                                url={`/insight/${id}`}
+                                title={title}
+                                iconSize={20}
+                                className="text-gray-400"
+                            />
                             <div className="flex items-center gap-1.5 text-[#F5C518] font-bold">
                                 <Bookmark className={cn("w-5 h-5", stats.bookmarks > 0 ? "fill-current" : "")} />
                                 <span className="text-xs">{stats.bookmarks}</span>
