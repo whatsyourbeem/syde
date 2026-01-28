@@ -246,6 +246,13 @@ export function ProjectRegistrationForm() {
       if (appStoreLink.trim())
         formData.append("links_app_store", appStoreLink.trim());
 
+      // Append team members
+      if (selectedTeamMembers.length > 0) {
+        // Send array of user IDs
+        const teamMemberIds = selectedTeamMembers.map((m) => m.id);
+        formData.append("teamMembers", JSON.stringify(teamMemberIds));
+      }
+
       const result = await createShowcase(formData);
 
       if (result && "error" in result) {

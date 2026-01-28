@@ -103,6 +103,31 @@ export const createShowcase = withAuth(
       }
     }
 
+    // Insert Team Members
+    const teamMembersJson = formData.get("teamMembers") as string | null;
+    if (teamMembersJson) {
+      try {
+        const teamMemberIds = JSON.parse(teamMembersJson) as string[];
+        if (teamMemberIds.length > 0) {
+          const membersToInsert = teamMemberIds.map((userId, index) => ({
+            showcase_id: showcaseId,
+            user_id: userId,
+            display_order: index,
+          }));
+
+          const { error: membersError } = await supabase
+            .from("showcases_members")
+            .insert(membersToInsert);
+
+          if (membersError) {
+            console.error("Failed to insert showcase members:", membersError);
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing team members JSON:", e);
+      }
+    }
+
     revalidatePath("/");
     revalidatePath("/showcase");
     if (user?.user_metadata?.username) {
