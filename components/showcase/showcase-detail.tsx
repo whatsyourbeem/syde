@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   HeartIcon,
   MessageCircle,
-  Share2,
+  Share,
   Bookmark,
   ChevronLeft,
   MoreVertical,
@@ -414,7 +414,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               onClick={handleCopyLink}
               className="flex items-center justify-center hover:scale-105 transition-transform"
             >
-              <Share2 className="w-[14px] h-[20px] text-[#808080]" />
+              <Share className="w-[14px] h-[20px] text-[#808080]" />
             </button>
 
             {/* Bookmark */}
@@ -514,7 +514,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     웹사이트 방문하기
                   </span>
                 </div>
-                <Share2 className="w-4 h-6 text-[#808080]" />
+                <Share className="w-4 h-6 text-[#808080]" />
               </a>
             ))}
           {(!showcase.showcases_links ||
