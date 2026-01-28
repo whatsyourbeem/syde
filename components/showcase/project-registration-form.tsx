@@ -45,6 +45,7 @@ export function ProjectRegistrationForm({
   const detailInputRef = useRef<HTMLInputElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   // Website Links State
   const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
@@ -774,7 +775,7 @@ export function ProjectRegistrationForm({
             type="button"
             variant="outline"
             className="rounded-[12px] w-[53px] h-[36px] border-[#002040] text-[#002040] font-normal hover:bg-gray-50 p-0"
-            onClick={() => router.back()}
+            onClick={() => setShowCancelDialog(true)}
           >
             취소
           </Button>
@@ -798,6 +799,33 @@ export function ProjectRegistrationForm({
               🎉 SYDE 프로덕트를 등록했습니다. 🎉
             </DialogTitle>
           </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-[500px] h-[180px] p-[36px] gap-[16px] bg-white border-[0.91px] border-black/10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] rounded-[10px] flex flex-col items-start focus:outline-none overflow-hidden"
+        >
+          <DialogHeader className="flex flex-col items-start gap-[8px] p-0 w-[428px] h-[56px]">
+            <DialogTitle className="flex items-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040] whitespace-pre-wrap">
+              잠깐! 지금까지 쓴 내용이 지워져요 😢{"\n"}그래도 나가시겠어요?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-row justify-end items-start gap-[8px] w-full h-[36px] mt-auto">
+            <button
+              onClick={() => setShowCancelDialog(false)}
+              className="box-border flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] w-[139px] h-[36px] bg-white border-[0.91px] border-black/10 rounded-[12px] font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-[#002040] hover:bg-gray-50 whitespace-nowrap"
+            >
+              💪 계속 작성할래요
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] w-[98px] h-[36px] bg-[#002040] rounded-[12px] font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-white hover:bg-[#002040]/90 whitespace-nowrap"
+            >
+              🏃 나갈래요
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
