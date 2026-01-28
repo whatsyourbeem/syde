@@ -37,6 +37,8 @@ export function ProjectRegistrationForm() {
   // Form States
   const [title, setTitle] = useState("");
   const [tagline, setTagline] = useState("");
+  const [googlePlayLink, setGooglePlayLink] = useState("");
+  const [appStoreLink, setAppStoreLink] = useState("");
   // Additional link states can be added here
 
   // Tiptap Editor
@@ -136,6 +138,15 @@ export function ProjectRegistrationForm() {
       detailImageFiles.forEach((file) => {
         formData.append("detailImageFiles", file);
       });
+
+      // Append links
+      websiteLinks.forEach((link) => {
+        if (link.trim()) formData.append("links_website", link.trim());
+      });
+      if (googlePlayLink.trim())
+        formData.append("links_google_play", googlePlayLink.trim());
+      if (appStoreLink.trim())
+        formData.append("links_app_store", appStoreLink.trim());
 
       const result = await createShowcase(formData);
 
@@ -427,7 +438,9 @@ export function ProjectRegistrationForm() {
               </div>
               <div className="px-4 py-0 border-b border-[#B7B7B7]">
                 <Input
-                  placeholder="https://www.syde.kr"
+                  placeholder="https://play.google.com/store/apps/details?id=..."
+                  value={googlePlayLink}
+                  onChange={(e) => setGooglePlayLink(e.target.value)}
                   className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-[12px] placeholder:text-[#777777] px-0"
                 />
               </div>
@@ -449,7 +462,9 @@ export function ProjectRegistrationForm() {
               </div>
               <div className="px-4 py-0 border-b border-[#B7B7B7]">
                 <Input
-                  placeholder="https://www.syde.kr"
+                  placeholder="https://apps.apple.com/app/..."
+                  value={appStoreLink}
+                  onChange={(e) => setAppStoreLink(e.target.value)}
                   className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-[12px] placeholder:text-[#777777] px-0"
                 />
               </div>

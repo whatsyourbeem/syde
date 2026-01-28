@@ -13,6 +13,9 @@ export const createShowcase = withAuth(
     const description = formData.get("description") as string;
     const thumbnailFile = formData.get("thumbnailFile") as File | null;
     const detailImageFiles = formData.getAll("detailImageFiles") as File[];
+    const websiteLinks = formData.getAll("links_website") as string[];
+    const googlePlayLink = formData.get("links_google_play") as string | null;
+    const appStoreLink = formData.get("links_app_store") as string | null;
     console.log(`[createShowcase] Received ${detailImageFiles.length} detail images.`);
 
     const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
@@ -74,6 +77,29 @@ export const createShowcase = withAuth(
       } catch (uploadError) {
           console.error("[createShowcase] Storage upload error:", uploadError);
           return { error: "상세 이미지 업로드 중 오류가 발생했습니다." };
+      }
+    }
+
+    // Insert Links
+    const linksToInsert = [];
+    if (websiteLinks && websiteLinks.length > 0) {
+      websiteLinks.forEach(url => {
+        linksToInsert.push({ showcase_id: showcaseId, type: 'website', url });
+      });
+    }
+    if (googlePlayLink) {
+      linksToInsert.push({ showcase_id: showcaseId, type: 'google_play', url: googlePlayLink });
+    }
+    if (appStoreLink) {
+      linksToInsert.push({ showcase_id: showcaseId, type: 'app_store', url: appStoreLink });
+    }
+
+    if (linksToInsert.length > 0) {
+      const { error: linksError } = await supabase.from("showcases_links").insert(linksToInsert);
+      if (linksError) {
+        console.error("Failed to insert showcase links:", linksError);
+        // We generally don't fail the whole creation for link errors, but logging is important.
+        // Optionally return a warning or partial success if needed.
       }
     }
 
