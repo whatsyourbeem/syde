@@ -263,10 +263,17 @@ export function CommentCard({
           </ProfileHoverCard>
           {isEditing ? (
             <CommentForm
-              logId={comment.log_id}
+              logId={logId || comment.log_id}
+              showcaseId={showcaseId}
               currentUserId={currentUserId}
               initialCommentData={comment}
-              onCommentUpdated={() => setIsEditing(false)}
+              onCommentUpdated={() => {
+                setIsEditing(false);
+                const parentId = logId || showcaseId;
+                queryClient.invalidateQueries({
+                  queryKey: ["comments", { parentId }],
+                });
+              }}
               onCancel={() => setIsEditing(false)}
             />
           ) : (
@@ -397,6 +404,7 @@ export function CommentCard({
                   initialHasLiked={reply.initialHasLiked}
                   onLikeStatusChange={onLikeStatusChange}
                   logId={logId}
+                  showcaseId={showcaseId}
                   level={level + 1}
                   isMobile={isMobile}
                   setReplyTo={(replyData) => {
@@ -459,6 +467,7 @@ export function CommentCard({
           <div className="mt-2 ml-4">
             <CommentForm
               logId={logId}
+              showcaseId={showcaseId}
               currentUserId={currentUserId}
               parentCommentId={comment.id}
               onCommentAdded={() => {
