@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
-import { ShareButton } from "@/components/common/share-button";
+import { InteractionActions } from "@/components/common/interaction-actions";
+import { cn } from "@/lib/utils";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -455,29 +456,20 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </section>
 
-                <section className="w-full h-14 flex flex-row items-center justify-between px-6">
-                    <div className="flex gap-6">
-                        <button onClick={toggleLike} className="flex items-center gap-2 group">
-                            <Heart className={cn("w-5 h-5 transition-colors", isLiked ? "text-red-500 fill-current" : "text-[#777777] group-hover:text-red-500")} />
-                            <span className={cn("text-sm font-medium", isLiked ? "text-red-500" : "text-[#777777]")}>{stats.likes}</span>
-                        </button>
-                        <button className="flex items-center gap-2 group cursor-default">
-                            <MessageCircle className="w-5 h-5 text-[#777777]" />
-                            <span className="text-sm font-medium text-[#777777]">{stats.comments}</span>
-                        </button>
-                    </div>
-                    <div className="flex gap-5">
-                        <ShareButton
-                            url={`/insight/${id}`}
-                            title={insight.title}
-                            iconSize={20}
-                            className="text-[#808080]"
-                        />
-                        <button onClick={toggleBookmark} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <Bookmark className={cn("w-5 h-5 transition-colors", isBookmarked ? "text-[#FFD60A] fill-current" : "text-[#777777] hover:text-[#FFD60A]")} />
-                        </button>
-                    </div>
-                </section>
+                <InteractionActions
+                    id={id}
+                    type="insight"
+                    stats={stats}
+                    status={{
+                        hasLiked: isLiked,
+                        hasBookmarked: isBookmarked
+                    }}
+                    onLikeToggle={toggleLike}
+                    onBookmarkToggle={toggleBookmark}
+                    shareUrl={`/insight/${id}`}
+                    shareTitle={insight.title}
+                    className="w-full h-14 px-6" // 상세 페이지 스타일 유지
+                />
 
                 <section className="w-full flex flex-col px-4 py-6 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/30">
                     <div className="flex items-center gap-2 px-1">
@@ -627,6 +619,3 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
     );
 }
 
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(" ");
-}

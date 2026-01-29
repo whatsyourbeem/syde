@@ -7,7 +7,8 @@ import { Heart, MessageCircle, Bookmark, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ShareButton } from "@/components/common/share-button";
+import { InteractionActions } from "@/components/common/interaction-actions";
+import { cn } from "@/lib/utils";
 
 interface InsightCardProps {
     id: string;
@@ -75,29 +76,21 @@ function InsightCard({ id, title, summary, imageUrl, author, stats }: InsightCar
                     </div>
 
                     {/* Interaction Bar */}
-                    <div className="flex items-center justify-between border-t border-gray-50 pt-4">
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-1.5 text-gray-400">
-                                <Heart className="w-5 h-5" />
-                                <span className="text-xs font-medium">{stats.likes}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-gray-400">
-                                <MessageCircle className="w-5 h-5" />
-                                <span className="text-xs font-medium">{stats.comments}</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <ShareButton
-                                url={`/insight/${id}`}
-                                title={title}
-                                iconSize={20}
-                                className="text-gray-400"
-                            />
-                            <div className="flex items-center gap-1.5 text-[#F5C518] font-bold">
-                                <Bookmark className={cn("w-5 h-5", stats.bookmarks > 0 ? "fill-current" : "")} />
-                                <span className="text-xs">{stats.bookmarks}</span>
-                            </div>
-                        </div>
+                    <div className="border-t border-gray-50 pt-4 px-1">
+                        <InteractionActions
+                            id={id}
+                            type="insight"
+                            stats={stats}
+                            status={{
+                                hasLiked: false, // 인사이트 목록에서는 아직 개인별 상태를 개별적으로 관리하지 않는 것으로 보임
+                                hasBookmarked: stats.bookmarks > 0
+                            }}
+                            onLikeToggle={() => { }}
+                            onBookmarkToggle={() => { }}
+                            shareUrl={`/insight/${id}`}
+                            shareTitle={title}
+                            className="px-2 pt-0" // 카드 내부라 패딩 조정
+                        />
                     </div>
                 </div>
             </div>
@@ -205,6 +198,3 @@ export default function InsightPage() {
     );
 }
 
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(" ");
-}
