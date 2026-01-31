@@ -208,55 +208,58 @@ function InsightWriteForm() {
     }
 
     return (
-        <div className="flex flex-col bg-white max-w-[393px] mx-auto font-[Pretendard]">
+        <div className="flex flex-col bg-white w-full max-w-6xl mx-auto font-[Pretendard] px-4 md:px-6">
             {/* Page Title Section */}
-            <section className="w-full flex flex-col items-center py-5 px-4 gap-4">
-                <h1 className="text-[24px] font-bold leading-[29px] text-[#002040] text-center w-full">
+            <section className="w-full flex flex-col items-center py-5 gap-4">
+                <h1 className="text-[24px] font-bold leading-[29px] text-[#002040] text-center w-full md:text-left md:py-4">
                     SYDE 인사이트 {isEditMode ? '수정하기' : '등록하기'}
                 </h1>
             </section>
 
             {/* Main Inputs Area */}
-            <main className="flex-grow flex flex-col p-5 gap-5 pb-10">
-                {/* Title Input */}
-                <div className="flex flex-col gap-1 w-full">
-                    <label className="text-[14px] font-medium text-[#002040] flex items-center gap-0.5">
-                        인사이트 제목 <span className="text-red-500">*</span>
-                    </label>
-                    <div className="w-full h-9 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
-                        <input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="SYDE 인사이트 제목을 적어주세요."
-                            className="w-full h-full bg-transparent px-3 text-[14px] outline-none placeholder:text-[#777777]"
-                        />
+            <main className="flex-grow flex flex-col gap-5 pb-10">
+                {/* Title & Summary - Always vertical as requested */}
+                <div className="flex flex-col gap-5">
+                    {/* Title Input */}
+                    <div className="flex flex-col gap-1 w-full">
+                        <label className="text-[14px] font-medium text-[#002040] flex items-center gap-0.5">
+                            인사이트 제목 <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
+                            <input
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="SYDE 인사이트 제목을 적어주세요."
+                                className="w-full h-full bg-transparent px-3 text-[14px] outline-none placeholder:text-[#777777]"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Tagline/Summary Input */}
+                    <div className="flex flex-col gap-1 w-full">
+                        <label className="text-[14px] font-medium text-[#002040] flex items-center gap-0.5">
+                            한 줄 소개 <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
+                            <input
+                                value={summary}
+                                onChange={(e) => setSummary(e.target.value)}
+                                placeholder="SYDE 인사이트를 한 줄로 표현해주세요."
+                                className="w-full h-full bg-transparent px-3 text-[14px] outline-none placeholder:text-[#777777]"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                {/* Tagline/Summary Input */}
-                <div className="flex flex-col gap-1 w-full">
-                    <label className="text-[14px] font-medium text-[#002040] flex items-center gap-0.5">
-                        한 줄 소개 <span className="text-red-500">*</span>
-                    </label>
-                    <div className="w-full h-9 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
-                        <input
-                            value={summary}
-                            onChange={(e) => setSummary(e.target.value)}
-                            placeholder="SYDE 인사이트를 한 줄로 표현해주세요."
-                            className="w-full h-full bg-transparent px-3 text-[14px] outline-none placeholder:text-[#777777]"
-                        />
-                    </div>
-                </div>
-
-                {/* Representative Image UI */}
+                {/* Representative Image UI - Always horizontal layout */}
                 <div className="flex flex-col gap-1 w-full">
                     <label className="text-[14px] font-medium text-[#002040]">대표 이미지</label>
-                    <div className="w-full h-[180px] border-[0.5px] border-[#B7B7B7] rounded-[10px] flex items-center justify-between p-0 overflow-hidden bg-gray-50/30">
-                        <div className="flex flex-col justify-center items-center flex-1 px-4 gap-5">
-                            <p className="text-[12px] leading-[14px] text-[#777777] text-center">
+                    <div className="w-full h-[180px] md:h-[240px] border-[0.5px] border-[#B7B7B7] rounded-[10px] flex flex-row items-center justify-between p-0 overflow-hidden bg-gray-50/30">
+                        <div className="flex flex-col justify-center items-start flex-1 p-6 md:p-10 gap-5">
+                            <p className="text-[12px] md:text-[16px] leading-[1.5] text-[#777777] text-left">
                                 인사이트를 잘 표현하는<br />대표 이미지를 설정해주세요.
                             </p>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 items-start">
                                 <input
                                     type="file"
                                     ref={fileInputRef}
@@ -265,16 +268,16 @@ function InsightWriteForm() {
                                     accept="image/*"
                                 />
                                 <Button
-                                    className="w-20 h-8 bg-[#002040] hover:bg-[#003060] text-white text-[14px] rounded-[12px] font-normal"
+                                    className="w-20 md:w-24 h-8 md:h-10 bg-[#002040] hover:bg-[#003060] text-white text-[14px] rounded-[12px] font-normal"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={uploading}
                                 >
-                                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "설정"}
+                                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "이미지 설정"}
                                 </Button>
                                 {imageUrl && (
                                     <button
                                         onClick={() => setImageUrl("")}
-                                        className="text-[10px] text-red-400 hover:underline"
+                                        className="text-[10px] md:text-[12px] text-red-400 hover:underline"
                                     >
                                         이미지 삭제
                                     </button>
@@ -282,14 +285,14 @@ function InsightWriteForm() {
                             </div>
                         </div>
 
-                        <div className="w-[180px] h-full bg-[#222E35] flex items-center justify-center relative">
+                        <div className="w-[180px] md:w-[400px] h-full bg-[#222E35] flex items-center justify-center relative flex-shrink-0">
                             {imageUrl ? (
                                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="relative text-white flex flex-col items-center transform scale-75">
-                                    <span className="text-[10px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
-                                    <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg] shadow-lg">
-                                        <div className="w-16 h-16 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
+                                <div className="relative text-white flex flex-col items-center transform scale-75 md:scale-100">
+                                    <span className="text-[10px] md:text-[12px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
+                                    <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg] shadow-lg">
+                                        <div className="w-16 h-16 md:w-20 md:h-20 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
                                             <div className="flex gap-4 mt-2">
                                                 <div className="w-2 h-2 bg-white rounded-full"></div>
                                                 <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -311,7 +314,7 @@ function InsightWriteForm() {
                 {/* Content Area */}
                 <div className="flex flex-col gap-1 w-full">
                     <label className="text-[14px] font-medium text-[#002040]">내용 <span className="text-red-500">*</span></label>
-                    <div className="w-full min-h-[400px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040] overflow-hidden">
+                    <div className="w-full min-h-[500px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040] overflow-hidden">
                         <TiptapEditorWrapper
                             initialContent={typeof content === 'string' ? null : content}
                             onContentChange={(json) => setContent(json)}
@@ -322,16 +325,16 @@ function InsightWriteForm() {
                 </div>
 
                 {/* Buttons Section */}
-                <div className="flex flex-row gap-2.5 w-full mt-2">
+                <div className="flex flex-row justify-end gap-2.5 w-full mt-2">
                     <Button
                         variant="outline"
-                        className="w-[53px] h-9 border-[#002040] text-[#002040] rounded-[12px] text-[14px] hover:bg-gray-50"
+                        className="w-24 h-10 border-[#002040] text-[#002040] rounded-[12px] text-[14px] hover:bg-gray-50"
                         onClick={() => router.back()}
                     >
                         취소
                     </Button>
                     <Button
-                        className="flex-grow h-9 bg-[#002040] hover:bg-[#003060] text-white rounded-[12px] text-[14px] font-medium"
+                        className="w-48 h-10 bg-[#002040] hover:bg-[#003060] text-white rounded-[12px] text-[14px] font-medium"
                         onClick={handleSubmit}
                         disabled={loading}
                     >
