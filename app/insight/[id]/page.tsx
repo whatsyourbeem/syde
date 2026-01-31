@@ -19,6 +19,7 @@ import { InteractionActions } from "@/components/common/interaction-actions";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
+import { InsightCard } from "@/components/insight/insight-card";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -377,163 +378,97 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
     }
 
     return (
-        <div className="flex flex-col bg-white max-w-[393px] mx-auto relative font-[Pretendard] pb-10">
-            <main className="flex flex-col items-center pt-4">
+        <div className="flex flex-col bg-white w-full max-w-6xl mx-auto relative font-[Pretendard] pb-10 px-4 md:px-6 border-x border-gray-50">
+            <main className="flex flex-col pt-4">
                 <section className="w-full flex flex-col gap-2">
-                    <div className="flex items-center px-2">
+                    <div className="flex items-center px-0 md:px-2 md:py-4">
                         <Link href="/insight" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                             <ChevronLeft className="w-6 h-6 text-[#434343]" />
                         </Link>
                         <span className="text-sm font-semibold text-gray-700 ml-1">인사이트 상세</span>
                     </div>
-                    <div className="w-full aspect-square px-4 pb-4">
-                        <div className="w-full h-full bg-[#222E35] rounded-[10px] overflow-hidden relative border border-gray-100 flex items-center justify-center">
-                            {insight.image_url ? (
-                                <img src={insight.image_url} alt={insight.title} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="relative text-white flex flex-col items-center">
-                                    <span className="text-[10px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
-                                    <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg] shadow-lg">
-                                        <div className="w-16 h-16 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
-                                            <div className="flex gap-4 mt-2">
-                                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                                            </div>
-                                            <div className="w-8 h-4 border-b-2 border-white rounded-full mt-1"></div>
-                                        </div>
-                                    </div>
-                                    <p className="mt-6 text-xl font-bold tracking-tight">we're SYDERS !</p>
-                                </div>
-                            )}
-                        </div>
+
+                    {/* Insight Card Section */}
+                    <div className="w-full flex justify-center pb-8 border-b-[0.5px] border-[#B7B7B7]">
+                        <InsightCard
+                            id={id}
+                            title={insight.title}
+                            summary={insight.summary}
+                            imageUrl={insight.image_url}
+                            author={{
+                                name: insight.profiles?.username || '알 수 없는 사용자',
+                                role: insight.profiles?.tagline || '멤버',
+                                avatarUrl: insight.profiles?.avatar_url
+                            }}
+                            stats={stats}
+                            initialStatus={{
+                                hasLiked: isLiked,
+                                hasBookmarked: isBookmarked
+                            }}
+                            currentUserId={currentUserId}
+                            showInteractions={false}
+                            disableLink={true}
+                        />
                     </div>
                 </section>
 
-                <section className="w-full flex flex-col px-4 pb-4 gap-2 border-b-[0.5px] border-[#B7B7B7]">
-                    <h1 className="text-[24px] font-bold leading-[130%] text-black">
-                        {insight.title}
-                    </h1>
-                    {insight.summary && (
-                        <p className="text-[14px] text-gray-500 font-medium leading-[140%] mb-1">
-                            {insight.summary}
-                        </p>
-                    )}
-                    <div className="flex flex-row items-center justify-between mt-1">
-                        <div className="flex flex-row items-center gap-[5px] h-6">
-                            <Avatar className="w-6 h-6">
-                                <AvatarImage src={insight.profiles?.avatar_url} />
-                                <AvatarFallback className="bg-[#D9D9D9] text-[10px]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex items-center gap-1">
-                                <span className="text-[14px] font-semibold text-[#002040]">{insight.profiles?.username || '알 수 없는 사용자'}</span>
-                                <span className="text-[12px] text-[#777777]">| {insight.profiles?.tagline || '멤버'}</span>
-                            </div>
-                        </div>
-                        <div className="relative">
-                            {/* More Button (Using provided SVG) */}
-                            <button
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-ellipsis w-5 h-5 text-[#434343]" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
-                            </button>
-
-                            {/* log_more_overlay (Figma CSS Applied) */}
-                            {isMenuOpen && isAuthor && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    />
-                                    <div
-                                        className="absolute right-0 top-8 w-[103px] h-[72px] bg-white shadow-[2px_4px_10px_rgba(0,0,0,0.25)] rounded-[10px] p-1 flex flex-col items-start z-50"
-                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '4px' }}
-                                    >
-                                        {/* 수정버튼 */}
-                                        <button
-                                            onClick={handleEdit}
-                                            className="w-[95px] h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-4 h-4 relative flex items-center justify-center">
-                                                {/* Simple Pencil Icon for Edit */}
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#002040" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                            </div>
-                                            <span className="text-[14px] leading-[17px] font-[Pretendard] text-[#002040] flex items-center">수정</span>
-                                        </button>
-
-                                        {/* 삭제버튼 */}
-                                        <button
-                                            onClick={handleDelete}
-                                            className="w-[95px] h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-4 h-4 relative flex items-center justify-center">
-                                                {/* Trash Icon for Delete */}
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                            </div>
-                                            <span className="text-[14px] leading-[17px] font-[Pretendard] text-[#FF0004] flex items-center">삭제</span>
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </section>
-
-                <section className="w-full px-4 py-8 border-b-[0.5px] border-[#B7B7B7]">
-                    <div className="px-1 text-black">
+                <section className="w-full py-8 md:py-16 border-b-[0.5px] border-[#B7B7B7]">
+                    <div className="px-1 text-black md:text-lg">
                         <TiptapViewer content={parseContent(insight.content)} />
                     </div>
                 </section>
 
-                <InteractionActions
-                    id={id}
-                    type="insight"
-                    stats={stats}
-                    status={{
-                        hasLiked: isLiked,
-                        hasBookmarked: isBookmarked
-                    }}
-                    loading={{
-                        like: likeLoading,
-                        bookmark: bookmarkLoading
-                    }}
-                    onLikeToggle={toggleLike}
-                    onBookmarkToggle={toggleBookmark}
-                    shareUrl={`/insight/${id}`}
-                    shareTitle={insight.title}
-                    className="w-full h-14 px-6" // 상세 페이지 스타일 유지
-                />
+                <div className="w-full flex justify-center py-4">
+                    <InteractionActions
+                        id={id}
+                        type="insight"
+                        stats={stats}
+                        status={{
+                            hasLiked: isLiked,
+                            hasBookmarked: isBookmarked
+                        }}
+                        loading={{
+                            like: likeLoading,
+                            bookmark: bookmarkLoading
+                        }}
+                        onLikeToggle={toggleLike}
+                        onBookmarkToggle={toggleBookmark}
+                        shareUrl={`/insight/${id}`}
+                        shareTitle={insight.title}
+                        className="w-full max-w-2xl h-16 px-6"
+                    />
+                </div>
 
-                <section className="w-full flex flex-col px-4 py-6 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/30">
+                <section className="w-full flex flex-col py-6 md:py-12 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/10 rounded-b-xl">
                     <div className="flex items-center gap-2 px-1">
-                        <div className="w-5 h-5 bg-[#002040] rounded-sm opacity-90 flex items-center justify-center">
-                            <span className="text-[10px] text-white font-bold">SY</span>
+                        <div className="w-6 h-6 bg-[#002040] rounded-sm opacity-90 flex items-center justify-center">
+                            <span className="text-[12px] text-white font-bold">SY</span>
                         </div>
-                        <h2 className="text-lg font-bold text-[#002040]">댓글 및 리뷰</h2>
+                        <h2 className="text-xl font-bold text-[#002040]">댓글 및 리뷰</h2>
                     </div>
 
-                    <div className="flex flex-col gap-6 px-1 min-h-[50px]">
+                    <div className="flex flex-col gap-6 px-1 min-h-[100px] max-w-3xl">
                         {comments.length > 0 ? comments.map((comment, index) => (
-                            <div key={comment.id} className="flex flex-row gap-3 items-start relative">
-                                <Avatar className="w-9 h-9 flex-none border border-gray-100">
+                            <div key={comment.id} className="flex flex-row gap-4 items-start relative">
+                                <Avatar className="w-10 h-10 flex-none border border-gray-100">
                                     <AvatarImage src={comment.profiles?.avatar_url} />
-                                    <AvatarFallback className="bg-[#D9D9D9] text-xs">{comment.profiles?.username?.[0] || 'A'}</AvatarFallback>
+                                    <AvatarFallback className="bg-[#D9D9D9] text-sm">{comment.profiles?.username?.[0] || 'A'}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col gap-1 flex-grow">
+                                <div className="flex flex-col gap-1.5 flex-grow">
                                     <div className="flex flex-row justify-between items-center">
                                         <div className="flex gap-2 items-center">
-                                            <span className="text-sm font-bold text-[#002040]">{comment.profiles?.username}</span>
-                                            <span className="text-[11px] text-[#777777] bg-gray-100 px-1.5 py-0.5 rounded">{comment.profiles?.tagline || '멤버'}</span>
+                                            <span className="text-base font-bold text-[#002040]">{comment.profiles?.username}</span>
+                                            <span className="text-[12px] text-[#777777] bg-gray-100 px-2 py-0.5 rounded-full">{comment.profiles?.tagline || '멤버'}</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[11px] text-[#999999]">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[12px] text-[#999999]">
                                                 {isMounted ? new Date(comment.created_at).toLocaleDateString() : ""}
                                             </span>
                                             {currentUserId === comment.user_id && (
                                                 <div className="relative">
                                                     <button
                                                         onClick={() => setActiveCommentMenuId(activeCommentMenuId === comment.id ? null : comment.id)}
-                                                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                                        className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-ellipsis w-4 h-4 text-[#777777]"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
                                                     </button>
@@ -543,24 +478,24 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                                                 className="fixed inset-0 z-40"
                                                                 onClick={() => setActiveCommentMenuId(null)}
                                                             />
-                                                            <div className="absolute right-0 top-6 w-[103px] h-[72px] bg-white shadow-[2px_4px_10px_rgba(0,0,0,0.25)] rounded-[10px] p-1 flex flex-col items-start z-50">
+                                                            <div className="absolute right-0 top-8 w-[103px] bg-white shadow-[2px_4px_10px_rgba(0,0,0,0.25)] rounded-[10px] p-1 flex flex-col items-start z-50">
                                                                 <button
                                                                     onClick={() => {
                                                                         setEditingCommentId(comment.id);
                                                                         setEditingContent(comment.content);
                                                                         setActiveCommentMenuId(null);
                                                                     }}
-                                                                    className="w-[95px] h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
+                                                                    className="w-full h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
                                                                 >
                                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#002040" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                                                    <span className="text-[14px] leading-[17px] font-[Pretendard] text-[#002040]">수정</span>
+                                                                    <span className="text-[14px] text-[#002040]">수정</span>
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleCommentDeleteRequest(comment.id)}
-                                                                    className="w-[95px] h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
+                                                                    className="w-full h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
                                                                 >
                                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                                                    <span className="text-[14px] leading-[17px] font-[Pretendard] text-[#FF0004]">삭제</span>
+                                                                    <span className="text-[14px] text-[#FF0004]">삭제</span>
                                                                 </button>
                                                             </div>
                                                         </>
@@ -574,40 +509,40 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                             <textarea
                                                 value={editingContent}
                                                 onChange={(e) => setEditingContent(e.target.value)}
-                                                className="w-full bg-white border border-[#B7B7B7] rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow min-h-[60px] resize-none"
+                                                className="w-full bg-white border border-[#B7B7B7] rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow min-h-[80px] resize-none"
                                                 autoFocus
                                             />
-                                            <div className="flex justify-end gap-2">
+                                            <div className="flex justify-end gap-3">
                                                 <button
                                                     onClick={() => setEditingCommentId(null)}
-                                                    className="text-xs text-[#777777] hover:text-black font-medium"
+                                                    className="text-sm text-[#777777] hover:text-black font-medium"
                                                 >
                                                     취소
                                                 </button>
                                                 <button
                                                     onClick={handleCommentUpdate}
-                                                    className="text-xs text-[#002040] hover:underline font-bold"
+                                                    className="text-sm text-[#002040] hover:underline font-bold"
                                                 >
                                                     저장
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-sm leading-relaxed text-gray-800">{comment.content}</p>
+                                        <p className="text-sm md:text-base leading-relaxed text-gray-800">{comment.content}</p>
                                     )}
                                 </div>
                                 {index < comments.length - 1 && (
-                                    <div className="absolute left-[18px] top-10 w-[0.5px] h-6 bg-[#B7B7B7]/50" />
+                                    <div className="absolute left-[19px] top-11 w-[0.5px] h-8 bg-[#B7B7B7]/50" />
                                 )}
                             </div>
                         )) : (
-                            <p className="text-sm text-gray-400 py-8 text-center bg-white rounded-lg border border-dashed border-gray-200">
+                            <p className="text-base text-gray-400 py-12 text-center bg-white rounded-xl border border-dashed border-gray-200">
                                 첫 번째 댓글을 남겨보세요!
                             </p>
                         )}
                     </div>
 
-                    <div className="flex flex-row items-center gap-2 pt-2">
+                    <div className="flex flex-row items-center gap-3 pt-4 max-w-3xl">
                         <div className="flex-grow">
                             <input
                                 value={newComment}
@@ -619,13 +554,13 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                 }}
                                 disabled={submitting}
                                 placeholder="댓글을 작성해 보세요..."
-                                className="w-full h-10 bg-white border border-[#B7B7B7] rounded-xl px-4 text-sm focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow disabled:opacity-50"
+                                className="w-full h-12 bg-white border border-[#B7B7B7] rounded-xl px-4 text-base focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow disabled:opacity-50"
                             />
                         </div>
                         <Button
                             onClick={handleCommentSubmit}
                             disabled={submitting || !newComment.trim()}
-                            className="h-10 px-4 bg-[#002040] hover:bg-[#003060] text-white text-sm font-semibold rounded-xl"
+                            className="h-12 px-6 bg-[#002040] hover:bg-[#003060] text-white text-base font-semibold rounded-xl"
                         >
                             {submitting ? "..." : "등록"}
                         </Button>

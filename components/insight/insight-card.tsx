@@ -28,9 +28,22 @@ export interface InsightCardProps {
         hasBookmarked: boolean;
     };
     currentUserId: string | null;
+    showInteractions?: boolean;
+    disableLink?: boolean;
 }
 
-export function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats, initialStatus, currentUserId }: InsightCardProps) {
+export function InsightCard({
+    id,
+    title,
+    summary,
+    imageUrl,
+    author,
+    stats: initialStats,
+    initialStatus,
+    currentUserId,
+    showInteractions = true,
+    disableLink = false
+}: InsightCardProps) {
     const supabase = createClient();
     const { openLoginDialog } = useLoginDialog();
     const [stats, setStats] = useState(initialStats);
@@ -99,55 +112,55 @@ export function InsightCard({ id, title, summary, imageUrl, author, stats: initi
         }
     };
 
-    return (
-        <div className="bg-transparent border-none shadow-none overflow-hidden flex flex-col w-[369px] md:w-[352px] h-[515px] md:h-[479px] transition-all duration-200 ease-in-out hover:scale-[1.01]">
-            <Link href={`/insight/${id}`} className="flex flex-col h-full focus:outline-none">
-                {/* Thumbnail Area */}
-                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
-                    {imageUrl ? (
-                        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="flex flex-col items-center">
-                            <div className="relative text-white flex flex-col items-center">
-                                <span className="text-[10px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
-                                <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg]">
-                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
-                                        <div className="flex gap-4 mt-2">
-                                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                                        </div>
-                                        <div className="w-8 h-4 border-b-2 border-white rounded-full mt-1"></div>
+    const content = (
+        <div className="flex flex-col h-full">
+            {/* Thumbnail Area */}
+            <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
+                {imageUrl ? (
+                    <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                ) : (
+                    <div className="flex flex-col items-center">
+                        <div className="relative text-white flex flex-col items-center">
+                            <span className="text-[10px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
+                            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg]">
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
+                                    <div className="flex gap-4 mt-2">
+                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                        <div className="w-2 h-2 bg-white rounded-full"></div>
                                     </div>
+                                    <div className="w-8 h-4 border-b-2 border-white rounded-full mt-1"></div>
                                 </div>
-                                <p className="mt-4 text-xl font-bold tracking-tight">we're SYDERS !</p>
                             </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Content Area */}
-                <div className="p-3 pt-3 pb-2 h-[102px] md:h-[99px] flex flex-col gap-[5px]">
-                    <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2">
-                        {title}
-                    </h3>
-                    <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
-                        {summary || "소개 글이 없습니다."}
-                    </p>
-
-                    {/* Author Info - Responsive layout */}
-                    <div className="flex items-center gap-[5px] mt-auto">
-                        <Avatar className="w-5 h-5">
-                            <AvatarImage src={author.avatarUrl} />
-                            <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex items-center gap-[5px]">
-                            <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
-                            <span className="text-[11px] text-[#777777]">| {author.role}</span>
+                            <p className="mt-4 text-xl font-bold tracking-tight">we're SYDERS !</p>
                         </div>
                     </div>
-                </div>
+                )}
+            </div>
 
-                {/* Interaction Bar */}
+            {/* Content Area */}
+            <div className="p-3 pt-3 pb-2 h-[102px] md:h-[99px] flex flex-col gap-[5px]">
+                <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2">
+                    {title}
+                </h3>
+                <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
+                    {summary || "소개 글이 없습니다."}
+                </p>
+
+                {/* Author Info - Responsive layout */}
+                <div className="flex items-center gap-[5px] mt-auto">
+                    <Avatar className="w-5 h-5">
+                        <AvatarImage src={author.avatarUrl} />
+                        <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex items-center gap-[5px]">
+                        <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
+                        <span className="text-[11px] text-[#777777]">| {author.role}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Interaction Bar */}
+            {showInteractions && (
                 <div className="pt-3 md:pt-0 px-1 h-11 md:h-7">
                     <InteractionActions
                         id={id}
@@ -162,7 +175,21 @@ export function InsightCard({ id, title, summary, imageUrl, author, stats: initi
                         className="px-2 md:px-[30.5px] pt-0 md:pt-1 pb-1"
                     />
                 </div>
-            </Link>
+            )}
+        </div>
+    );
+
+    return (
+        <div className="bg-transparent border-none shadow-none overflow-hidden flex flex-col w-[369px] md:w-[352px] h-fit transition-all duration-200 ease-in-out hover:scale-[1.01]">
+            {disableLink ? (
+                <div className="flex flex-col h-full">
+                    {content}
+                </div>
+            ) : (
+                <Link href={`/insight/${id}`} className="flex flex-col h-full focus:outline-none">
+                    {content}
+                </Link>
+            )}
         </div>
     );
 }
