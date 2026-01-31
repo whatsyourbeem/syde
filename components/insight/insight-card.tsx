@@ -100,10 +100,10 @@ export function InsightCard({ id, title, summary, imageUrl, author, stats: initi
     };
 
     return (
-        <div className="bg-[#FAFAFA] rounded-[12px] overflow-hidden border border-gray-100 shadow-sm transition-all hover:shadow-md flex flex-col w-[369px] md:w-[352px] h-[515px] md:h-[479px]">
-            <Link href={`/insight/${id}`} className="flex flex-col h-full">
+        <div className="bg-transparent border-none shadow-none overflow-hidden flex flex-col w-[369px] md:w-[352px] h-[515px] md:h-[479px] transition-all duration-200 ease-in-out hover:scale-[1.01]">
+            <Link href={`/insight/${id}`} className="flex flex-col h-full focus:outline-none">
                 {/* Thumbnail Area */}
-                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
+                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px]">
                     {imageUrl ? (
                         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     ) : (
