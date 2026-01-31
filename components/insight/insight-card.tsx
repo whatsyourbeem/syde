@@ -103,7 +103,7 @@ export function InsightCard({ id, title, summary, imageUrl, author, stats: initi
         <div className="bg-transparent border-none shadow-none overflow-hidden flex flex-col w-[369px] md:w-[352px] h-[515px] md:h-[479px] transition-all duration-200 ease-in-out hover:scale-[1.01]">
             <Link href={`/insight/${id}`} className="flex flex-col h-full focus:outline-none">
                 {/* Thumbnail Area */}
-                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px]">
+                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
                     {imageUrl ? (
                         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     ) : (
@@ -148,7 +148,7 @@ export function InsightCard({ id, title, summary, imageUrl, author, stats: initi
                 </div>
 
                 {/* Interaction Bar */}
-                <div className="pt-4 md:pt-0 px-1 h-11 md:h-7">
+                <div className="pt-3 md:pt-0 px-1 h-11 md:h-7">
                     <InteractionActions
                         id={id}
                         type="insight"
@@ -159,7 +159,7 @@ export function InsightCard({ id, title, summary, imageUrl, author, stats: initi
                         onBookmarkToggle={handleBookmarkToggle}
                         shareUrl={`/insight/${id}`}
                         shareTitle={title}
-                        className="px-2 md:px-[30.5px] pt-1 pb-1"
+                        className="px-2 md:px-[30.5px] pt-0 md:pt-1 pb-1"
                     />
                 </div>
             </Link>
