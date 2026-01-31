@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
 import { InteractionActions } from "@/components/common/interaction-actions";
+import TiptapViewer from "@/components/common/tiptap-viewer";
 import { cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
@@ -341,6 +342,21 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
+    const parseContent = (content: any) => {
+        if (!content) return null;
+        try {
+            // Attempt to parse as JSON (for Tiptap content)
+            const parsed = JSON.parse(content);
+            if (typeof parsed === 'object' && parsed !== null) {
+                return parsed;
+            }
+            return content;
+        } catch (e) {
+            // If parsing fails, it's likely plain text
+            return content;
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
@@ -465,9 +481,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
                 <section className="w-full px-4 py-8 border-b-[0.5px] border-[#B7B7B7]">
                     <div className="px-1 text-black">
-                        <p className="text-[18px] leading-[1.6] whitespace-pre-wrap font-medium">
-                            {insight.content}
-                        </p>
+                        <TiptapViewer content={parseContent(insight.content)} />
                     </div>
                 </section>
 

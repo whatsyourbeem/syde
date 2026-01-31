@@ -12,6 +12,20 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import dynamic from "next/dynamic";
+import { JSONContent } from "@tiptap/react";
+
+const TiptapEditorWrapper = dynamic(
+    () => import("@/components/common/tiptap-editor-wrapper"),
+    {
+        loading: () => (
+            <div className="h-32 bg-gray-50 animate-pulse rounded-md flex items-center justify-center text-sm text-gray-400">
+                에디터 로딩 중...
+            </div>
+        ),
+        ssr: false,
+    }
+);
 
 function InsightWriteForm() {
     const router = useRouter();
@@ -26,7 +40,7 @@ function InsightWriteForm() {
     const [fetching, setFetching] = useState(isEditMode);
     const [title, setTitle] = useState("");
     const [summary, setSummary] = useState("");
-    const [content, setContent] = useState("");
+    const [content, setContent] = useState<JSONContent | string>("");
     const [imageUrl, setImageUrl] = useState("");
 
     useEffect(() => {
@@ -58,7 +72,9 @@ function InsightWriteForm() {
     }, [id, isEditMode, supabase]);
 
     const handleSubmit = async () => {
-        if (!title || !summary || !content) {
+        const contentString = typeof content === 'string' ? content : JSON.stringify(content);
+
+        if (!title || !summary || !contentString || contentString === '{"type":"doc","content":[]}') {
             toast.error("필수 항목을 모두 입력해주세요.");
             return;
         }
@@ -78,7 +94,7 @@ function InsightWriteForm() {
                     .update({
                         title,
                         summary,
-                        content,
+                        content: contentString,
                         image_url: imageUrl || null
                     })
                     .eq("id", id as string)
@@ -95,7 +111,7 @@ function InsightWriteForm() {
                             user_id: user.id,
                             title,
                             summary,
-                            content,
+                            content: contentString,
                             image_url: imageUrl || null
                         }
                     ])
@@ -112,6 +128,32 @@ function InsightWriteForm() {
             toast.error(`${isEditMode ? '수정' : '등록'} 실패: ${error.message}`);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleTiptapImageUpload = async (file: File): Promise<string | null> => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("로그인이 필요합니다.");
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
+            const filePath = `editor/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('insight-images')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('insight-images')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        } catch (error: any) {
+            console.error("Error uploading tiptap image:", error);
+            throw error;
         }
     };
 
@@ -269,12 +311,12 @@ function InsightWriteForm() {
                 {/* Content Area */}
                 <div className="flex flex-col gap-1 w-full">
                     <label className="text-[14px] font-medium text-[#002040]">내용 <span className="text-red-500">*</span></label>
-                    <div className="w-full min-h-[400px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
-                        <textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder="TIP TAP EDITOR"
-                            className="w-full h-full min-h-[398px] bg-transparent p-4 text-[16px] outline-none placeholder:text-[#002040]/30 resize-none font-medium"
+                    <div className="w-full min-h-[400px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040] overflow-hidden">
+                        <TiptapEditorWrapper
+                            initialContent={typeof content === 'string' ? null : content}
+                            onContentChange={(json) => setContent(json)}
+                            placeholder="인사이트 내용을 입력해주세요."
+                            onImageUpload={handleTiptapImageUpload}
                         />
                     </div>
                 </div>
