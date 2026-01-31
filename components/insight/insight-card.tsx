@@ -8,6 +8,8 @@ import { InteractionActions } from "@/components/common/interaction-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
+
 export interface InsightCardProps {
     id: string;
     title: string;
@@ -30,6 +32,7 @@ export interface InsightCardProps {
     currentUserId: string | null;
     showInteractions?: boolean;
     disableLink?: boolean;
+    isCentered?: boolean;
 }
 
 export function InsightCard({
@@ -42,7 +45,8 @@ export function InsightCard({
     initialStatus,
     currentUserId,
     showInteractions = true,
-    disableLink = false
+    disableLink = false,
+    isCentered = false
 }: InsightCardProps) {
     const supabase = createClient();
     const { openLoginDialog } = useLoginDialog();
@@ -138,7 +142,10 @@ export function InsightCard({
             </div>
 
             {/* Content Area */}
-            <div className="p-3 pt-3 pb-2 h-[102px] md:h-[99px] flex flex-col gap-[5px]">
+            <div className={cn(
+                "p-3 pt-3 pb-2 h-[102px] md:h-[99px] flex flex-col gap-[5px]",
+                isCentered && "items-center text-center"
+            )}>
                 <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2">
                     {title}
                 </h3>
@@ -147,7 +154,10 @@ export function InsightCard({
                 </p>
 
                 {/* Author Info - Responsive layout */}
-                <div className="flex items-center gap-[5px] mt-auto">
+                <div className={cn(
+                    "flex items-center gap-[5px] mt-auto",
+                    isCentered && "justify-center"
+                )}>
                     <Avatar className="w-5 h-5">
                         <AvatarImage src={author.avatarUrl} />
                         <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>

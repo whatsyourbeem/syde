@@ -408,6 +408,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                             currentUserId={currentUserId}
                             showInteractions={false}
                             disableLink={true}
+                            isCentered={true}
                         />
                     </div>
                 </section>
@@ -447,7 +448,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                         <h2 className="text-xl font-bold text-[#002040]">댓글 및 리뷰</h2>
                     </div>
 
-                    <div className="flex flex-col gap-6 px-1 min-h-[100px] max-w-3xl">
+                    <div className="flex flex-col gap-6 px-1 min-h-[100px]">
                         {comments.length > 0 ? comments.map((comment, index) => (
                             <div key={comment.id} className="flex flex-row gap-4 items-start relative">
                                 <Avatar className="w-10 h-10 flex-none border border-gray-100">
@@ -542,7 +543,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                         )}
                     </div>
 
-                    <div className="flex flex-row items-center gap-3 pt-4 max-w-3xl">
+                    <div className="flex flex-row items-center gap-3 pt-4">
                         <div className="flex-grow">
                             <input
                                 value={newComment}
