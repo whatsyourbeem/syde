@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Heart, MessageCircle, Bookmark, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { InteractionActions } from "@/components/common/interaction-actions";
-import { cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { toast } from "sonner";
 
@@ -51,7 +49,6 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
         setLoading(prev => ({ ...prev, like: true }));
         const isLiked = status.hasLiked;
 
-        // Optimistic update
         setStats(prev => ({ ...prev, likes: isLiked ? prev.likes - 1 : prev.likes + 1 }));
         setStatus(prev => ({ ...prev, hasLiked: !isLiked }));
 
@@ -66,7 +63,6 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
         } catch (error) {
             console.error("Error toggling like:", error);
             toast.error("좋아요 처리 중 오류가 발생했습니다.");
-            // Revert on error
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : prev.likes - 1 }));
             setStatus(prev => ({ ...prev, hasLiked: isLiked }));
         } finally {
@@ -84,7 +80,6 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
         setLoading(prev => ({ ...prev, bookmark: true }));
         const isBookmarked = status.hasBookmarked;
 
-        // Optimistic update
         setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks - 1 : prev.bookmarks + 1 }));
         setStatus(prev => ({ ...prev, hasBookmarked: !isBookmarked }));
 
@@ -99,7 +94,6 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
         } catch (error) {
             console.error("Error toggling bookmark:", error);
             toast.error("저장 처리 중 오류가 발생했습니다.");
-            // Revert on error
             setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : prev.bookmarks - 1 }));
             setStatus(prev => ({ ...prev, hasBookmarked: isBookmarked }));
         } finally {
@@ -108,18 +102,18 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
     };
 
     return (
-        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-6 transition-all hover:shadow-md">
-            <Link href={`/insight/${id}`}>
+        <div className="bg-white rounded-2xl md:rounded-xl overflow-hidden border border-gray-100 shadow-sm mb-6 transition-all hover:shadow-md h-full flex flex-col w-[352px] h-[479px]">
+            <Link href={`/insight/${id}`} className="flex flex-col h-full">
                 {/* Thumbnail Area */}
-                <div className="aspect-[4/3] bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer">
+                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none h-[352px]">
                     {imageUrl ? (
                         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     ) : (
                         <div className="flex flex-col items-center">
                             <div className="relative text-white flex flex-col items-center">
                                 <span className="text-[10px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
-                                <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg]">
-                                    <div className="w-16 h-16 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
+                                <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg]">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
                                         <div className="flex gap-4 mt-2">
                                             <div className="w-2 h-2 bg-white rounded-full"></div>
                                             <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -134,41 +128,41 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
                 </div>
 
                 {/* Content Area */}
-                <div className="p-5">
-                    <h3 className="text-lg font-bold text-gray-900 leading-tight mb-2 line-clamp-2">
+                <div className="p-3 pt-3 pb-2 h-[99px] flex flex-col gap-1">
+                    <h3 className="text-lg md:text-[16px] md:leading-[150%] font-bold text-gray-900 leading-tight mb-2 md:mb-1 line-clamp-2">
                         {title}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4 line-clamp-1">
+                    <p className="text-sm md:text-[14px] md:leading-[150%] text-gray-500 mb-4 md:mb-2 line-clamp-1">
                         {summary || "소개 글이 없습니다."}
                     </p>
 
-                    {/* Author Info */}
-                    <div className="flex items-center gap-2 mb-4">
-                        <Avatar className="w-6 h-6">
+                    {/* Author Info - Responsive layout */}
+                    <div className="flex items-center gap-2 md:gap-1.5 mt-auto">
+                        <Avatar className="w-6 h-6 md:w-5 md:h-5">
                             <AvatarImage src={author.avatarUrl} />
                             <AvatarFallback>{author.name?.[0] || 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex items-center gap-1">
-                            <span className="text-sm font-bold text-gray-800">{author.name}</span>
-                            <span className="text-xs text-gray-400">| {author.role}</span>
+                            <span className="text-sm md:text-[12px] font-bold md:font-semibold text-[#002040]">{author.name}</span>
+                            <span className="text-xs md:text-[11px] text-[#777777]">| {author.role}</span>
                         </div>
                     </div>
+                </div>
 
-                    {/* Interaction Bar */}
-                    <div className="border-t border-gray-50 pt-4 px-1">
-                        <InteractionActions
-                            id={id}
-                            type="insight"
-                            stats={stats}
-                            status={status}
-                            loading={loading}
-                            onLikeToggle={handleLikeToggle}
-                            onBookmarkToggle={handleBookmarkToggle}
-                            shareUrl={`/insight/${id}`}
-                            shareTitle={title}
-                            className="px-2 pt-0" // 카드 내부라 패딩 조정
-                        />
-                    </div>
+                {/* Interaction Bar */}
+                <div className="border-t border-gray-50 pt-4 md:pt-2 px-1 md:h-7 mb-2">
+                    <InteractionActions
+                        id={id}
+                        type="insight"
+                        stats={stats}
+                        status={status}
+                        loading={loading}
+                        onLikeToggle={handleLikeToggle}
+                        onBookmarkToggle={handleBookmarkToggle}
+                        shareUrl={`/insight/${id}`}
+                        shareTitle={title}
+                        className="px-2 md:px-3 pt-0"
+                    />
                 </div>
             </Link>
         </div>
@@ -182,13 +176,12 @@ export default function InsightPage() {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     useEffect(() => {
-        async function fetchInsights() {
+        async function fetchInitialData() {
             setLoading(true);
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 setCurrentUserId(user?.id || null);
 
-                // insights 테이블 조회
                 const { data, error } = await supabase
                     .from("insights")
                     .select(`
@@ -240,31 +233,35 @@ export default function InsightPage() {
             }
         }
 
-        fetchInsights();
+        fetchInitialData();
     }, [supabase]);
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-20 relative">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-100 py-10 mb-6 text-center shadow-sm">
-                <h1 className="text-3xl font-extrabold text-[#112D4E] mb-2 tracking-tight">
-                    Insights
-                </h1>
-                <p className="text-sm text-gray-400 font-medium">
-                    사이드 프로젝트를 더 오래, 더 잘 하기 위한 이야기들.
-                </p>
+        <div className="min-h-screen bg-background pb-20 relative flex flex-col h-full overflow-y-scroll custom-scrollbar">
+            {/* Unified Title Section (Same as Meetup Page) */}
+            <div className="w-full bg-card border-b">
+                <div className="w-full max-w-6xl mx-auto px-4 py-8">
+                    <div className="text-center text-muted-foreground">
+                        <h2 className="text-2xl font-bold mb-2 text-foreground py-2">
+                            Insights
+                        </h2>
+                        <p>사이드 프로젝트를 더 오래, 더 잘 하기 위한 이야기들.</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-md mx-auto px-4">
+            {/* Main Content */}
+            <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-0 py-0 md:py-8">
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#112D4E]"></div>
                     </div>
                 ) : insights.length > 0 ? (
-                    insights.map((insight) => (
-                        <InsightCard key={insight.id} {...insight} />
-                    ))
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-x-12 md:gap-y-12 justify-items-center">
+                        {insights.map((insight) => (
+                            <InsightCard key={insight.id} {...insight} />
+                        ))}
+                    </div>
                 ) : (
                     <div className="text-center py-20 text-gray-400 flex flex-col gap-2">
                         <div className="text-4xl">💭</div>
@@ -283,4 +280,6 @@ export default function InsightPage() {
         </div>
     );
 }
+
+
 
