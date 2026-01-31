@@ -102,10 +102,10 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
     };
 
     return (
-        <div className="bg-white rounded-2xl md:rounded-xl overflow-hidden border border-gray-100 shadow-sm mb-6 transition-all hover:shadow-md h-full flex flex-col w-[352px] h-[479px]">
+        <div className="bg-[#FAFAFA] rounded-[12px] overflow-hidden border border-gray-100 shadow-sm transition-all hover:shadow-md flex flex-col w-[369px] md:w-[352px] h-[515px] md:h-[479px]">
             <Link href={`/insight/${id}`} className="flex flex-col h-full">
                 {/* Thumbnail Area */}
-                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none h-[352px]">
+                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
                     {imageUrl ? (
                         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     ) : (
@@ -128,29 +128,29 @@ function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats
                 </div>
 
                 {/* Content Area */}
-                <div className="p-3 pt-3 pb-2 h-[99px] flex flex-col gap-1">
-                    <h3 className="text-lg md:text-[16px] md:leading-[150%] font-bold text-gray-900 leading-tight mb-2 md:mb-1 line-clamp-2">
+                <div className="p-3 pt-3 pb-2 h-[102px] md:h-[99px] flex flex-col gap-[5px]">
+                    <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black md:text-gray-900 line-clamp-2">
                         {title}
                     </h3>
-                    <p className="text-sm md:text-[14px] md:leading-[150%] text-gray-500 mb-4 md:mb-2 line-clamp-1">
+                    <p className="text-[14px] leading-[150%] text-[#000000] md:text-gray-500 line-clamp-1">
                         {summary || "소개 글이 없습니다."}
                     </p>
 
                     {/* Author Info - Responsive layout */}
-                    <div className="flex items-center gap-2 md:gap-1.5 mt-auto">
-                        <Avatar className="w-6 h-6 md:w-5 md:h-5">
+                    <div className="flex items-center gap-[5px] mt-auto">
+                        <Avatar className="w-5 h-5">
                             <AvatarImage src={author.avatarUrl} />
-                            <AvatarFallback>{author.name?.[0] || 'U'}</AvatarFallback>
+                            <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
                         </Avatar>
-                        <div className="flex items-center gap-1">
-                            <span className="text-sm md:text-[12px] font-bold md:font-semibold text-[#002040]">{author.name}</span>
-                            <span className="text-xs md:text-[11px] text-[#777777]">| {author.role}</span>
+                        <div className="flex items-center gap-[5px]">
+                            <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
+                            <span className="text-[11px] text-[#777777]">| {author.role}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Interaction Bar */}
-                <div className="border-t border-gray-50 pt-4 md:pt-2 px-1 md:h-7 mb-2">
+                <div className="pt-4 md:pt-2 px-1 h-11 md:h-7 mb-2">
                     <InteractionActions
                         id={id}
                         type="insight"
@@ -239,25 +239,25 @@ export default function InsightPage() {
     return (
         <div className="min-h-screen bg-background pb-20 relative flex flex-col h-full overflow-y-scroll custom-scrollbar">
             {/* Unified Title Section (Same as Meetup Page) */}
-            <div className="w-full bg-card border-b">
+            <div className="w-full bg-card border-b-[0.5px] border-b-[#B7B7B7]">
                 <div className="w-full max-w-6xl mx-auto px-4 py-8">
-                    <div className="text-center text-muted-foreground">
-                        <h2 className="text-2xl font-bold mb-2 text-foreground py-2">
+                    <div className="flex flex-col justify-center items-center gap-4 text-center">
+                        <h2 className="text-[24px] font-bold text-[#002040] py-2 leading-[29px]">
                             Insights
                         </h2>
-                        <p>사이드 프로젝트를 더 오래, 더 잘 하기 위한 이야기들.</p>
+                        <p className="text-[14px] font-normal text-[#777777] leading-[17px]">사이드 프로젝트를 더 오래, 더 잘 하기 위한 이야기들.</p>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-0 py-0 md:py-8">
+            <div className="flex-1 w-full max-w-6xl mx-auto px-3 md:px-0 py-[6px] md:py-8">
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#112D4E]"></div>
                     </div>
                 ) : insights.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-x-12 md:gap-y-12 justify-items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-x-12 md:gap-y-12 justify-items-center">
                         {insights.map((insight) => (
                             <InsightCard key={insight.id} {...insight} />
                         ))}
