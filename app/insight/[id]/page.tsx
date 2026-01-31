@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { cn } from "@/lib/utils";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -264,13 +265,20 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
+    const { openLoginDialog } = useLoginDialog();
+    const [likeLoading, setLikeLoading] = useState(false);
+    const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
     const toggleLike = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                toast.error("로그인이 필요한 기능입니다.");
+                openLoginDialog();
                 return;
             }
+
+            if (likeLoading) return;
+            setLikeLoading(true);
 
             if (isLiked) {
                 const { error } = await supabase
@@ -292,6 +300,8 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         } catch (error) {
             console.error("Error toggling like:", error);
             toast.error("처리 중 오류가 발생했습니다.");
+        } finally {
+            setLikeLoading(false);
         }
     };
 
@@ -299,9 +309,12 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                toast.error("로그인이 필요한 기능입니다.");
+                openLoginDialog();
                 return;
             }
+
+            if (bookmarkLoading) return;
+            setBookmarkLoading(true);
 
             if (isBookmarked) {
                 const { error } = await supabase
@@ -323,6 +336,8 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         } catch (error) {
             console.error("Error toggling bookmark:", error);
             toast.error("처리 중 오류가 발생했습니다.");
+        } finally {
+            setBookmarkLoading(false);
         }
     };
 
@@ -463,6 +478,10 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                     status={{
                         hasLiked: isLiked,
                         hasBookmarked: isBookmarked
+                    }}
+                    loading={{
+                        like: likeLoading,
+                        bookmark: bookmarkLoading
                     }}
                     onLikeToggle={toggleLike}
                     onBookmarkToggle={toggleBookmark}

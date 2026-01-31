@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { cn } from "@/lib/utils";
+import { useLoginDialog } from "@/context/LoginDialogContext";
+import { toast } from "sonner";
 
 interface InsightCardProps {
     id: string;
@@ -25,14 +27,91 @@ interface InsightCardProps {
         comments: number;
         bookmarks: number;
     };
+    initialStatus?: {
+        hasLiked: boolean;
+        hasBookmarked: boolean;
+    };
+    currentUserId: string | null;
 }
 
-function InsightCard({ id, title, summary, imageUrl, author, stats }: InsightCardProps) {
+function InsightCard({ id, title, summary, imageUrl, author, stats: initialStats, initialStatus, currentUserId }: InsightCardProps) {
+    const supabase = createClient();
+    const { openLoginDialog } = useLoginDialog();
+    const [stats, setStats] = useState(initialStats);
+    const [status, setStatus] = useState(initialStatus || { hasLiked: false, hasBookmarked: false });
+    const [loading, setLoading] = useState({ like: false, bookmark: false });
+
+    const handleLikeToggle = async () => {
+        if (!currentUserId) {
+            openLoginDialog();
+            return;
+        }
+        if (loading.like) return;
+
+        setLoading(prev => ({ ...prev, like: true }));
+        const isLiked = status.hasLiked;
+
+        // Optimistic update
+        setStats(prev => ({ ...prev, likes: isLiked ? prev.likes - 1 : prev.likes + 1 }));
+        setStatus(prev => ({ ...prev, hasLiked: !isLiked }));
+
+        try {
+            if (isLiked) {
+                const { error } = await supabase.from("insight_likes").delete().eq("insight_id", id).eq("user_id", currentUserId);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from("insight_likes").insert({ insight_id: id, user_id: currentUserId });
+                if (error) throw error;
+            }
+        } catch (error) {
+            console.error("Error toggling like:", error);
+            toast.error("좋아요 처리 중 오류가 발생했습니다.");
+            // Revert on error
+            setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : prev.likes - 1 }));
+            setStatus(prev => ({ ...prev, hasLiked: isLiked }));
+        } finally {
+            setLoading(prev => ({ ...prev, like: false }));
+        }
+    };
+
+    const handleBookmarkToggle = async () => {
+        if (!currentUserId) {
+            openLoginDialog();
+            return;
+        }
+        if (loading.bookmark) return;
+
+        setLoading(prev => ({ ...prev, bookmark: true }));
+        const isBookmarked = status.hasBookmarked;
+
+        // Optimistic update
+        setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks - 1 : prev.bookmarks + 1 }));
+        setStatus(prev => ({ ...prev, hasBookmarked: !isBookmarked }));
+
+        try {
+            if (isBookmarked) {
+                const { error } = await supabase.from("insight_bookmarks").delete().eq("insight_id", id).eq("user_id", currentUserId);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from("insight_bookmarks").insert({ insight_id: id, user_id: currentUserId });
+                if (error) throw error;
+            }
+        } catch (error) {
+            console.error("Error toggling bookmark:", error);
+            toast.error("저장 처리 중 오류가 발생했습니다.");
+            // Revert on error
+            setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : prev.bookmarks - 1 }));
+            setStatus(prev => ({ ...prev, hasBookmarked: isBookmarked }));
+        } finally {
+            setLoading(prev => ({ ...prev, bookmark: false }));
+        }
+    };
+
     return (
-        <Link href={`/insight/${id}`}>
-            <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-6 transition-all hover:shadow-md cursor-pointer">
+        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-6 transition-all hover:shadow-md">
+            <Link href={`/insight/${id}`}>
                 {/* Thumbnail Area */}
-                <div className="aspect-[4/3] bg-[#222E35] flex items-center justify-center relative overflow-hidden">
+                <div className="aspect-[4/3] bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer">
                     {imageUrl ? (
                         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     ) : (
@@ -81,20 +160,18 @@ function InsightCard({ id, title, summary, imageUrl, author, stats }: InsightCar
                             id={id}
                             type="insight"
                             stats={stats}
-                            status={{
-                                hasLiked: false, // 인사이트 목록에서는 아직 개인별 상태를 개별적으로 관리하지 않는 것으로 보임
-                                hasBookmarked: stats.bookmarks > 0
-                            }}
-                            onLikeToggle={() => { }}
-                            onBookmarkToggle={() => { }}
+                            status={status}
+                            loading={loading}
+                            onLikeToggle={handleLikeToggle}
+                            onBookmarkToggle={handleBookmarkToggle}
                             shareUrl={`/insight/${id}`}
                             shareTitle={title}
                             className="px-2 pt-0" // 카드 내부라 패딩 조정
                         />
                     </div>
                 </div>
-            </div>
-        </Link>
+            </Link>
+        </div>
     );
 }
 
@@ -102,12 +179,16 @@ export default function InsightPage() {
     const supabase = createClient();
     const [insights, setInsights] = useState<InsightCardProps[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchInsights() {
             setLoading(true);
             try {
-                // insights 테이블 조회(summary 포함)
+                const { data: { user } } = await supabase.auth.getUser();
+                setCurrentUserId(user?.id || null);
+
+                // insights 테이블 조회
                 const { data, error } = await supabase
                     .from("insights")
                     .select(`
@@ -122,8 +203,8 @@ export default function InsightPage() {
                             tagline
                         ),
                         insight_comments (id),
-                        insight_likes (id),
-                        insight_bookmarks (insight_id)
+                        insight_likes (id, user_id),
+                        insight_bookmarks (insight_id, user_id)
                     `)
                     .order("created_at", { ascending: false });
 
@@ -143,7 +224,12 @@ export default function InsightPage() {
                         likes: item.insight_likes?.length || 0,
                         comments: item.insight_comments?.length || 0,
                         bookmarks: item.insight_bookmarks?.length || 0
-                    }
+                    },
+                    initialStatus: {
+                        hasLiked: user ? item.insight_likes?.some((l: any) => l.user_id === user.id) : false,
+                        hasBookmarked: user ? item.insight_bookmarks?.some((b: any) => b.user_id === user.id) : false
+                    },
+                    currentUserId: user?.id || null
                 }));
 
                 setInsights(mappedData);
