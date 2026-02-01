@@ -26,6 +26,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { updateShowcase } from "@/app/showcase/showcase-actions";
+import { SuccessDialog } from "@/components/showcase/success-dialog";
+import { CancelDialog } from "@/components/showcase/cancel-dialog";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -275,6 +277,39 @@ export function ProjectRegistrationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!title.trim()) {
+      toast.error("프로덕트 이름을 입력해주세요.");
+      const titleInput = document.getElementById("title");
+      if (titleInput) {
+        titleInput.focus();
+        titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    if (!tagline.trim()) {
+      toast.error("한 줄 소개를 입력해주세요.");
+      const taglineInput = document.getElementById("tagline");
+      if (taglineInput) {
+        taglineInput.focus();
+        taglineInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    // Check Project Links (at least one valid link of any type)
+    const hasValidWebsiteLink = websiteLinks.some((link) => link.trim() !== "");
+    const hasGooglePlayLink = googlePlayLink.trim() !== "";
+    const hasAppStoreLink = appStoreLink.trim() !== "";
+
+    if (!hasValidWebsiteLink && !hasGooglePlayLink && !hasAppStoreLink) {
+      toast.error(
+        "최소 하나의 프로덕트 링크(웹사이트, Google Play, App Store)를 입력해주세요.",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -376,6 +411,7 @@ export function ProjectRegistrationForm({
 
       <form
         onSubmit={handleSubmit}
+        noValidate
         className="flex flex-col gap-5 px-5 md:px-[68px] py-5"
       >
         {/* Project Name */}
@@ -479,9 +515,7 @@ export function ProjectRegistrationForm({
 
         {/* Project Description (TipTap) */}
         <div className="flex flex-col gap-1 h-[237px]">
-          <Label htmlFor="title" className="text-sm font-medium text-[#002040]">
-            프로덕트 설명
-          </Label>
+          <p className="text-sm font-medium text-[#002040]">프로덕트 설명</p>
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col overflow-hidden">
             <TiptapEditorWrapper
               initialContent={
@@ -509,9 +543,7 @@ export function ProjectRegistrationForm({
 
         {/* Detail Images */}
         <div className="flex flex-col gap-1 h-auto md:h-[312px]">
-          <Label className="text-sm font-medium text-[#002040]">
-            상세 설명 이미지
-          </Label>
+          <p className="text-sm font-medium text-[#002040]">상세 설명 이미지</p>
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white p-5 md:p-4 flex flex-col gap-4 h-[299px] md:h-[291px] overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start gap-[4px] shrink-0 text-center md:text-left">
               <p className="text-[12px] md:text-[14px] leading-[120%] text-[#777777]">
@@ -527,18 +559,18 @@ export function ProjectRegistrationForm({
               </p>
             </div>
 
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              ref={detailInputRef}
+              onChange={handleDetailImageChange}
+            />
             <div
               className="flex flex-col items-center justify-center bg-[#FAFAFA] rounded-[12px] h-[135px] w-[240px] cursor-pointer border-none hover:bg-gray-100 transition-colors mx-auto shrink-0"
               onClick={() => detailInputRef.current?.click()}
             >
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                ref={detailInputRef}
-                onChange={handleDetailImageChange}
-              />
               <div className="flex flex-col items-center gap-2 text-[#808080]">
                 <ImagePlus className="w-8 h-8" />
                 <span className="text-sm">이미지 업로드</span>
@@ -586,9 +618,9 @@ export function ProjectRegistrationForm({
 
         {/* Project Links */}
         <div className="flex flex-col gap-1 h-[335px]">
-          <Label className="text-sm font-medium text-[#002040]">
+          <p className="text-sm font-medium text-[#002040]">
             프로덕트 링크 <span className="text-red-500">*</span>
-          </Label>
+          </p>
           <div className="bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] p-[10px] flex flex-col gap-[10px] h-[314px]">
             {/* Website Link */}
             <div className="flex flex-col gap-0.5">
@@ -684,9 +716,7 @@ export function ProjectRegistrationForm({
 
         {/* Team Members */}
         <div className="flex flex-col gap-2 h-auto md:h-[94px]">
-          <Label className="text-sm font-medium text-[#002040]">
-            팀원 등록
-          </Label>
+          <p className="text-sm font-medium text-[#002040]">팀원 등록</p>
           <p className="text-[13px] font-light text-[#002040]">
             SYDE 프로덕트를 같이 만든 팀원이 있다면 추가해주세요.
           </p>
@@ -792,47 +822,18 @@ export function ProjectRegistrationForm({
         </div>
       </form>
 
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent
-          showCloseButton={false}
-          className="max-w-[500px] h-[100px] p-[36px] gap-[16px] bg-white border-[0.91px] border-black/10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] rounded-[10px] flex flex-col justify-center items-center focus:outline-none overflow-hidden"
-        >
-          <DialogHeader className="flex flex-col justify-center items-center gap-[8px] p-0 w-[428px] h-[28px]">
-            <DialogTitle className="flex items-center justify-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040]">
-              {initialData
-                ? "🎉 SYDE 프로덕트를 수정했습니다. 🎉"
-                : "🎉 SYDE 프로덕트를 등록했습니다. 🎉"}
-            </DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <SuccessDialog
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        mode={initialData ? "update" : "create"}
+      />
 
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent
-          showCloseButton={false}
-          className="max-w-[500px] h-[180px] p-[36px] gap-[16px] bg-white border-[0.91px] border-black/10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] rounded-[10px] flex flex-col items-start focus:outline-none overflow-hidden"
-        >
-          <DialogHeader className="flex flex-col items-start gap-[8px] p-0 w-[428px] h-[56px]">
-            <DialogTitle className="flex items-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040] whitespace-pre-wrap">
-              잠깐! 지금까지 쓴 내용이 지워져요 😢{"\n"}그래도 나가시겠어요?
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-row justify-end items-start gap-[8px] w-full h-[36px] mt-auto">
-            <button
-              onClick={() => setShowCancelDialog(false)}
-              className="box-border flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] w-[139px] h-[36px] bg-white border-[0.91px] border-black/10 rounded-[12px] font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-[#002040] hover:bg-gray-50 whitespace-nowrap"
-            >
-              💪 계속 작성할래요
-            </button>
-            <button
-              onClick={() => router.back()}
-              className="flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] w-[98px] h-[36px] bg-[#002040] rounded-[12px] font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-white hover:bg-[#002040]/90 whitespace-nowrap"
-            >
-              🏃 나갈래요
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CancelDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        onConfirm={() => router.back()}
+        onCancel={() => setShowCancelDialog(false)}
+      />
     </div>
   );
 }
