@@ -24,31 +24,29 @@ export function ShowcaseSidebarButton({
   certified,
 }: ShowcaseSidebarButtonProps) {
   return (
-    <Link href="/showcase/create">
-      <div className="flex flex-col items-center py-5 px-[10px] text-sydenightblue gap-[10px] cursor-pointer hover:bg-gray-50 rounded-lg transition-colors">
-        {avatarUrl && (
-          <Image
-            src={avatarUrl}
-            alt="User Avatar"
-            width={36}
-            height={36}
-            className="rounded-full object-cover aspect-square"
-          />
-        )}
-        {full_name && (
-          <div className="flex items-center gap-1">
-            <p className="text-sm leading-[14px] font-bold ">{full_name}</p>
-            {certified && <CertifiedBadge size="sm" />}
-          </div>
-        )}
-        {username && (
-          <p className="text-xs leading-3 font-normal">@{username}</p>
-        )}
-        {tagline && (
-          <p className="text-xs leading-3 font-normal text-[#777777]">
-            {tagline}
-          </p>
-        )}
+    <div className="flex flex-col items-center py-5 px-[10px] text-sydenightblue gap-[10px] rounded-lg bg-transparent">
+      {avatarUrl && (
+        <Image
+          src={avatarUrl}
+          alt="User Avatar"
+          width={36}
+          height={36}
+          className="rounded-full object-cover aspect-square"
+        />
+      )}
+      {full_name && (
+        <div className="flex items-center gap-1">
+          <p className="text-sm leading-[14px] font-bold ">{full_name}</p>
+          {certified && <CertifiedBadge size="sm" />}
+        </div>
+      )}
+      {username && <p className="text-xs leading-3 font-normal">@{username}</p>}
+      {tagline && (
+        <p className="text-xs leading-3 font-normal text-[#777777]">
+          {tagline}
+        </p>
+      )}
+      <Link href="/showcase/create" className="w-full">
         <Button
           variant="default"
           className="mt-4 h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px] w-full"
@@ -58,7 +56,7 @@ export function ShowcaseSidebarButton({
             내 SYDE 프로젝트 등록하기
           </span>
         </Button>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
