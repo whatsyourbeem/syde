@@ -102,7 +102,7 @@ function ShowcaseCardBase({
   return (
     <div
       ref={cardRef}
-      className="w-full max-w-[600px] bg-[#FAFAFA] rounded-[16px] border border-gray-100 hover:border-gray-200 transition-all p-6 flex flex-col gap-5 mx-auto"
+      className="w-full max-w-[600px] bg-[#FAFAFA] rounded-[16px] border border-gray-100 hover:border-gray-200 transition-all p-3 flex flex-col gap-2 mx-auto"
     >
       <div
         className="flex gap-5 items-start cursor-pointer"
