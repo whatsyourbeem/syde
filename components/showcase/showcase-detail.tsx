@@ -59,6 +59,7 @@ import {
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { DeleteDialog } from "@/components/showcase/delete-dialog";
+import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -88,6 +89,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     authorAvatarUrl: string | null;
   } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDeleteSuccessDialog, setShowDeleteSuccessDialog] = useState(false);
 
   // Stats State
 
@@ -238,14 +240,14 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       const result = await deleteShowcase(showcase.id);
       if (result && "error" in result) {
         toast.error("쇼케이스 삭제 실패");
+        setIsDeleting(false); // Only reset if failed
       } else {
-        toast.success("쇼케이스가 삭제되었습니다.");
-        await queryClient.invalidateQueries({ queryKey: ["showcases"] });
-        router.push("/showcase");
+        // Redirect immediately to prevent 404 on current page
+        router.push("/showcase?deleted=true");
+        router.refresh();
       }
     } catch {
       toast.error("오류가 발생했습니다.");
-    } finally {
       setIsDeleting(false);
     }
   };
@@ -787,6 +789,11 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         onOpenChange={setShowDeleteDialog}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
+      />
+
+      <DeleteSuccessDialog
+        open={showDeleteSuccessDialog}
+        onOpenChange={setShowDeleteSuccessDialog}
       />
     </div>
   );

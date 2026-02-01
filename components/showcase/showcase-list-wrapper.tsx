@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
 import { MainAwardBanner } from "@/components/showcase/main-award-banner";
+import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { Database } from "@/types/database.types";
 import { ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
 
@@ -26,7 +28,20 @@ export function ShowcaseListWrapper({
   initialShowcases,
 }: ShowcaseListWrapperProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const searchQuery = searchParams.get("q") || "";
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("deleted") === "true") {
+      setShowDeleteSuccess(true);
+      const timer = setTimeout(() => {
+        setShowDeleteSuccess(false);
+        router.replace("/showcase");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, router]);
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -59,6 +74,10 @@ export function ShowcaseListWrapper({
           initialShowcases={initialShowcases}
         />
       </div>
+      <DeleteSuccessDialog
+        open={showDeleteSuccess}
+        onOpenChange={setShowDeleteSuccess}
+      />
     </div>
   );
 }
