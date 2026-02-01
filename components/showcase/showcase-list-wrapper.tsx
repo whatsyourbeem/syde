@@ -31,7 +31,7 @@ export function ShowcaseListWrapper({
     <div className="w-full flex flex-col gap-6">
       {/* Main Content Area: Awards + List */}
       <div className="w-full flex flex-col gap-6">
-        <MainAwardBanner />
+        {/* <MainAwardBanner /> */}
         <ShowcaseList
           currentUserId={user?.id || null}
           filterByUserId={filterByUserId}

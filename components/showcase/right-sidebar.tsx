@@ -8,10 +8,10 @@ export function ShowcaseRightSidebar() {
     <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen p-4 overflow-y-auto no-scrollbar">
       <div className="flex flex-col gap-6">
         {/* Banner Section */}
-        <BannerSection />
+        {/* <BannerSection /> */}
 
         {/* Award Section */}
-        <AwardSection />
+        {/* <AwardSection /> */}
       </div>
     </div>
   );
