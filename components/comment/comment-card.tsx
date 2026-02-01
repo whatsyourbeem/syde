@@ -54,6 +54,7 @@ interface CommentCardProps {
   }) => void;
   newCommentId?: string;
   newParentCommentId?: string;
+  onCommentDeleted?: () => void;
 }
 
 export function CommentCard({
@@ -71,6 +72,7 @@ export function CommentCard({
   setReplyTo,
   newCommentId,
   newParentCommentId,
+  onCommentDeleted,
 }: CommentCardProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -190,6 +192,8 @@ export function CommentCard({
       if (error) {
         throw error;
       }
+
+      onCommentDeleted?.(); // Notify parent of deletion success
 
       const parentId = logId || showcaseId;
       queryClient.invalidateQueries({
@@ -407,6 +411,7 @@ export function CommentCard({
                   showcaseId={showcaseId}
                   level={level + 1}
                   isMobile={isMobile}
+                  onCommentDeleted={onCommentDeleted}
                   setReplyTo={(replyData) => {
                     // 답글의 답글달기 버튼이 클릭되면 이 댓글의 답글 입력란에 멘션을 설정
                     setInternalReplyTo({

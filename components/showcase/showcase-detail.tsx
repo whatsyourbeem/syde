@@ -57,6 +57,7 @@ import {
 } from "@/app/showcase/showcase-actions";
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -244,6 +245,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     });
   };
 
+  const handleCommentDeleted = () => {
+    setCommentsCount((prev) => Math.max(0, prev - 1));
+  };
+
   // --- Real Content for UI ---
   const projectTitle = showcase.name || "제목 없음";
   const projectTagline = showcase.short_description || "설명이 없습니다.";
@@ -252,6 +257,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   // Combine Author and Members
   const authorMember = {
     id: `author-${showcase.user_id}`,
+    userId: showcase.user_id,
+    profileData: showcase.profiles,
     name:
       showcase.profiles?.full_name || showcase.profiles?.username || "Unknown",
     role: "author", // Special role for styling
@@ -261,6 +268,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
   const otherMembers = (showcase.members || []).map((m) => ({
     id: m.id,
+    userId: m.user_id,
+    profileData: m.profile,
     name: m.profile?.full_name || m.profile?.username || "Unknown",
     role: "member", // Default role since DB has no role column
     username: m.profile?.username || "unknown",
@@ -359,20 +368,26 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               </p>
 
               {/* Profile */}
-              <div className="flex items-center gap-[5px] mt-[1px]">
-                <Avatar className="w-[20px] h-[20px]">
-                  <AvatarImage src={showcase.profiles?.avatar_url || ""} />
-                  <AvatarFallback className="text-[8px] bg-[#D9D9D9]">
-                    {showcase.profiles?.username?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="font-['Pretendard'] font-semibold text-[12px] text-[#002040]">
-                  {showcase.profiles?.full_name || showcase.profiles?.username}
-                </span>
-                <span className="font-['Pretendard'] text-[11px] text-[#777777]">
-                  | {authorRole}
-                </span>
-              </div>
+              <ProfileHoverCard
+                userId={showcase.user_id}
+                profileData={showcase.profiles}
+              >
+                <div className="flex items-center gap-[5px] mt-[1px]">
+                  <Avatar className="w-[20px] h-[20px]">
+                    <AvatarImage src={showcase.profiles?.avatar_url || ""} />
+                    <AvatarFallback className="text-[8px] bg-[#D9D9D9]">
+                      {showcase.profiles?.username?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-['Pretendard'] font-semibold text-[12px] text-[#002040]">
+                    {showcase.profiles?.full_name ||
+                      showcase.profiles?.username}
+                  </span>
+                  <span className="font-['Pretendard'] text-[11px] text-[#777777]">
+                    | {authorRole}
+                  </span>
+                </div>
+              </ProfileHoverCard>
             </div>
           </div>
         </div>
@@ -644,52 +659,55 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
           <div className="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar">
             {teamMembers.map((member) => (
-              <div
+              <ProfileHoverCard
                 key={member.id}
-                className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] bg-[#FAFAFA] rounded-[10px] flex-shrink-0 relative"
+                userId={member.userId}
+                profileData={member.profileData}
               >
-                {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
-                {member.role === "author" && (
-                  <div className="absolute top-2 left-2 text-[#ED6D34]">
-                    {/* Crown Icon placeholder or small customized svg */}
-                    <svg
-                      width="20"
-                      height="16"
-                      viewBox="0 0 20 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
-                        fill="white"
-                        fillOpacity="0.01"
-                      />
-                      <path
-                        d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
-                        fill="#ED6D34"
-                      />
-                    </svg>
-                  </div>
-                )}
+                <div className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] bg-[#FAFAFA] rounded-[10px] flex-shrink-0 relative">
+                  {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
+                  {member.role === "author" && (
+                    <div className="absolute top-2 left-2 text-[#ED6D34]">
+                      {/* Crown Icon placeholder or small customized svg */}
+                      <svg
+                        width="20"
+                        height="16"
+                        viewBox="0 0 20 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
+                          fill="white"
+                          fillOpacity="0.01"
+                        />
+                        <path
+                          d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
+                          fill="#ED6D34"
+                        />
+                      </svg>
+                    </div>
+                  )}
 
-                <div className="relative w-[48px] h-[48px]">
-                  <Avatar className="w-full h-full">
-                    <AvatarImage src={member.avatar || ""} />
-                    <AvatarFallback className="bg-[#D9D9D9]">
-                      {member.name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative w-[48px] h-[48px]">
+                    <Avatar className="w-full h-full">
+                      <AvatarImage src={member.avatar || ""} />
+                      <AvatarFallback className="bg-[#D9D9D9]">
+                        {member.name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <span className="font-['Pretendard'] font-bold text-[12px] text-[#002040] w-full text-center truncate px-1">
+                    {member.name}
+                  </span>
+                  <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                    @{member.username}
+                  </span>
+                  <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                    {member.role}
+                  </span>
                 </div>
-                <span className="font-['Pretendard'] font-bold text-[12px] text-[#002040] w-full text-center truncate px-1">
-                  {member.name}
-                </span>
-                <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                  @{member.username}
-                </span>
-                <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                  {member.role}
-                </span>
-              </div>
+              </ProfileHoverCard>
             ))}
           </div>
         </div>
@@ -716,6 +734,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               pageSize={10}
               isDetailPage={true}
               setReplyTo={setReplyTo}
+              onCommentDeleted={handleCommentDeleted}
             />
             <CommentForm
               showcaseId={showcase.id}

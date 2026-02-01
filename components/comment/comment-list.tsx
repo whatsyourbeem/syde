@@ -29,6 +29,7 @@ interface CommentListProps {
   ) => void;
   newCommentId?: string;
   newParentCommentId?: string;
+  onCommentDeleted?: () => void;
 }
 
 type CommentRow = Database["public"]["Tables"]["log_comments"]["Row"];
@@ -59,6 +60,7 @@ export function CommentList({
   setReplyTo,
   newCommentId,
   newParentCommentId,
+  onCommentDeleted,
 }: CommentListProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -373,6 +375,7 @@ export function CommentList({
             userId={comment.user_id} // Pass the comment's user_id as userId
             isLiked={comment.initialHasLiked} // Pass the comment's initialHasLiked as isLiked
             likeCount={comment.initialLikesCount} // Pass the comment's initialLikesCount as likeCount
+            onCommentDeleted={onCommentDeleted}
           />
         ))
       )}

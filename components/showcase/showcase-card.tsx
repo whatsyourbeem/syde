@@ -9,6 +9,7 @@ import { deleteShowcase } from "@/app/showcase/showcase-actions";
 import { ShowcaseCardActions } from "./showcase-card-actions";
 import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 interface ShowcaseCardProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"] & {
@@ -132,24 +133,29 @@ function ShowcaseCardBase({
           </p>
 
           {/* Author line */}
-          <div className="flex items-center gap-2 mt-1.5">
-            <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-gray-100">
-              <Image
-                src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                alt="author"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <span className="text-[12px] font-bold text-sydenightblue truncate">
-              {showcase.profiles?.username}
-            </span>
-            {showcase.profiles?.tagline && (
-              <span className="text-[11px] text-gray-400 truncate hidden sm:inline">
-                {showcase.profiles.tagline}
+          <ProfileHoverCard
+            userId={showcase.user_id}
+            profileData={showcase.profiles}
+          >
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-gray-100">
+                <Image
+                  src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                  alt="author"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <span className="text-[12px] font-bold text-sydenightblue truncate">
+                {showcase.profiles?.username}
               </span>
-            )}
-          </div>
+              {showcase.profiles?.tagline && (
+                <span className="text-[11px] text-gray-400 truncate hidden sm:inline">
+                  {showcase.profiles.tagline}
+                </span>
+              )}
+            </div>
+          </ProfileHoverCard>
         </div>
       </div>
 
