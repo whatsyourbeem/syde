@@ -262,6 +262,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     name:
       showcase.profiles?.full_name || showcase.profiles?.username || "Unknown",
     role: "author", // Special role for styling
+    tagline: showcase.profiles?.tagline,
     username: showcase.profiles?.username || "unknown",
     avatar: showcase.profiles?.avatar_url,
   };
@@ -272,6 +273,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     profileData: m.profile,
     name: m.profile?.full_name || m.profile?.username || "Unknown",
     role: "member", // Default role since DB has no role column
+    tagline: m.profile?.tagline,
     username: m.profile?.username || "unknown",
     avatar: m.profile?.avatar_url,
   }));
@@ -704,7 +706,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     @{member.username}
                   </span>
                   <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                    {member.role}
+                    {member.tagline ||
+                      (member.role === "author" ? "Host" : "Member")}
                   </span>
                 </div>
               </ProfileHoverCard>
