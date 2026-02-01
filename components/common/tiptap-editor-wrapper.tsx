@@ -24,16 +24,15 @@ export default function TiptapEditorWrapper({
 }: TiptapEditorWrapperProps) {
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: commonTiptapExtensions.map(extension => {
-      if (extension.name === 'placeholder') {
+    extensions: commonTiptapExtensions.map((extension) => {
+      if (extension.name === "placeholder") {
         return extension.configure({ placeholder });
       }
       return extension;
     }),
     editorProps: {
       attributes: {
-        class:
-          "prose max-w-none focus:outline-none p-4",
+        class: "prose max-w-none focus:outline-none p-4",
       },
       handlePaste: (view, event) => {
         const text = event.clipboardData?.getData("text/plain");
@@ -45,8 +44,10 @@ export default function TiptapEditorWrapper({
               const secureUrl = upgradeToHttps(text) || text;
               view.dispatch(
                 view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.linkPreview.create({ src: secureUrl })
-                )
+                  view.state.schema.nodes.linkPreview.create({
+                    src: secureUrl,
+                  }),
+                ),
               );
               return true; // Mark as handled
             }
@@ -57,7 +58,7 @@ export default function TiptapEditorWrapper({
         return false; // Use default paste behavior
       },
     },
-    content: initialContent || { type: 'doc', content: [] },
+    content: initialContent || { type: "doc", content: [] },
     editable,
     onUpdate: ({ editor }) => {
       onContentChange(editor.getJSON());
@@ -68,10 +69,13 @@ export default function TiptapEditorWrapper({
     if (!editor) return;
 
     const currentContent = editor.getJSON();
-    const isContentSame = JSON.stringify(initialContent) === JSON.stringify(currentContent);
+    const isContentSame =
+      JSON.stringify(initialContent) === JSON.stringify(currentContent);
 
     if (!isContentSame) {
-      editor.commands.setContent(initialContent || { type: 'doc', content: [] });
+      editor.commands.setContent(
+        initialContent || { type: "doc", content: [] },
+      );
     }
   }, [editor, initialContent]);
 
@@ -107,7 +111,7 @@ export default function TiptapEditorWrapper({
         fileInputRef.current.value = "";
       }
     },
-    [editor, onImageUpload]
+    [editor, onImageUpload],
   );
 
   if (!editor) {

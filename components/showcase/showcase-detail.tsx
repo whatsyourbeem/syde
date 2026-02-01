@@ -630,7 +630,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Participant List */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-[24px]">🛠️</span>
+            <Image
+              src="/orange_line.png"
+              alt="icon"
+              width={26}
+              height={26}
+              className="object-contain"
+            />
             <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
               SYDERS의 손 끝에서 탄생했어요.
             </span>
@@ -691,7 +697,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Comments Section */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-8 py-5 flex flex-col gap-4 mb-20">
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-6 h-6 text-[#002040]" />
+            <Image
+              src="/orange_line.png"
+              alt="icon"
+              width={26}
+              height={26}
+              className="object-contain"
+            />
             <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
               댓글 및 리뷰
             </span>

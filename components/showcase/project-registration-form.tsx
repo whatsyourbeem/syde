@@ -4,9 +4,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import dynamic from "next/dynamic";
+import { generateHTML, generateJSON } from "@tiptap/html";
+import { commonTiptapExtensions } from "@/components/common/tiptap-extensions";
 import { ImagePlus, X, ChevronLeft, Plus, Globe } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,12 +20,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createShowcase } from "@/app/showcase/showcase-actions";
-import { TiptapMenu } from "@/components/editor/tiptap-menu";
+// Removed Tiptap manual imports
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { updateShowcase } from "@/app/showcase/showcase-actions";
+
+const TiptapEditorWrapper = dynamic(
+  () => import("@/components/common/tiptap-editor-wrapper"),
+  {
+    loading: () => (
+      <div className="h-32 bg-gray-50 animate-pulse rounded-md flex items-center justify-center">
+        에디터 로딩 중...
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 interface ProjectRegistrationFormProps {
   initialData?: OptimizedShowcase;
@@ -53,6 +65,7 @@ export function ProjectRegistrationForm({
   // Form States
   const [title, setTitle] = useState("");
   const [tagline, setTagline] = useState("");
+  const [description, setDescription] = useState("");
   const [googlePlayLink, setGooglePlayLink] = useState("");
   const [appStoreLink, setAppStoreLink] = useState("");
 
@@ -152,38 +165,13 @@ export function ProjectRegistrationForm({
     setSelectedTeamMembers((prev) => prev.filter((m) => m.id !== id));
   };
 
-  // Tiptap Editor
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: "프로젝트에 대한 자세한 설명을 적어주세요...",
-      }),
-    ],
-    content: "",
-    immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        class:
-          "prose prose-sm mx-auto focus:outline-none h-full p-4 [&_*]:text-[13px] [&_p]:leading-normal",
-      },
-    },
-  });
-
   useEffect(() => {
     setIsMounted(true);
     if (initialData) {
       setTitle(initialData.name || "");
       setTagline(initialData.short_description || "");
-      if (initialData.description) {
-        // Use setTimeout to ensure editor is ready, or check editor existence
-        // editor.commands might be available immediately if useEditor finished
-        // But useEditor is synchronous hook, rendering is async?
-        // editor might be null initially?
-        if (editor) {
-          editor.commands.setContent(initialData.description);
-        }
-      }
+      setDescription(initialData.description || "");
+
       if (initialData.thumbnail_url) {
         setMainImagePreview(initialData.thumbnail_url);
       }
@@ -223,7 +211,7 @@ export function ProjectRegistrationForm({
         setSelectedTeamMembers(members);
       }
     }
-  }, [initialData, editor]);
+  }, [initialData]);
 
   const handleMainImageChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -293,7 +281,7 @@ export function ProjectRegistrationForm({
       const formData = new FormData();
       formData.append("name", title);
       formData.append("shortDescription", tagline);
-      formData.append("description", editor?.getHTML() || "");
+      formData.append("description", description);
 
       const thumbnailFile = fileInputRef.current?.files?.[0];
       if (thumbnailFile) {
@@ -495,11 +483,27 @@ export function ProjectRegistrationForm({
           <Label htmlFor="title" className="text-sm font-medium text-[#002040]">
             프로덕트 설명
           </Label>
-          <div className="border border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col">
-            <TiptapMenu editor={editor} />
-            <EditorContent
-              editor={editor}
-              className="p-4 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+          <div className="border border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col overflow-hidden">
+            <TiptapEditorWrapper
+              initialContent={
+                initialData?.description
+                  ? generateJSON(
+                      initialData.description,
+                      commonTiptapExtensions,
+                    )
+                  : null
+              }
+              onContentChange={(json) => {
+                const html = generateHTML(json, commonTiptapExtensions);
+                setDescription(html);
+              }}
+              placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
+              editable={true}
+              onImageUpload={async (file) => {
+                const blobUrl = URL.createObjectURL(file);
+                // In future: setContentImageFiles(prev => [...prev, file])
+                return blobUrl;
+              }}
             />
           </div>
         </div>
