@@ -358,9 +358,9 @@ export function ProjectRegistrationForm({
   if (!isMounted) return null;
 
   return (
-    <div className="w-[850px] mx-auto pb-20  bg-white min-h-screen">
+    <div className="w-full md:w-[850px] mx-auto pb-20 bg-white min-h-screen">
       {/* Header */}
-      <div className="flex items-center gap-6 h-[76px] px-5 py-[16px]">
+      <div className="flex items-center gap-6 h-[57px] md:h-[76px] px-5 py-[16px]">
         <Button
           variant="ghost"
           size="icon"
@@ -369,14 +369,14 @@ export function ProjectRegistrationForm({
         >
           <ChevronLeft className="h-6 w-6 text-[#434343]" />
         </Button>
-        <h1 className="text-[32px] font-bold text-[#002040] leading-[38px]">
+        <h1 className="text-[18px] md:text-[32px] font-bold text-[#002040] leading-[21px] md:leading-[38px]">
           {initialData ? "SYDE 프로덕트 수정하기" : "SYDE 프로덕트 등록하기"}
         </h1>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-5 px-[68px] py-5"
+        className="flex flex-col gap-5 px-5 md:px-[68px] py-5"
       >
         {/* Project Name */}
         <div className="space-y-2">
@@ -388,7 +388,7 @@ export function ProjectRegistrationForm({
             placeholder="SYDE 프로덕트 이름을 적어주세요."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
+            className="h-[36px] bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
             required
           />
         </div>
@@ -406,7 +406,7 @@ export function ProjectRegistrationForm({
             placeholder="SYDE 프로덕트를 한 줄로 소개해주세요."
             value={tagline}
             onChange={(e) => setTagline(e.target.value)}
-            className="h-[36px] bg-white border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
+            className="h-[36px] bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
             required
           />
         </div>
@@ -416,17 +416,16 @@ export function ProjectRegistrationForm({
           <Label className="text-sm font-medium text-[#002040]">
             대표 이미지
           </Label>
-          <div className="border border-[#B7B7B7] rounded-[10px] bg-white px-5 flex justify-between items-center h-[180px]">
-            <div className="space-y-4 flex-1">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-[#002040]">
+          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white pl-5 pr-0 flex justify-between items-center h-[180px] overflow-hidden">
+            <div className="flex flex-col gap-5 w-[134px]">
+              <div className="flex flex-col gap-1">
+                <p className="text-[12px] leading-[14px] text-[#777777]">
                   프로덕트의 얼굴!
-                </p>
-                <p className="text-sm text-[#777777]">
+                  <br />
                   대표 이미지를 설정해주세요.
                 </p>
               </div>
-              <div className="relative pt-2">
+              <div className="relative">
                 <input
                   type="file"
                   id="main-image"
@@ -438,7 +437,7 @@ export function ProjectRegistrationForm({
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-[#002040] text-white hover:bg-[#002040]/90 rounded-full px-6"
+                  className="bg-[#002040] text-white hover:bg-[#002040]/90 rounded-[12px] px-2 w-[80px] h-[32px] text-[14px]"
                 >
                   사진 선택
                 </Button>
@@ -446,7 +445,7 @@ export function ProjectRegistrationForm({
             </div>
 
             {/* Image Preview Area */}
-            <div className="relative w-[160px] h-[160px] bg-[#1C1F26] rounded-[16px] overflow-hidden flex items-center justify-center shrink-0 ml-4">
+            <div className="relative w-[180px] h-[180px] bg-[#1C1F26] rounded-[10px] overflow-hidden flex items-center justify-center shrink-0">
               {mainImagePreview ? (
                 <>
                   <Image
@@ -483,7 +482,7 @@ export function ProjectRegistrationForm({
           <Label htmlFor="title" className="text-sm font-medium text-[#002040]">
             프로덕트 설명
           </Label>
-          <div className="border border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col overflow-hidden">
+          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col overflow-hidden">
             <TiptapEditorWrapper
               initialContent={
                 initialData?.description
@@ -509,17 +508,21 @@ export function ProjectRegistrationForm({
         </div>
 
         {/* Detail Images */}
-        <div className="flex flex-col gap-1 h-[312px]">
+        <div className="flex flex-col gap-1 h-auto md:h-[312px]">
           <Label className="text-sm font-medium text-[#002040]">
             상세 설명 이미지
           </Label>
-          <div className="border border-[#B7B7B7] rounded-[10px] bg-white p-4 flex flex-col gap-4 h-[291px] overflow-hidden">
-            <div className="flex flex-col gap-[4px] h-[38px] shrink-0">
-              <p className="text-[14px] leading-[120%] text-[#777777]">
+          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white p-5 md:p-4 flex flex-col gap-4 h-[299px] md:h-[291px] overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start gap-[4px] shrink-0 text-center md:text-left">
+              <p className="text-[12px] md:text-[14px] leading-[120%] text-[#777777]">
                 프로덕트의 스크린샷 또는 관련 설명 이미지가 있다면 추가해주세요.
-                (최대 5장)
+                <span className="md:hidden">
+                  <br />
+                  (최대 10장)
+                </span>
+                <span className="hidden md:inline"> (최대 5장)</span>
               </p>
-              <p className="text-[14px] text-[#777777]">
+              <p className="text-[12px] md:text-[14px] text-[#777777]">
                 추천 사이즈 : 1600 x 900
               </p>
             </div>
@@ -543,11 +546,11 @@ export function ProjectRegistrationForm({
             </div>
 
             {/* Thumbnail Placeholders match the design */}
-            <div className="flex gap-2 flex-wrap shrink-0">
+            <div className="flex gap-2 shrink-0 overflow-x-auto md:overflow-visible no-scrollbar pb-2 md:pb-0 md:flex-wrap">
               {detailImagePreviews.map((preview, index) => (
                 <div
                   key={index}
-                  className="w-12 h-12 bg-[#1C1F26] rounded-[8px] flex items-center justify-center relative overflow-hidden group"
+                  className="w-[50px] h-[50px] md:w-12 md:h-12 bg-[#1C1F26] rounded-[10px] md:rounded-[8px] flex items-center justify-center relative overflow-hidden group shrink-0"
                 >
                   <Image
                     src={preview}
@@ -574,7 +577,7 @@ export function ProjectRegistrationForm({
               }).map((_, i) => (
                 <div
                   key={`placeholder-${i}`}
-                  className="w-12 h-12 border border-gray-100 rounded-[8px] bg-gray-50"
+                  className="w-[50px] h-[50px] md:w-12 md:h-12 border border-gray-100 rounded-[10px] md:rounded-[8px] bg-gray-50 shrink-0"
                 />
               ))}
             </div>
@@ -586,7 +589,7 @@ export function ProjectRegistrationForm({
           <Label className="text-sm font-medium text-[#002040]">
             프로덕트 링크 <span className="text-red-500">*</span>
           </Label>
-          <div className="bg-white border border-[#B7B7B7] rounded-[10px] p-[10px] flex flex-col gap-[10px] h-[314px]">
+          <div className="bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] p-[10px] flex flex-col gap-[10px] h-[314px]">
             {/* Website Link */}
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2 bg-[#FAFAFA] rounded-[12px] px-4 py-2 h-[46px] border-none">
@@ -611,7 +614,7 @@ export function ProjectRegistrationForm({
                       onChange={(e) =>
                         handleWebsiteLinkChange(index, e.target.value)
                       }
-                      className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm placeholder:text-[#777777] flex-1 px-0"
+                      className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-[12px] placeholder:text-[#777777] flex-1 px-0"
                     />
                     {index > 0 && (
                       <Button
@@ -680,7 +683,7 @@ export function ProjectRegistrationForm({
         </div>
 
         {/* Team Members */}
-        <div className="flex flex-col gap-2 h-[94px]">
+        <div className="flex flex-col gap-2 h-auto md:h-[94px]">
           <Label className="text-sm font-medium text-[#002040]">
             팀원 등록
           </Label>
@@ -689,7 +692,7 @@ export function ProjectRegistrationForm({
           </p>
 
           <div className="relative" ref={teamSearchRef}>
-            <div className="flex flex-wrap items-center gap-2 border border-[#B7B7B7] rounded-[10px] bg-white p-[6px] px-[10px] min-h-[45px]">
+            <div className="flex flex-wrap items-center gap-2 border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white p-[6px] px-[10px] min-h-[45px]">
               {selectedTeamMembers.map((member) => (
                 <div
                   key={member.id}
@@ -719,7 +722,7 @@ export function ProjectRegistrationForm({
                     ? "닉네임 또는 프로필네임을 검색해보세요."
                     : ""
                 }
-                className="border-none shadow-none focus-visible:ring-0 flex-1 min-w-[120px] text-sm placeholder:text-[#777777] h-[30px] p-0"
+                className="border-none shadow-none focus-visible:ring-0 flex-1 min-w-[120px] text-[14px] placeholder:text-[#777777] h-[30px] p-0"
                 value={teamSearchTerm}
                 onChange={handleTeamSearchChange}
                 onFocus={handleTeamInputFocus}
@@ -770,18 +773,18 @@ export function ProjectRegistrationForm({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-[10px] pt-4">
           <Button
             type="button"
             variant="outline"
-            className="rounded-[12px] w-[53px] h-[36px] border-[#002040] text-[#002040] font-normal hover:bg-gray-50 p-0"
+            className="rounded-[12px] w-[53px] h-[36px] border border-[#002040] text-[#002040] text-[14px] font-normal hover:bg-gray-50 p-0"
             onClick={() => setShowCancelDialog(true)}
           >
             취소
           </Button>
           <Button
             type="submit"
-            className="flex-1 h-[36px] rounded-[12px] bg-[#002040] hover:bg-[#002040]/90 text-white font-normal"
+            className="flex-1 h-[36px] rounded-[12px] bg-[#002040] hover:bg-[#002040]/90 text-white text-[14px] font-normal"
             disabled={isSubmitting}
           >
             {initialData ? "수정하기" : "등록하기"}
