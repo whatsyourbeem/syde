@@ -58,6 +58,7 @@ import {
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { DeleteDialog } from "@/components/showcase/delete-dialog";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -86,6 +87,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     authorUsername: string | null;
     authorAvatarUrl: string | null;
   } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  // Stats State
 
   // Stats State
   const [likesCount, setLikesCount] = useState(
@@ -301,49 +305,34 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
         {/* Author Actions (Edit/Delete) */}
         {user?.id === showcase.user_id && (
-          <AlertDialog>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-                  <MoreVertical className="w-5 h-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/showcase/edit/${showcase.id}`}
-                    className="flex items-center cursor-pointer w-full"
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>수정</span>
-                  </Link>
-                </DropdownMenuItem>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="text-red-500 cursor-pointer"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>삭제</span>
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  이 작업은 되돌릴 수 없습니다.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>취소</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                  삭제
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+                <MoreVertical className="w-5 h-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/showcase/edit/${showcase.id}`}
+                  className="flex items-center cursor-pointer w-full"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  <span>수정</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setShowDeleteDialog(true);
+                }}
+                className="text-red-500 cursor-pointer"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>삭제</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
@@ -792,6 +781,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }
