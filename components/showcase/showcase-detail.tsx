@@ -123,6 +123,14 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     }
   };
 
+  const handlePrevImage = () => {
+    if (galleryImages.length > 0) {
+      setCurrentImageIndex(
+        (prev) => (prev - 1 + galleryImages.length) % galleryImages.length,
+      );
+    }
+  };
+
   // Mention State (Legacy support for content rendering)
   const [mentionedProfiles, setMentionedProfiles] = useState<
     Array<{ id: string; username: string | null }>
@@ -286,7 +294,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       <div className="flex items-center justify-between p-4 sticky top-0 bg-white z-10">
         <button
           onClick={() => router.back()}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors order-0"
         >
           <ChevronLeft className="w-6 h-6 text-gray-700" />
         </button>
@@ -341,8 +349,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
       <div className="flex flex-col items-center w-full max-w-[850px] mx-auto  bg-white">
         {/* Header Section (Title + Thumbnail) */}
-        <div className="w-full flex flex-col md:flex-row items-start p-4 md:p-5 gap-6 md:gap-[132px] justify-between">
-          <div className="flex-1 flex flex-row items-center gap-6 w-full">
+        <div className="w-full flex flex-col md:flex-row items-center md:items-start px-5 py-4 md:p-5 gap-4 md:gap-[132px] justify-between border-b-[0.5px] border-[#B7B7B7] md:border-none">
+          <div className="flex-1 flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full">
             {/* Thumbnail Image (100x100) */}
             <div className="flex-none w-[100px] h-[100px] bg-gray-100 rounded-[10px] overflow-hidden border border-gray-100 relative">
               {showcase.thumbnail_url ? (
@@ -361,8 +369,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             </div>
 
             {/* Title & Info */}
-            <div className="flex flex-col justify-center gap-[5px] flex-1">
-              <h1 className="font-['Pretendard'] font-bold text-[22px] md:text-[28px] leading-[150%] text-black line-clamp-2">
+            <div className="flex flex-col items-center md:items-start justify-center gap-[5px] flex-1 text-center md:text-left">
+              <h1 className="font-['Pretendard'] font-bold text-[18px] md:text-[28px] leading-[150%] text-black line-clamp-2">
                 {projectTitle}
               </h1>
               <p className="font-['Pretendard'] text-[14px] leading-[150%] text-black line-clamp-1">
@@ -441,11 +449,21 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Gallery Section */}
-        <div className="w-full h-[294px] border-t-[0.5px] border-[#B7B7B7] flex items-center px-[32px] py-[12px] overflow-hidden">
-          {/* Large Image (480x270) */}
+        <div className="w-full h-auto md:h-[294px] border-b-[0.5px] md:border-t-[0.5px] border-[#B7B7B7] flex justify-center items-center py-4 md:px-[32px] md:py-[12px] overflow-hidden bg-white gap-[10px] md:gap-0">
+          {/* Left Arrow */}
+          {galleryImages.length > 1 && (
+            <button
+              onClick={handlePrevImage}
+              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 rounded p-1 order-1 md:order-1 md:mx-[10px]"
+            >
+              <ChevronLeft className="w-[10px] h-[14px] text-[#808080]" />
+            </button>
+          )}
+
+          {/* Large Image (480x270 desktop, 320x180 mobile) */}
           <div
             key={galleryImages[currentImageIndex]?.id || "main-empty"}
-            className="flex-none w-[480px] h-[270px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500"
+            className="flex-none w-[320px] h-[180px] md:w-[480px] md:h-[270px] bg-[#B7B7B7] rounded-[10px] md:rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500 order-2 md:order-2"
           >
             {galleryImages[currentImageIndex] ? (
               <Image
@@ -460,24 +478,24 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             )}
           </div>
 
-          {/* Arrow */}
+          {/* Right Arrow */}
           {galleryImages.length > 1 && (
             <button
               onClick={handleNextImage}
-              className="flex-none w-[26px] h-[30px] flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 rounded mx-[10px]"
+              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 rounded p-1 order-3 md:order-3 md:mx-[10px]"
             >
               <ChevronRight className="w-[10px] h-[14px] text-[#808080]" />
             </button>
           )}
 
-          {/* Small Image (320x180) - Next Preview */}
+          {/* Small Image (320x180) - Next Preview (Desktop Only) */}
           {galleryImages.length > 1 && (
             <div
               key={
                 galleryImages[(currentImageIndex + 1) % galleryImages.length]
                   ?.id || "next-empty"
               }
-              className="flex-none w-[320px] h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500"
+              className="hidden md:block md:flex-none md:w-[320px] md:h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500 order-4 md:order-4"
             >
               <Image
                 src={
@@ -495,7 +513,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Club Description Box */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 flex flex-col gap-6">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 md:px-[16px] md:py-[20px] flex flex-col gap-6">
           <div className="flex flex-row justify-between items-center w-full">
             <div className="flex items-center gap-2">
               <Image
@@ -645,7 +663,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Participant List */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 flex flex-col gap-4">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 md:px-[16px] md:py-[20px] flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Image
               src="/orange_line.png"
@@ -716,7 +734,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Comments Section */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-8 py-5 flex flex-col gap-4 mb-20">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-[24px] py-[20px] md:px-8 flex flex-col gap-4 mb-20">
           <div className="flex items-center gap-2">
             <Image
               src="/orange_line.png"
