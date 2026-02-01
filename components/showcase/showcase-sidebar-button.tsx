@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { CirclePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { cn } from "@/lib/utils";
 
 interface ShowcaseSidebarButtonProps {
   userId: string;
@@ -47,15 +48,17 @@ export function ShowcaseSidebarButton({
         </p>
       )}
       <Link href="/showcase/create" className="w-full">
-        <Button
-          variant="default"
-          className="mt-4 h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px] w-full"
+        <div
+          className={cn(
+            buttonVariants({ variant: "default" }),
+            "mt-4 h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px] w-full cursor-pointer",
+          )}
         >
           <CirclePlus className="size-5" strokeWidth={2.5} />
           <span className="text-sm leading-[14px] font-semibold">
             내 SYDE 프로젝트 등록하기
           </span>
-        </Button>
+        </div>
       </Link>
     </div>
   );
