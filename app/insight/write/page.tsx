@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, Suspense, useRef } from "react";
-import Link from "next/link";
 import {
     Plus,
-    Image as ImageIcon,
     Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +10,20 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import dynamic from "next/dynamic";
+import { JSONContent } from "@tiptap/react";
+
+const TiptapEditorWrapper = dynamic(
+    () => import("@/components/common/tiptap-editor-wrapper"),
+    {
+        loading: () => (
+            <div className="h-64 bg-gray-50 animate-pulse rounded-[10px] flex items-center justify-center border border-[#B7B7B7] text-gray-400">
+                에디터 로딩 중...
+            </div>
+        ),
+        ssr: false,
+    }
+);
 
 function InsightWriteForm() {
     const router = useRouter();
@@ -26,7 +38,7 @@ function InsightWriteForm() {
     const [fetching, setFetching] = useState(isEditMode);
     const [title, setTitle] = useState("");
     const [summary, setSummary] = useState("");
-    const [content, setContent] = useState("");
+    const [content, setContent] = useState<JSONContent | null>(null);
     const [imageUrl, setImageUrl] = useState("");
 
     useEffect(() => {
@@ -43,8 +55,32 @@ function InsightWriteForm() {
                     if (data) {
                         setTitle(data.title);
                         setSummary(data.summary || "");
-                        setContent(data.content);
                         setImageUrl(data.image_url || "");
+
+                        if (data.content && typeof data.content === 'object' && !Array.isArray(data.content) && 'type' in data.content) {
+                            setContent(data.content as JSONContent);
+                        } else if (typeof data.content === 'string') {
+                            try {
+                                setContent(JSON.parse(data.content) as JSONContent);
+                            } catch {
+                                setContent({
+                                    type: "doc",
+                                    content: [
+                                        {
+                                            type: "paragraph",
+                                            content: [
+                                                {
+                                                    type: "text",
+                                                    text: data.content,
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                });
+                            }
+                        } else {
+                            setContent(null);
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching insight for edit:", error);
@@ -78,7 +114,7 @@ function InsightWriteForm() {
                     .update({
                         title,
                         summary,
-                        content,
+                        content: JSON.stringify(content),
                         image_url: imageUrl || null
                     })
                     .eq("id", id as string)
@@ -95,7 +131,7 @@ function InsightWriteForm() {
                             user_id: user.id,
                             title,
                             summary,
-                            content,
+                            content: JSON.stringify(content),
                             image_url: imageUrl || null
                         }
                     ])
@@ -107,22 +143,22 @@ function InsightWriteForm() {
                 toast.success("인사이트가 등록되었습니다!");
                 router.push(`/insight/${data.id}`);
             }
-        } catch (error: any) {
-            console.error("Error submitting insight:", error);
-            toast.error(`${isEditMode ? '수정' : '등록'} 실패: ${error.message}`);
+        } catch (error: unknown) {
+            const err = error as Error;
+            toast.error(`${isEditMode ? '수정' : '등록'} 실패: ${err.message}`);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement> | { target: { files: FileList | File[] } }): Promise<string | null> => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file) return null;
 
         // 용량 제한 (5MB)
         if (file.size > 5 * 1024 * 1024) {
             toast.error("이미지 크기는 5MB를 초과할 수 없습니다.");
-            return;
+            return null;
         }
 
         setUploading(true);
@@ -130,7 +166,7 @@ function InsightWriteForm() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 toast.error("로그인이 필요합니다.");
-                return;
+                return null;
             }
 
             const fileExt = file.name.split('.').pop();
@@ -147,13 +183,14 @@ function InsightWriteForm() {
                 .from('insight-images')
                 .getPublicUrl(filePath);
 
-            setImageUrl(publicUrl);
-            toast.success("이미지가 업로드되었습니다.");
-        } catch (error: any) {
-            console.error("Error uploading image:", error);
-            toast.error(`이미지 업로드 실패: ${error.message}`);
+            return publicUrl;
+        } catch (error: unknown) {
+            const err = error as Error;
+            toast.error(`이미지 업로드 실패: ${err.message}`);
+            return null;
         } finally {
             setUploading(false);
+            return null;
         }
     };
 
@@ -218,7 +255,11 @@ function InsightWriteForm() {
                                 <input
                                     type="file"
                                     ref={fileInputRef}
-                                    onChange={handleFileChange}
+                                    onChange={(e) => {
+                                        handleFileChange(e).then((url) => {
+                                            if (url) setImageUrl(url);
+                                        });
+                                    }}
                                     className="hidden"
                                     accept="image/*"
                                 />
@@ -242,6 +283,7 @@ function InsightWriteForm() {
 
                         <div className="w-[180px] h-full bg-[#222E35] flex items-center justify-center relative">
                             {imageUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="relative text-white flex flex-col items-center transform scale-75">
@@ -269,12 +311,21 @@ function InsightWriteForm() {
                 {/* Content Area */}
                 <div className="flex flex-col gap-1 w-full">
                     <label className="text-[14px] font-medium text-[#002040]">내용 <span className="text-red-500">*</span></label>
-                    <div className="w-full min-h-[400px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
-                        <textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder="TIP TAP EDITOR"
-                            className="w-full h-full min-h-[398px] bg-transparent p-4 text-[16px] outline-none placeholder:text-[#002040]/30 resize-none font-medium"
+                    <div className="w-full min-h-[400px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040] overflow-hidden">
+                        <TiptapEditorWrapper
+                            initialContent={content}
+                            onContentChange={setContent}
+                            placeholder="인사이트 내용을 자유롭게 작성해주세요."
+                            editable={true}
+                            onImageUpload={async (file) => {
+                                // 기존의 업로드 로직 활용 (Tiptap 내 이미지 업로드용)
+                                // Event를 가짜로 만들어서 handleFileChange에 넘기거나 직접 업로드
+                                const simulatedEvent = {
+                                    target: { files: [file] }
+                                };
+                                const publicUrl = await handleFileChange(simulatedEvent);
+                                return publicUrl;
+                            }}
                         />
                     </div>
                 </div>

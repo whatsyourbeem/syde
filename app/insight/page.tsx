@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Heart, MessageCircle, Share2, Bookmark, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,6 +31,7 @@ function InsightCard({ id, title, summary, imageUrl, author, stats }: InsightCar
                 {/* Thumbnail Area */}
                 <div className="aspect-[4/3] bg-[#222E35] flex items-center justify-center relative overflow-hidden">
                     {imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     ) : (
                         <div className="flex flex-col items-center">
@@ -46,8 +46,7 @@ function InsightCard({ id, title, summary, imageUrl, author, stats }: InsightCar
                                         <div className="w-8 h-4 border-b-2 border-white rounded-full mt-1"></div>
                                     </div>
                                 </div>
-                                <p className="mt-4 text-xl font-bold tracking-tight">we're SYDERS !</p>
-                            </div>
+                                <p className="mt-4 text-xl font-bold tracking-tight">we&apos;re SYDERS !</p>                            </div>
                         </div>
                     )}
                 </div>
@@ -130,6 +129,7 @@ export default function InsightPage() {
 
                 if (error) throw error;
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const mappedData: InsightCardProps[] = (data || []).map((item: any) => ({
                     id: item.id,
                     title: item.title,
@@ -199,6 +199,6 @@ export default function InsightPage() {
     );
 }
 
-function cn(...inputs: any[]) {
+function cn(...inputs: (string | undefined | null | false)[]) {
     return inputs.filter(Boolean).join(" ");
 }

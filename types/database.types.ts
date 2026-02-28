@@ -303,6 +303,13 @@ export type Database = {
             referencedRelation: "insights"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "insight_bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       insight_comments: {
@@ -374,11 +381,18 @@ export type Database = {
             referencedRelation: "insights"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "insight_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       insights: {
         Row: {
-          content: string
+          content: Json
           created_at: string
           id: string
           image_url: string | null
@@ -388,7 +402,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          content: string
+          content: Json
           created_at?: string
           id?: string
           image_url?: string | null
@@ -398,7 +412,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          content?: string
+          content?: Json
           created_at?: string
           id?: string
           image_url?: string | null

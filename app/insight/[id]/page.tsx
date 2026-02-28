@@ -4,17 +4,23 @@ import React, { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-    ChevronLeft,
-    MoreHorizontal,
     Heart,
     MessageCircle,
     Share2,
-    Bookmark
+    Bookmark,
+    ChevronLeft
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+import { JSONContent } from "@tiptap/react";
+
+const TiptapViewer = dynamic(
+    () => import("@/components/common/tiptap-viewer"),
+    { ssr: false }
+);
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,7 +29,9 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
     const [isMounted, setIsMounted] = useState(false);
     const [loading, setLoading] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [insight, setInsight] = useState<any>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [comments, setComments] = useState<any[]>([]);
     const [stats, setStats] = useState({ likes: 0, comments: 0, bookmarks: 0 });
     const [isLiked, setIsLiked] = useState(false);
@@ -195,7 +203,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
             setNewComment("");
             toast.success("댓글이 등록되었습니다.");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error submitting comment:", error);
             toast.error("댓글 등록 중 오류가 발생했습니다.");
         } finally {
@@ -297,6 +305,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                     <div className="w-full aspect-square px-4 pb-4">
                         <div className="w-full h-full bg-[#222E35] rounded-[10px] overflow-hidden relative border border-gray-100 flex items-center justify-center">
                             {insight.image_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={insight.image_url} alt={insight.title} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="relative text-white flex flex-col items-center">
@@ -310,7 +319,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                             <div className="w-8 h-4 border-b-2 border-white rounded-full mt-1"></div>
                                         </div>
                                     </div>
-                                    <p className="mt-6 text-xl font-bold tracking-tight">we're SYDERS !</p>
+                                    <p className="mt-6 text-xl font-bold tracking-tight">we&apos;re SYDERS !</p>
                                 </div>
                             )}
                         </div>
@@ -387,14 +396,46 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </section>
 
-                <section className="w-full px-4 py-8 border-b-[0.5px] border-[#B7B7B7]">
-                    <div className="px-1 text-black">
-                        <p className="text-[18px] leading-[1.6] whitespace-pre-wrap font-medium">
-                            {insight.content}
+                {/* Content Section */}
+                {insight.content ? (() => {
+                    let parsedContent: JSONContent | null = null;
+                    if (typeof insight.content === 'object' && !Array.isArray(insight.content) && 'type' in insight.content) {
+                        parsedContent = insight.content as unknown as JSONContent;
+                    } else if (typeof insight.content === 'string') {
+                        try {
+                            parsedContent = JSON.parse(insight.content);
+                        } catch {
+                            parsedContent = {
+                                type: "doc",
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [
+                                            {
+                                                type: "text",
+                                                text: insight.content,
+                                            },
+                                        ],
+                                    },
+                                ],
+                            };
+                        }
+                    }
+
+                    return (
+                        <div className="w-full px-4 break-words">
+                            {parsedContent && <TiptapViewer content={parsedContent} />}
+                        </div>
+                    );
+                })() : (
+                    <div className="w-full px-4">
+                        <p className="text-[15px] font-medium leading-[25px] text-[#464646] whitespace-pre-wrap break-words">
+                            내용이 없습니다.
                         </p>
                     </div>
-                </section>
+                )}
 
+                {/* Tags Section Placeholder (Optional) */}
                 <section className="w-full h-14 flex flex-row items-center justify-between px-6">
                     <div className="flex gap-6">
                         <button onClick={toggleLike} className="flex items-center gap-2 group">
@@ -490,6 +531,6 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
     );
 }
 
-function cn(...inputs: any[]) {
+function cn(...inputs: (string | undefined | null | false)[]) {
     return inputs.filter(Boolean).join(" ");
 }
