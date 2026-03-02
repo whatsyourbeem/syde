@@ -108,9 +108,8 @@ export default async function RootLayout({
       console.error("Error fetching profile for layout:", profileError);
     } else if (profile) {
       avatarUrl = profile.avatar_url
-        ? `${profile.avatar_url}?t=${
-            profile.updated_at ? new Date(profile.updated_at).getTime() : ""
-          }`
+        ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ""
+        }`
         : null;
       usernameForAuthButton =
         profile.username || user.email?.split("@")[0] || null;
@@ -192,7 +191,7 @@ export default async function RootLayout({
                               className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
                             >
                               <Image
-                                src="/kakao-talk.png"
+                                src="/kakao-talk-bw.png"
                                 alt="Kakao"
                                 width={24}
                                 height={24}
