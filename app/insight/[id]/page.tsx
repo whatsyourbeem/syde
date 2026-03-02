@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -50,6 +50,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
     const [editingContent, setEditingContent] = useState("");
     const [isCommentDeleteDialogOpen, setIsCommentDeleteDialogOpen] = useState(false);
     const [commentToDeleteId, setCommentToDeleteId] = useState<string | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -209,6 +210,11 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
             setComments(prev => [...prev, data]);
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
             setNewComment("");
+
+            if (textareaRef.current) {
+                textareaRef.current.style.height = "48px";
+            }
+
             toast.success("댓글이 등록되었습니다.");
         } catch (error: any) {
             console.error("Error submitting comment:", error);
@@ -495,27 +501,25 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
                 <section className="w-full flex flex-col py-6 md:py-12 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/10 rounded-b-xl">
                     <div className="flex items-center gap-2 px-1">
-                        <div className="w-6 h-6 bg-[#002040] rounded-sm opacity-90 flex items-center justify-center">
-                            <span className="text-[12px] text-white font-bold">SY</span>
-                        </div>
+                        <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
                         <h2 className="text-xl font-bold text-[#002040]">댓글 및 리뷰</h2>
                     </div>
 
                     <div className="flex flex-col gap-6 px-1 min-h-[100px]">
                         {comments.length > 0 ? comments.map((comment, index) => (
                             <div key={comment.id} className="flex flex-row gap-4 items-start relative">
-                                <Avatar className="w-10 h-10 flex-none border border-gray-100">
+                                <Avatar className="w-[36px] h-[36px] flex-none border border-gray-100">
                                     <AvatarImage src={comment.profiles?.avatar_url} />
                                     <AvatarFallback className="bg-[#D9D9D9] text-sm">{comment.profiles?.username?.[0] || 'A'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col gap-1.5 flex-grow">
                                     <div className="flex flex-row justify-between items-center">
                                         <div className="flex gap-2 items-center">
-                                            <span className="text-base font-bold text-[#002040]">{comment.profiles?.username}</span>
-                                            <span className="text-[12px] text-[#777777] bg-gray-100 px-2 py-0.5 rounded-full">{comment.profiles?.tagline || '멤버'}</span>
+                                            <span className="text-[14px] font-bold text-[#002040]">{comment.profiles?.username}</span>
+                                            <span className="text-[12px] text-[#777777]">{comment.profiles?.tagline || '멤버'}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[12px] text-[#999999]">
+                                            <span className="text-[12px] text-[#777777]">
                                                 {isMounted ? new Date(comment.created_at).toLocaleDateString() : ""}
                                             </span>
                                             {currentUserId === comment.user_id && (
@@ -598,17 +602,21 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
 
                     <div className="flex flex-row items-center gap-3 pt-4">
                         <div className="flex-grow">
-                            <input
+                            <textarea
+                                ref={textareaRef}
                                 value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-                                        handleCommentSubmit();
+                                onChange={(e) => {
+                                    setNewComment(e.target.value);
+                                    if (textareaRef.current) {
+                                        textareaRef.current.style.height = '48px'; // Reset height to recalculate
+                                        const scrollHeight = textareaRef.current.scrollHeight;
+                                        textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px'; // Max approx 4 lines (120px)
                                     }
                                 }}
                                 disabled={submitting}
                                 placeholder="댓글을 작성해 보세요..."
-                                className="w-full h-12 bg-white border border-[#B7B7B7] rounded-xl px-4 text-base focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow disabled:opacity-50"
+                                rows={1}
+                                className="w-full h-[48px] py-3 bg-white border border-[#B7B7B7] rounded-xl px-4 text-base focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow disabled:opacity-50 resize-none overflow-y-auto"
                             />
                         </div>
                         <Button
