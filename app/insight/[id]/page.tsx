@@ -20,6 +20,12 @@ import TiptapViewer from "@/components/common/tiptap-viewer";
 import { cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -385,7 +391,7 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                     <div className="w-full flex justify-center pb-8 border-b-[0.5px] border-[#B7B7B7]">
                         <div className="bg-transparent border-none shadow-none flex flex-col items-center w-full h-fit">
                             {/* Header Row: Back Button (Left), Thumbnail (Center), More Button (Right) */}
-                            <div className="w-full max-w-[369px] md:max-w-[352px] flex items-start justify-between mb-4">
+                            <div className="w-full flex items-start justify-between mb-4">
                                 <Link href="/insight" className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors shrink-0">
                                     <ChevronLeft className="w-6 h-6 text-[#434343]" />
                                 </Link>
@@ -399,9 +405,35 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                     )}
                                 </div>
 
-                                <Button variant="ghost" size="icon" className="rounded-full -mr-2 shrink-0">
-                                    <MoreHorizontal className="w-6 h-6 text-[#434343]" />
-                                </Button>
+                                {isAuthor ? (
+                                    <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} modal={false}>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="rounded-full -mr-2 shrink-0">
+                                                <MoreHorizontal className="w-6 h-6 text-[#434343]" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-[120px] bg-white rounded-xl shadow-lg border border-gray-100 p-1">
+                                            <DropdownMenuItem asChild>
+                                                <Link
+                                                    href={`/insight/${id}/edit`}
+                                                    className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-[#002040] hover:bg-gray-50 focus:bg-gray-50 font-medium"
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                    수정
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => setIsDeleteDialogOpen(true)}
+                                                className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-[#FF0000] hover:bg-red-50 focus:bg-red-50 focus:text-[#FF0000] font-medium"
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                                삭제
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                ) : (
+                                    <div className="w-10 shrink-0" /> /* Placeholder to keep thumbnail centered */
+                                )}
                             </div>
 
                             {/* Unified Content Container */}
