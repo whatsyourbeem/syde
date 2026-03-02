@@ -123,21 +123,7 @@ export function InsightCard({
                 {imageUrl ? (
                     <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                 ) : (
-                    <div className="flex flex-col items-center">
-                        <div className="relative text-white flex flex-col items-center">
-                            <span className="text-[10px] absolute -top-4 -left-6 rotate-[-15deg] font-bold opacity-70">SYDE!</span>
-                            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2rem] flex items-center justify-center rotate-[-5deg]">
-                                <div className="w-16 h-16 md:w-20 md:h-20 bg-[#222E35] rounded-full flex flex-col items-center justify-center relative">
-                                    <div className="flex gap-4 mt-2">
-                                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                                    </div>
-                                    <div className="w-8 h-4 border-b-2 border-white rounded-full mt-1"></div>
-                                </div>
-                            </div>
-                            <p className="mt-4 text-xl font-bold tracking-tight">we're SYDERS !</p>
-                        </div>
-                    </div>
+                    <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
                 )}
             </div>
 
