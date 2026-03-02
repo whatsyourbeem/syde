@@ -24,6 +24,7 @@ export default function InsightPage() {
                     .from("insights")
                     .select(`
                         id,
+                        user_id,
                         title,
                         summary,
                         image_url,
@@ -47,6 +48,7 @@ export default function InsightPage() {
                     summary: item.summary,
                     imageUrl: item.image_url,
                     author: {
+                        id: item.user_id,
                         name: item.profiles?.username || "알 수 없는 사용자",
                         role: item.profiles?.tagline || "멤버",
                         avatarUrl: item.profiles?.avatar_url

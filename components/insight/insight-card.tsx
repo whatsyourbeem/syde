@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { toast } from "sonner";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export interface InsightCardProps {
     summary: string | null;
     imageUrl?: string | null;
     author: {
+        id: string;
         name: string;
         role: string;
         avatarUrl?: string;
@@ -116,43 +118,71 @@ export function InsightCard({
         }
     };
 
-    const content = (
-        <div className="flex flex-col h-full">
-            {/* Thumbnail Area */}
-            <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
-                {imageUrl ? (
-                    <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-                ) : (
-                    <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
-                )}
-            </div>
+    return (
+        <div className="bg-transparent border-none shadow-none flex flex-col w-[369px] md:w-[352px] h-fit">
+            {/* Thumbnail Area - Links to Insight */}
+            {disableLink ? (
+                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
+                    {imageUrl ? (
+                        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                    ) : (
+                        <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
+                    )}
+                </div>
+            ) : (
+                <Link href={`/insight/${id}`} className="focus:outline-none">
+                    <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
+                        {imageUrl ? (
+                            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                        ) : (
+                            <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
+                        )}
+                    </div>
+                </Link>
+            )}
 
-            {/* Content Area */}
+            {/* Unified Content Container */}
             <div className={cn(
-                "p-3 pt-3 pb-2 h-[102px] md:h-[99px] flex flex-col gap-[5px]",
+                "p-3 flex flex-col gap-[5px]",
                 isCentered && "items-center text-center"
             )}>
-                <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2">
-                    {title}
-                </h3>
-                <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
-                    {summary || "소개 글이 없습니다."}
-                </p>
-
-                {/* Author Info - Responsive layout */}
-                <div className={cn(
-                    "flex items-center gap-[5px] mt-auto",
-                    isCentered && "justify-center"
-                )}>
-                    <Avatar className="w-5 h-5">
-                        <AvatarImage src={author.avatarUrl} />
-                        <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex items-center gap-[5px]">
-                        <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
-                        <span className="text-[11px] text-[#777777]">| {author.role}</span>
+                {/* Title & Summary - Links to Insight */}
+                {disableLink ? (
+                    <div className="flex flex-col gap-[5px]">
+                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2 h-[54px] md:h-[48px] overflow-hidden">
+                            {title}
+                        </h3>
+                        <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
+                            {summary || "소개 글이 없습니다."}
+                        </p>
                     </div>
-                </div>
+                ) : (
+                    <Link href={`/insight/${id}`} className="flex flex-col gap-[5px] focus:outline-none">
+                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2 h-[54px] md:h-[48px] overflow-hidden">
+                            {title}
+                        </h3>
+                        <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
+                            {summary || "소개 글이 없습니다."}
+                        </p>
+                    </Link>
+                )}
+
+                {/* Author Info Area - Separate Link to Profile */}
+                <ProfileHoverCard userId={author.id}>
+                    <Link href={`/${author.id}`} className={cn(
+                        "flex items-center gap-[5px] mt-auto w-fit",
+                        isCentered && "justify-center mx-auto"
+                    )}>
+                        <Avatar className="w-5 h-5">
+                            <AvatarImage src={author.avatarUrl} />
+                            <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center gap-[5px]">
+                            <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
+                            <span className="text-[11px] text-[#777777]">| {author.role}</span>
+                        </div>
+                    </Link>
+                </ProfileHoverCard>
             </div>
 
             {/* Interaction Bar */}
@@ -171,20 +201,6 @@ export function InsightCard({
                         className="px-2 md:px-[30.5px] pt-0 md:pt-1 pb-1"
                     />
                 </div>
-            )}
-        </div>
-    );
-
-    return (
-        <div className="bg-transparent border-none shadow-none overflow-hidden flex flex-col w-[369px] md:w-[352px] h-fit transition-all duration-200 ease-in-out hover:scale-[1.01]">
-            {disableLink ? (
-                <div className="flex flex-col h-full">
-                    {content}
-                </div>
-            ) : (
-                <Link href={`/insight/${id}`} className="flex flex-col h-full focus:outline-none">
-                    {content}
-                </Link>
             )}
         </div>
     );

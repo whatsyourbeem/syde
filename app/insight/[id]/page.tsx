@@ -19,7 +19,7 @@ import { InteractionActions } from "@/components/common/interaction-actions";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { InsightCard } from "@/components/insight/insight-card";
+import ProfileHoverCard from "@/components/common/profile-hover-card";
 
 export default function InsightDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -381,35 +381,56 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
         <div className="flex flex-col bg-white w-full max-w-6xl mx-auto relative font-[Pretendard] pb-10 px-4 md:px-6 border-x border-gray-50">
             <main className="flex flex-col pt-4">
                 <section className="w-full flex flex-col gap-2">
-                    <div className="flex items-center px-0 md:px-2 md:py-4">
-                        <Link href="/insight" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <ChevronLeft className="w-6 h-6 text-[#434343]" />
-                        </Link>
-                        <span className="text-sm font-semibold text-gray-700 ml-1">인사이트 상세</span>
-                    </div>
-
-                    {/* Insight Card Section */}
+                    {/* Top Navigation & Thumbnail Area */}
                     <div className="w-full flex justify-center pb-8 border-b-[0.5px] border-[#B7B7B7]">
-                        <InsightCard
-                            id={id}
-                            title={insight.title}
-                            summary={insight.summary}
-                            imageUrl={insight.image_url}
-                            author={{
-                                name: insight.profiles?.username || '알 수 없는 사용자',
-                                role: insight.profiles?.tagline || '멤버',
-                                avatarUrl: insight.profiles?.avatar_url
-                            }}
-                            stats={stats}
-                            initialStatus={{
-                                hasLiked: isLiked,
-                                hasBookmarked: isBookmarked
-                            }}
-                            currentUserId={currentUserId}
-                            showInteractions={false}
-                            disableLink={true}
-                            isCentered={true}
-                        />
+                        <div className="bg-transparent border-none shadow-none flex flex-col items-center w-full h-fit">
+                            {/* Header Row: Back Button (Left), Thumbnail (Center), More Button (Right) */}
+                            <div className="w-full max-w-[369px] md:max-w-[352px] flex items-start justify-between mb-4">
+                                <Link href="/insight" className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors shrink-0">
+                                    <ChevronLeft className="w-6 h-6 text-[#434343]" />
+                                </Link>
+
+                                {/* Thumbnail */}
+                                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden flex-none w-[200px] sm:w-[280px] md:w-[300px] h-[200px] sm:h-[280px] md:h-[300px] rounded-[12px] shrink-0">
+                                    {insight.image_url ? (
+                                        <img src={insight.image_url} alt={insight.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
+                                    )}
+                                </div>
+
+                                <Button variant="ghost" size="icon" className="rounded-full -mr-2 shrink-0">
+                                    <MoreHorizontal className="w-6 h-6 text-[#434343]" />
+                                </Button>
+                            </div>
+
+                            {/* Unified Content Container */}
+                            <div className="p-3 flex flex-col gap-[5px] items-center text-center">
+                                {/* Title & Summary */}
+                                <div className="flex flex-col gap-[5px]">
+                                    <h3 className="text-[28px] leading-[150%] font-bold text-black h-auto line-clamp-none">
+                                        {insight.title}
+                                    </h3>
+                                    <p className="text-[16px] leading-[150%] text-[#777777] line-clamp-none">
+                                        {insight.summary || "소개 글이 없습니다."}
+                                    </p>
+                                </div>
+
+                                {/* Author Profile Area */}
+                                <ProfileHoverCard userId={insight.user_id}>
+                                    <Link href={`/${insight.user_id}`} className="flex items-center gap-[5px] mt-auto w-fit justify-center mx-auto">
+                                        <Avatar className="w-5 h-5">
+                                            <AvatarImage src={insight.profiles?.avatar_url} />
+                                            <AvatarFallback className="bg-[#D9D9D9]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex items-center gap-[5px]">
+                                            <span className="text-[12px] font-semibold text-[#002040]">{insight.profiles?.username || '알 수 없는 사용자'}</span>
+                                            <span className="text-[11px] text-[#777777]">| {insight.profiles?.tagline || '멤버'}</span>
+                                        </div>
+                                    </Link>
+                                </ProfileHoverCard>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
