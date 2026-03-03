@@ -419,7 +419,9 @@ export default function MeetupDetailClient({
             <h2 className="text-2xl md:text-xl font-bold mb-4">
               💬<span className="font-extrabold pl-2">모임 설명</span>
             </h2>
-            <TiptapViewer content={meetup.description} />
+            <div className="min-h-[200px]">
+              <TiptapViewer content={meetup.description} />
+            </div>
           </div>
         </div>
 

@@ -9,7 +9,7 @@ import { LoadingSpinner } from "@/components/ui/loading-states";
 
 const OgPreviewCard = dynamic(
   () => import("@/components/common/og-preview-card").then(mod => mod.OgPreviewCard),
-  { ssr: false, loading: () => <div className="h-24 md:h-30 my-4 bg-muted/20 animate-pulse rounded-md w-full"></div> }
+  { ssr: false, loading: () => <div className="h-[96px] md:h-[120px] my-4 bg-muted/20 animate-pulse rounded-[12px] w-full border border-[#B7B7B7] border-opacity-30"></div> }
 );
 
 interface LogCardContentProps {

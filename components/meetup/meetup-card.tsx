@@ -72,8 +72,8 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
       key={meetup.id}
       className="bg-white overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:scale-[1.01]"
     >
-      <Link href={`/meetup/${meetup.id}`}>
-        <div className="relative w-full aspect-w-1 aspect-h-1">
+      <Link href={`/meetup/${meetup.id}`} className="block">
+        <div className="relative w-full aspect-w-1 aspect-h-1 bg-muted/20">
           <Image
             src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
             alt={meetup.title}
