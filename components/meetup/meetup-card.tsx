@@ -18,6 +18,7 @@ type MeetupWithOrganizerProfile = Omit<
 
 interface MeetupCardProps {
   meetup: MeetupWithOrganizerProfile;
+  priority?: boolean;
 }
 
 // Helper Functions (copied from meetup/page.tsx)
@@ -65,7 +66,7 @@ function getStatusBadgeClass(status: string) {
   }
 }
 
-export default function MeetupCard({ meetup }: MeetupCardProps) {
+export default function MeetupCard({ meetup, priority = false }: MeetupCardProps) {
   return (
     <div
       key={meetup.id}
@@ -77,9 +78,9 @@ export default function MeetupCard({ meetup }: MeetupCardProps) {
             src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
             alt={meetup.title}
             fill
-            className={`object-cover object-center ${
-              meetup.status === MEETUP_STATUSES.ENDED ? "grayscale" : ""
-            }`}
+            className={`object-cover object-center ${meetup.status === MEETUP_STATUSES.ENDED ? "grayscale" : ""
+              }`}
+            priority={priority}
           />
           {meetup.status === MEETUP_STATUSES.ENDED && (
             <div className="absolute inset-0 bg-white opacity-50"></div>

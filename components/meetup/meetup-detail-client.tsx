@@ -213,18 +213,18 @@ export default function MeetupDetailClient({
 
   const isApprovedParticipant = user
     ? meetup.meetup_participants.some(
-        (p) =>
-          p.profiles?.id === user.id &&
-          p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
-      )
+      (p) =>
+        p.profiles?.id === user.id &&
+        p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
+    )
     : false;
 
   const isPendingParticipant = user
     ? meetup.meetup_participants.some(
-        (p) =>
-          p.profiles?.id === user.id &&
-          p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
-      )
+      (p) =>
+        p.profiles?.id === user.id &&
+        p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
+    )
     : false;
   const isMeetupFull = meetup.max_participants
     ? meetup.meetup_participants.length >= meetup.max_participants
@@ -351,6 +351,7 @@ export default function MeetupDetailClient({
                 width={800}
                 height={800}
                 className="w-full h-full object-cover object-center md:rounded-lg aspect-square"
+                priority
               />
             </div>
 
@@ -364,14 +365,14 @@ export default function MeetupDetailClient({
                       {formatDate(meetup.start_datetime)}
                       {meetup.end_datetime &&
                         formatDate(meetup.start_datetime) !==
-                          formatDate(meetup.end_datetime) &&
+                        formatDate(meetup.end_datetime) &&
                         ` - ${formatDate(meetup.end_datetime, false)}`}
                       <br />
                       <span className="text-xs font-normal text-gray-500 md:text-sm">
                         {formatTime(meetup.start_datetime)}
                         {meetup.end_datetime &&
                           formatDate(meetup.start_datetime) ===
-                            formatDate(meetup.end_datetime) &&
+                          formatDate(meetup.end_datetime) &&
                           ` - ${formatTime(meetup.end_datetime)}`}
                       </span>
                     </span>
@@ -507,8 +508,8 @@ export default function MeetupDetailClient({
                 {joinResult?.error
                   ? "오류"
                   : isPendingParticipant
-                  ? "참가 대기중"
-                  : "신청 완료"}
+                    ? "참가 대기중"
+                    : "신청 완료"}
               </AlertDialogTitle>
             </AlertDialogHeader>
             <div className="text-sm text-muted-foreground">

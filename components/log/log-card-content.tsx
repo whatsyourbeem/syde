@@ -17,6 +17,7 @@ interface LogCardContentProps {
   searchQuery?: string;
   isDetailPage: boolean;
   onCardClick: () => void;
+  priority?: boolean;
 }
 
 function LogCardContentBase({
@@ -25,6 +26,7 @@ function LogCardContentBase({
   searchQuery,
   isDetailPage,
   onCardClick,
+  priority = false,
 }: LogCardContentProps) {
   const router = useRouter();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -62,12 +64,12 @@ function LogCardContentBase({
           style={
             !isDetailPage
               ? ({
-                  display: "-webkit-box",
-                  WebkitLineClamp: 12,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  maxHeight: "18rem",
-                } as React.CSSProperties)
+                display: "-webkit-box",
+                WebkitLineClamp: 12,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                maxHeight: "18rem",
+              } as React.CSSProperties)
               : {}
           }
         >
@@ -101,8 +103,8 @@ function LogCardContentBase({
             fill
             style={{ objectFit: "contain" }}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            priority={false}
-            loading="lazy"
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAAAAAAB/8QAFxEAAwEAAAAAAAAAAAAAAAAAAAERAv/aAAwDAQACEQMRAD8A0XmIuxHfFYGfyAP/2Q=="
             onLoad={() => setIsImageLoading(false)}
@@ -128,7 +130,8 @@ export const LogCardContent = memo(
       prevProps.searchQuery === nextProps.searchQuery &&
       prevProps.isDetailPage === nextProps.isDetailPage &&
       JSON.stringify(prevProps.mentionedProfiles) ===
-        JSON.stringify(nextProps.mentionedProfiles)
+      JSON.stringify(nextProps.mentionedProfiles) &&
+      prevProps.priority === nextProps.priority
     );
   }
 );
