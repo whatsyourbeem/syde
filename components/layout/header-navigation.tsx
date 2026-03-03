@@ -34,6 +34,21 @@ export function HeaderNavigation() {
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
             <Link
+              href="/insight"
+              className={cn(
+                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                pathname.startsWith("/insight")
+                  ? "font-bold text-primary border-b-2 border-primary"
+                  : "text-gray-400"
+              )}
+            >
+              인사이트
+            </Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link
               href="/meetup"
               className={cn(
                 "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",

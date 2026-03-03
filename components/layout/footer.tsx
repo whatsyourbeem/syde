@@ -1,12 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+
 
 export default function Footer() {
   return (
@@ -32,21 +27,6 @@ export default function Footer() {
         <p className="mb-1">
           &copy; {new Date().getFullYear()} SYDE. All rights reserved.
         </p>
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full max-w-md mx-auto"
-        >
-          <AccordionItem value="item-1" className="border-none">
-            <AccordionTrigger className="text-xs text-gray-500 justify-center hover:no-underline py-0">
-              사업자정보
-            </AccordionTrigger>
-            <AccordionContent className="text-xs text-gray-500 pt-2">
-              <p>BEEM | 안재현 | 859-68-00509</p>
-              <p>whatsyourbeem@gmail.com | 0504-0816-1298</p>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
       </div>
     </footer>
   );

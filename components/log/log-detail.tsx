@@ -13,10 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   MoreVertical,
-  HeartIcon,
-  MessageCircle,
-  Share2,
-  Bookmark,
   ChevronLeft,
   Copy,
   Link2,
@@ -53,6 +49,7 @@ import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { deleteLog, toggleLogBookmark } from "@/app/log/log-actions"; // Import the centralized server action
+import { InteractionActions } from "@/components/common/interaction-actions";
 
 type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -176,8 +173,8 @@ export function LogDetail({ log, user }: LogDetailProps) {
   const [currentHasLiked, setCurrentHasLiked] = useState(
     user
       ? log.log_likes.some(
-          (like: { user_id: string }) => like.user_id === user.id
-        )
+        (like: { user_id: string }) => like.user_id === user.id
+      )
       : false
   );
   const [currentBookmarksCount, setCurrentBookmarksCount] = useState(
@@ -186,10 +183,12 @@ export function LogDetail({ log, user }: LogDetailProps) {
   const [currentHasBookmarked, setCurrentHasBookmarked] = useState(
     user
       ? log.log_bookmarks.some(
-          (bookmark: { user_id: string }) => bookmark.user_id === user.id
-        )
+        (bookmark: { user_id: string }) => bookmark.user_id === user.id
+      )
       : false
   );
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   const { openLoginDialog } = useLoginDialog();
 
@@ -198,31 +197,39 @@ export function LogDetail({ log, user }: LogDetailProps) {
       openLoginDialog();
       return;
     }
+    if (likeLoading) return;
 
-    if (currentHasLiked) {
-      const { error } = await supabase
-        .from("log_likes")
-        .delete()
-        .eq("log_id", log.id)
-        .eq("user_id", user.id);
+    setLikeLoading(true);
+    try {
+      if (currentHasLiked) {
+        const { error } = await supabase
+          .from("log_likes")
+          .delete()
+          .eq("log_id", log.id)
+          .eq("user_id", user.id);
 
-      if (!error) {
-        setCurrentLikesCount((prev) => prev - 1);
-        setCurrentHasLiked(false);
+        if (!error) {
+          setCurrentLikesCount((prev) => prev - 1);
+          setCurrentHasLiked(false);
+        } else {
+          console.error("Error unliking log:", error);
+          toast.error("좋아요 취소에 실패했습니다.");
+        }
       } else {
-        console.error("Error unliking log:", error);
-      }
-    } else {
-      const { error } = await supabase
-        .from("log_likes")
-        .insert({ log_id: log.id, user_id: user.id });
+        const { error } = await supabase
+          .from("log_likes")
+          .insert({ log_id: log.id, user_id: user.id });
 
-      if (!error) {
-        setCurrentLikesCount((prev) => prev + 1);
-        setCurrentHasLiked(true);
-      } else {
-        console.error("Error liking log:", error);
+        if (!error) {
+          setCurrentLikesCount((prev) => prev + 1);
+          setCurrentHasLiked(true);
+        } else {
+          console.error("Error liking log:", error);
+          toast.error("좋아요에 실패했습니다.");
+        }
       }
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -231,7 +238,9 @@ export function LogDetail({ log, user }: LogDetailProps) {
       openLoginDialog();
       return;
     }
+    if (bookmarkLoading) return;
 
+    setBookmarkLoading(true);
     const newHasBookmarked = !currentHasBookmarked;
     const newBookmarksCount = newHasBookmarked
       ? currentBookmarksCount + 1
@@ -248,6 +257,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
       setCurrentHasBookmarked(!newHasBookmarked);
       setCurrentBookmarksCount(currentBookmarksCount);
     }
+    setBookmarkLoading(false);
   };
 
   const handleDelete = () => {
@@ -299,11 +309,10 @@ export function LogDetail({ log, user }: LogDetailProps) {
   };
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
-    ? `${log.profiles.avatar_url}?t=${
-        log.profiles.updated_at
-          ? new Date(log.profiles.updated_at).getTime()
-          : ""
-      }`
+    ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at
+      ? new Date(log.profiles.updated_at).getTime()
+      : ""
+    }`
     : null;
 
   const formattedLogDate = log.created_at
@@ -334,299 +343,230 @@ export function LogDetail({ log, user }: LogDetailProps) {
           </button>
         </div>
         <div className="border-b border-border mb-4"></div> {/* Separator */}
-      {/* Section 1: Profile Header */}
-      <div className="flex items-center justify-between">
-        <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
-          <div className="flex items-center">
-            <Link href={`/${log.profiles?.username || log.user_id}`}>
-              {avatarUrlWithCacheBuster && (
-                <Image
-                  src={avatarUrlWithCacheBuster}
-                  alt={`${log.profiles?.username || "User"}'s avatar`}
-                  width={32}
-                  height={32}
-                  className="rounded-full object-cover aspect-square mr-3"
-                />
-              )}
-            </Link>
-            <div className="flex items-baseline gap-1">
-              <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
-                <Link href={`/${log.profiles?.username || log.user_id}`}>
-                  <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
-                    {log.profiles?.full_name ||
-                      log.profiles?.username ||
-                      "Anonymous"}
-                  </p>
-                </Link>
-                {log.profiles?.tagline && (
-                  <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
-                    {log.profiles.tagline}
-                  </p>
+        {/* Section 1: Profile Header */}
+        <div className="flex items-center justify-between">
+          <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
+            <div className="flex items-center">
+              <Link href={`/${log.profiles?.username || log.user_id}`}>
+                {avatarUrlWithCacheBuster && (
+                  <Image
+                    src={avatarUrlWithCacheBuster}
+                    alt={`${log.profiles?.username || "User"}'s avatar`}
+                    width={32}
+                    height={32}
+                    className="rounded-full object-cover aspect-square mr-3"
+                  />
                 )}
+              </Link>
+              <div className="flex items-baseline gap-1">
+                <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
+                  <Link href={`/${log.profiles?.username || log.user_id}`}>
+                    <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
+                      {log.profiles?.full_name ||
+                        log.profiles?.username ||
+                        "Anonymous"}
+                    </p>
+                  </Link>
+                  {log.profiles?.tagline && (
+                    <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
+                      {log.profiles.tagline}
+                    </p>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  ·&nbsp;&nbsp;&nbsp;{formattedLogDate}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                ·&nbsp;&nbsp;&nbsp;{formattedLogDate}
-              </p>
             </div>
-          </div>
-        </ProfileHoverCard>
-        {user?.id === log.user_id && (
-          <AlertDialog>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 text-muted-foreground hover:text-blue-500">
-                  <MoreVertical size={18} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <LogEditDialog
-                  userId={user?.id || null}
-                  avatarUrl={log.profiles?.avatar_url || null}
-                  username={log.profiles?.username || null}
-                  full_name={log.profiles?.full_name || null}
-                  initialLogData={log}
-                  onSuccess={() => router.refresh()}
-                >
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="cursor-pointer"
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>수정</span>
-                  </DropdownMenuItem>
-                </LogEditDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="text-red-500 cursor-pointer"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>삭제</span>
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고
-                  스토리지에서 관련 이미지도 함께 삭제합니다.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>취소</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                  {isDeleting ? "삭제 중..." : "삭제"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </div>
-      {/* Log Content */}
-      <div className="py-1 pl-11">
-        <p className="mb-3 text-sm md:text-log-content whitespace-pre-wrap leading-relaxed">
-          {linkifyMentions(log.content, mentionedProfiles)}
-        </p>
-        {log.image_url && ensureSecureImageUrl(log.image_url) && imageStyle && (
-          <div
-            className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
-            style={{ aspectRatio: imageStyle.aspectRatio }}
-            onClick={() => setShowImageModal(true)}
-          >
-            <Image
-              src={ensureSecureImageUrl(log.image_url)!}
-              alt="Log image"
-              fill
-              style={{ objectFit: imageStyle.objectFit }}
-              sizes="(max-width: 768px) 100vw, 672px"
-            />
-          </div>
-        )}
-        {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
-      </div>
-      {/* Image Modal */}
-      {showImageModal && log.image_url && ensureSecureImageUrl(log.image_url) && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
-          onClick={() => setShowImageModal(false)}
-        >
-          <div
-            className="relative max-w-full max-h-full p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={ensureSecureImageUrl(log.image_url)!}
-              alt="Full size log image"
-              width={0}
-              height={0}
-              sizes="100vw"
-              style={{
-                width: "auto",
-                height: "auto",
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-        </div>
-      )}
-      {/* Actions */}
-      <div className="flex justify-between items-center text-sm text-muted-foreground px-[52px] pt-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleLike}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group"
-              >
-                <HeartIcon
-                  className={
-                    currentHasLiked
-                      ? "fill-red-500 text-red-500"
-                      : "text-muted-foreground group-hover:text-red-500"
-                  }
-                  size={18}
-                />
-                <span className="group-hover:text-red-500">
-                  {currentLikesCount}
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-gray-100">
-              <p>좋아요</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => {}}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
-              >
-                <MessageCircle size={18} />
-                <span>{commentsCount}</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-gray-100">
-              <p>댓글</p>
-            </TooltipContent>
-          </Tooltip>
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
+          </ProfileHoverCard>
+          {user?.id === log.user_id && (
+            <AlertDialog>
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-blue-100 hover:text-blue-500 dark:hover:bg-blue-900/20">
-                    <Share2 size={18} />
+                  <button className="p-1 text-muted-foreground hover:text-blue-500">
+                    <MoreVertical size={18} />
                   </button>
                 </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-gray-100">
-                <p>공유</p>
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={handleCopyLink}
-                className="cursor-pointer"
-              >
-                <Link2 className="mr-2 h-4 w-4" />
-                <span>링크 복사하기</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleShareAll}
-                className="cursor-pointer"
-              >
-                <span>모두 보기</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleBookmark}
-                className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 hover:text-yellow-500 dark:hover:bg-yellow-900/20 group"
-              >
-                <Bookmark
-                  className={
-                    currentHasBookmarked
-                      ? "fill-yellow-500 text-yellow-500"
-                      : "text-muted-foreground group-hover:text-yellow-500"
-                  }
-                  size={18}
-                />
-                <span className="group-hover:text-yellow-500">
-                  {currentBookmarksCount}
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-gray-100">
-              <p>저장</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      {/* Comments Section */}
-      <div className="mt-4 pt-4 border-t">
-        <h2 className="text-xl font-semibold mb-4 ml-2">댓글</h2>
-        <CommentList
-          logId={log.id}
-          currentUserId={user?.id || null}
-          pageSize={10}
-          isDetailPage={true}
-          setReplyTo={setReplyTo}
-        />
-        <CommentForm
-          logId={log.id}
-          currentUserId={user?.id || null}
-          onCommentAdded={handleCommentAdded}
-          replyTo={replyTo}
-        />
-      </div>
-      <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
-        <AlertDialogContent className="w-[350px] rounded-lg">
-          <AlertDialogHeader>
-            <AlertDialogTitle>링크 복사</AlertDialogTitle>
-            <AlertDialogDescription>
-              자동 복사를 지원하지 않는 환경입니다. 수동으로 복사해주세요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-2 flex items-center gap-2">
-            <input
-              type="text"
-              readOnly
-              value={copyUrl}
-              className="w-full p-2 border rounded bg-muted text-muted-foreground flex-grow"
-              onFocus={(e) => e.target.select()}
-            />
-            <button
-              onClick={async () => {
-                if (navigator.clipboard && window.isSecureContext) {
-                  try {
-                    await navigator.clipboard.writeText(copyUrl);
-                    toast.success("링크를 복사했어요!");
-                  } catch {
-                    toast.error("복사에 실패했어요. 수동으로 복사해주세요.");
-                  }
-                } else {
-                  toast.error("브라우저에서 클립보드 복사를 지원하지 않아요.");
-                }
-              }}
-              className="p-2 rounded-md hover:bg-secondary"
-              aria-label="Copy link"
+                <DropdownMenuContent align="end">
+                  <LogEditDialog
+                    userId={user?.id || null}
+                    avatarUrl={log.profiles?.avatar_url || null}
+                    username={log.profiles?.username || null}
+                    full_name={log.profiles?.full_name || null}
+                    initialLogData={log}
+                    onSuccess={() => router.refresh()}
+                  >
+                    <DropdownMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      className="cursor-pointer"
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>수정</span>
+                    </DropdownMenuItem>
+                  </LogEditDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      className="text-red-500 cursor-pointer"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>삭제</span>
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고
+                    스토리지에서 관련 이미지도 함께 삭제합니다.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+                    {isDeleting ? "삭제 중..." : "삭제"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
+        {/* Log Content */}
+        <div className="py-1 pl-11">
+          <p className="mb-3 text-sm md:text-log-content whitespace-pre-wrap leading-relaxed">
+            {linkifyMentions(log.content, mentionedProfiles)}
+          </p>
+          {log.image_url && ensureSecureImageUrl(log.image_url) && imageStyle && (
+            <div
+              className="relative w-full mt-4 rounded-lg overflow-hidden cursor-pointer max-h-[60vh]"
+              style={{ aspectRatio: imageStyle.aspectRatio }}
+              onClick={() => setShowImageModal(true)}
             >
-              <Copy size={18} />
-            </button>
+              <Image
+                src={ensureSecureImageUrl(log.image_url)!}
+                alt="Log image"
+                fill
+                style={{ objectFit: imageStyle.objectFit }}
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
+          )}
+          {ogUrl && !log.image_url && <OgPreviewCard url={ogUrl} />}
+        </div>
+        {/* Image Modal */}
+        {showImageModal && log.image_url && ensureSecureImageUrl(log.image_url) && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+            onClick={() => setShowImageModal(false)}
+          >
+            <div
+              className="relative max-w-full max-h-full p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={ensureSecureImageUrl(log.image_url)!}
+                alt="Full size log image"
+                width={0}
+                height={0}
+                sizes="100vw"
+                style={{
+                  width: "auto",
+                  height: "auto",
+                  maxWidth: "90vw",
+                  maxHeight: "90vh",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowCopyDialog(false)}>
-              닫기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        )}
+        {/* Actions */}
+        <InteractionActions
+          id={log.id}
+          type="log"
+          stats={{
+            likes: currentLikesCount,
+            comments: commentsCount,
+            bookmarks: currentBookmarksCount,
+          }}
+          status={{
+            hasLiked: currentHasLiked,
+            hasBookmarked: currentHasBookmarked,
+          }}
+          loading={{
+            like: likeLoading,
+            bookmark: bookmarkLoading,
+          }}
+          onLikeToggle={handleLike}
+          onBookmarkToggle={handleBookmark}
+          onCommentClick={() => {
+            document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" });
+          }}
+          shareUrl={`${window.location.origin}/log/${log.id}`}
+          className="px-[52px] pt-2"
+        />
+        {/* Comments Section */}
+        <div className="mt-4 pt-4 border-t">
+          <h2 id="comments" className="text-xl font-semibold mb-4 ml-2">댓글</h2>
+          <CommentList
+            logId={log.id}
+            currentUserId={user?.id || null}
+            pageSize={10}
+            isDetailPage={true}
+            setReplyTo={setReplyTo}
+          />
+          <CommentForm
+            logId={log.id}
+            currentUserId={user?.id || null}
+            onCommentAdded={handleCommentAdded}
+            replyTo={replyTo}
+          />
+        </div>
+        <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
+          <AlertDialogContent className="w-[350px] rounded-lg">
+            <AlertDialogHeader>
+              <AlertDialogTitle>링크 복사</AlertDialogTitle>
+              <AlertDialogDescription>
+                자동 복사를 지원하지 않는 환경입니다. 수동으로 복사해주세요.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-2 flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={copyUrl}
+                className="w-full p-2 border rounded bg-muted text-muted-foreground flex-grow"
+                onFocus={(e) => e.target.select()}
+              />
+              <button
+                onClick={async () => {
+                  if (navigator.clipboard && window.isSecureContext) {
+                    try {
+                      await navigator.clipboard.writeText(copyUrl);
+                      toast.success("링크를 복사했어요!");
+                    } catch {
+                      toast.error("복사에 실패했어요. 수동으로 복사해주세요.");
+                    }
+                  } else {
+                    toast.error("브라우저에서 클립보드 복사를 지원하지 않아요.");
+                  }
+                }}
+                className="p-2 rounded-md hover:bg-secondary"
+                aria-label="Copy link"
+              >
+                <Copy size={18} />
+              </button>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowCopyDialog(false)}>
+                닫기
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </>
   );
 }
