@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect } from "react";
 import { updateBio, uploadBioImage } from "@/app/[username]/actions";
 import { toast } from "sonner";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import dynamic from "next/dynamic";
+
+const TiptapViewer = dynamic(() => import("@/components/common/tiptap-viewer"), {
+  ssr: false,
+  loading: () => <div className="h-24 bg-muted/20 animate-pulse rounded-md w-full"></div>
+});
 import { Json } from "@/types/database.types";
 import { isTiptapJsonEmpty } from "@/lib/utils";
 import { JSONContent } from "@tiptap/react";
-import dynamic from 'next/dynamic';
+// The dynamic import for next/dynamic is already present above, no need to duplicate.
 
 const TiptapEditorWrapper = dynamic(
   () => import('@/components/common/tiptap-editor-wrapper'),

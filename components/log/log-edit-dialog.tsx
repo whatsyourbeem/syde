@@ -37,8 +37,13 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useQueryClient } from "@tanstack/react-query";
-import { OgPreviewCard } from "@/components/common/og-preview-card";
+import dynamic from "next/dynamic";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+
+const OgPreviewCard = dynamic(
+  () => import("@/components/common/og-preview-card").then(mod => mod.OgPreviewCard),
+  { ssr: false, loading: () => <div className="h-24 md:h-30 my-4 bg-muted/20 animate-pulse rounded-md w-full"></div> }
+);
 
 interface MentionSuggestion {
   id: string;
@@ -75,8 +80,8 @@ function SubmitButton({
           ? "로그 수정 중..."
           : "로그 기록 중..."
         : initialLogData
-        ? "로그 수정하기"
-        : "로그 기록하기"}
+          ? "로그 수정하기"
+          : "로그 기록하기"}
     </Button>
   );
 }
@@ -169,9 +174,8 @@ function LogForm({
                 {mentionSuggestions.map((suggestion, index) => (
                   <li
                     key={suggestion.id}
-                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${
-                      index === activeSuggestionIndex ? "bg-accent" : ""
-                    }`}
+                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? "bg-accent" : ""
+                      }`}
                     onClick={() => handleSelectSuggestion(suggestion)}
                   >
                     <div className="flex items-center text-xs">

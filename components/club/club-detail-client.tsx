@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Tables } from "@/types/database.types";
+import dynamic from "next/dynamic";
 
-import TiptapViewer from "@/components/common/tiptap-viewer";
-
+const TiptapViewer = dynamic(() => import("@/components/common/tiptap-viewer"), {
+  ssr: false,
+  loading: () => <div className="h-24 bg-muted/20 animate-pulse rounded-md w-full"></div>
+});
 import { Button } from "@/components/ui/button";
 import {
   Drawer,

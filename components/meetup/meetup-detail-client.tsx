@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import { JSONContent } from "@tiptap/react";
+import dynamic from "next/dynamic";
+
+const TiptapViewer = dynamic(() => import("@/components/common/tiptap-viewer"), {
+  ssr: false,
+  loading: () => <div className="h-24 bg-muted/20 animate-pulse rounded-md w-full"></div>
+});
 import { createClient } from "@/lib/supabase/client";
 
 import {
