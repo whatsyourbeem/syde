@@ -31,6 +31,7 @@ export default function InsightPage() {
                         created_at,
                         profiles:user_id (
                             username,
+                            full_name,
                             avatar_url,
                             tagline
                         ),
@@ -46,10 +47,11 @@ export default function InsightPage() {
                     id: item.id,
                     title: item.title,
                     summary: item.summary,
+                    createdAt: item.created_at,
                     imageUrl: item.image_url,
                     author: {
                         id: item.user_id,
-                        name: item.profiles?.username || "알 수 없는 사용자",
+                        name: item.profiles?.full_name || item.profiles?.username || "알 수 없는 사용자",
                         role: item.profiles?.tagline || "멤버",
                         avatarUrl: item.profiles?.avatar_url
                     },
@@ -97,7 +99,7 @@ export default function InsightPage() {
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#112D4E]"></div>
                     </div>
                 ) : insights.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-9 justify-items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-9 md:gap-y-14 justify-items-center">
                         {insights.map((insight) => (
                             <InsightCard key={insight.id} {...insight} />
                         ))}

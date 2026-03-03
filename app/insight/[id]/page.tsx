@@ -21,6 +21,8 @@ const TiptapViewer = dynamic(() => import("@/components/common/tiptap-viewer"), 
 import { cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -456,18 +458,25 @@ export default function InsightDetailPage({ params }: { params: Promise<{ id: st
                                 </div>
 
                                 {/* Author Profile Area */}
-                                <ProfileHoverCard userId={insight.user_id}>
-                                    <Link href={`/${insight.user_id}`} className="flex items-center gap-[5px] mt-auto w-fit justify-center mx-auto">
-                                        <Avatar className="w-5 h-5">
-                                            <AvatarImage src={insight.profiles?.avatar_url} />
-                                            <AvatarFallback className="bg-[#D9D9D9]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex items-center gap-[5px]">
-                                            <span className="text-[12px] font-semibold text-[#002040]">{insight.profiles?.username || '알 수 없는 사용자'}</span>
-                                            <span className="text-[11px] text-[#777777]">| {insight.profiles?.tagline || '멤버'}</span>
-                                        </div>
-                                    </Link>
-                                </ProfileHoverCard>
+                                <div className="flex flex-col items-center mt-auto mx-auto gap-1">
+                                    <ProfileHoverCard userId={insight.user_id}>
+                                        <Link href={`/${insight.user_id}`} className="flex items-center gap-[5px] w-fit justify-center">
+                                            <Avatar className="w-5 h-5">
+                                                <AvatarImage src={insight.profiles?.avatar_url} />
+                                                <AvatarFallback className="bg-[#D9D9D9]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex items-center gap-[5px]">
+                                                <span className="text-[12px] font-semibold text-[#002040]">{insight.profiles?.full_name || insight.profiles?.username || '알 수 없는 사용자'}</span>
+                                                <span className="text-[11px] text-[#777777]">· {insight.profiles?.tagline || '멤버'}</span>
+                                            </div>
+                                        </Link>
+                                    </ProfileHoverCard>
+                                    {insight.created_at && (
+                                        <span className="text-[11px] text-[#777777]">
+                                            {formatDistanceToNow(new Date(insight.created_at), { addSuffix: true, locale: ko }).replace("약 ", "")}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

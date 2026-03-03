@@ -8,6 +8,8 @@ import { InteractionActions } from "@/components/common/interaction-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { toast } from "sonner";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 
 import { cn } from "@/lib/utils";
 
@@ -15,6 +17,7 @@ export interface InsightCardProps {
     id: string;
     title: string;
     summary: string | null;
+    createdAt: string;
     imageUrl?: string | null;
     author: {
         id: string;
@@ -41,6 +44,7 @@ export function InsightCard({
     id,
     title,
     summary,
+    createdAt,
     imageUrl,
     author,
     stats: initialStats,
@@ -119,23 +123,23 @@ export function InsightCard({
     };
 
     return (
-        <div className="bg-transparent border-none shadow-none flex flex-col w-[369px] md:w-[352px] h-fit">
+        <div className="bg-transparent border-none shadow-none flex flex-col w-full max-w-[369px] md:max-w-[352px] h-fit">
             {/* Thumbnail Area - Links to Insight */}
             {disableLink ? (
-                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
+                <div className="relative w-full aspect-w-1 aspect-h-1 bg-[#222E35] overflow-hidden flex-none rounded-[12px]">
                     {imageUrl ? (
-                        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                        <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
-                        <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
+                        <img src="/we-are-syders.png" alt="We are SYDERS" className="absolute inset-0 w-full h-full object-cover" />
                     )}
                 </div>
             ) : (
-                <Link href={`/insight/${id}`} className="focus:outline-none">
-                    <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden cursor-pointer flex-none w-[369px] md:w-[352px] h-[369px] md:h-[352px] rounded-[12px]">
+                <Link href={`/insight/${id}`} className="block focus:outline-none">
+                    <div className="relative w-full aspect-w-1 aspect-h-1 bg-[#222E35] overflow-hidden cursor-pointer flex-none rounded-[12px]">
                         {imageUrl ? (
-                            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                            <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
-                            <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
+                            <img src="/we-are-syders.png" alt="We are SYDERS" className="absolute inset-0 w-full h-full object-cover" />
                         )}
                     </div>
                 </Link>
@@ -179,7 +183,12 @@ export function InsightCard({
                         </Avatar>
                         <div className="flex items-center gap-[5px]">
                             <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
-                            <span className="text-[11px] text-[#777777]">| {author.role}</span>
+                            <span className="text-[11px] text-[#777777]">· {author.role}</span>
+                            {createdAt && (
+                                <span className="text-[11px] text-[#777777]">
+                                    · {formatDistanceToNow(new Date(createdAt), { addSuffix: true, locale: ko }).replace("약 ", "")}
+                                </span>
+                            )}
                         </div>
                     </Link>
                 </ProfileHoverCard>
