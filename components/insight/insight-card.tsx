@@ -149,7 +149,7 @@ export function InsightCard({
                 {/* Title & Summary - Links to Insight */}
                 {disableLink ? (
                     <div className="flex flex-col gap-[5px]">
-                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2 h-[54px] md:h-[48px] overflow-hidden">
+                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-1 overflow-hidden">
                             {title}
                         </h3>
                         <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
@@ -158,7 +158,7 @@ export function InsightCard({
                     </div>
                 ) : (
                     <Link href={`/insight/${id}`} className="flex flex-col gap-[5px] focus:outline-none">
-                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-2 h-[54px] md:h-[48px] overflow-hidden">
+                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-1 overflow-hidden">
                             {title}
                         </h3>
                         <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
