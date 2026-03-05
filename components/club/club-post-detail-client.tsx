@@ -2,14 +2,9 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import dynamic from "next/dynamic";
 import { Tables, Enums } from "@/types/database.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-const TiptapViewer = dynamic(() => import("@/components/common/tiptap-viewer"), {
-  ssr: false,
-  loading: () => <div className="h-24 bg-muted/20 animate-pulse rounded-md w-full"></div>
-});
+import TiptapViewer from "@/components/common/tiptap-viewer";
 
 import ClubPostForm from "@/components/club/club-post-form"; // ClubPostForm is a default export
 import { ClubPostDetailHeader } from "@/components/club/club-post-detail-header"; // Keep this for the header

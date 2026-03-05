@@ -5,11 +5,7 @@ import { useState, useCallback, useEffect } from "react";
 import { updateBio, uploadBioImage } from "@/app/[username]/actions";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-
-const TiptapViewer = dynamic(() => import("@/components/common/tiptap-viewer"), {
-  ssr: false,
-  loading: () => <div className="h-24 bg-muted/20 animate-pulse rounded-md w-full"></div>
-});
+import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Json } from "@/types/database.types";
 import { isTiptapJsonEmpty } from "@/lib/utils";
 import { JSONContent } from "@tiptap/react";

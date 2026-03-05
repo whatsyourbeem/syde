@@ -60,7 +60,7 @@ export function LogList({
   console.log("LogList: Before useQuery. QueryKey:", queryKey);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
-    queryFn: () => getOptimizedLogs({
+    queryFn: () => getOptimizedLogs(supabase, {
       currentUserId: propCurrentUserId,
       currentPage,
       logsPerPage: LOGS_PER_PAGE,

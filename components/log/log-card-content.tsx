@@ -4,13 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, memo, useRef } from "react";
 import { linkifyMentions, ensureSecureImageUrl } from "@/lib/utils";
-import dynamic from "next/dynamic";
 import { LoadingSpinner } from "@/components/ui/loading-states";
-
-const OgPreviewCard = dynamic(
-  () => import("@/components/common/og-preview-card").then(mod => mod.OgPreviewCard),
-  { ssr: false, loading: () => <div className="h-[96px] md:h-[120px] my-4 bg-muted/20 animate-pulse rounded-[12px] w-full border border-[#B7B7B7] border-opacity-30"></div> }
-);
+import { OgPreviewCard } from "@/components/common/og-preview-card";
 
 interface LogCardContentProps {
   log: {

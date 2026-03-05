@@ -1,6 +1,7 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import InsightDetailClient from "@/components/insight/insight-detail-client";
+import TiptapViewer from "@/components/common/tiptap-viewer";
 
 interface InsightDetailPageProps {
     params: Promise<{

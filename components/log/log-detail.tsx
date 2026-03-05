@@ -47,14 +47,9 @@ import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
-import dynamic from "next/dynamic";
 import { deleteLog, toggleLogBookmark } from "@/app/log/log-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
-
-const OgPreviewCard = dynamic(
-  () => import("@/components/common/og-preview-card").then(mod => mod.OgPreviewCard),
-  { ssr: false, loading: () => <div className="h-[96px] md:h-[120px] my-4 bg-muted/20 animate-pulse rounded-[12px] w-full border border-[#B7B7B7] border-opacity-30"></div> }
-);
+import { OgPreviewCard } from "@/components/common/og-preview-card";
 
 type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
