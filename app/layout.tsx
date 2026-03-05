@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { AuthButton } from "@/components/auth/auth-button";
-import Image from "next/image";
-import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-
+import { HeaderServer, HeaderSkeleton } from "@/components/layout/header-server";
+import { Suspense } from "react";
+import { Providers } from "@/components/layout/providers";
 import { LoginDialogProvider } from "@/context/LoginDialogContext";
 import { LoginDialog } from "@/components/auth/login-dialog";
-
-import { Providers } from "@/components/layout/providers"; // Import Providers
-import { Search } from "lucide-react"; // Import Search icon
-import NotificationBell from "@/components/notification/notification-bell";
-import { Suspense } from "react";
 
 import { Toaster } from "sonner"; // Import Toaster from sonner
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -60,54 +53,16 @@ const paperlogy = localFont({
 });
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
-import { MobileMenu } from "@/components/layout/mobile-menu";
 import Footer from "@/components/layout/footer"; // Add this import
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let avatarUrl = null;
-  let usernameForAuthButton = null;
-  let fullNameForAuthButton = null;
-  let unreadNotifCount = 0;
-  if (user) {
-    const { count } = await supabase
-      .from("notifications")
-      .select("*", { count: "exact", head: true })
-      .eq("recipient_user_id", user.id)
-      .eq("is_read", false);
-    unreadNotifCount = count ?? 0;
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("avatar_url, updated_at, username, full_name")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError && profileError.code !== "PGRST116") {
-      console.error("Error fetching profile for layout:", profileError);
-    } else if (profile) {
-      avatarUrl = profile.avatar_url
-        ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ""
-        }`
-        : null;
-      usernameForAuthButton =
-        profile.username || user.email?.split("@")[0] || null;
-      fullNameForAuthButton = profile.full_name || usernameForAuthButton;
-    }
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${pretendard.className} antialiased`}>
@@ -115,130 +70,9 @@ export default async function RootLayout({
           <LoginDialogProvider>
             <div className="flex flex-col min-h-dvh">
               <div className="contents">
-                <header>
-                  <div className="w-full bg-background">
-                    <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
-                      {/* Mobile specific layout */}
-                      <div className="flex md:hidden w-full justify-between items-center">
-                        <div className="flex items-center">
-                          <Link href={"/"} className="flex items-center gap-1">
-                            <Image
-                              src="/logo_no_bg.png"
-                              alt="SYDE"
-                              width={36}
-                              height={36}
-                              priority
-                            />
-                            <span
-                              className={`text-2xl font-extrabold text-sydenightblue ${paperlogy.className}`}
-                            >
-                              <span style={{ letterSpacing: "0.01em" }}>S</span>
-                              <span style={{ letterSpacing: "0.01em" }}>Y</span>
-                              <span style={{ letterSpacing: "0em" }}>DE</span>
-                            </span>
-                          </Link>
-                        </div>
-                        <div className="flex justify-end items-center gap-4">
-                          <Link
-                            href="/search"
-                            className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                          >
-                            <Search size={20} />
-                          </Link>
-                          <Suspense
-                            fallback={
-                              <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                            }
-                          >
-                            <NotificationBell
-                              initialUnreadCount={unreadNotifCount}
-                              userId={user?.id || null}
-                            />
-                          </Suspense>
-                          <MobileMenu
-                            user={user}
-                            authButton={
-                              <AuthButton
-                                avatarUrl={avatarUrl}
-                                username={usernameForAuthButton}
-                                fullName={fullNameForAuthButton}
-                                sheetHeader={true}
-                              />
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      {/* Desktop specific layout */}
-                      <div className="hidden md:flex w-full justify-between items-center">
-                        <div className="w-1/3">
-                          <Link
-                            href="https://open.kakao.com/o/gduSGmtf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Button
-                              variant="ghost"
-                              className="flex items-center gap-2 hover:bg-[#FEE500]/20 px-2 md:px-4"
-                            >
-                              <Image
-                                src="/kakao-talk-bw.png"
-                                alt="Kakao"
-                                width={24}
-                                height={24}
-                              />
-                              <span className="hidden md:inline text-[#4B4737]">
-                                SYDE 오픈채팅
-                              </span>
-                            </Button>
-                          </Link>
-                        </div>
-                        <div className="w-1/3 flex justify-center items-center font-semibold">
-                          <Link href={"/"} className="flex items-center gap-1">
-                            <Image
-                              src="/logo_no_bg.png"
-                              alt="SYDE"
-                              width={52}
-                              height={52}
-                              priority
-                            />
-                            <span
-                              className={`text-4xl font-extrabold text-sydenightblue ${paperlogy.className}`}
-                            >
-                              <span style={{ letterSpacing: "0.01em" }}>S</span>
-                              <span style={{ letterSpacing: "0.01em" }}>Y</span>
-                              <span style={{ letterSpacing: "0em" }}>DE</span>
-                            </span>
-                          </Link>
-                        </div>
-                        <div className="w-1/3 flex justify-end items-center gap-4">
-                          <Link
-                            href="/search"
-                            className="text-foreground hover:text-primary p-2 rounded-full hover:bg-secondary"
-                          >
-                            <Search size={20} />
-                          </Link>
-                          <Suspense
-                            fallback={
-                              <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                            }
-                          >
-                            <NotificationBell
-                              initialUnreadCount={unreadNotifCount}
-                              userId={user?.id || null}
-                            />
-                          </Suspense>
-                          <AuthButton
-                            avatarUrl={avatarUrl}
-                            username={usernameForAuthButton}
-                            fullName={fullNameForAuthButton}
-                            sheetHeader={false}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </header>
+                <Suspense fallback={<HeaderSkeleton paperlogyClassName={paperlogy.className} />}>
+                  <HeaderServer paperlogyClassName={paperlogy.className} />
+                </Suspense>
                 <div className="w-full bg-background sticky top-0 z-40">
                   <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
                     <HeaderNavigation />
