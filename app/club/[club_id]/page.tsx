@@ -3,11 +3,81 @@ import { notFound } from "next/navigation";
 import ClubDetailClient from "@/components/club/club-detail-client";
 
 
+import { Metadata, ResolvingMetadata } from "next";
+
 type ClubDetailPageProps = {
   params: Promise<{
     club_id: string;
   }>;
 };
+
+export async function generateMetadata(
+  { params }: ClubDetailPageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { club_id } = await params;
+  const supabase = await createClient();
+
+  const { data: club } = await supabase
+    .from("clubs")
+    .select("name, description, tagline, thumbnail_url")
+    .eq("id", club_id)
+    .single();
+
+  if (!club) {
+    return {
+      title: "Club Not Found - SYDE",
+    };
+  }
+
+  const title = `${club.name} - SYDE 클럽`;
+
+  let plainText = "";
+  if (club.tagline) {
+    plainText = club.tagline;
+  } else {
+    let descObj = club.description;
+    if (typeof descObj === "string") {
+      try {
+        descObj = JSON.parse(descObj);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (descObj && typeof descObj === "object") {
+      try {
+        const extractText = (node: any): string => {
+          if (node.type === "text" && node.text) return node.text;
+          if (node.content && Array.isArray(node.content)) {
+            return node.content.map(extractText).join(" ");
+          }
+          return "";
+        };
+        plainText = extractText(descObj).trim();
+      } catch (e) {
+        // ignore
+      }
+    } else if (typeof descObj === "string") {
+      plainText = descObj;
+    }
+  }
+
+  const description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : (plainText || "SYDE 클럽에 참여해보세요.");
+  const images = club.thumbnail_url ? [club.thumbnail_url] : [];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images,
+      type: "website",
+      url: `/club/${club_id}`,
+    },
+  };
+}
 
 export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const { club_id } = await params;
@@ -64,7 +134,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     notFound();
   }
 
-  
+
 
   if (membersError || meetupsError) {
     // Handle errors appropriately
@@ -79,7 +149,7 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const userRole = currentUserMembership?.role || null;
   const isOwner = user?.id === club.owner_id;
 
-  
+
 
   return <ClubDetailClient
     club={club}

@@ -7,8 +7,47 @@ import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 import { Separator } from "@/components/ui/separator";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
+import { Metadata, ResolvingMetadata } from "next";
+
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
+}
+
+export async function generateMetadata(
+  { params }: UserProfilePageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { username } = await params;
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, username, tagline, avatar_url")
+    .eq("username", username)
+    .single();
+
+  if (!profile) {
+    return {
+      title: "User Not Found - SYDE",
+    };
+  }
+
+  const displayName = profile.full_name || profile.username;
+  const title = `${displayName} (@${profile.username}) - SYDE`;
+  const description = profile.tagline || `${displayName}님의 프로필입니다.`;
+  const images = profile.avatar_url ? [profile.avatar_url] : [];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images,
+      type: "profile",
+      url: `/${profile.username}`,
+    },
+  };
 }
 
 export default async function UserProfilePage({
