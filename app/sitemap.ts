@@ -50,12 +50,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 4. Dynamic Routes: Meetups (/meetup/[id])
     const { data: meetups } = await supabase
         .from("meetups")
-        .select("id, updated_at")
-        .eq("status", "open"); // Optionally filter by status or include all
+        .select("id, created_at");
 
     const meetupRoutes = (meetups || []).map((meetup) => ({
         url: `${baseUrl}/meetup/${meetup.id}`,
-        lastModified: meetup.updated_at || new Date().toISOString(),
+        lastModified: meetup.created_at || new Date().toISOString(),
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));
