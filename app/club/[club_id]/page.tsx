@@ -64,7 +64,7 @@ export async function generateMetadata(
   }
 
   const description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : (plainText || "SYDE 클럽에 참여해보세요.");
-  const images = club.thumbnail_url ? [club.thumbnail_url] : [];
+  const images = club.thumbnail_url ? [club.thumbnail_url] : ["/we-are-syders.png"];
 
   return {
     title,

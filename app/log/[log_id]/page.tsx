@@ -49,7 +49,7 @@ export async function generateMetadata(
   }
 
   const description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText;
-  const images = log.image_url ? [log.image_url] : [];
+  const images = log.image_url ? [log.image_url] : ["/we-are-syders.png"];
 
   return {
     title,

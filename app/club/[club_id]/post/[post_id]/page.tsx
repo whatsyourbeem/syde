@@ -73,6 +73,7 @@ export async function generateMetadata(
     openGraph: {
       title,
       description,
+      images: ["/we-are-syders.png"],
       type: "article",
       url: `/club/${club_id}/post/${post_id}`,
     },

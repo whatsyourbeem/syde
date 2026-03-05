@@ -49,7 +49,7 @@ export async function generateMetadata(
 
     const description =
         plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText || "SYDE 인사이트를 확인해보세요.";
-    const images = insight.image_url ? [insight.image_url] : [];
+    const images = insight.image_url ? [insight.image_url] : ["/we-are-syders.png"];
 
     return {
         title,
