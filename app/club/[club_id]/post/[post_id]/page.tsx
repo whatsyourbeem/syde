@@ -5,6 +5,7 @@ import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import ClubPostDetailClient from "@/components/club/club-post-detail-client"; // New import
 
 import { Metadata, ResolvingMetadata } from "next";
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 
 interface ClubPostDetailPageProps {
   params: Promise<{
@@ -163,9 +164,12 @@ export default async function ClubPostDetailPage({
     author: post.profiles, // Map profiles to author
   };
 
+  let initialHtml = getInitialHtmlFromTiptap(post.content);
+
   return (
     <ClubPostDetailClient
       post={postForClient}
+      initialHtml={initialHtml}
       clubId={club_id}
       user={user}
       isAuthorized={isAuthorized}

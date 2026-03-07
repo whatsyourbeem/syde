@@ -12,6 +12,7 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
 };
 
 import { Metadata, ResolvingMetadata } from "next";
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 
 // 타입 명시
 interface PageProps {
@@ -100,6 +101,8 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   }
 
   // description JSON 파싱 개선
+  let initialHtml = getInitialHtmlFromTiptap(meetup.description);
+
   if (typeof meetup.description === "string") {
     try {
       meetup.description = JSON.parse(meetup.description);
@@ -130,6 +133,7 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   return (
     <MeetupDetailClient
       meetup={meetup as Meetup}
+      initialHtml={initialHtml}
       isOrganizer={isOrganizer}
       user={user}
       joinedClubIds={joinedClubIds}

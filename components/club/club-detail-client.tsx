@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Tables } from "@/types/database.types";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Drawer,
   DrawerTrigger,
@@ -47,6 +48,7 @@ type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 
 interface ClubDetailClientProps {
   club: Tables<"clubs"> & { owner_profile: Profile | null };
+  initialHtml?: string;
   members: ClubMember[];
   meetups: Meetup[];
   forums: Tables<"club_forums">[];
@@ -59,6 +61,7 @@ interface ClubDetailClientProps {
 // Main Component
 export default function ClubDetailClient({
   club,
+  initialHtml,
   members,
   meetups,
   forums,
@@ -74,6 +77,11 @@ export default function ClubDetailClient({
   const [paginatedPosts, setPaginatedPosts] = useState<ClubForumPost[]>([]);
   const [totalPostsCount, setTotalPostsCount] = useState(0);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const canReadForum = (forum: Tables<"club_forums">) => {
     const permission = forum.read_permission;
@@ -216,9 +224,18 @@ export default function ClubDetailClient({
               💬<span className="font-extrabold pl-1">소개</span>
             </h2>
           </AccordionTrigger>
-          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none px-6 pt-0 pb-6 min-h-[150px]">
+          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none px-6 pt-0 pb-6 w-full min-h-[150px]">
             {club.description ? (
-              <TiptapViewer content={club.description} />
+              <div className="w-full">
+                {/* SEO fallback */}
+                {initialHtml && !isMounted && (
+                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
+                )}
+                {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
+                <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
+                  <TiptapViewer content={club.description} />
+                </div>
+              </div>
             ) : (
               <p className="text-muted-foreground">
                 클럽 설명이 아직 없습니다.

@@ -32,6 +32,7 @@ import {
 interface InsightDetailClientProps {
     id: string;
     initialInsight: any;
+    initialHtml?: string;
     initialComments: any[];
     initialStats: { likes: number; comments: number; bookmarks: number };
     initialIsLiked: boolean;
@@ -42,6 +43,7 @@ interface InsightDetailClientProps {
 export default function InsightDetailClient({
     id,
     initialInsight,
+    initialHtml,
     initialComments,
     initialStats,
     initialIsLiked,
@@ -409,8 +411,15 @@ export default function InsightDetailClient({
                 </section>
 
                 <section className="w-full py-8 md:py-16 border-b-[0.5px] border-[#B7B7B7]">
-                    <div className="px-1 text-black md:text-lg">
-                        <TiptapViewer content={parseContent(insight.content)} />
+                    <div className="px-1 text-black md:text-lg w-full">
+                        {/* SEO fallback: 봇이나 브라우저 초기 렌더링 시 서버에서 미리 만든 HTML을 표시 */}
+                        {initialHtml && !isMounted && (
+                            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
+                        )}
+                        {/* 클라이언트 사이드 Tiptap 에디터 로드 후 교체 */}
+                        <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
+                            <TiptapViewer content={parseContent(insight.content)} />
+                        </div>
                     </div>
                 </section>
 

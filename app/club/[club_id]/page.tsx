@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ClubDetailClient from "@/components/club/club-detail-client";
-
-
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { Metadata, ResolvingMetadata } from "next";
 
 type ClubDetailPageProps = {
@@ -149,10 +148,11 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const userRole = currentUserMembership?.role || null;
   const isOwner = user?.id === club.owner_id;
 
-
+  const initialHtml = getInitialHtmlFromTiptap(club.description);
 
   return <ClubDetailClient
     club={club}
+    initialHtml={initialHtml}
     members={members || []}
     meetups={meetups || []}
     forums={forums || []}

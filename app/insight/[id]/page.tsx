@@ -64,6 +64,8 @@ export async function generateMetadata(
     };
 }
 
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+
 export default async function InsightDetailPage({ params }: InsightDetailPageProps) {
     const { id } = await params;
     const supabase = await createClient();
@@ -71,6 +73,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
     // Fetch Insight
     const { data: insight, error: insightError } = await supabase
         .from("insights")
+        // ...
         .select(`
             *,
             profiles:user_id (
@@ -91,6 +94,8 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
             </div>
         );
     }
+
+    const initialHtml = getInitialHtmlFromTiptap(insight.content);
 
     // Fetch Comments
     const { data: comments } = await supabase
@@ -151,6 +156,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         <InsightDetailClient
             id={id}
             initialInsight={insight}
+            initialHtml={initialHtml}
             initialComments={comments || []}
             initialStats={stats}
             initialIsLiked={isLiked}

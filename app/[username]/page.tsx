@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 import { Separator } from "@/components/ui/separator";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 
 import { Metadata, ResolvingMetadata } from "next";
 
@@ -78,10 +79,11 @@ export default async function UserProfilePage({
   const isOwnProfile = !!(user && user.id === profile.id);
 
   const avatarUrlWithCacheBuster = profile.avatar_url
-    ? `${profile.avatar_url}?t=${
-        profile.updated_at ? new Date(profile.updated_at).getTime() : ""
-      }`
+    ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ""
+    }`
     : null;
+
+  let initialHtml = getInitialHtmlFromTiptap(profile.bio);
 
   return (
     <div className="flex-1 w-full flex flex-col py-5 h-full">
@@ -101,8 +103,8 @@ export default async function UserProfilePage({
                 {profile.full_name
                   ? profile.full_name[0].toUpperCase()
                   : profile.username
-                  ? profile.username[0].toUpperCase()
-                  : "U"}
+                    ? profile.username[0].toUpperCase()
+                    : "U"}
               </div>
             )}
           </div>
@@ -153,6 +155,7 @@ export default async function UserProfilePage({
           isOwnProfile={isOwnProfile}
           profile={profile}
           currentUserId={currentUserId}
+          initialHtml={initialHtml}
           className="flex-1"
         />
       </div>
