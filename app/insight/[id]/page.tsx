@@ -66,5 +66,96 @@ export async function generateMetadata(
 
 export default async function InsightDetailPage({ params }: InsightDetailPageProps) {
     const { id } = await params;
-    return <InsightDetailClient id={id} />;
+    const supabase = await createClient();
+
+    // Fetch Insight
+    const { data: insight, error: insightError } = await supabase
+        .from("insights")
+        .select(`
+            *,
+            profiles:user_id (
+              username,
+              full_name,
+              avatar_url,
+              tagline
+            )
+          `)
+        .eq("id", id)
+        .single();
+
+    if (insightError || !insight) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
+                <p className="text-gray-500 font-medium text-lg">인사이트를 찾을 수 없습니다.</p>
+                <a href="/insight" className="px-4 py-2 bg-[#002040] text-white rounded-md">목록으로 돌아가기</a>
+            </div>
+        );
+    }
+
+    // Fetch Comments
+    const { data: comments } = await supabase
+        .from("insight_comments")
+        .select(`
+            *,
+            profiles:user_id (
+              username,
+              avatar_url,
+              tagline
+            )
+          `)
+        .eq("insight_id", id)
+        .order("created_at", { ascending: true });
+
+    // Fetch Stats
+    const { count: likesCount } = await supabase
+        .from("insight_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("insight_id", id);
+
+    const { count: bookmarksCount } = await supabase
+        .from("insight_bookmarks")
+        .select("*", { count: "exact", head: true })
+        .eq("insight_id", id);
+
+    // Fetch User State
+    const { data: { user } } = await supabase.auth.getUser();
+    let isLiked = false;
+    let isBookmarked = false;
+
+    if (user) {
+        const { data: likeData } = await supabase
+            .from("insight_likes")
+            .select("id")
+            .eq("insight_id", id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        const { data: bookmarkData } = await supabase
+            .from("insight_bookmarks")
+            .select("insight_id")
+            .eq("insight_id", id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        isLiked = !!likeData;
+        isBookmarked = !!bookmarkData;
+    }
+
+    const stats = {
+        likes: likesCount || 0,
+        comments: comments?.length || 0,
+        bookmarks: bookmarksCount || 0
+    };
+
+    return (
+        <InsightDetailClient
+            id={id}
+            initialInsight={insight}
+            initialComments={comments || []}
+            initialStats={stats}
+            initialIsLiked={isLiked}
+            initialIsBookmarked={isBookmarked}
+            initialCurrentUserId={user?.id || null}
+        />
+    );
 }

@@ -29,23 +29,40 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function InsightDetailClient({ id }: { id: string }) {
+interface InsightDetailClientProps {
+    id: string;
+    initialInsight: any;
+    initialComments: any[];
+    initialStats: { likes: number; comments: number; bookmarks: number };
+    initialIsLiked: boolean;
+    initialIsBookmarked: boolean;
+    initialCurrentUserId: string | null;
+}
+
+export default function InsightDetailClient({
+    id,
+    initialInsight,
+    initialComments,
+    initialStats,
+    initialIsLiked,
+    initialIsBookmarked,
+    initialCurrentUserId
+}: InsightDetailClientProps) {
     const supabase = createClient();
 
     const [isMounted, setIsMounted] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [insight, setInsight] = useState<any>(null);
-    const [comments, setComments] = useState<any[]>([]);
-    const [stats, setStats] = useState({ likes: 0, comments: 0, bookmarks: 0 });
-    const [isLiked, setIsLiked] = useState(false);
-    const [isBookmarked, setIsBookmarked] = useState(false);
+    const [insight, setInsight] = useState<any>(initialInsight);
+    const [comments, setComments] = useState<any[]>(initialComments);
+    const [stats, setStats] = useState(initialStats);
+    const [isLiked, setIsLiked] = useState(initialIsLiked);
+    const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
     const [newComment, setNewComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [isAuthor, setIsAuthor] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(initialCurrentUserId);
     const [activeCommentMenuId, setActiveCommentMenuId] = useState<string | null>(null);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState("");
@@ -56,89 +73,7 @@ export default function InsightDetailClient({ id }: { id: string }) {
 
     useEffect(() => {
         setIsMounted(true);
-        async function fetchData() {
-            setLoading(true);
-            try {
-                const { data: insightData, error: insightError } = await supabase
-                    .from("insights")
-                    .select(`
-            *,
-            profiles:user_id (
-              username,
-              full_name,
-              avatar_url,
-              tagline
-            )
-          `)
-                    .eq("id", id)
-                    .single();
-
-                if (insightError) throw insightError;
-                setInsight(insightData);
-
-                const { data: commentData, error: commentError } = await supabase
-                    .from("insight_comments")
-                    .select(`
-            *,
-            profiles:user_id (
-              username,
-              avatar_url,
-              tagline
-            )
-          `)
-                    .eq("insight_id", id)
-                    .order("created_at", { ascending: true });
-
-                if (commentError) throw commentError;
-                setComments(commentData || []);
-
-                const { count: likesCount } = await supabase
-                    .from("insight_likes")
-                    .select("*", { count: "exact", head: true })
-                    .eq("insight_id", id);
-
-                const { count: bookmarksCount } = await supabase
-                    .from("insight_bookmarks")
-                    .select("*", { count: "exact", head: true })
-                    .eq("insight_id", id);
-
-                setStats({
-                    likes: likesCount || 0,
-                    comments: commentData?.length || 0,
-                    bookmarks: bookmarksCount || 0
-                });
-
-                // 현재 사용자의 좋아요/북마크 상태 확인
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    const { data: likeData } = await supabase
-                        .from("insight_likes")
-                        .select("id")
-                        .eq("insight_id", id)
-                        .eq("user_id", user.id)
-                        .maybeSingle();
-
-                    const { data: bookmarkData } = await supabase
-                        .from("insight_bookmarks")
-                        .select("insight_id")
-                        .eq("insight_id", id)
-                        .eq("user_id", user.id)
-                        .maybeSingle();
-
-                    setIsLiked(!!likeData);
-                    setIsBookmarked(!!bookmarkData);
-                    setCurrentUserId(user.id);
-                }
-
-            } catch (error) {
-                console.error("Error fetching insight data:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchData();
-    }, [id, supabase]);
+    }, []);
 
     useEffect(() => {
         if (currentUserId && insight?.user_id) {
@@ -371,13 +306,6 @@ export default function InsightDetailClient({ id }: { id: string }) {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#002040]"></div>
-            </div>
-        );
-    }
 
     if (!insight) {
         return (
