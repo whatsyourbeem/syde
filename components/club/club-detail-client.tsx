@@ -166,7 +166,7 @@ export default function ClubDetailClient({
       </div>
       <Separator className="mb-4 md:hidden" />
       {/* Mobile-only horizontal scrollable member list */}
-      <div className="block md:hidden w-full">
+      <div className="block md:hidden w-full" data-nosnippet>
         {" "}
         {/* Added w-full py-8 for consistent spacing */}
         <div className="flex justify-between items-center mb-4 px-4">
@@ -183,7 +183,7 @@ export default function ClubDetailClient({
                 모두보기
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="h-full w-full flex flex-col">
+            <DrawerContent className="h-full w-full flex flex-col" data-nosnippet>
               <DrawerHeader>
                 <DrawerTitle>클럽 멤버 전체 보기</DrawerTitle>
                 <DrawerDescription>
