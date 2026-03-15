@@ -28,7 +28,6 @@ export default async function ShowcaseEditPage({
       showcase_bookmarks(user_id),
       showcase_comments(id),
       showcases_images(*),
-      showcases_links(*),
       members:showcases_members(*, profile:profiles(*))
     `,
     )

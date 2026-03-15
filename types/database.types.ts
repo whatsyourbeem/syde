@@ -1,3 +1,4 @@
+
 export type Json =
   | string
   | number
@@ -694,6 +695,7 @@ export type Database = {
           is_read: boolean
           log_id: string
           recipient_user_id: string
+          showcase_id: string | null
           trigger_user_id: string
           type: string
         }
@@ -704,6 +706,7 @@ export type Database = {
           is_read?: boolean
           log_id: string
           recipient_user_id: string
+          showcase_id?: string | null
           trigger_user_id: string
           type: string
         }
@@ -714,6 +717,7 @@ export type Database = {
           is_read?: boolean
           log_id?: string
           recipient_user_id?: string
+          showcase_id?: string | null
           trigger_user_id?: string
           type?: string
         }
@@ -737,6 +741,13 @@ export type Database = {
             columns: ["recipient_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcases"
             referencedColumns: ["id"]
           },
           {
@@ -903,32 +914,118 @@ export type Database = {
       }
       showcases: {
         Row: {
-          content: string
+          appstore_url: string | null
           created_at: string | null
+          description: string | null
+          id: string
+          name: string | null
+          playstore_url: string | null
+          short_description: string
+          thumbnail_url: string | null
+          updated_at: string | null
+          user_id: string
+          web_url: string | null
+        }
+        Insert: {
+          appstore_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string | null
+          playstore_url?: string | null
+          short_description: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          user_id: string
+          web_url?: string | null
+        }
+        Update: {
+          appstore_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string | null
+          playstore_url?: string | null
+          short_description?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+          web_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      showcases_images: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
           id: string
           image_url: string | null
+          showcase_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          showcase_id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          showcase_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcases_images_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      showcases_members: {
+        Row: {
+          display_order: number
+          id: string
+          showcase_id: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          content: string
-          created_at?: string | null
+          display_order: number
           id?: string
-          image_url?: string | null
+          showcase_id: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          content?: string
-          created_at?: string | null
+          display_order?: number
           id?: string
-          image_url?: string | null
+          showcase_id?: string
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "showcases_user_id_fkey"
+            foreignKeyName: "showcases_members_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "showcases_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

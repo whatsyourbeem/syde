@@ -27,6 +27,9 @@ export const createShowcase = withAuthForm(
         short_description: shortDescription,
         description: processedDescription,
         user_id: user.id,
+        web_url: websiteLinks[0] || null, // Assuming first link is taken if multiple are mistakenly passed
+        playstore_url: googlePlayLink || null,
+        appstore_url: appStoreLink || null,
       })
       .select("id")
       .single();
@@ -80,28 +83,7 @@ export const createShowcase = withAuthForm(
       }
     }
 
-    // Insert Links
-    const linksToInsert = [];
-    if (websiteLinks && websiteLinks.length > 0) {
-      websiteLinks.forEach(url => {
-        linksToInsert.push({ showcase_id: showcaseId, type: 'website', url });
-      });
-    }
-    if (googlePlayLink) {
-      linksToInsert.push({ showcase_id: showcaseId, type: 'google_play', url: googlePlayLink });
-    }
-    if (appStoreLink) {
-      linksToInsert.push({ showcase_id: showcaseId, type: 'app_store', url: appStoreLink });
-    }
 
-    if (linksToInsert.length > 0) {
-      const { error: linksError } = await supabase.from("showcases_links").insert(linksToInsert);
-      if (linksError) {
-        console.error("Failed to insert showcase links:", linksError);
-        // We generally don't fail the whole creation for link errors, but logging is important.
-        // Optionally return a warning or partial success if needed.
-      }
-    }
 
     // Insert Team Members
     const teamMembersJson = formData.get("teamMembers") as string | null;
@@ -175,11 +157,17 @@ export const updateShowcase = withAuthForm(
       name: string; 
       short_description: string; 
       description: string | null; 
-      thumbnail_url?: string | null 
+      thumbnail_url?: string | null;
+      web_url?: string | null;
+      playstore_url?: string | null;
+      appstore_url?: string | null;
     } = {
       name,
       short_description: shortDescription,
       description: processedDescription,
+      web_url: websiteLinks[0] || null,
+      playstore_url: googlePlayLink || null,
+      appstore_url: appStoreLink || null,
     };
     if (thumbnailUrl !== undefined) {
       updateData.thumbnail_url = thumbnailUrl;
@@ -194,25 +182,7 @@ export const updateShowcase = withAuthForm(
       return { error: `쇼케이스 업데이트 실패: ${error.message}` };
     }
 
-    // --- Update Links ---
-    // Strategy: Delete all existing, Insert new
-    await supabase.from("showcases_links").delete().eq("showcase_id", showcaseId);
-    
-    const linksToInsert = [];
-    if (websiteLinks && websiteLinks.length > 0) {
-      websiteLinks.forEach(url => {
-        linksToInsert.push({ showcase_id: showcaseId, type: 'website', url });
-      });
-    }
-    if (googlePlayLink) {
-      linksToInsert.push({ showcase_id: showcaseId, type: 'google_play', url: googlePlayLink });
-    }
-    if (appStoreLink) {
-      linksToInsert.push({ showcase_id: showcaseId, type: 'app_store', url: appStoreLink });
-    }
-    if (linksToInsert.length > 0) {
-      await supabase.from("showcases_links").insert(linksToInsert);
-    }
+
 
     // --- Update Members ---
     await supabase.from("showcases_members").delete().eq("showcase_id", showcaseId);

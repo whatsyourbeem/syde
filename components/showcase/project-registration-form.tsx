@@ -188,19 +188,13 @@ export function ProjectRegistrationForm({
 
       // Initialize Links
       const websites: string[] = [];
-      let googlePlay = "";
-      let appStore = "";
-
-      if (initialData.showcases_links) {
-        initialData.showcases_links.forEach((link: any) => {
-          if (link.type === "website") websites.push(link.url);
-          else if (link.type === "google_play") googlePlay = link.url;
-          else if (link.type === "app_store") appStore = link.url;
-        });
+      if (initialData.web_url) {
+        websites.push(initialData.web_url);
       }
+      
       if (websites.length > 0) setWebsiteLinks(websites);
-      if (googlePlay) setGooglePlayLink(googlePlay);
-      if (appStore) setAppStoreLink(appStore);
+      if (initialData.playstore_url) setGooglePlayLink(initialData.playstore_url);
+      if (initialData.appstore_url) setAppStoreLink(initialData.appstore_url);
 
       // Initialize Members
       if (initialData.members) {
@@ -629,38 +623,14 @@ export function ProjectRegistrationForm({
                 <span className="text-sm font-normal text-black">
                   웹사이트 링크
                 </span>
-                <Plus
-                  className="ml-auto w-5 h-5 text-[#777777] cursor-pointer hover:text-[#002040]"
-                  onClick={addWebsiteLink}
-                />
               </div>
-              <div className="px-4 py-0">
-                {websiteLinks.map((link, index) => (
-                  <div
-                    key={index}
-                    className="flex gap-2 border-b border-[#B7B7B7]"
-                  >
-                    <Input
-                      placeholder="https://www.syde.kr"
-                      value={link}
-                      onChange={(e) =>
-                        handleWebsiteLinkChange(index, e.target.value)
-                      }
-                      className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-[12px] placeholder:text-[#777777] flex-1 px-0"
-                    />
-                    {index > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        className="h-8 w-8 p-0"
-                        onClick={() => removeWebsiteLink(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
+              <div className="px-4 py-0 border-b border-[#B7B7B7]">
+                <Input
+                  placeholder="https://www.syde.kr"
+                  value={websiteLinks[0] || ""}
+                  onChange={(e) => handleWebsiteLinkChange(0, e.target.value)}
+                  className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 text-[12px] placeholder:text-[#777777] px-0"
+                />
               </div>
             </div>
 

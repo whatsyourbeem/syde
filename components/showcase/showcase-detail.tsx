@@ -560,17 +560,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Links Section */}
-        {/* Links Section */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] p-4 flex flex-col gap-4">
           {(() => {
-            const links = showcase.showcases_links || [];
-            const websiteLinks = links.filter((l: any) => l.type === "website");
-            const googlePlayLink = links.find(
-              (l: any) => l.type === "google_play",
-            );
-            const appStoreLink = links.find((l: any) => l.type === "app_store");
             const hasLinks =
-              websiteLinks.length > 0 || googlePlayLink || appStoreLink;
+              showcase.web_url || showcase.playstore_url || showcase.appstore_url;
 
             if (!hasLinks) {
               return (
@@ -583,10 +576,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             return (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 {/* Website Links */}
-                {websiteLinks.map((link: any) => (
+                {showcase.web_url && (
                   <a
-                    key={link.id}
-                    href={link.url}
+                    href={showcase.web_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full"
@@ -599,12 +591,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     </div>
                     <Share className="w-4 h-6 text-[#808080]" />
                   </a>
-                ))}
+                )}
 
                 {/* Google Play */}
-                {googlePlayLink && (
+                {showcase.playstore_url && (
                   <a
-                    href={googlePlayLink.url}
+                    href={showcase.playstore_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full"
@@ -626,9 +618,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 )}
 
                 {/* App Store */}
-                {appStoreLink && (
+                {showcase.appstore_url && (
                   <a
-                    href={appStoreLink.url}
+                    href={showcase.appstore_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full"

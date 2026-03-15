@@ -251,7 +251,7 @@ function ShowcaseForm({
             ref={fileInputRef}
           />
           {/* This hidden input tells the server action to remove the image */}
-          {!imagePreviewUrl && initialShowcaseData?.image_url && (
+          {!imagePreviewUrl && initialShowcaseData?.thumbnail_url && (
             <input type="hidden" name="imageRemoved" value="true" />
           )}
           <Button
@@ -308,9 +308,9 @@ export function ShowcaseEditDialog({
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const router = useRouter();
 
-  const [content, setContent] = useState(initialShowcaseData?.content || "");
+  const [content, setContent] = useState(initialShowcaseData?.description || "");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
-    initialShowcaseData?.image_url || null
+    initialShowcaseData?.thumbnail_url || null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -330,8 +330,8 @@ export function ShowcaseEditDialog({
   // Reset form state when dialog is closed
   useEffect(() => {
     if (!open) {
-      setContent(initialShowcaseData?.content || "");
-      setImagePreviewUrl(initialShowcaseData?.image_url || null);
+      setContent(initialShowcaseData?.description || "");
+      setImagePreviewUrl(initialShowcaseData?.thumbnail_url || null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [open, initialShowcaseData]);

@@ -34,11 +34,9 @@ export interface OptimizedShowcase extends ShowcaseRow {
     image_url: string;
     display_order: number;
   }>;
-  showcases_links?: Array<{
-    id: string;
-    type: string;
-    url: string;
-  }>;
+  web_url: string | null;
+  playstore_url: string | null;
+  appstore_url: string | null;
 }
 
 export interface ShowcaseQueryOptions {
