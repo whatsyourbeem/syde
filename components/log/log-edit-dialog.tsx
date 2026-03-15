@@ -37,8 +37,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useQueryClient } from "@tanstack/react-query";
-import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { OgPreviewCard } from "@/components/common/og-preview-card";
 
 interface MentionSuggestion {
   id: string;
@@ -75,8 +75,8 @@ function SubmitButton({
           ? "로그 수정 중..."
           : "로그 기록 중..."
         : initialLogData
-        ? "로그 수정하기"
-        : "로그 기록하기"}
+          ? "로그 수정하기"
+          : "로그 기록하기"}
     </Button>
   );
 }
@@ -169,9 +169,8 @@ function LogForm({
                 {mentionSuggestions.map((suggestion, index) => (
                   <li
                     key={suggestion.id}
-                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${
-                      index === activeSuggestionIndex ? "bg-accent" : ""
-                    }`}
+                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? "bg-accent" : ""
+                      }`}
                     onClick={() => handleSelectSuggestion(suggestion)}
                   >
                     <div className="flex items-center text-xs">

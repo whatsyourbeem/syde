@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
+import { JSONContent } from "@tiptap/react";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { createClient } from "@/lib/supabase/client";
 
@@ -97,6 +98,7 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
 
 interface MeetupDetailClientProps {
   meetup: Meetup;
+  initialHtml?: string;
   isOrganizer: boolean;
   user: User | null;
   joinedClubIds: string[];
@@ -104,10 +106,12 @@ interface MeetupDetailClientProps {
 
 export default function MeetupDetailClient({
   meetup: initialMeetup,
+  initialHtml,
   isOrganizer,
   user,
   joinedClubIds,
 }: MeetupDetailClientProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [meetup, setMeetup] = useState(initialMeetup);
   const [isJoinClubDialogOpen, setIsJoinClubDialogOpen] = useState(false);
   const [isJoinConfirmDialogOpen, setIsJoinConfirmDialogOpen] = useState(false);
@@ -118,6 +122,10 @@ export default function MeetupDetailClient({
   } | null>(null);
   const [isPending, startTransition] = useTransition();
   const supabase = createClient();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleStatusUpdate = (
     participantId: string,
@@ -213,18 +221,18 @@ export default function MeetupDetailClient({
 
   const isApprovedParticipant = user
     ? meetup.meetup_participants.some(
-        (p) =>
-          p.profiles?.id === user.id &&
-          p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
-      )
+      (p) =>
+        p.profiles?.id === user.id &&
+        p.status === MEETUP_PARTICIPANT_STATUSES.APPROVED
+    )
     : false;
 
   const isPendingParticipant = user
     ? meetup.meetup_participants.some(
-        (p) =>
-          p.profiles?.id === user.id &&
-          p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
-      )
+      (p) =>
+        p.profiles?.id === user.id &&
+        p.status === MEETUP_PARTICIPANT_STATUSES.PENDING
+    )
     : false;
   const isMeetupFull = meetup.max_participants
     ? meetup.meetup_participants.length >= meetup.max_participants
@@ -351,6 +359,7 @@ export default function MeetupDetailClient({
                 width={800}
                 height={800}
                 className="w-full h-full object-cover object-center md:rounded-lg aspect-square"
+                priority
               />
             </div>
 
@@ -364,14 +373,14 @@ export default function MeetupDetailClient({
                       {formatDate(meetup.start_datetime)}
                       {meetup.end_datetime &&
                         formatDate(meetup.start_datetime) !==
-                          formatDate(meetup.end_datetime) &&
+                        formatDate(meetup.end_datetime) &&
                         ` - ${formatDate(meetup.end_datetime, false)}`}
                       <br />
                       <span className="text-xs font-normal text-gray-500 md:text-sm">
                         {formatTime(meetup.start_datetime)}
                         {meetup.end_datetime &&
                           formatDate(meetup.start_datetime) ===
-                            formatDate(meetup.end_datetime) &&
+                          formatDate(meetup.end_datetime) &&
                           ` - ${formatTime(meetup.end_datetime)}`}
                       </span>
                     </span>
@@ -412,7 +421,16 @@ export default function MeetupDetailClient({
             <h2 className="text-2xl md:text-xl font-bold mb-4">
               💬<span className="font-extrabold pl-2">모임 설명</span>
             </h2>
-            <TiptapViewer content={meetup.description} />
+            <div className="min-h-[200px] w-full">
+              {/* SEO fallback */}
+              {initialHtml && !isMounted && (
+                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
+              )}
+              {/* 클라이언트 사이드 Tiptap 에디터 로드 후 교체 */}
+              <div className={initialHtml && !isMounted ? "hidden" : "block"}>
+                <TiptapViewer content={meetup.description} />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -507,8 +525,8 @@ export default function MeetupDetailClient({
                 {joinResult?.error
                   ? "오류"
                   : isPendingParticipant
-                  ? "참가 대기중"
-                  : "신청 완료"}
+                    ? "참가 대기중"
+                    : "신청 완료"}
               </AlertDialogTitle>
             </AlertDialogHeader>
             <div className="text-sm text-muted-foreground">

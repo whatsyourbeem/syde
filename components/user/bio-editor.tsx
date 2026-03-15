@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect } from "react";
 import { updateBio, uploadBioImage } from "@/app/[username]/actions";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Json } from "@/types/database.types";
 import { isTiptapJsonEmpty } from "@/lib/utils";
 import { JSONContent } from "@tiptap/react";
-import dynamic from 'next/dynamic';
+import { cn } from "@/lib/utils";
+// The dynamic import for next/dynamic is already present above, no need to duplicate.
 
 const TiptapEditorWrapper = dynamic(
   () => import('@/components/common/tiptap-editor-wrapper'),
@@ -20,16 +22,23 @@ const TiptapEditorWrapper = dynamic(
 
 interface BioEditorProps {
   initialBio: Json | null;
+  initialHtml?: string;
   isOwnProfile: boolean;
 }
 
 export default function BioEditor({
   initialBio,
+  initialHtml,
   isOwnProfile,
 }: BioEditorProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentBioContent, setCurrentBioContent] = useState<JSONContent | null>(initialBio as JSONContent | null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     setCurrentBioContent(initialBio as JSONContent | null);
@@ -111,7 +120,16 @@ export default function BioEditor({
                 : "작성된 자유 소개가 없습니다."}
             </p>
           ) : (
-            <TiptapViewer content={initialBio} />
+            <div className="w-full">
+              {/* SEO fallback */}
+              {initialHtml && !isMounted && (
+                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
+              )}
+              {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
+              <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
+                <TiptapViewer content={initialBio} />
+              </div>
+            </div>
           )}
           {isOwnProfile && (
             <div className="mt-12 flex justify-center">

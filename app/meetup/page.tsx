@@ -91,8 +91,8 @@ export default async function MeetupPage({
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 p-4">
-          {meetups.map((meetup) => (
-            <MeetupCard key={meetup.id} meetup={meetup} />
+          {meetups.map((meetup, index) => (
+            <MeetupCard key={meetup.id} meetup={meetup} priority={index < 4} />
           ))}
         </div>
       )}
@@ -133,11 +133,10 @@ export default async function MeetupPage({
                   ...(selectedType && { type: selectedType }),
                   page: pageNum.toString(),
                 }).toString()}`}
-                className={`px-3 py-2 text-sm font-medium border rounded-md ${
-                  pageNum === currentPage
+                className={`px-3 py-2 text-sm font-medium border rounded-md ${pageNum === currentPage
                     ? "bg-blue-600 text-white border-blue-600"
                     : "text-gray-500 hover:text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {pageNum}
               </Link>
@@ -160,7 +159,7 @@ export default async function MeetupPage({
       )}
     </div>
   );
-  
+
   return (
     <div className="w-full">
       <div className="w-full bg-card border-b">

@@ -25,6 +25,7 @@ interface ProfileContentTabsProps {
   isOwnProfile: boolean;
   profile: Tables<"profiles">;
   currentUserId: string | null;
+  initialHtml?: string;
   className?: string;
 }
 
@@ -32,6 +33,7 @@ export function ProfileContentTabs({
   isOwnProfile,
   profile,
   currentUserId,
+  initialHtml,
   className,
 }: ProfileContentTabsProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -111,7 +113,7 @@ export function ProfileContentTabs({
       {/* Right Content */}
       <div className="w-full md:w-3/4 px-4 md:pl-0 pt-2">
         <TabsContent value="bio" className="mt-2">
-          <BioEditor initialBio={profile.bio} isOwnProfile={isOwnProfile} />
+          <BioEditor initialBio={profile.bio} isOwnProfile={isOwnProfile} initialHtml={initialHtml} />
         </TabsContent>
         <TabsContent value="logs" className="mt-2">
           <LogList currentUserId={currentUserId} filterByUserId={profile.id} />

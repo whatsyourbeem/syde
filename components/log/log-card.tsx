@@ -30,6 +30,7 @@ interface LogCardProps {
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string;
   isDetailPage?: boolean;
+  priority?: boolean;
 }
 
 function LogCardBase({
@@ -43,6 +44,7 @@ function LogCardBase({
   mentionedProfiles,
   searchQuery,
   isDetailPage = false,
+  priority = false,
 }: LogCardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -136,6 +138,7 @@ function LogCardBase({
             searchQuery={searchQuery}
             isDetailPage={isDetailPage}
             onCardClick={handleCardClick}
+            priority={priority}
           />
 
           <LogCardActions
@@ -172,7 +175,8 @@ const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
     prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
     prevProps.searchQuery === nextProps.searchQuery &&
     prevProps.isDetailPage === nextProps.isDetailPage &&
-    prevProps.log.profiles?.id === nextProps.log.profiles?.id
+    prevProps.log.profiles?.id === nextProps.log.profiles?.id &&
+    prevProps.priority === nextProps.priority
   );
 });
 

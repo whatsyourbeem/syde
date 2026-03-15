@@ -53,3 +53,6 @@ CLAUDE.md
 /supabase/.supabase
 # 라이브 데이터가 포함될 수 있으므로 git에서 제외 (각자 로컬에서 dump 받아 사용)
 /supabase/seed.sql
+
+# antigravity (개인적인 Antigravity 세팅을 git에 포함하지 않기 위함)
+.antigravity

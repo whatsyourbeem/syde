@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
 
 type LogRow = Database["public"]["Tables"]["logs"]["Row"];
@@ -35,17 +35,19 @@ export interface LogQueryResult {
 /**
  * Optimized query for CLIENT-side fetching.
  */
-export async function getOptimizedLogs({
-  currentUserId,
-  currentPage,
-  logsPerPage,
-  filterByUserId,
-  filterByCommentedUserId,
-  filterByLikedUserId,
-  filterByBookmarkedUserId,
-  searchQuery,
-}: LogQueryOptions): Promise<LogQueryResult> {
-  const supabase = createClient();
+export async function getOptimizedLogs(
+  supabase: SupabaseClient<Database>,
+  {
+    currentUserId,
+    currentPage,
+    logsPerPage,
+    filterByUserId,
+    filterByCommentedUserId,
+    filterByLikedUserId,
+    filterByBookmarkedUserId,
+    searchQuery,
+  }: LogQueryOptions
+): Promise<LogQueryResult> {
   const from = (currentPage - 1) * logsPerPage;
   const to = from + logsPerPage - 1;
 
@@ -80,7 +82,7 @@ export async function getOptimizedLogs({
 
   // Handle search query optimization
   if (searchQuery) {
-    const searchConditions = await buildOptimizedSearchConditions(searchQuery);
+    const searchConditions = await buildOptimizedSearchConditions(supabase, searchQuery);
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(","));
     } else {
@@ -92,15 +94,15 @@ export async function getOptimizedLogs({
   if (filterByUserId) {
     query = query.eq("user_id", filterByUserId);
   } else if (filterByCommentedUserId) {
-    const commentedLogIds = await getCommentedLogIds(filterByCommentedUserId);
+    const commentedLogIds = await getCommentedLogIds(supabase, filterByCommentedUserId);
     if (commentedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", commentedLogIds);
   } else if (filterByLikedUserId) {
-    const likedLogIds = await getLikedLogIds(filterByLikedUserId);
+    const likedLogIds = await getLikedLogIds(supabase, filterByLikedUserId);
     if (likedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", likedLogIds);
   } else if (filterByBookmarkedUserId) {
-    const bookmarkedLogIds = await getBookmarkedLogIds(filterByBookmarkedUserId);
+    const bookmarkedLogIds = await getBookmarkedLogIds(supabase, filterByBookmarkedUserId);
     if (bookmarkedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", bookmarkedLogIds);
   }
@@ -115,7 +117,7 @@ export async function getOptimizedLogs({
   }
 
   // Batch fetch mentioned profiles
-  const mentionedProfiles = await getMentionedProfiles(logsData || []);
+  const mentionedProfiles = await getMentionedProfiles(supabase, logsData || []);
 
   // 3. Process logs and determine 'hasLiked' using the Set.
   const processedLogs: OptimizedLog[] = (logsData || []).map((log) => ({
@@ -141,10 +143,9 @@ export async function getOptimizedLogs({
 /**
  * Optimized search condition builder
  */
-async function buildOptimizedSearchConditions(searchQuery: string): Promise<string[]> {
-  const supabase = createClient();
+async function buildOptimizedSearchConditions(supabase: SupabaseClient<Database>, searchQuery: string): Promise<string[]> {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  
+
   // Batch profile lookup instead of separate query
   const { data: matchingProfiles } = await supabase
     .from("profiles")
@@ -176,9 +177,8 @@ async function buildOptimizedSearchConditions(searchQuery: string): Promise<stri
 /**
  * Cached helper to get commented log IDs
  */
-async function getCommentedLogIds(userId: string): Promise<string[]> {
-  const supabase = createClient();
-  
+async function getCommentedLogIds(supabase: SupabaseClient<Database>, userId: string): Promise<string[]> {
+
   const { data, error } = await supabase
     .from("log_comments")
     .select("log_id")
@@ -192,9 +192,8 @@ async function getCommentedLogIds(userId: string): Promise<string[]> {
 /**
  * Cached helper to get liked log IDs
  */
-async function getLikedLogIds(userId: string): Promise<string[]> {
-  const supabase = createClient();
-  
+async function getLikedLogIds(supabase: SupabaseClient<Database>, userId: string): Promise<string[]> {
+
   const { data, error } = await supabase
     .from("log_likes")
     .select("log_id")
@@ -208,9 +207,8 @@ async function getLikedLogIds(userId: string): Promise<string[]> {
 /**
  * Cached helper to get bookmarked log IDs
  */
-async function getBookmarkedLogIds(userId: string): Promise<string[]> {
-  const supabase = createClient();
-  
+async function getBookmarkedLogIds(supabase: SupabaseClient<Database>, userId: string): Promise<string[]> {
+
   const { data, error } = await supabase
     .from("log_bookmarks")
     .select("log_id")
@@ -224,10 +222,10 @@ async function getBookmarkedLogIds(userId: string): Promise<string[]> {
 /**
  * Batch fetch mentioned profiles to avoid N+1 queries
  */
-async function getMentionedProfiles(logs: Array<{ content: string }>): Promise<Array<{ id: string; username: string | null }>> {
+async function getMentionedProfiles(supabase: SupabaseClient<Database>, logs: Array<{ content: string }>): Promise<Array<{ id: string; username: string | null }>> {
   const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
   const mentionedUserIds = new Set<string>();
-  
+
   logs.forEach((log) => {
     const matches = log.content.matchAll(mentionRegex);
     for (const match of matches) {
@@ -239,7 +237,6 @@ async function getMentionedProfiles(logs: Array<{ content: string }>): Promise<A
     return [];
   }
 
-  const supabase = createClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("id, username")

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tables, Enums } from "@/types/database.types";
-import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import TiptapViewer from "@/components/common/tiptap-viewer";
+import { cn } from "@/lib/utils";
 import ClubPostForm from "@/components/club/club-post-form"; // ClubPostForm is a default export
 import { ClubPostDetailHeader } from "@/components/club/club-post-detail-header"; // Keep this for the header
 import { CLUB_PERMISSION_LEVEL_DISPLAY_NAMES, CLUB_PERMISSION_LEVELS } from "@/lib/constants"; // Added import
@@ -30,6 +30,7 @@ interface ClubPostDetailClientProps {
   post: ClubForumPost;
   clubId: string;
   user: User | null;
+  initialHtml?: string;
   isAuthorized: boolean;
   clubOwnerId: string | null;
 }
@@ -38,13 +39,19 @@ export default function ClubPostDetailClient({
   post,
   clubId,
   user,
+  initialHtml,
   isAuthorized,
   clubOwnerId,
 }: ClubPostDetailClientProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
   const queryClient = useQueryClient();
   const formattedPostDate = post.created_at ? formatRelativeTime(post.created_at) : '';
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleEditSuccess = () => {
     setIsEditing(false);
@@ -99,7 +106,7 @@ export default function ClubPostDetailClient({
                     )}
                   </div>
                   <div>
-                  <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedPostDate}</p>
+                    <p className="text-xs text-muted-foreground">·&nbsp;&nbsp;{formattedPostDate}</p>
                   </div>
                 </div>
               </ProfileHoverCard>
@@ -108,9 +115,20 @@ export default function ClubPostDetailClient({
 
           <Separator className="my-4" />
 
-          <div className="prose prose-sm dark:prose-invert max-w-none mb-8">
+          <div className="prose prose-sm dark:prose-invert max-w-none mb-8 w-full">
             {isAuthorized ? (
-              post.content && <TiptapViewer content={post.content} />
+              post.content && (
+                <div className="w-full">
+                  {/* SEO fallback */}
+                  {initialHtml && !isMounted && (
+                    <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
+                  )}
+                  {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
+                  <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
+                    <TiptapViewer content={post.content} />
+                  </div>
+                </div>
+              )
             ) : (
               <div className="p-8 text-center bg-secondary rounded-lg">
                 <p className="text-secondary-foreground">

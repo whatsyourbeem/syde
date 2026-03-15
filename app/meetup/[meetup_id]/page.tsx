@@ -11,9 +11,76 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   })[];
 };
 
+import { Metadata, ResolvingMetadata } from "next";
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+
 // 타입 명시
 interface PageProps {
   params: Promise<{ meetup_id: string }>;
+}
+
+export async function generateMetadata(
+  { params }: PageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { meetup_id } = await params;
+  const supabase = await createClient();
+
+  const { data: meetup } = await supabase
+    .from("meetups")
+    .select("title, description, thumbnail_url")
+    .eq("id", meetup_id)
+    .single();
+
+  if (!meetup) {
+    return {
+      title: "Meetup Not Found - SYDE",
+    };
+  }
+
+  const title = `${meetup.title} - SYDE 모임`;
+
+  let plainText = "";
+  let descObj = meetup.description;
+  if (typeof descObj === "string") {
+    try {
+      descObj = JSON.parse(descObj);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (descObj && typeof descObj === "object") {
+    try {
+      const extractText = (node: any): string => {
+        if (node.type === "text" && node.text) return node.text;
+        if (node.content && Array.isArray(node.content)) {
+          return node.content.map(extractText).join(" ");
+        }
+        return "";
+      };
+      plainText = extractText(descObj).trim();
+    } catch (e) {
+      // ignore
+    }
+  } else if (typeof descObj === "string") {
+    plainText = descObj;
+  }
+
+  const description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : (plainText || "SYDE 모임에 참여해보세요.");
+  const images = meetup.thumbnail_url ? [meetup.thumbnail_url] : ["/default_meetup_thumbnail.png"];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images,
+      type: "article",
+      url: `/meetup/${meetup_id}`,
+    },
+  };
 }
 
 export default async function MeetupDetailPage({ params }: PageProps) {
@@ -34,6 +101,8 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   }
 
   // description JSON 파싱 개선
+  let initialHtml = getInitialHtmlFromTiptap(meetup.description);
+
   if (typeof meetup.description === "string") {
     try {
       meetup.description = JSON.parse(meetup.description);
@@ -64,6 +133,7 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   return (
     <MeetupDetailClient
       meetup={meetup as Meetup}
+      initialHtml={initialHtml}
       isOrganizer={isOrganizer}
       user={user}
       joinedClubIds={joinedClubIds}

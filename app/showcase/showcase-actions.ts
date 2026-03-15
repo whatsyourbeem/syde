@@ -6,7 +6,7 @@ import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
 import { handleShowcaseImage, handleShowcaseDetailImages, deleteShowcaseStorage } from "@/lib/storage";
 
-export const createShowcase = withAuth(
+export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
     const name = formData.get("name") as string;
     const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
@@ -139,7 +139,7 @@ export const createShowcase = withAuth(
   }
 );
 
-export const updateShowcase = withAuth(
+export const updateShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
     const showcaseId = validateRequired(formData.get("showcaseId") as string, "쇼케이스 ID");
     const name = formData.get("name") as string;

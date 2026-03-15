@@ -60,7 +60,7 @@ export function LogList({
   console.log("LogList: Before useQuery. QueryKey:", queryKey);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
-    queryFn: () => getOptimizedLogs({
+    queryFn: () => getOptimizedLogs(supabase, {
       currentUserId: propCurrentUserId,
       currentPage,
       logsPerPage: LOGS_PER_PAGE,
@@ -140,7 +140,7 @@ export function LogList({
     return (
       <div className="w-full max-w-2xl mx-auto pb-4">
         <div className="px-4">
-          <InlineError 
+          <InlineError
             error={error?.message || "로그를 불러오는 중 오류가 발생했습니다."}
             retry={() => queryClient.invalidateQueries({ queryKey: ["logs"] })}
           />
@@ -171,6 +171,7 @@ export function LogList({
               mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
               searchQuery={searchQuery} // Pass searchQuery to LogCard
               isDetailPage={false} // Add this prop
+              priority={index < 2} // Add priority to the first two logs
             />
             {index < logs.length - 1 && (
               <div className="border-b border-gray-200 my-4"></div>

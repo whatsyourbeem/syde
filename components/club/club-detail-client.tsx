@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Tables } from "@/types/database.types";
-
 import TiptapViewer from "@/components/common/tiptap-viewer";
-
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Drawer,
   DrawerTrigger,
@@ -49,6 +48,7 @@ type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 
 interface ClubDetailClientProps {
   club: Tables<"clubs"> & { owner_profile: Profile | null };
+  initialHtml?: string;
   members: ClubMember[];
   meetups: Meetup[];
   forums: Tables<"club_forums">[];
@@ -61,6 +61,7 @@ interface ClubDetailClientProps {
 // Main Component
 export default function ClubDetailClient({
   club,
+  initialHtml,
   members,
   meetups,
   forums,
@@ -76,6 +77,11 @@ export default function ClubDetailClient({
   const [paginatedPosts, setPaginatedPosts] = useState<ClubForumPost[]>([]);
   const [totalPostsCount, setTotalPostsCount] = useState(0);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const canReadForum = (forum: Tables<"club_forums">) => {
     const permission = forum.read_permission;
@@ -160,7 +166,7 @@ export default function ClubDetailClient({
       </div>
       <Separator className="mb-4 md:hidden" />
       {/* Mobile-only horizontal scrollable member list */}
-      <div className="block md:hidden w-full">
+      <div className="block md:hidden w-full" data-nosnippet>
         {" "}
         {/* Added w-full py-8 for consistent spacing */}
         <div className="flex justify-between items-center mb-4 px-4">
@@ -177,7 +183,7 @@ export default function ClubDetailClient({
                 모두보기
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="h-full w-full flex flex-col">
+            <DrawerContent className="h-full w-full flex flex-col" data-nosnippet>
               <DrawerHeader>
                 <DrawerTitle>클럽 멤버 전체 보기</DrawerTitle>
                 <DrawerDescription>
@@ -218,9 +224,18 @@ export default function ClubDetailClient({
               💬<span className="font-extrabold pl-1">소개</span>
             </h2>
           </AccordionTrigger>
-          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none px-6 pt-0 pb-6">
+          <AccordionContent className="prose prose-sm dark:prose-invert max-w-none px-6 pt-0 pb-6 w-full min-h-[150px]">
             {club.description ? (
-              <TiptapViewer content={club.description} />
+              <div className="w-full">
+                {/* SEO fallback */}
+                {initialHtml && !isMounted && (
+                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
+                )}
+                {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
+                <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
+                  <TiptapViewer content={club.description} />
+                </div>
+              </div>
             ) : (
               <p className="text-muted-foreground">
                 클럽 설명이 아직 없습니다.

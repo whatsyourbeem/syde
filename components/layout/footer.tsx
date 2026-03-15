@@ -13,8 +13,8 @@ import {
 
 const paperlogy = localFont({
   src: [
-    { path: "../../fonts/Paperlogy-7Bold.ttf", weight: "700" },
-    { path: "../../fonts/Paperlogy-8ExtraBold.ttf", weight: "800" },
+    { path: "../../fonts/Paperlogy-7Bold.woff2", weight: "700" },
+    { path: "../../fonts/Paperlogy-8ExtraBold.woff2", weight: "800" },
   ],
   display: "swap",
 });

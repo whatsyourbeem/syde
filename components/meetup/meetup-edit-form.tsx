@@ -29,7 +29,7 @@ import Image from "next/image";
 import { createMeetup, updateMeetup } from "@/app/meetup/meetup-actions";
 import { toast } from "sonner";
 import { Tables, Enums } from "@/types/database.types";
-import MeetupDescriptionEditor from "@/components/meetup/meetup-description-editor";
+import dynamic from "next/dynamic";
 import { DatePicker } from "@/components/ui/date-picker-with-time";
 import { TimePicker } from "@/components/ui/time-picker";
 import { JSONContent } from "@tiptap/react";
@@ -39,6 +39,14 @@ import {
   MEETUP_TYPES,
   MEETUP_TYPE_DISPLAY_NAMES,
 } from "@/lib/constants";
+
+const MeetupDescriptionEditor = dynamic(
+  () => import("@/components/meetup/meetup-description-editor"),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 mt-2 flex items-center justify-center bg-muted/20 animate-pulse rounded-md w-full">에디터 로딩 중...</div>
+  }
+);
 
 type Meetup = Tables<"meetups">;
 
@@ -76,13 +84,13 @@ export default function MeetupEditForm({
   const [maxParticipants, setMaxParticipants] = useState<number | string>(meetup?.max_participants || "");
   const [fee, setFee] = useState<number | string>(meetup?.fee || "");
   const [maxParticipantsError, setMaxParticipantsError] = useState<string | null>(null);
-  
+
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
     meetup?.thumbnail_url || (thumbnailUrl ? thumbnailUrl : null)
   );
   const [descriptionImages, setDescriptionImages] = useState<{ file: File; blobUrl: string }[]>([]);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
@@ -226,12 +234,10 @@ export default function MeetupEditForm({
               src={thumbnailPreview || "/default_meetup_thumbnail.png"}
               alt="썸네일 미리보기"
               fill
-              className={`object-cover object-center w-full h-full transition-opacity duration-300 ${
-                isHovered ? "opacity-50" : "opacity-100"}`}
+              className={`object-cover object-center w-full h-full transition-opacity duration-300 ${isHovered ? "opacity-50" : "opacity-100"}`}
             />
             <div
-              className={`absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-300 z-10 ${
-                isHovered ? "opacity-50" : "opacity-0"}`}
+              className={`absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-300 z-10 ${isHovered ? "opacity-50" : "opacity-0"}`}
             >
               <Plus className="w-12 h-12" color="white" />
             </div>
@@ -293,7 +299,7 @@ export default function MeetupEditForm({
           <p className="text-red-500 text-sm pt-2">{dateError}</p>
         )}
       </div>
-      
+
       <div>
         <label htmlFor="type" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 유형 <span className="text-red-500">*</span>

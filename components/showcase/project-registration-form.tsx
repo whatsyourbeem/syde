@@ -358,8 +358,8 @@ export function ProjectRegistrationForm({
       }
 
       const result = initialData
-        ? await updateShowcase(formData)
-        : await createShowcase(formData);
+        ? await updateShowcase({ id: undefined, error: undefined }, formData)
+        : await createShowcase({ id: undefined, error: undefined }, formData);
 
       if (result && "error" in result) {
         toast.error(result.error);
