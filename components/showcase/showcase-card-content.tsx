@@ -61,12 +61,12 @@ function ShowcaseCardContentBase({
           style={
             !isDetailPage
               ? ({
-                  display: "-webkit-box",
-                  WebkitLineClamp: 12,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  maxHeight: "18rem",
-                } as React.CSSProperties)
+                display: "-webkit-box",
+                WebkitLineClamp: 12,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                maxHeight: "18rem",
+              } as React.CSSProperties)
               : {}
           }
         >
@@ -91,7 +91,7 @@ function ShowcaseCardContentBase({
       )}
       {showcase.thumbnail_url && (
         <div
-          className="relative w-full mt-3 rounded-md overflow-hidden bg-sydenightblue"
+          className="relative w-full mt-3 rounded-md overflow-hidden bg-sydeblue"
           style={{ aspectRatio: "16 / 9" }}
         >
           <Image
@@ -123,13 +123,13 @@ export const ShowcaseCardContent = memo(
     return (
       prevProps.showcase.id === nextProps.showcase.id &&
       prevProps.showcase.short_description ===
-        nextProps.showcase.short_description &&
+      nextProps.showcase.short_description &&
       prevProps.showcase.description === nextProps.showcase.description &&
       prevProps.showcase.thumbnail_url === nextProps.showcase.thumbnail_url &&
       prevProps.searchQuery === nextProps.searchQuery &&
       prevProps.isDetailPage === nextProps.isDetailPage &&
       JSON.stringify(prevProps.mentionedProfiles) ===
-        JSON.stringify(nextProps.mentionedProfiles)
+      JSON.stringify(nextProps.mentionedProfiles)
     );
   },
 );

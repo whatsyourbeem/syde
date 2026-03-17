@@ -45,10 +45,9 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        sydenightblue: "#002040",
+        sydeblue: "#002040",
         sydeorange: "#ED6D34",
         alabasterwhite: "#FAFAFA",
-        sydeblue: "#002040",
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",

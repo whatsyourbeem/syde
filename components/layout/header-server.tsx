@@ -70,7 +70,7 @@ export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName:
                                     priority
                                 />
                                 <span
-                                    className={`text-2xl font-extrabold text-sydenightblue ${paperlogyClassName}`}
+                                    className={`text-2xl font-extrabold text-sydeblue ${paperlogyClassName}`}
                                 >
                                     <span style={{ letterSpacing: "0.01em" }}>S</span>
                                     <span style={{ letterSpacing: "0.01em" }}>Y</span>
@@ -141,7 +141,7 @@ export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName:
                                     priority
                                 />
                                 <span
-                                    className={`text-4xl font-extrabold text-sydenightblue ${paperlogyClassName}`}
+                                    className={`text-4xl font-extrabold text-sydeblue ${paperlogyClassName}`}
                                 >
                                     <span style={{ letterSpacing: "0.01em" }}>S</span>
                                     <span style={{ letterSpacing: "0.01em" }}>Y</span>
@@ -188,7 +188,7 @@ export function HeaderSkeleton({ paperlogyClassName }: { paperlogyClassName: str
                         <div className="flex items-center">
                             <div className="flex items-center gap-1">
                                 <Image src="/logo_no_bg.png" alt="SYDE" width={36} height={36} priority />
-                                <span className={`text-2xl font-extrabold text-sydenightblue ${paperlogyClassName}`}>
+                                <span className={`text-2xl font-extrabold text-sydeblue ${paperlogyClassName}`}>
                                     <span style={{ letterSpacing: "0.01em" }}>S</span>
                                     <span style={{ letterSpacing: "0.01em" }}>Y</span>
                                     <span style={{ letterSpacing: "0em" }}>DE</span>
@@ -213,7 +213,7 @@ export function HeaderSkeleton({ paperlogyClassName }: { paperlogyClassName: str
                         <div className="w-1/3 flex justify-center items-center font-semibold">
                             <div className="flex items-center gap-1">
                                 <Image src="/logo_no_bg.png" alt="SYDE" width={52} height={52} priority />
-                                <span className={`text-4xl font-extrabold text-sydenightblue ${paperlogyClassName}`}>
+                                <span className={`text-4xl font-extrabold text-sydeblue ${paperlogyClassName}`}>
                                     <span style={{ letterSpacing: "0.01em" }}>S</span>
                                     <span style={{ letterSpacing: "0.01em" }}>Y</span>
                                     <span style={{ letterSpacing: "0em" }}>DE</span>

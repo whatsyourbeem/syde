@@ -94,7 +94,7 @@ function LogCardContentBase({
       )}
       {log.image_url && ensureSecureImageUrl(log.image_url) && (
         <div
-          className="relative w-full mt-3 rounded-md overflow-hidden bg-sydenightblue"
+          className="relative w-full mt-3 rounded-md overflow-hidden bg-sydeblue"
           style={{ aspectRatio: "16 / 9" }}
         >
           <Image

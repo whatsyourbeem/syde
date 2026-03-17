@@ -78,8 +78,8 @@ function SubmitButton({
           ? "쇼케이스 수정 중..."
           : "쇼케이스 기록 중..."
         : initialShowcaseData
-        ? "쇼케이스 수정하기"
-        : "쇼케이스 기록하기"}
+          ? "쇼케이스 수정하기"
+          : "쇼케이스 기록하기"}
     </Button>
   );
 }
@@ -176,9 +176,8 @@ function ShowcaseForm({
                 {mentionSuggestions.map((suggestion, index) => (
                   <li
                     key={suggestion.id}
-                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${
-                      index === activeSuggestionIndex ? "bg-accent" : ""
-                    }`}
+                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${index === activeSuggestionIndex ? "bg-accent" : ""
+                      }`}
                     onClick={() => handleSelectSuggestion(suggestion)}
                   >
                     <div className="flex items-center text-xs">
@@ -551,7 +550,7 @@ export function ShowcaseEditDialog({
     ? "쇼케이스 수정"
     : "새 쇼케이스 작성";
   const triggerContent = children || (
-    <div className="flex flex-col items-center py-5 px-[10px] text-sydenightblue gap-[10px]">
+    <div className="flex flex-col items-center py-5 px-[10px] text-sydeblue gap-[10px]">
       {avatarUrl && (
         <Image
           src={avatarUrl}

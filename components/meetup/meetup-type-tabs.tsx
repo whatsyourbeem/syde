@@ -42,7 +42,7 @@ export default function MeetupTypeTabs({ className }: MeetupTypeTabsProps) {
           value="전체"
           className={cn(
             "px-4 py-2",
-            currentActiveTab === "전체" && "bg-sydenightblue text-white"
+            currentActiveTab === "전체" && "bg-sydeblue text-white"
           )}
         >
           전체
@@ -51,7 +51,7 @@ export default function MeetupTypeTabs({ className }: MeetupTypeTabsProps) {
           value="정기모임"
           className={cn(
             "px-4 py-2",
-            currentActiveTab === "정기모임" && "bg-sydenightblue text-white"
+            currentActiveTab === "정기모임" && "bg-sydeblue text-white"
           )}
         >
           정기모임
@@ -60,7 +60,7 @@ export default function MeetupTypeTabs({ className }: MeetupTypeTabsProps) {
           value="스핀오프"
           className={cn(
             "px-4 py-2",
-            currentActiveTab === "스핀오프" && "bg-sydenightblue text-white"
+            currentActiveTab === "스핀오프" && "bg-sydeblue text-white"
           )}
         >
           스핀오프
