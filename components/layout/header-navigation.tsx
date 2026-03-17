@@ -14,14 +14,14 @@ export function HeaderNavigation() {
   const pathname = usePathname();
 
   return (
-    <NavigationMenu className="w-full md:h-auto flex-grow flex justify-center items-center text-base font-semibold">
-      <NavigationMenuList className="h-full">
-        <NavigationMenuItem>
+    <NavigationMenu className="w-full md:h-auto flex justify-start md:justify-center items-center text-base font-semibold overflow-x-auto no-scrollbar">
+      <NavigationMenuList className="h-full flex-nowrap gap-0">
+        <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link
               href="/log"
               className={cn(
-                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
                 pathname.startsWith("/log")
                   ? "font-bold text-primary border-b-2 border-primary"
                   : "text-gray-400"
@@ -31,12 +31,12 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem>
+        <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link
               href="/showcase"
               className={cn(
-                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
                 pathname.startsWith("/showcase")
                   ? "font-bold text-primary border-b-2 border-primary"
                   : "text-gray-400"
@@ -46,12 +46,12 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem>
+        <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link
               href="/insight"
               className={cn(
-                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
                 pathname.startsWith("/insight")
                   ? "font-bold text-primary border-b-2 border-primary"
                   : "text-gray-400"
@@ -61,12 +61,12 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem>
+        <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link
               href="/meetup"
               className={cn(
-                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
                 pathname.startsWith("/meetup")
                   ? "font-bold text-primary border-b-2 border-primary"
                   : "text-gray-400"
@@ -76,12 +76,12 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem>
+        <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link
               href="/club"
               className={cn(
-                "flex-1 text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center",
+                "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
                 pathname.startsWith("/club")
                   ? "font-bold text-primary border-b-2 border-primary"
                   : "text-gray-400"

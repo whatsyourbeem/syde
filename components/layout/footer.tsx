@@ -20,7 +20,7 @@ export default function Footer() {
   return (
     <>
       <footer className="hidden md:flex w-full bg-[#FAFAFA] border-t-[0.5px] border-[#B7B7B7] px-[50px] py-5 justify-between">
-        <div className="w-full max-w-6xl mx-auto px-5 flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-0">
+        <div className="w-full max-w-6xl mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
           {/* Left Section: Logo & Copyright */}
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
@@ -39,9 +39,9 @@ export default function Footer() {
           </div>
 
           {/* Right Section: All Horizontal */}
-          <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12 w-full lg:w-auto">
-            {/* Main Nav Links */}
-            <div className="flex items-center justify-center w-[253px] h-[44px] gap-[24px] font-bold text-[#002040] text-xs px-[50px] py-[10px]">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 lg:gap-12 w-full md:w-auto">
+            {/* Main Nav Links (Hidden on Tablet, Visible on Desktop) */}
+            <div className="hidden lg:flex items-center justify-center w-[253px] h-[44px] gap-[24px] font-bold text-[#002040] text-xs px-[50px] py-[10px]">
               <Link href="/about" className="hover:opacity-80">
                 SYDE 소개
               </Link>
