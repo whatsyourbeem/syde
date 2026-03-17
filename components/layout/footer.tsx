@@ -4,12 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import localFont from "next/font/local";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+
 
 const paperlogy = localFont({
   src: [
@@ -19,18 +14,7 @@ const paperlogy = localFont({
   display: "swap",
 });
 
-const TriangleDownIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={className}
-  >
-    <path d="M12 15L7 10H17L12 15Z" />
-  </svg>
-);
+
 
 export default function Footer() {
   return (
@@ -144,27 +128,7 @@ export default function Footer() {
                 </Link>
               </div>
 
-              <Accordion
-                type="single"
-                collapsible
-                className="border-none w-auto"
-              >
-                <AccordionItem value="item-1" className="border-none">
-                  <AccordionTrigger
-                    icon={TriangleDownIcon}
-                    iconClassName="w-3 h-3"
-                    className="text-[12px] text-[#999999] py-0 hover:no-underline justify-end h-4 gap-2"
-                  >
-                    사업자정보
-                  </AccordionTrigger>
-                  <AccordionContent className="absolute right-0 mt-1 p-3 bg-white border border-gray-100 rounded shadow-sm min-w-[200px] z-10 text-[10px] text-[#999999]">
-                    <p>BEEM | 대표: 안재현</p>
-                    <p>사업자등록번호: 859-68-00509</p>
-                    <p>이메일: whatsyourbeem@gmail.com</p>
-                    <p>전화번호: 0504-0816-1298</p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+
             </div>
           </div>
         </div>
@@ -201,20 +165,7 @@ export default function Footer() {
         <p className="font-pretendard font-normal text-[12px] leading-[150%] text-center text-[#002040] w-full">
           © 2025 SYDE. All rights reserved.
         </p>
-        <div className="flex flex-row justify-center items-center gap-[8px]">
-          <span className="font-pretendard font-normal text-[12px] leading-[150%] text-center text-[#777777]">
-            사업자정보
-          </span>
-          <svg
-            width="10"
-            height="8"
-            viewBox="0 0 10 8"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M5 8L0.669873 0.5L9.33013 0.5L5 8Z" fill="#777777" />
-          </svg>
-        </div>
+
       </footer>
     </>
   );
