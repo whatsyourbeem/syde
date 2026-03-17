@@ -117,11 +117,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   );
 
   // Gallery Logic
-  const galleryImages = showcase.showcases_images
-    ? [...showcase.showcases_images].sort(
-        (a: any, b: any) => a.display_order - b.display_order,
-      )
-    : [];
+  const galleryImages = showcase.images || [];
 
   const handleNextImage = () => {
     if (galleryImages.length > 0) {
@@ -453,12 +449,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
           {/* Large Image (480x270 desktop, 320x180 mobile) */}
           <div
-            key={galleryImages[currentImageIndex]?.id || "main-empty"}
+            key={`main-${currentImageIndex}`}
             className="flex-none w-[320px] h-[180px] md:w-[480px] md:h-[270px] bg-[#B7B7B7] rounded-[10px] md:rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500 order-2 md:order-2"
           >
             {galleryImages[currentImageIndex] ? (
               <Image
-                src={galleryImages[currentImageIndex].image_url}
+                src={galleryImages[currentImageIndex]}
                 alt="Main"
                 fill
                 className="object-cover"
@@ -482,16 +478,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           {/* Small Image (320x180) - Next Preview (Desktop Only) */}
           {galleryImages.length > 1 && (
             <div
-              key={
-                galleryImages[(currentImageIndex + 1) % galleryImages.length]
-                  ?.id || "next-empty"
-              }
+              key={`next-${(currentImageIndex + 1) % galleryImages.length}`}
               className="hidden md:block md:flex-none md:w-[320px] md:h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500 order-4 md:order-4"
             >
               <Image
                 src={
                   galleryImages[(currentImageIndex + 1) % galleryImages.length]
-                    .image_url
                 }
                 alt="Next"
                 fill

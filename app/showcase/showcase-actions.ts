@@ -62,19 +62,16 @@ export const createShowcase = withAuthForm(
         console.log(`[createShowcase] Uploaded ${detailImageUrls.length} images. URLs:`, detailImageUrls);
 
         if (detailImageUrls.length > 0) {
-          const { error: imagesError } = await supabase.from("showcases_images").insert(
-            detailImageUrls.map((url, index) => ({
-              showcase_id: showcaseId,
-              image_url: url,
-              display_order: index,
-            }))
-          );
+          const { error: imagesError } = await supabase
+            .from("showcases")
+            .update({ images: detailImageUrls })
+            .eq("id", showcaseId);
 
           if (imagesError) {
-             console.error("[createShowcase] Failed to insert showcase detail images to DB:", imagesError);
+             console.error("[createShowcase] Failed to update showcase with images:", imagesError);
              return { error: `상세 이미지 저장 실패: ${imagesError.message}` };
           } else {
-             console.log("[createShowcase] Successfully inserted images to DB.");
+             console.log("[createShowcase] Successfully updated images in showcases table.");
           }
         }
       } catch (uploadError) {
@@ -161,6 +158,7 @@ export const updateShowcase = withAuthForm(
       web_url?: string | null;
       playstore_url?: string | null;
       appstore_url?: string | null;
+      images?: string[];
     } = {
       name,
       short_description: shortDescription,
@@ -228,16 +226,15 @@ export const updateShowcase = withAuthForm(
 
     const finalImages = [...remainingImages, ...newImageUrls];
 
-    // Replace images in DB
-    await supabase.from("showcases_images").delete().eq("showcase_id", showcaseId);
+    // Update images in showcases table
+    const { error: imagesUpdateError } = await supabase
+      .from("showcases")
+      .update({ images: finalImages })
+      .eq("id", showcaseId);
 
-    if (finalImages.length > 0) {
-      const imagesToInsert = finalImages.map((url, index) => ({
-        showcase_id: showcaseId,
-        image_url: url,
-        display_order: index,
-      }));
-      await supabase.from("showcases_images").insert(imagesToInsert);
+    if (imagesUpdateError) {
+      console.error("[updateShowcase] Failed to update images:", imagesUpdateError);
+      return { error: `이미지 정보 업데이트 실패: ${imagesUpdateError.message}` };
     }
 
     revalidatePath("/");

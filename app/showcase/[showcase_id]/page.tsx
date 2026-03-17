@@ -21,13 +21,9 @@ export default async function ShowcaseDetailPage({
   const { data: showcase, error } = await supabase
     .from("showcases")
     .select(
-      "*, profiles(*), showcase_likes(user_id), showcase_bookmarks(user_id), showcase_comments(id), showcases_images(*), members:showcases_members(*, profile:profiles(*))",
+      "*, profiles(*), showcase_likes(user_id), showcase_bookmarks(user_id), showcase_comments(id), members:showcases_members(*, profile:profiles(*))",
     )
     .eq("id", showcase_id)
-    .order("display_order", {
-      referencedTable: "showcases_images",
-      ascending: true,
-    })
     .single();
 
   if (error || !showcase) {

@@ -918,6 +918,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          images: string[]
           name: string | null
           playstore_url: string | null
           short_description: string
@@ -931,6 +932,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          images?: string[]
           name?: string | null
           playstore_url?: string | null
           short_description: string
@@ -944,6 +946,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          images?: string[]
           name?: string | null
           playstore_url?: string | null
           short_description?: string
@@ -958,38 +961,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      showcases_images: {
-        Row: {
-          created_at: string | null
-          display_order: number | null
-          id: string
-          image_url: string | null
-          showcase_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          display_order?: number | null
-          id?: string
-          image_url?: string | null
-          showcase_id: string
-        }
-        Update: {
-          created_at?: string | null
-          display_order?: number | null
-          id?: string
-          image_url?: string | null
-          showcase_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "showcases_images_showcase_id_fkey"
-            columns: ["showcase_id"]
-            isOneToOne: false
-            referencedRelation: "showcases"
             referencedColumns: ["id"]
           },
         ]

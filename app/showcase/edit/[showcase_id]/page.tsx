@@ -27,7 +27,6 @@ export default async function ShowcaseEditPage({
       showcase_likes(user_id),
       showcase_bookmarks(user_id),
       showcase_comments(id),
-      showcases_images(*),
       members:showcases_members(*, profile:profiles(*))
     `,
     )
@@ -55,14 +54,12 @@ export default async function ShowcaseEditPage({
     }))
     .sort((a: any, b: any) => a.display_order - b.display_order);
 
-  const images = (showcaseData.showcases_images || []).sort(
-    (a: any, b: any) => a.display_order - b.display_order,
-  );
+  const images = (showcaseData.images || []);
 
   const initialData: OptimizedShowcase = {
     ...showcaseData,
     members: members,
-    showcases_images: images,
+    images: images,
     // Add missing calculated fields required by OptimizedShowcase (though form might not use them all)
     likesCount: showcaseData.showcase_likes?.length || 0,
     hasLiked: showcaseData.showcase_likes?.some(

@@ -28,12 +28,7 @@ export interface OptimizedShowcase extends ShowcaseRow {
   bookmarksCount: number;
   hasBookmarked: boolean;
   members: ShowcaseMember[]; // Added members array
-  // Joined tables
-  showcases_images?: Array<{
-    id: string;
-    image_url: string;
-    display_order: number;
-  }>;
+  images: string[];
   web_url: string | null;
   playstore_url: string | null;
   appstore_url: string | null;

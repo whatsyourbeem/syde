@@ -179,11 +179,8 @@ export function ProjectRegistrationForm({
       }
 
       // Initialize Detail Images
-      if (initialData.showcases_images) {
-        const sortedImages = [...initialData.showcases_images]
-          .sort((a: any, b: any) => a.display_order - b.display_order)
-          .map((img: any) => img.image_url);
-        setDetailImagePreviews(sortedImages);
+      if (initialData.images) {
+        setDetailImagePreviews(initialData.images);
       }
 
       // Initialize Links
