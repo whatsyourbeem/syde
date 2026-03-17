@@ -126,17 +126,17 @@ function ShowcaseCardBase({
 
         {/* Content Area */}
         <div className="flex flex-col justify-between md:h-[120px] min-w-0 flex-grow gap-1 md:gap-0">
-          <div className="flex flex-col gap-[2px] md:gap-1 w-full">
+          <div className="flex flex-col gap-1 w-full">
             {/* Title (Mobile: 18px Bold / Desktop: 20px Bold) */}
-            <h3 className="text-[18px] md:text-[20px] font-bold text-black line-clamp-2 md:line-clamp-1 leading-[150%] md:leading-[30px]">
+            <h3 className="text-[18px] font-bold text-black line-clamp-2 md:line-clamp-1 leading-[150%] md:leading-[27px]">
               {showcase.name || "제목 없음"}
             </h3>
             {/* Description (Mobile: 14px / Desktop: 15px) */}
-            <p className="text-[14px] md:text-[15px] font-normal text-black line-clamp-1 leading-[150%] md:leading-[23px]">
+            <p className="text-[14px] font-normal text-black line-clamp-1 leading-[150%] md:leading-[21px]">
               {showcase.short_description || "설명이 없습니다."}
             </p>
             {/* Profile Line (Mobile: 14px/12px / Desktop: 14px/12px) */}
-            <div className="h-5 w-full relative mt-1 md:mt-0">
+            <div className="h-5 w-full relative">
               <ProfileHoverCard
                 userId={showcase.user_id}
                 profileData={showcase.profiles}
