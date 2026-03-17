@@ -17,7 +17,7 @@ export default function LogLayout({ children }: { children: React.ReactNode }) {
       </div>
       <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen p-4">
         <div className="flex flex-col items-center text-center">
-          <p className="text-sm text-gray-500 mb-4">ⓒ 2026. SYDE</p>
+          <p className="text-sm text-gray-500 mb-4">ⓒ {new Date().getFullYear()}. SYDE</p>
           <div className="flex justify-center gap-4">
             <Link
               href="https://open.kakao.com/o/gduSGmtf"

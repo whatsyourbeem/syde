@@ -163,7 +163,7 @@ export default function Footer() {
           </Link>
         </div>
         <p className="font-pretendard font-normal text-[12px] leading-[150%] text-center text-[#002040] w-full">
-          © 2025 SYDE. All rights reserved.
+          © {new Date().getFullYear()} SYDE. All rights reserved.
         </p>
 
       </footer>
