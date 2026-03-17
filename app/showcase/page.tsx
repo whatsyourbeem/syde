@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 export default async function ShowcasePage() {
   redirect("/log"); // TODO: 쇼케이스 정식 오픈 시 삭제
+
+  /* TODO: 쇼케이스 정식 오픈 시 주석 해제
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,4 +27,5 @@ export default async function ShowcasePage() {
       <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />
     </>
   );
+  */
 }
