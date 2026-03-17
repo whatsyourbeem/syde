@@ -22,13 +22,12 @@ export function ShowcaseLayoutContent({
   children,
 }: ShowcaseLayoutContentProps) {
   const pathname = usePathname();
-  // Left Sidebar는 /showcase 메인 페이지에서만 표시
-  const showLeftSidebar = pathname === "/showcase";
+  const isMainPage = pathname === "/showcase";
 
   return (
     <main className="flex justify-center gap-x-5 md:px-5 max-w-6xl mx-auto">
       {/* Left Sidebar: 메인 페이지에서만 표시 */}
-      {showLeftSidebar && (
+      {isMainPage && (
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
           {user && profile ? (
             <ShowcaseSidebarButton
@@ -48,16 +47,16 @@ export function ShowcaseLayoutContent({
       {/* Main Content Area */}
       <div
         className={
-          !showLeftSidebar
-            ? "w-full lg:w-4/5 border-x border-gray-200" // 사이드바가 없을 때 (Create, Detail 등): 확장 (4/5)
-            : "w-full md:w-4/5 lg:w-3/5 border-x border-gray-200" // 기본 (Main): 중앙 3/5
+          !isMainPage
+            ? "w-full max-w-6xl mx-auto border-x border-gray-200 bg-white" // 1-단 구조 (Detail, Create, Edit 등)
+            : "w-full md:w-4/5 lg:w-3/5 border-x border-gray-200" // 3-단 구조 (Main Feed)
         }
       >
         {children}
       </div>
 
-      {/* Right Sidebar: 항상 표시 (사용자 요청) */}
-      <ShowcaseRightSidebar />
+      {/* Right Sidebar: 메인 페이지에서만 표시 */}
+      {isMainPage && <ShowcaseRightSidebar />}
     </main>
   );
 }

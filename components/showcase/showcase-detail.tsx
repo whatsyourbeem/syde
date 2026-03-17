@@ -13,7 +13,7 @@ import {
   Share,
   Bookmark,
   ChevronLeft,
-  MoreVertical,
+  MoreHorizontal,
   Link2,
   Copy,
   Trash2,
@@ -263,6 +263,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const projectTitle = showcase.name || "제목 없음";
   const projectTagline = showcase.short_description || "설명이 없습니다.";
   const authorRole = showcase.profiles?.tagline || "[JobTitle]";
+  const isAuthor = user?.id === showcase.user_id;
 
   // Combine Author and Members
   const authorMember = {
@@ -292,148 +293,212 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
   return (
     <div className="bg-white min-h-screen pb-20">
-      {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between p-4 sticky top-0 bg-white z-10">
-        <button
-          onClick={() => router.back()}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors order-0"
-        >
-          <ChevronLeft className="w-6 h-6 text-gray-700" />
-        </button>
+      {/* Title Section: Responsive Layout */}
+      <div className="flex flex-col w-full">
+        {/* Desktop Title Section (Frame 174) */}
+        <div className="hidden md:flex flex-row items-start gap-6 w-full max-w-6xl mx-auto px-5 py-5 min-h-[200px]">
+          {/* Chevron left */}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-11 h-11 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+          >
+            <ChevronLeft className="w-6 h-6 text-[#434343]" strokeWidth={2.5} />
+          </button>
 
-        {/* Author Actions (Edit/Delete) */}
-        {user?.id === showcase.user_id && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/showcase/edit/${showcase.id}`}
-                  className="flex items-center cursor-pointer w-full"
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  <span>수정</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setShowDeleteDialog(true);
-                }}
-                className="text-red-500 cursor-pointer"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>삭제</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-
-      <div className="flex flex-col items-center w-full max-w-[850px] mx-auto  bg-white">
-        {/* Header Section (Title + Thumbnail) */}
-        <div className="w-full flex flex-col md:flex-row items-center md:items-start px-5 py-4 md:p-5 gap-4 md:gap-[132px] justify-between border-b-[0.5px] border-[#B7B7B7] md:border-none">
-          <div className="flex-1 flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full">
-            {/* Thumbnail Image (100x100) */}
-            <div className="flex-none w-[100px] h-[100px] bg-gray-100 rounded-[10px] overflow-hidden border border-gray-100 relative">
+          {/* Frame 173: Thumbnail + Content */}
+          <div className="flex flex-row items-start gap-[10px] flex-grow h-full">
+            {/* Thumbnail (Desktop: 160x160) */}
+            <div className="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
               {showcase.thumbnail_url ? (
                 <Image
                   src={showcase.thumbnail_url}
-                  alt={projectTitle}
+                  alt={showcase.name || "Showcase"}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   unoptimized
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <BoxIcon className="w-8 h-8" />
+                  No Image
                 </div>
               )}
             </div>
 
-            {/* Title & Info */}
-            <div className="flex flex-col items-center md:items-start justify-center gap-[5px] flex-1 text-center md:text-left">
-              <h1 className="font-['Pretendard'] font-bold text-[18px] md:text-[28px] leading-[150%] text-black line-clamp-2">
-                {projectTitle}
-              </h1>
-              <p className="font-['Pretendard'] text-[14px] leading-[150%] text-black line-clamp-1">
-                {projectTagline}
-              </p>
+            {/* Content Area */}
+            <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow min-h-[160px]">
+              {/* Title (Frame 134) */}
+              <div className="flex flex-row items-start gap-[5px] w-full">
+                <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2">
+                  {showcase.name || "제목 없음"}
+                </h1>
+              </div>
 
-              {/* Profile */}
-              <ProfileHoverCard
-                userId={showcase.user_id}
-                profileData={showcase.profiles}
-              >
-                <div className="flex items-center gap-[5px] mt-[1px]">
-                  <Avatar className="w-[20px] h-[20px]">
-                    <AvatarImage src={showcase.profiles?.avatar_url || ""} />
-                    <AvatarFallback className="text-[8px] bg-[#D9D9D9]">
-                      {showcase.profiles?.username?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-['Pretendard'] font-semibold text-[12px] text-[#002040]">
-                    {showcase.profiles?.full_name ||
-                      showcase.profiles?.username}
+              {/* Tagline (Frame 135) */}
+              {showcase.short_description && (
+                <div className="flex flex-row items-start gap-[5px] w-full">
+                  <p className="font-['Pretendard'] text-[16px] font-normal text-black leading-[150%] line-clamp-2">
+                    {showcase.short_description}
+                  </p>
+                </div>
+              )}
+
+              {/* Profile Wrapper */}
+              <div className="flex flex-row items-center gap-[5px] w-full h-6">
+                <ProfileHoverCard
+                  userId={showcase.user_id}
+                  profileData={showcase.profiles}
+                >
+                  <div className="flex items-center gap-[5px] cursor-pointer">
+                    <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                      <Image
+                        src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                        alt="author"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <span className="font-['Pretendard'] text-[14px] font-semibold text-[#002040] leading-[19px] whitespace-nowrap">
+                      {showcase.profiles?.username}
+                    </span>
+                    <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
+                      {showcase.profiles?.tagline && (
+                        <>{showcase.profiles.tagline} | </>
+                      )}
+                      {showcase.profiles?.full_name} · {showcase.created_at ? formatRelativeTime(showcase.created_at) : ""}
+                    </span>
+                  </div>
+                </ProfileHoverCard>
+              </div>
+            </div>
+          </div>
+
+          {/* More options (Desktop) */}
+          <div className="flex flex-col items-start p-[16px_4px] gap-[10px] w-6 h-9 shrink-0">
+            {isAuthor && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <MoreHorizontal className="w-4 h-4 text-[#434343]" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-xl">
+                  <DropdownMenuItem onClick={() => router.push(`/showcase/edit/${showcase.id}`)} className="flex items-center cursor-pointer w-full p-2">
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>수정</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-red-500 cursor-pointer p-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>삭제</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Title Section (Two Rows) */}
+        <div className="md:hidden flex flex-col w-full px-5 py-4 border-b-[0.5px] border-[#B7B7B7]">
+          {/* Top Row: [Back, Thumbnail, More] */}
+          <div className="flex flex-row justify-between items-start w-full mb-4">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-11 h-11 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+            >
+              <ChevronLeft className="w-6 h-6 text-[#434343]" strokeWidth={2.5} />
+            </button>
+
+            <div className="w-[121px] h-[120px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
+              {showcase.thumbnail_url ? (
+                <Image
+                  src={showcase.thumbnail_url}
+                  alt={showcase.name || "Showcase"}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No Image
+                </div>
+              )}
+            </div>
+
+            <div className="w-11 h-11 flex items-center justify-center">
+              {isAuthor && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="hover:bg-gray-100 rounded-lg transition-colors p-2">
+                      <MoreHorizontal className="w-6 h-6 text-[#434343]" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="rounded-xl">
+                    <DropdownMenuItem onClick={() => router.push(`/showcase/edit/${showcase.id}`)} className="flex items-center cursor-pointer w-full p-2">
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>수정</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-500 cursor-pointer p-2"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>삭제</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Row: [Title, Tagline, Profile] */}
+          <div className="flex flex-col items-center text-center gap-2">
+            <div className="flex flex-col items-center gap-1">
+              <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
+                {showcase.name || "제목 없음"}
+              </h1>
+              {showcase.short_description && (
+                <p className="font-['Pretendard'] font-normal text-[16px] leading-[150%] text-black line-clamp-2">
+                  {showcase.short_description}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center mt-1">
+              <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
+                <div className="flex flex-row items-center gap-[5px] h-5 cursor-pointer">
+                  <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                    <Image
+                      src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                      alt="author"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <span className="font-['Pretendard'] font-semibold text-[14px] text-[#002040] whitespace-nowrap">
+                    {showcase.profiles?.username}
                   </span>
-                  <span className="font-['Pretendard'] text-[11px] text-[#777777]">
-                    | {authorRole}
+                  <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
+                    | {showcase.profiles?.tagline && <>{showcase.profiles.tagline} | </>}
+                    {showcase.profiles?.full_name} · {showcase.created_at ? formatRelativeTime(showcase.created_at) : ""}
                   </span>
                 </div>
               </ProfileHoverCard>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Action Bar */}
-        <div className="w-full px-4 md:px-8 py-3">
-          <div className="w-full h-[44px] bg-[#FAFAFA] rounded-[12px] flex items-center justify-between px-6 md:px-12 relative">
-            {/* Like */}
-            <button
-              onClick={handleLike}
-              className="flex items-center gap-[5px] hover:scale-105 transition-transform"
-            >
-              <HeartIcon
-                suppressHydrationWarning
-                className={`w-[18px] h-[17px] ${hasLiked ? "fill-[#ED6D34] text-[#ED6D34]" : "text-[#777777]"}`}
-              />
-              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
-                {likesCount}
-              </span>
-            </button>
+      <div className="flex flex-col items-center w-full max-w-full mx-auto bg-white">
 
-            {/* Comment */}
-            <button className="flex items-center gap-[5px] hover:scale-105 transition-transform">
-              <MessageCircle className="w-[18px] h-[16px] text-[#777777]" />
-              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
-                {commentsCount}
-              </span>
-            </button>
 
-            {/* Share */}
-            <button
-              onClick={handleCopyLink}
-              className="flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              <Share className="w-[14px] h-[20px] text-[#808080]" />
-            </button>
-
-            {/* Bookmark */}
-            <button
-              onClick={handleBookmark}
-              className="flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              <Bookmark
-                suppressHydrationWarning
-                className={`w-[10px] h-[16px] ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
-              />
-            </button>
-          </div>
-        </div>
 
         {/* Gallery Section */}
         <div className="w-full h-auto md:h-[294px] border-b-[0.5px] md:border-t-[0.5px] border-[#B7B7B7] flex justify-center items-center py-4 md:px-[32px] md:py-[12px] overflow-hidden bg-white gap-[10px] md:gap-0">
@@ -450,14 +515,14 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           {/* Large Image (480x270 desktop, 320x180 mobile) */}
           <div
             key={`main-${currentImageIndex}`}
-            className="flex-none w-[320px] h-[180px] md:w-[480px] md:h-[270px] bg-[#B7B7B7] rounded-[10px] md:rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500 order-2 md:order-2"
+            className="flex-none w-[320px] h-[180px] md:w-[480px] md:h-[270px] bg-sydeblue rounded-[10px] md:rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500 order-2 md:order-2"
           >
             {galleryImages[currentImageIndex] ? (
               <Image
                 src={galleryImages[currentImageIndex]}
                 alt="Main"
                 fill
-                className="object-cover"
+                className="object-contain"
                 unoptimized
               />
             ) : (
@@ -479,7 +544,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           {galleryImages.length > 1 && (
             <div
               key={`next-${(currentImageIndex + 1) % galleryImages.length}`}
-              className="hidden md:block md:flex-none md:w-[320px] md:h-[180px] bg-[#B7B7B7] rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500 order-4 md:order-4"
+              className="hidden md:block md:flex-none md:w-[320px] md:h-[180px] bg-sydeblue rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500 order-4 md:order-4"
             >
               <Image
                 src={
@@ -487,7 +552,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 }
                 alt="Next"
                 fill
-                className="object-cover"
+                className="object-contain"
                 unoptimized
               />
               <div className="absolute inset-0 bg-black/10 pointer-events-none" />
@@ -524,9 +589,6 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           <div
             className={`w-full overflow-hidden transition-all ${isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0"}`}
           >
-            <h3 className="font-['Pretendard'] font-bold text-[16px] leading-[19px] text-black mb-2 whitespace-pre-wrap">
-              이 앱에 대한 설명
-            </h3>
             {(() => {
               let content = showcase.description || "";
               const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
@@ -573,7 +635,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     href={showcase.web_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full"
+                    className="flex items-center justify-between px-4 py-2 rounded-[12px] h-[46px] w-full bg-alabasterwhite hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <Globe className="w-6 h-6 text-black" />
@@ -591,7 +653,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     href={showcase.playstore_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full"
+                    className="flex items-center justify-between px-4 py-2 rounded-[12px] h-[46px] w-full bg-alabasterwhite hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <svg
@@ -615,7 +677,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     href={showcase.appstore_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between px-4 py-2 bg-[#FAFAFA] rounded-[12px] h-[46px] w-full"
+                    className="flex items-center justify-between px-4 py-2 rounded-[12px] h-[46px] w-full bg-alabasterwhite hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <svg
@@ -659,7 +721,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 userId={member.userId}
                 profileData={member.profileData}
               >
-                <div className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] bg-[#FAFAFA] rounded-[10px] flex-shrink-0 relative">
+                <div className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] rounded-[10px] flex-shrink-0 relative bg-alabasterwhite">
                   {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
                   {member.role === "author" && (
                     <div className="absolute top-2 left-2 text-[#ED6D34]">
@@ -705,6 +767,52 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 </div>
               </ProfileHoverCard>
             ))}
+          </div>
+        </div>
+
+        {/* Action Bar */}
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 md:px-8 py-3 mt-8">
+          <div className="w-full h-[44px] rounded-[12px] flex items-center justify-between px-6 md:px-12 relative">
+            {/* Like */}
+            <button
+              onClick={handleLike}
+              className="flex items-center gap-[5px] hover:scale-105 transition-transform"
+            >
+              <HeartIcon
+                suppressHydrationWarning
+                className={`w-5 h-5 ${hasLiked ? "fill-[#ED6D34] text-[#ED6D34]" : "text-[#777777]"}`}
+              />
+              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
+                {likesCount}
+              </span>
+            </button>
+
+            {/* Comment */}
+            <button className="flex items-center gap-[5px] hover:scale-105 transition-transform">
+              <MessageCircle className="w-5 h-5 text-[#777777]" />
+              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
+                {commentsCount}
+              </span>
+            </button>
+
+            {/* Share */}
+            <button
+              onClick={handleCopyLink}
+              className="flex items-center justify-center hover:scale-105 transition-transform"
+            >
+              <Share className="w-5 h-5 text-[#808080]" />
+            </button>
+
+            {/* Bookmark */}
+            <button
+              onClick={handleBookmark}
+              className="flex items-center justify-center hover:scale-105 transition-transform"
+            >
+              <Bookmark
+                suppressHydrationWarning
+                className={`w-5 h-5 ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
+              />
+            </button>
           </div>
         </div>
 

@@ -25,40 +25,33 @@ export function ShowcaseSidebarButton({
   certified,
 }: ShowcaseSidebarButtonProps) {
   return (
-    <div className="flex flex-col items-center py-5 px-[10px] text-sydenightblue gap-[10px] rounded-lg bg-transparent">
+    <div className="flex flex-col items-center p-4">
       {avatarUrl && (
         <Image
           src={avatarUrl}
           alt="User Avatar"
-          width={36}
-          height={36}
-          className="rounded-full object-cover aspect-square"
+          width={60}
+          height={60}
+          className="rounded-full object-cover aspect-square mb-4"
         />
       )}
       {full_name && (
         <div className="flex items-center gap-1">
-          <p className="text-sm leading-[14px] font-bold ">{full_name}</p>
-          {certified && <CertifiedBadge size="sm" />}
+          <p className="text-base font-bold">{full_name}</p>
+          {certified && <CertifiedBadge size="md" />}
         </div>
       )}
-      {username && <p className="text-xs leading-3 font-normal">@{username}</p>}
-      {tagline && (
-        <p className="text-xs leading-3 font-normal text-[#777777]">
-          {tagline}
-        </p>
-      )}
+      {username && <p className="text-sm text-gray-500">@{username}</p>}
       <Link href="/showcase/create" className="w-full">
-        <div
-          className={cn(
-            buttonVariants({ variant: "default" }),
-            "mt-4 h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px] w-full cursor-pointer",
-          )}
+        <Button
+          variant="default"
+          className="mt-4 w-full h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px]"
         >
           <CirclePlus className="size-5" strokeWidth={2.5} />
           <span className="text-sm leading-[14px] font-semibold">
-            내 SYDE 프로젝트 등록하기
+            내 SYDE 프로덕트 등록하기
           </span>
-        </div>
+        </Button>
       </Link>
     </div>
   );

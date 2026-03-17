@@ -36,7 +36,6 @@ export default async function ShowcaseLayout({
 
   return (
     <>
-      <ShowcaseHeader />
       <ShowcaseLayoutContent
         user={user}
         profile={profile}

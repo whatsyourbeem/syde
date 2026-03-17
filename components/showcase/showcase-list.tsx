@@ -217,7 +217,7 @@ export function ShowcaseList({
   }
 
   return (
-    <div className="w-full space-y-4 py-4">
+    <div className="w-full">
       {showcases.length === 0 && !isLoading ? (
         <div className="px-4">
           <p className="text-center text-muted-foreground">

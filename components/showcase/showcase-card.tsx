@@ -102,14 +102,15 @@ function ShowcaseCardBase({
   return (
     <div
       ref={cardRef}
-      className="w-full max-w-[600px] bg-[#FAFAFA] rounded-[16px] border border-gray-100 hover:border-gray-200 transition-all p-3 flex flex-col gap-2 mx-auto"
+      className="w-full h-auto md:h-[152px] border-b-[0.5px] border-[#B7B7B7] p-4 md:p-4 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden"
     >
+      {/* Media + Content Wrapper */}
       <div
-        className="flex gap-5 items-start cursor-pointer"
+        className="flex flex-row gap-3 md:gap-4 items-start cursor-pointer w-full"
         onClick={handleCardClick}
       >
-        {/* Left: Thumbnail */}
-        <div className="relative w-[80px] h-[80px] shrink-0 bg-[#f0f0f0] rounded-[12px] overflow-hidden border border-gray-50 flex items-center justify-center">
+        {/* Thumbnail (Mobile: 100x100 / Desktop: 120x120) */}
+        <div className="relative w-[100px] h-[100px] md:w-[120px] md:h-[120px] shrink-0 bg-[#f0f0f0] rounded-[10px] overflow-hidden flex items-center justify-center">
           {showcase.thumbnail_url ? (
             <Image
               src={showcase.thumbnail_url}
@@ -123,44 +124,71 @@ function ShowcaseCardBase({
           )}
         </div>
 
-        {/* Right: Content */}
-        <div className="flex flex-col gap-1.5 min-w-0 flex-grow">
-          <h3 className="text-[18px] font-bold text-sydenightblue line-clamp-1 leading-[24px]">
-            {showcase.name || "제목 없음"}
-          </h3>
-          <p className="text-[14px] text-[#666666] line-clamp-2 leading-[20px] h-[40px]">
-            {showcase.short_description || "설명이 없습니다."}
-          </p>
-
-          {/* Author line */}
-          <ProfileHoverCard
-            userId={showcase.user_id}
-            profileData={showcase.profiles}
-          >
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-gray-100">
-                <Image
-                  src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                  alt="author"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <span className="text-[12px] font-bold text-sydenightblue truncate">
-                {showcase.profiles?.username}
-              </span>
-              {showcase.profiles?.tagline && (
-                <span className="text-[11px] text-gray-400 truncate hidden sm:inline">
-                  {showcase.profiles.tagline}
-                </span>
-              )}
+        {/* Content Area */}
+        <div className="flex flex-col justify-between md:h-[120px] min-w-0 flex-grow gap-1 md:gap-0">
+          <div className="flex flex-col gap-[2px] md:gap-1 w-full">
+            {/* Title (Mobile: 18px Bold / Desktop: 20px Bold) */}
+            <h3 className="text-[18px] md:text-[20px] font-bold text-black line-clamp-2 md:line-clamp-1 leading-[150%] md:leading-[30px]">
+              {showcase.name || "제목 없음"}
+            </h3>
+            {/* Description (Mobile: 14px / Desktop: 15px) */}
+            <p className="text-[14px] md:text-[15px] font-normal text-black line-clamp-1 leading-[150%] md:leading-[23px]">
+              {showcase.short_description || "설명이 없습니다."}
+            </p>
+            {/* Profile Line (Mobile: 14px/12px / Desktop: 14px/12px) */}
+            <div className="h-5 w-full relative mt-1 md:mt-0">
+              <ProfileHoverCard
+                userId={showcase.user_id}
+                profileData={showcase.profiles}
+              >
+                <div className="flex items-center gap-[5px] h-5">
+                  <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                    <Image
+                      src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                      alt="author"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <span className="text-[14px] font-semibold text-[#002040] leading-tight">
+                    {showcase.profiles?.username}
+                  </span>
+                  <span className="text-[12px] font-normal text-[#777777] leading-tight truncate flex-grow">
+                    | {showcase.profiles?.tagline && (
+                      <>{showcase.profiles.tagline} | </>
+                    )}
+                    {showcase.profiles?.full_name}
+                  </span>
+                </div>
+              </ProfileHoverCard>
             </div>
-          </ProfileHoverCard>
+          </div>
+
+          {/* Actions (Desktop: Inline) */}
+          <div
+            className="hidden md:block w-full h-[28px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ShowcaseCardActions
+              showcaseId={showcase.id}
+              currentUserId={currentUserId}
+              likesCount={likesCount}
+              hasLiked={hasLiked}
+              bookmarksCount={bookmarksCount}
+              hasBookmarked={hasBookmarked}
+              commentsCount={commentsCount}
+              onLikeStatusChange={handleLikeStatusChange}
+              onBookmarkStatusChange={handleBookmarkStatusChange}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Action Bar */}
-      <div className="pt-5 border-t border-gray-100/50">
+      {/* Actions (Mobile: Bottom row) */}
+      <div
+        className="md:hidden w-full h-[28px] mt-1"
+        onClick={(e) => e.stopPropagation()}
+      >
         <ShowcaseCardActions
           showcaseId={showcase.id}
           currentUserId={currentUserId}
