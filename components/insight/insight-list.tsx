@@ -12,9 +12,10 @@ const ITEMS_PER_PAGE = 12;
 interface InsightListProps {
   currentUserId: string | null;
   userId: string;
+  showInteractions?: boolean;
 }
 
-export function InsightList({ currentUserId, userId }: InsightListProps) {
+export function InsightList({ currentUserId, userId, showInteractions = true }: InsightListProps) {
   const supabase = createClient();
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -83,7 +84,7 @@ export function InsightList({ currentUserId, userId }: InsightListProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full px-4 md:px-0 justify-items-center">
           {data?.insights.map((insight) => (
-            <InsightCard key={insight.id} {...insight} />
+            <InsightCard key={insight.id} {...insight} showInteractions={showInteractions} />
           ))}
         </div>
       )}

@@ -282,6 +282,7 @@ export function ProfileContentTabs({
               <InsightList 
                 currentUserId={currentUserId}
                 userId={profile.id}
+                showInteractions={false}
               />
             )}
           </div>

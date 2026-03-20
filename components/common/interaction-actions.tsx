@@ -5,6 +5,7 @@ import { HeartIcon, MessageCircle, Bookmark } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 import { ShareButton } from "@/components/common/share-button";
+import { cn } from "@/lib/utils";
 
 interface InteractionActionsProps {
     id: string;
@@ -44,7 +45,10 @@ function InteractionActionsBase({
     className = "px-[44px] pt-2",
 }: InteractionActionsProps) {
     return (
-        <div className={`flex justify-between items-center text-xs md:text-sm text-muted-foreground ${className}`}>
+        <div className={cn(
+            "flex justify-between items-center text-xs md:text-sm text-muted-foreground w-full",
+            className
+        )}>
             <TooltipProvider>
                 {/* Like Button */}
                 <Tooltip>
@@ -56,7 +60,7 @@ function InteractionActionsBase({
                                 onLikeToggle();
                             }}
                             disabled={loading.like}
-                            className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group disabled:opacity-50"
+                            className="flex items-center gap-0.5 rounded-md p-2 -m-2 bg-transparent hover:bg-red-100 dark:hover:bg-red-900/20 group disabled:opacity-50"
                         >
                             {loading.like ? (
                                 <div className="w-[18px] flex justify-center">
@@ -68,7 +72,7 @@ function InteractionActionsBase({
                                     size={18}
                                 />
                             )}
-                            <span className={`w-4 text-left ${status.hasLiked ? "text-red-500" : "group-hover:text-red-500"}`}>{stats.likes}</span>
+                            <span className={`min-w-[12px] text-left leading-none ${status.hasLiked ? "text-red-500" : "group-hover:text-red-500"}`}>{stats.likes}</span>
                         </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
@@ -87,10 +91,10 @@ function InteractionActionsBase({
                                     onCommentClick();
                                 }
                             }}
-                            className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
+                            className="flex items-center gap-0.5 rounded-md p-2 -m-2 bg-transparent hover:bg-green-100 hover:text-green-500 dark:hover:bg-green-900/20"
                         >
                             <MessageCircle size={18} />
-                            <span className="w-4 text-left">{stats.comments}</span>
+                            <span className="min-w-[12px] text-left leading-none">{stats.comments}</span>
                         </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
@@ -99,15 +103,11 @@ function InteractionActionsBase({
                 </Tooltip>
 
                 {/* Share Button */}
-                <div className="flex items-center gap-1">
-                    <ShareButton
-                        url={shareUrl}
-                        title={shareTitle || (type === "log" ? "SYDE Log" : "SYDE Insight")}
-                        iconSize={18}
-                    />
-                    {/* Spacer to align share icon with other icons that have numbers */}
-                    <div className="w-4" aria-hidden="true" />
-                </div>
+                <ShareButton
+                    url={shareUrl}
+                    title={shareTitle || (type === "log" ? "SYDE Log" : "SYDE Insight")}
+                    iconSize={18}
+                />
 
                 {/* Bookmark Button */}
                 <Tooltip>
@@ -119,7 +119,7 @@ function InteractionActionsBase({
                                 onBookmarkToggle();
                             }}
                             disabled={loading.bookmark}
-                            className="flex items-center gap-1 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 dark:hover:bg-yellow-900/20 group disabled:opacity-50"
+                            className="flex items-center gap-0.5 rounded-md p-2 -m-2 bg-transparent hover:bg-yellow-100 dark:hover:bg-yellow-900/20 group disabled:opacity-50"
                         >
                             {loading.bookmark ? (
                                 <div className="w-[18px] flex justify-center">
@@ -131,7 +131,7 @@ function InteractionActionsBase({
                                     size={18}
                                 />
                             )}
-                            <span className={`w-4 text-left ${status.hasBookmarked ? "text-yellow-500" : "group-hover:text-yellow-500"}`}>{stats.bookmarks}</span>
+                            <span className={`min-w-[12px] text-left leading-none ${status.hasBookmarked ? "text-yellow-500" : "group-hover:text-yellow-500"}`}>{stats.bookmarks}</span>
                         </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">

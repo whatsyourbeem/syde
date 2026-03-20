@@ -181,11 +181,11 @@ export function InsightCard({
                             <AvatarImage src={author.avatarUrl} />
                             <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
                         </Avatar>
-                        <div className="flex items-center gap-[5px]">
+                        <div className="flex items-center gap-[2px]">
+                            <span className="text-[12px] text-[#777777]">by.</span>
                             <span className="text-[12px] font-semibold text-sydeblue">{author.name}</span>
-                            <span className="text-[11px] text-[#777777]">· {author.role}</span>
                             {createdAt && (
-                                <span className="text-[11px] text-[#777777]">
+                                <span className="text-[11px] text-[#777777] ml-[2px]">
                                     · {formatDistanceToNow(new Date(createdAt), { addSuffix: true, locale: ko }).replace("약 ", "")}
                                 </span>
                             )}
@@ -196,7 +196,7 @@ export function InsightCard({
 
             {/* Interaction Bar */}
             {showInteractions && (
-                <div className="pt-3 md:pt-0 px-1 h-11 md:h-7">
+                <div className="pt-3 md:pt-0 h-11 md:h-7">
                     <InteractionActions
                         id={id}
                         type="insight"
@@ -207,7 +207,7 @@ export function InsightCard({
                         onBookmarkToggle={handleBookmarkToggle}
                         shareUrl={`/insight/${id}`}
                         shareTitle={title}
-                        className="px-2 md:px-[30.5px] pt-0 md:pt-1 pb-1"
+                        className="px-3 pt-0 md:pt-1 pb-1"
                     />
                 </div>
             )}
