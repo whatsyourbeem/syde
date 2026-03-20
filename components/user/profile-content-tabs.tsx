@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserActivityLogList } from "@/components/user/user-activity-log-list";
 import BioEditor from "@/components/user/bio-editor";
 import { LogList } from "@/components/log/log-list";
+import { ShowcaseList } from "@/components/showcase/showcase-list";
+import { InsightList } from "@/components/insight/insight-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
 import { ProfileLogEmptyState } from "@/components/log/profile-log-empty-state";
@@ -46,6 +48,7 @@ export function ProfileContentTabs({
   const [isMounted, setIsMounted] = useState(false);
   const [isEditingStory, setIsEditingStory] = useState(false);
   const [isViewingAllMeetups, setIsViewingAllMeetups] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState<"log" | "showcase" | "insight">("log");
 
   useEffect(() => {
     setIsMounted(true);
@@ -60,25 +63,32 @@ export function ProfileContentTabs({
       defaultValue="profile"
       className={cn("w-full md:flex md:flex-row h-full", className)}
     >
-      {/* Left Sidebar */}
+      {/* Sidebar/Top Tab Bar Container */}
       <div className={cn(
-        "w-full md:w-[240px] md:min-w-[240px] md:border-r-[0.5px] border-b-[0.5px] md:border-b-0 border-[#B7B7B7] py-5 px-2.5 flex flex-col",
+        "w-full md:w-[240px] md:min-w-[240px] md:border-r-[0.5px] border-[#B7B7B7] flex flex-col",
         isEditingStory && "hidden md:flex"
       )}>
-        <div className="flex flex-row md:flex-col gap-2.5 px-5 justify-center md:justify-start">
-          <TabsList className="flex w-full justify-center md:flex-col md:items-stretch md:justify-start bg-transparent p-0 space-x-2 md:space-x-0 md:space-y-2.5 h-auto">
-            <TabsTrigger value="profile" className={tabTriggerClass}>
-              프로필
+        <TabsList className="flex items-center justify-start w-full bg-transparent p-0 h-[43px] md:h-auto border-b-[0.5px] md:border-b-0 border-[#B7B7B7] md:flex-col md:items-stretch md:justify-start md:py-5 md:px-2.5 md:gap-2.5 rounded-none">
+          <TabsTrigger 
+            value="profile" 
+            className="flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0"
+          >
+            프로필
+          </TabsTrigger>
+          <TabsTrigger 
+            value="posts" 
+            className="flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0"
+          >
+            게시글
+          </TabsTrigger>
+          {isOwnProfile && (
+            <TabsTrigger 
+              value="activity" 
+              className="flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0"
+            >
+              내 기록 🔒
             </TabsTrigger>
-            <TabsTrigger value="posts" className={tabTriggerClass}>
-              게시글
-            </TabsTrigger>
-            {isOwnProfile && (
-              <TabsTrigger value="activity" className={tabTriggerClass}>
-                🔒 내 기록
-              </TabsTrigger>
-            )}
-          </TabsList>
+          )}
 
           {/* Logout (stacked under tabs, desktop only) */}
           {isOwnProfile && (
@@ -108,7 +118,7 @@ export function ProfileContentTabs({
               </AlertDialog>
             </div>
           )}
-        </div>
+        </TabsList>
       </div>
 
       {/* Right Content */}
@@ -118,7 +128,7 @@ export function ProfileContentTabs({
           <div className="flex flex-col gap-0">
             {isEditingStory ? (
               /* Story Edit Header */
-              <div className="flex items-center gap-4 px-8 py-6 border-b-[0.5px] border-[#B7B7B7]">
+              <div className="flex items-center gap-4 px-5 py-4 md:px-8 md:py-6 border-b-[0.5px] border-[#B7B7B7]">
                 <button 
                   onClick={() => setIsEditingStory(false)}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -131,7 +141,7 @@ export function ProfileContentTabs({
               </div>
             ) : isViewingAllMeetups ? (
               /* Meetups Full View Header */
-              <div className="flex items-center gap-4 px-8 py-6 border-b-[0.5px] border-[#B7B7B7]">
+              <div className="flex items-center gap-4 px-5 py-4 md:px-8 md:py-6 border-b-[0.5px] border-[#B7B7B7]">
                 <button 
                   onClick={() => setIsViewingAllMeetups(false)}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -142,30 +152,18 @@ export function ProfileContentTabs({
                   {profile.full_name || profile.username}님과 함께하는 모임 🌱
                 </h2>
               </div>
-            ) : (
-              /* 스토리 Section Header (Standard Unified View) */
-              <div className="px-5 py-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-red-500 font-bold">—</span>
-                  <span className="font-bold text-base text-black">스토리</span>
-                </div>
-              </div>
-            )}
+            ) : null}
 
-            {/* 메인 콘텐츠 영역 (스토리 / 모임 그리드) */}
-            <div className={cn(
-              "px-5 pb-8",
-              (isEditingStory || isViewingAllMeetups) ? "pt-8" : "pt-0"
-            )}>
+            {/* 메인 콘텐츠 영역 */}
+            <div className="w-full">
               {isViewingAllMeetups ? (
                 /* Full Meetups Grid */
-                <UserJoinedMeetupsList userId={profile.id} variant="grid" />
-              ) : (
-                /* 스토리 Editor/Viewer (Standard or Edit Mode) */
-                <div className={cn(
-                  "rounded-xl relative",
-                  isEditingStory ? "" : "bg-[#FAFAFA] p-5"
-                )}>
+                <div className="px-5 py-8 md:px-8">
+                  <UserJoinedMeetupsList userId={profile.id} variant="grid" />
+                </div>
+              ) : isEditingStory ? (
+                /* 스토리 Editor (Edit Mode) */
+                <div className="px-5 py-8 md:px-8">
                   <BioEditor
                     initialBio={profile.bio}
                     isOwnProfile={isOwnProfile}
@@ -175,52 +173,132 @@ export function ProfileContentTabs({
                     onEditingChange={setIsEditingStory}
                   />
                 </div>
+              ) : (
+                /* Standard Profile View (Story + Clubs + Meetups) */
+                <>
+                  {/* 스토리 Section */}
+                  <div className="px-5 py-4 md:px-8 md:py-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sydeorange font-bold">—</span>
+                        <span className="font-bold text-base text-black">스토리</span>
+                      </div>
+                      {isOwnProfile && (
+                        <button 
+                          onClick={() => setIsEditingStory(true)}
+                          className="text-sydeorange text-[13px] font-bold hover:opacity-80 transition-opacity"
+                        >
+                          스토리 수정 ✍️
+                        </button>
+                      )}
+                    </div>
+                    <div className="rounded-xl relative bg-[#FAFAFA] p-5">
+                      <BioEditor
+                        initialBio={profile.bio}
+                        isOwnProfile={isOwnProfile}
+                        initialHtml={initialHtml}
+                        link={profile.link}
+                        isEditing={isEditingStory}
+                        onEditingChange={setIsEditingStory}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 소속된 클럽 Section */}
+                  <div className="px-5 py-4 md:px-8 md:py-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sydeorange font-bold">—</span>
+                      <span className="font-bold text-base text-black">소속된 클럽</span>
+                    </div>
+                    <div className="bg-[#FAFAFA] rounded-xl p-2.5">
+                      <UserJoinedClubsList userId={profile.id} variant="compact" />
+                    </div>
+                  </div>
+
+                  {/* 함께하는 모임 Section (Horizontal Scroll) */}
+                  <div className="px-5 py-4 md:px-8 md:py-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sydeorange font-bold">—</span>
+                        <span className="font-bold text-base text-black">함께하는 모임</span>
+                      </div>
+                      <button 
+                        onClick={() => setIsViewingAllMeetups(true)}
+                        className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
+                      >
+                        모두보기
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <UserJoinedMeetupsList userId={profile.id} />
+                  </div>
+                </>
               )}
             </div>
-
-            {/* Other Sections - Only visible when in standard unified view */}
-            {!isEditingStory && !isViewingAllMeetups && (
-              <>
-                {/* 소속된 클럽 Section */}
-                <div className="px-5 py-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-500 font-bold">—</span>
-                    <span className="font-bold text-base text-black">소속된 클럽</span>
-                  </div>
-                  <div className="bg-[#FAFAFA] rounded-xl p-2.5">
-                    <UserJoinedClubsList userId={profile.id} variant="compact" />
-                  </div>
-                </div>
-
-                {/* 함께하는 모임 Section (Horizontal Scroll) */}
-                <div className="px-5 py-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-red-500 font-bold">—</span>
-                      <span className="font-bold text-base text-black">함께하는 모임</span>
-                    </div>
-                    <button 
-                      onClick={() => setIsViewingAllMeetups(true)}
-                      className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
-                    >
-                      모두보기
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <UserJoinedMeetupsList userId={profile.id} />
-                </div>
-              </>
-            )}
           </div>
         </TabsContent>
 
-        {/* 내 게시글 Tab */}
-        <TabsContent value="posts" className="mt-0 px-5 py-4">
-          <LogList 
-            currentUserId={currentUserId} 
-            filterByUserId={profile.id} 
-            emptyState={<ProfileLogEmptyState isOwnProfile={isOwnProfile} profile={profile} />}
-          />
+        {/* 내 게시글 Tab (with Sub-tabs) */}
+        <TabsContent value="posts" className="mt-0 p-0 flex flex-col">
+          {/* Sub-tab Navigation */}
+          <div className="flex items-center justify-start w-full bg-white px-6 py-3 gap-[10px] border-b-[0.5px] border-[#B7B7B7] overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setActiveSubTab("log")}
+              className={cn(
+                "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap",
+                activeSubTab === "log" 
+                  ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
+                  : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
+              )}
+            >
+              로그
+            </button>
+            <button
+              onClick={() => setActiveSubTab("showcase")}
+              className={cn(
+                "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap",
+                activeSubTab === "showcase" 
+                  ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
+                  : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
+              )}
+            >
+              쇼케이스
+            </button>
+            <button
+              onClick={() => setActiveSubTab("insight")}
+              className={cn(
+                "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap",
+                activeSubTab === "insight" 
+                  ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
+                  : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
+              )}
+            >
+              인사이트
+            </button>
+          </div>
+
+          {/* Sub-tab Content */}
+          <div className="flex-1 px-5 py-4">
+            {activeSubTab === "log" && (
+              <LogList 
+                currentUserId={currentUserId} 
+                filterByUserId={profile.id} 
+                emptyState={<ProfileLogEmptyState isOwnProfile={isOwnProfile} profile={profile} />}
+              />
+            )}
+            {activeSubTab === "showcase" && (
+              <ShowcaseList 
+                currentUserId={currentUserId}
+                filterByUserId={profile.id}
+              />
+            )}
+            {activeSubTab === "insight" && (
+              <InsightList 
+                currentUserId={currentUserId}
+                userId={profile.id}
+              />
+            )}
+          </div>
         </TabsContent>
 
         {/* 내 기록 Tab */}

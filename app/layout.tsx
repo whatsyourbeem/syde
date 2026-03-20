@@ -53,6 +53,7 @@ const paperlogy = localFont({
 });
 
 import { HeaderNavigation } from "@/components/layout/header-navigation";
+import { HeaderNavigationWrapper } from "@/components/layout/header-navigation-wrapper";
 import Footer from "@/components/layout/footer"; // Add this import
 
 import { Button } from "@/components/ui/button";
@@ -73,12 +74,9 @@ export default function RootLayout({
                 <Suspense fallback={<HeaderSkeleton paperlogyClassName={paperlogy.className} />}>
                   <HeaderServer paperlogyClassName={paperlogy.className} />
                 </Suspense>
-                <div className="w-full bg-background sticky top-0 z-40">
-                  <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
-                    <HeaderNavigation />
-                  </nav>
-                  <Separator />
-                </div>
+                <HeaderNavigationWrapper>
+                  <HeaderNavigation />
+                </HeaderNavigationWrapper>
               </div>
               <main className="flex-1 h-full">{children}</main>
               <Toaster />
