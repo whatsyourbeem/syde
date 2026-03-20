@@ -150,7 +150,7 @@ function ShowcaseCardBase({
                       className="object-cover"
                     />
                   </div>
-                  <span className="text-[14px] font-semibold text-[#002040] leading-tight">
+                  <span className="text-[14px] font-semibold text-sydeblue leading-tight">
                     {showcase.profiles?.username}
                   </span>
                   <span className="text-[12px] font-normal text-[#777777] leading-tight truncate flex-grow">

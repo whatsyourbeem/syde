@@ -80,7 +80,7 @@ export function SearchForm() {
             placeholder={placeholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-full bg-transparent border-0 outline-none text-xl font-normal text-[#002040] placeholder:text-[#777777] placeholder:text-xl placeholder:font-normal"
+            className="w-full h-full bg-transparent border-0 outline-none text-xl font-normal text-sydeblue placeholder:text-[#777777] placeholder:text-xl placeholder:font-normal"
           />
         </div>
 

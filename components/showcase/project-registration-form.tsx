@@ -395,7 +395,7 @@ export function ProjectRegistrationForm({
         >
           <ChevronLeft className="h-6 w-6 text-[#434343]" />
         </Button>
-        <h1 className="text-[18px] md:text-[32px] font-bold text-[#002040] leading-[21px] md:leading-[38px]">
+        <h1 className="text-[18px] md:text-[32px] font-bold text-sydeblue leading-[21px] md:leading-[38px]">
           {initialData ? "SYDE 프로덕트 수정하기" : "SYDE 프로덕트 등록하기"}
         </h1>
       </div>
@@ -407,7 +407,7 @@ export function ProjectRegistrationForm({
       >
         {/* Project Name */}
         <div className="space-y-2">
-          <Label htmlFor="title" className="text-sm font-medium text-[#002040]">
+          <Label htmlFor="title" className="text-sm font-medium text-sydeblue">
             프로덕트 이름 <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -424,7 +424,7 @@ export function ProjectRegistrationForm({
         <div className="space-y-2">
           <Label
             htmlFor="tagline"
-            className="text-sm font-medium text-[#002040]"
+            className="text-sm font-medium text-sydeblue"
           >
             한 줄 소개 <span className="text-red-500">*</span>
           </Label>
@@ -440,7 +440,7 @@ export function ProjectRegistrationForm({
 
         {/* Main Image */}
         <div className="flex flex-col gap-1 h-[201px]">
-          <Label className="text-sm font-medium text-[#002040]">
+          <Label className="text-sm font-medium text-sydeblue">
             대표 이미지
           </Label>
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white pl-5 pr-0 flex justify-between items-center h-[180px] overflow-hidden">
@@ -464,7 +464,7 @@ export function ProjectRegistrationForm({
                 <Button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-[#002040] text-white hover:bg-[#002040]/90 rounded-[12px] px-2 w-[80px] h-[32px] text-[14px]"
+                  className="bg-sydeblue text-white hover:bg-sydeblue/90 rounded-[12px] px-2 w-[80px] h-[32px] text-[14px]"
                 >
                   사진 선택
                 </Button>
@@ -506,7 +506,7 @@ export function ProjectRegistrationForm({
 
         {/* Project Description (TipTap) */}
         <div className="flex flex-col gap-1 h-[237px]">
-          <p className="text-sm font-medium text-[#002040]">프로덕트 설명</p>
+          <p className="text-sm font-medium text-sydeblue">프로덕트 설명</p>
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col overflow-hidden">
             <TiptapEditorWrapper
               initialContent={
@@ -534,7 +534,7 @@ export function ProjectRegistrationForm({
 
         {/* Detail Images */}
         <div className="flex flex-col gap-1 h-auto md:h-[312px]">
-          <p className="text-sm font-medium text-[#002040]">상세 설명 이미지</p>
+          <p className="text-sm font-medium text-sydeblue">상세 설명 이미지</p>
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white p-5 md:p-4 flex flex-col gap-4 h-[299px] md:h-[291px] overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start gap-[4px] shrink-0 text-center md:text-left">
               <p className="text-[12px] md:text-[14px] leading-[120%] text-[#777777]">
@@ -609,7 +609,7 @@ export function ProjectRegistrationForm({
 
         {/* Project Links */}
         <div className="flex flex-col gap-1 h-[335px]">
-          <p className="text-sm font-medium text-[#002040]">
+          <p className="text-sm font-medium text-sydeblue">
             프로덕트 링크 <span className="text-red-500">*</span>
           </p>
           <div className="bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] p-[10px] flex flex-col gap-[10px] h-[314px]">
@@ -683,8 +683,8 @@ export function ProjectRegistrationForm({
 
         {/* Team Members */}
         <div className="flex flex-col gap-2 h-auto md:h-[94px]">
-          <p className="text-sm font-medium text-[#002040]">팀원 등록</p>
-          <p className="text-[13px] font-light text-[#002040]">
+          <p className="text-sm font-medium text-sydeblue">팀원 등록</p>
+          <p className="text-[13px] font-light text-sydeblue">
             SYDE 프로덕트를 같이 만든 팀원이 있다면 추가해주세요.
           </p>
 
@@ -701,13 +701,13 @@ export function ProjectRegistrationForm({
                       {member.username?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-[12px] text-[#002040] font-medium">
+                  <span className="text-[12px] text-sydeblue font-medium">
                     {member.username}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeTeamMember(member.id)}
-                    className="text-[#777777] hover:text-[#002040] ml-1"
+                    className="text-[#777777] hover:text-sydeblue ml-1"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -774,14 +774,14 @@ export function ProjectRegistrationForm({
           <Button
             type="button"
             variant="outline"
-            className="rounded-[12px] w-[53px] h-[36px] border border-[#002040] text-[#002040] text-[14px] font-normal hover:bg-gray-50 p-0"
+            className="rounded-[12px] w-[53px] h-[36px] border border-sydeblue text-sydeblue text-[14px] font-normal hover:bg-gray-50 p-0"
             onClick={() => setShowCancelDialog(true)}
           >
             취소
           </Button>
           <Button
             type="submit"
-            className="flex-1 h-[36px] rounded-[12px] bg-[#002040] hover:bg-[#002040]/90 text-white text-[14px] font-normal"
+            className="flex-1 h-[36px] rounded-[12px] bg-sydeblue hover:bg-sydeblue/90 text-white text-[14px] font-normal"
             disabled={isSubmitting}
           >
             {initialData ? "수정하기" : "등록하기"}

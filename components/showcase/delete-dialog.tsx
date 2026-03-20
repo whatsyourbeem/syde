@@ -41,7 +41,7 @@ export function DeleteDialog({
         "
       >
         <AlertDialogHeader className="flex flex-col items-start gap-[8px] p-0 w-full h-auto">
-          <AlertDialogTitle className="flex items-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040] whitespace-pre-wrap text-left">
+          <AlertDialogTitle className="flex items-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-sydeblue whitespace-pre-wrap text-left">
             잠깐! 정말 내 SYDE를 삭제하실건가요?
           </AlertDialogTitle>
           <AlertDialogDescription className="font-inter font-normal text-[14px] leading-[20px] tracking-[-0.15px] text-[#777777] text-left">
@@ -54,7 +54,7 @@ export function DeleteDialog({
             className="
               box-border flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] 
               bg-white border-[0.91px] border-black/10 rounded-[12px] 
-              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-[#002040] hover:bg-gray-50 whitespace-nowrap
+              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-sydeblue hover:bg-gray-50 whitespace-nowrap
               h-[36px] mt-0
               
               /* Button Widths (Responsive) */
@@ -71,8 +71,8 @@ export function DeleteDialog({
             disabled={isDeleting}
             className="
               flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] 
-              bg-[#002040] rounded-[12px] 
-              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-white hover:bg-[#002040]/90 whitespace-nowrap
+              bg-sydeblue rounded-[12px] 
+              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-white hover:bg-sydeblue/90 whitespace-nowrap
               h-[36px]
               
               /* Button Widths (Responsive) */

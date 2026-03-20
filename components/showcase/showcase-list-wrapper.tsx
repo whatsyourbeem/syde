@@ -50,7 +50,7 @@ export function ShowcaseListWrapper({
         {/* Mobile: Register Product Button */}
         <div className="md:hidden w-full px-4 py-3 pb-0">
           <Link href="/showcase/create" className="block w-full">
-            <div className="w-full h-[44px] bg-[#002040] rounded-[12px] flex items-center justify-center gap-2.5">
+            <div className="w-full h-[44px] bg-sydeblue rounded-[12px] flex items-center justify-center gap-2.5">
               <CirclePlus className="text-white size-5" strokeWidth={2} />
               <span className="font-pretendard font-semibold text-[16px] leading-[19px] text-white">
                 내 SYDE 프로덕트 등록하기

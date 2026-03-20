@@ -35,10 +35,10 @@ function SectionHeader({ label, tab, q }: { label: string; tab: string; q: strin
       className="flex justify-between items-center px-1 pb-2"
       style={{ borderBottom: '1px solid #E5E5E5' }}
     >
-      <span className="text-sm font-semibold text-[#002040]">{label}</span>
+      <span className="text-sm font-semibold text-sydeblue">{label}</span>
       <Link
         href={`/search?q=${encodeURIComponent(q)}&tab=${tab}`}
-        className="flex items-center gap-0.5 text-xs text-[#777777] hover:text-[#002040] transition-colors"
+        className="flex items-center gap-0.5 text-xs text-[#777777] hover:text-sydeblue transition-colors"
       >
         더 보기 <ChevronRight className="h-3.5 w-3.5" />
       </Link>
@@ -157,7 +157,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     <span className="text-xs text-[#777777]">
                       {log.profiles?.full_name || log.profiles?.username}
                     </span>
-                    <p className="text-sm text-[#002040] line-clamp-1">{log.content}</p>
+                    <p className="text-sm text-sydeblue line-clamp-1">{log.content}</p>
                   </div>
                 </Link>
               ))}
@@ -179,7 +179,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-[#002040] truncate">
+                    <span className="text-sm font-semibold text-sydeblue truncate">
                       {user.full_name || user.username}
                     </span>
                     {user.tagline && (
@@ -206,7 +206,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-[#002040] truncate">{club.name}</span>
+                    <span className="text-sm font-semibold text-sydeblue truncate">{club.name}</span>
                     {club.tagline && (
                       <span className="text-xs text-[#777777] truncate">{club.tagline}</span>
                     )}
@@ -231,7 +231,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     </div>
                   )}
                   <div className="flex flex-col min-w-0 gap-0.5">
-                    <span className="text-sm font-semibold text-[#002040] line-clamp-1">{meetup.title}</span>
+                    <span className="text-sm font-semibold text-sydeblue line-clamp-1">{meetup.title}</span>
                     {meetup.start_datetime && (
                       <span className="flex items-center gap-1 text-xs text-[#777777]">
                         <Calendar className="h-3 w-3 shrink-0" />
@@ -265,7 +265,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     </div>
                   )}
                   <div className="flex flex-col min-w-0 gap-0.5">
-                    <span className="text-sm font-semibold text-[#002040] line-clamp-1">{insight.title}</span>
+                    <span className="text-sm font-semibold text-sydeblue line-clamp-1">{insight.title}</span>
                     {insight.summary && (
                       <span className="text-xs text-[#777777] line-clamp-1">{insight.summary}</span>
                     )}
@@ -300,7 +300,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     </div>
                   )}
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-[#002040] truncate">{showcase.name}</span>
+                    <span className="text-sm font-semibold text-sydeblue truncate">{showcase.name}</span>
                     {showcase.short_description && (
                       <span className="text-xs text-[#777777] line-clamp-1">{showcase.short_description}</span>
                     )}

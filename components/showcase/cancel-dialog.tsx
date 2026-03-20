@@ -38,7 +38,7 @@ export function CancelDialog({
         "
       >
         <DialogHeader className="flex flex-col items-start gap-[8px] p-0 w-full h-auto">
-          <DialogTitle className="flex items-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040] whitespace-pre-wrap text-left">
+          <DialogTitle className="flex items-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-sydeblue whitespace-pre-wrap text-left">
             잠깐! 지금까지 쓴 내용이 지워져요 😢{"\n"}그래도 나가시겠어요?
           </DialogTitle>
         </DialogHeader>
@@ -48,7 +48,7 @@ export function CancelDialog({
             className="
               box-border flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] 
               bg-white border-[0.91px] border-black/10 rounded-[12px] 
-              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-[#002040] hover:bg-gray-50 whitespace-nowrap
+              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-sydeblue hover:bg-gray-50 whitespace-nowrap
               h-[36px]
               
               /* Responsive Width adjustment */
@@ -61,8 +61,8 @@ export function CancelDialog({
             onClick={onConfirm}
             className="
               flex flex-row justify-center items-center px-[16px] py-[8px] gap-[8px] 
-              bg-[#002040] rounded-[12px] 
-              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-white hover:bg-[#002040]/90 whitespace-nowrap
+              bg-sydeblue rounded-[12px] 
+              font-pretendard font-medium text-[14px] leading-[20px] tracking-[-0.15px] text-white hover:bg-sydeblue/90 whitespace-nowrap
               h-[36px]
               
               /* Responsive Width adjustment */

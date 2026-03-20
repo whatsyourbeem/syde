@@ -182,7 +182,7 @@ export function InsightCard({
                             <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex items-center gap-[5px]">
-                            <span className="text-[12px] font-semibold text-[#002040]">{author.name}</span>
+                            <span className="text-[12px] font-semibold text-sydeblue">{author.name}</span>
                             <span className="text-[11px] text-[#777777]">· {author.role}</span>
                             {createdAt && (
                                 <span className="text-[11px] text-[#777777]">

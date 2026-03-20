@@ -21,6 +21,7 @@ export function LogList({
   filterByBookmarkedUserId,
   searchQuery,
   initialLogs,
+  emptyState,
 }: {
   currentUserId: string | null;
   filterByUserId?: string;
@@ -29,6 +30,7 @@ export function LogList({
   filterByBookmarkedUserId?: string;
   searchQuery?: string;
   initialLogs?: LogQueryResult;
+  emptyState?: React.ReactNode;
 }) {
   const supabase = createClient();
   const queryClient = useQueryClient();
@@ -152,11 +154,15 @@ export function LogList({
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
       {logs.length === 0 && !isLoading ? (
-        <div className="px-4">
-          <p className="text-center text-muted-foreground py-10">
-            검색 결과가 없습니다.
-          </p>
-        </div>
+        emptyState ? (
+          emptyState
+        ) : (
+          <div className="px-4">
+            <p className="text-center text-muted-foreground py-10">
+              {searchQuery ? "검색 결과가 없습니다." : "작성된 로그가 없습니다."}
+            </p>
+          </div>
+        )
       ) : (
         logs.map((log, index) => (
           <div key={log.id} className="px-4">

@@ -54,14 +54,14 @@ export function ShowcaseBanner({ user, avatarUrl }: ShowcaseBannerProps) {
               username={user.username}
               full_name={user.full_name}
             >
-              <Button className="bg-[#ED6D34] hover:bg-[#d95d28] text-white font-bold px-8 py-6 rounded-lg text-lg transition-transform hover:scale-105">
+              <Button className="bg-sydeorange hover:bg-sydeorange/90 text-white font-bold px-8 py-6 rounded-lg text-lg transition-transform hover:scale-105">
                 쇼케이스 시작하기
               </Button>
             </ShowcaseEditDialog>
           ) : (
             <Button
               onClick={openLoginDialog}
-              className="bg-[#ED6D34] hover:bg-[#d95d28] text-white font-bold px-8 py-6 rounded-lg text-lg transition-transform hover:scale-105"
+              className="bg-sydeorange hover:bg-sydeorange/90 text-white font-bold px-8 py-6 rounded-lg text-lg transition-transform hover:scale-105"
             >
               쇼케이스 시작하기
             </Button>

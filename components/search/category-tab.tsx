@@ -37,7 +37,7 @@ export function CategoryTab() {
             'flex items-center justify-center px-3 py-1 h-8 rounded-xl text-sm font-normal whitespace-nowrap transition-colors',
             'font-["Pretendard"] tracking-[0.05em] leading-[17px]',
             currentTab === category.id
-              ? 'bg-[#002040] text-white'
+              ? 'bg-sydeblue text-white'
               : 'bg-[#FAFAFA] text-[#777777] hover:bg-[#F0F0F0]'
           )}
         >

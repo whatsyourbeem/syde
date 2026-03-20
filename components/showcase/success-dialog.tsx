@@ -36,7 +36,7 @@ export function SuccessDialog({
         "
       >
         <DialogHeader className="flex flex-col justify-center items-center gap-[8px] p-0 w-full h-auto">
-          <DialogTitle className="flex items-center justify-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-[#002040] whitespace-nowrap">
+          <DialogTitle className="flex items-center justify-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-sydeblue">
             {mode === "update"
               ? "🎉 SYDE 프로덕트를 수정했습니다. 🎉"
               : "🎉 SYDE 프로덕트를 등록했습니다. 🎉"}

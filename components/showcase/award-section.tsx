@@ -35,10 +35,10 @@ export function AwardSection() {
           className="w-6 h-6 object-contain transform scale-x-[-1]"
         />
         <div className="text-center">
-          <p className="text-[#ED6D34] font-bold text-sm tracking-widest">
+          <p className="text-sydeorange font-bold text-sm tracking-widest">
             {AWARD_ITEM.awardDate}
           </p>
-          <h3 className="text-[#ED6D34] font-extrabold text-lg leading-tight whitespace-nowrap">
+          <h3 className="text-sydeorange font-extrabold text-lg leading-tight whitespace-nowrap">
             SYDE AWARDS
           </h3>
         </div>

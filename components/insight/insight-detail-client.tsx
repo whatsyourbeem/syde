@@ -314,7 +314,7 @@ export default function InsightDetailClient({
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
                 <p className="text-gray-500 font-medium text-lg">인사이트를 찾을 수 없습니다.</p>
                 <Link href="/insight">
-                    <Button className="bg-[#002040] text-white">목록으로 돌아가기</Button>
+                    <Button className="bg-sydeblue text-white">목록으로 돌아가기</Button>
                 </Link>
             </div>
         );
@@ -353,7 +353,7 @@ export default function InsightDetailClient({
                                             <DropdownMenuItem asChild>
                                                 <Link
                                                     href={`/insight/${id}/edit`}
-                                                    className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-[#002040] hover:bg-gray-50 focus:bg-gray-50 font-medium"
+                                                    className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-sydeblue hover:bg-gray-50 focus:bg-gray-50 font-medium"
                                                 >
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                                     수정
@@ -361,7 +361,7 @@ export default function InsightDetailClient({
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={() => setIsDeleteDialogOpen(true)}
-                                                className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-[#FF0000] hover:bg-red-50 focus:bg-red-50 focus:text-[#FF0000] font-medium"
+                                                className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600 font-medium"
                                             >
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                                 삭제
@@ -394,7 +394,7 @@ export default function InsightDetailClient({
                                                 <AvatarFallback className="bg-[#D9D9D9]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex items-center gap-[5px]">
-                                                <span className="text-[12px] font-semibold text-[#002040]">{insight.profiles?.full_name || insight.profiles?.username || '알 수 없는 사용자'}</span>
+                                                <span className="text-[12px] font-semibold text-sydeblue">{insight.profiles?.full_name || insight.profiles?.username || '알 수 없는 사용자'}</span>
                                                 <span className="text-[11px] text-[#777777]">· {insight.profiles?.tagline || '멤버'}</span>
                                             </div>
                                         </Link>
@@ -447,7 +447,7 @@ export default function InsightDetailClient({
                 <section className="w-full flex flex-col py-6 md:py-12 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/10 rounded-b-xl">
                     <div className="flex items-center gap-2 px-1">
                         <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
-                        <h2 className="text-xl font-bold text-[#002040]">댓글 및 리뷰</h2>
+                        <h2 className="text-xl font-bold text-sydeblue">댓글 및 리뷰</h2>
                     </div>
 
                     <div className="flex flex-col gap-6 px-1 min-h-[100px]">
@@ -460,7 +460,7 @@ export default function InsightDetailClient({
                                 <div className="flex flex-col gap-1.5 flex-grow">
                                     <div className="flex flex-row justify-between items-center">
                                         <div className="flex gap-2 items-center">
-                                            <span className="text-[14px] font-bold text-[#002040]">{comment.profiles?.username}</span>
+                                            <span className="text-[14px] font-bold text-sydeblue">{comment.profiles?.username}</span>
                                             <span className="text-[12px] text-[#777777]">{comment.profiles?.tagline || '멤버'}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
@@ -490,8 +490,8 @@ export default function InsightDetailClient({
                                                                     }}
                                                                     className="w-full h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
                                                                 >
-                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#002040" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                                                    <span className="text-[14px] text-[#002040]">수정</span>
+                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sydeblue"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                                    <span className="text-[14px] text-sydeblue">수정</span>
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleCommentDeleteRequest(comment.id)}
@@ -512,7 +512,7 @@ export default function InsightDetailClient({
                                             <textarea
                                                 value={editingContent}
                                                 onChange={(e) => setEditingContent(e.target.value)}
-                                                className="w-full bg-white border border-[#B7B7B7] rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow min-h-[80px] resize-none"
+                                                className="w-full bg-white border border-[#B7B7B7] rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-sydeblue transition-shadow min-h-[80px] resize-none"
                                                 autoFocus
                                             />
                                             <div className="flex justify-end gap-3">
@@ -524,7 +524,7 @@ export default function InsightDetailClient({
                                                 </button>
                                                 <button
                                                     onClick={handleCommentUpdate}
-                                                    className="text-sm text-[#002040] hover:underline font-bold"
+                                                    className="text-sm text-sydeblue hover:underline font-bold"
                                                 >
                                                     저장
                                                 </button>
@@ -561,13 +561,13 @@ export default function InsightDetailClient({
                                 disabled={submitting}
                                 placeholder="댓글을 작성해 보세요..."
                                 rows={1}
-                                className="w-full h-[48px] py-3 bg-white border border-[#B7B7B7] rounded-xl px-4 text-base focus:outline-none focus:ring-1 focus:ring-[#002040] transition-shadow disabled:opacity-50 resize-none overflow-y-auto"
+                                className="w-full h-[48px] py-3 bg-white border border-[#B7B7B7] rounded-xl px-4 text-base focus:outline-none focus:ring-1 focus:ring-sydeblue transition-shadow disabled:opacity-50 resize-none overflow-y-auto"
                             />
                         </div>
                         <Button
                             onClick={handleCommentSubmit}
                             disabled={submitting || !newComment.trim()}
-                            className="h-12 px-6 bg-[#002040] hover:bg-[#003060] text-white text-base font-semibold rounded-xl"
+                            className="h-12 px-6 bg-sydeblue hover:bg-sydeblue/90 text-white text-base font-semibold rounded-xl"
                         >
                             {submitting ? "..." : "등록"}
                         </Button>

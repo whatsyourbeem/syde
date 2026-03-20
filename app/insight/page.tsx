@@ -121,7 +121,7 @@ export default function InsightPage() {
             <div className="w-full bg-card border-b-[0.5px] border-b-[#B7B7B7]">
                 <div className="w-full max-w-6xl mx-auto px-4 py-8">
                     <div className="flex flex-col justify-center items-center gap-4 text-center">
-                        <h2 className="text-[24px] font-bold text-[#002040] py-2 leading-[29px]">
+                        <h2 className="text-[24px] font-bold text-sydeblue py-2 leading-[29px]">
                             Insights
                         </h2>
                         <p className="text-[14px] font-normal text-[#777777] leading-[17px]">사이드 프로젝트를 더 오래, 더 잘 하기 위한 이야기들.</p>
@@ -164,13 +164,10 @@ export default function InsightPage() {
 
             {/* Floating Create Button */}
             <Link href="/insight/write">
-                <Button className="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-[#002040] hover:bg-[#003060] shadow-xl flex items-center justify-center p-0 z-50">
+                <Button className="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-sydeblue hover:bg-sydeblue/90 shadow-xl flex items-center justify-center p-0 z-50">
                     <Plus className="w-8 h-8 text-white" />
                 </Button>
             </Link>
         </div>
     );
 }
-
-
-

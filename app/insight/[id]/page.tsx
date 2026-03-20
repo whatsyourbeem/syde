@@ -90,7 +90,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
                 <p className="text-gray-500 font-medium text-lg">인사이트를 찾을 수 없습니다.</p>
-                <a href="/insight" className="px-4 py-2 bg-[#002040] text-white rounded-md">목록으로 돌아가기</a>
+                <a href="/insight" className="px-4 py-2 bg-sydeblue text-white rounded-md">목록으로 돌아가기</a>
             </div>
         );
     }

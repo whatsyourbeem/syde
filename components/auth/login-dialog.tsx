@@ -53,7 +53,7 @@ export function LoginDialog() {
             <div className="mt-2 pt-4 border-t border-dashed border-gray-200">
               <p className="text-[10px] text-gray-400 mb-2 text-center">로컬 개발용 (테스트 계정)</p>
               <form action={loginWithTestAccount}>
-                <Button type="submit" variant="outline" className="w-full border-[#002040] text-[#002040] hover:bg-gray-50">
+                <Button type="submit" variant="outline" className="w-full border-sydeblue text-sydeblue hover:bg-gray-50">
                   테스트 계정으로 즉시 로그인
                 </Button>
               </form>

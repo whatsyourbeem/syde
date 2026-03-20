@@ -13,6 +13,7 @@ import { updateProfile, checkUsername } from "@/app/[username]/actions"; // Impo
 import { useFormStatus } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
 import { deleteAccount } from "@/app/auth/auth-actions";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +53,7 @@ function SubmitButton({
   return (
     <Button
       type="submit"
+      className="flex-grow bg-sydeblue hover:bg-sydeblue/90 text-white rounded-xl h-10 font-bold"
       disabled={
         pending ||
         !isLinkValid ||
@@ -61,7 +63,7 @@ function SubmitButton({
         isUsernameAvailable === false
       }
     >
-      {pending ? "수정 중..." : "수정하기"}
+      {pending ? "저장 중..." : "정보 저장"}
     </Button>
   );
 }
@@ -92,7 +94,6 @@ export default function ProfileForm({
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(
     avatarUrl
   );
-  const [isHovered, setIsHovered] = useState(false);
   const [isLinkValid, setIsLinkValid] = useState(true);
   const [isUsernameValid, setIsUsernameValid] = useState(true);
   const [isFullNameValid, setIsFullNameValid] = useState(true);
@@ -101,13 +102,6 @@ export default function ProfileForm({
     null
   );
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
 
   useEffect(() => {
     setCurrentUsername(username);
@@ -131,7 +125,7 @@ export default function ProfileForm({
   };
 
   const validateUsername = (username: string | null): boolean => {
-    if (!username) return true; // Allow empty for now, or add required validation later
+    if (!username) return true;
     const regex = /^[a-zA-Z0-9_-]*$/;
     return regex.test(username);
   };
@@ -155,7 +149,7 @@ export default function ProfileForm({
 
     setIsUsernameLengthValid(isLengthValid);
     setIsUsernameValid(isPatternValid);
-    setIsUsernameAvailable(null); // Reset availability on change
+    setIsUsernameAvailable(null);
   };
 
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,20 +214,19 @@ export default function ProfileForm({
   const uploadAvatar = useCallback(
     async (file: File) => {
       const fileExt = file.name.split(".").pop();
-      const fileName = `${uuidv4()}.${fileExt}`; // Use UUID for unique file name
-      const filePath = `${userId}/avatar/${fileName}`; // New path structure
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${userId}/avatar/${fileName}`;
 
-      // Resize image before upload
-      const resizedBlob = await resizeImage(file, 300, 300, 0.7); // Max 300x300, 70% quality
+      const resizedBlob = await resizeImage(file, 300, 300, 0.7);
       const resizedFile = new File([resizedBlob], fileName, {
         type: file.type,
       });
 
       const { error: uploadError } = await supabase.storage
-        .from("profiles") // Use the 'profiles' bucket
+        .from("profiles")
         .upload(filePath, resizedFile, {
           cacheControl: "3600",
-          upsert: false, // No need for upsert with UUID
+          upsert: false,
         });
 
       if (uploadError) {
@@ -241,7 +234,7 @@ export default function ProfileForm({
       }
 
       const { data: publicUrlData } = await supabase.storage
-        .from("profiles") // Use the 'profiles' bucket
+        .from("profiles")
         .getPublicUrl(filePath);
 
       return publicUrlData.publicUrl;
@@ -260,7 +253,6 @@ export default function ProfileForm({
   };
 
   const clientAction = async (formData: FormData) => {
-    // Check username availability only when submitting
     if (currentUsername !== username) {
       setIsCheckingUsername(true);
       const isAvailable = await checkUsername(currentUsername || "", userId);
@@ -268,7 +260,7 @@ export default function ProfileForm({
       setIsCheckingUsername(false);
 
       if (!isAvailable) {
-        return; // Stop form submission if username is not available
+        return;
       }
     }
 
@@ -286,7 +278,6 @@ export default function ProfileForm({
       }
     }
 
-    // Append avatar_url to formData
     formData.append("avatar_url", newAvatarUrl || "");
     formData.append("full_name", currentFullName || "");
     formData.append("tagline", currentTagline || "");
@@ -296,133 +287,135 @@ export default function ProfileForm({
     await updateProfile(formData);
   };
 
+  const inputClass = "h-9 border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm focus:border-sydeblue transition-colors";
+  const labelClass = "text-sm font-medium text-sydeblue";
+
   return (
-    <Card className={`w-full border-0 shadow-none ${className || ""}`}>
-      <form action={clientAction} className="space-y-8 pt-4">
-        <div className="space-y-2">
-          <Label htmlFor="fullName" className="font-semibold">
-            닉네임
+    <Card className={`w-full border-0 shadow-none bg-transparent ${className || ""}`}>
+      <form action={clientAction} className="space-y-5">
+        {/* Nickname */}
+        <div className="space-y-1">
+          <Label htmlFor="fullName" className={labelClass}>
+            닉네임 <span className="text-red-500">*</span>
           </Label>
           <Input
             id="fullName"
             name="full_name"
             type="text"
+            placeholder="커뮤니티에서 사용할 이름이에요."
             value={currentFullName || ""}
             onChange={handleFullNameChange}
-            className={!isFullNameValid ? "border-red-500" : ""}
+            className={cn(inputClass, !isFullNameValid && "border-red-500")}
           />
           {!isFullNameValid && (
-            <p className="text-red-500 text-sm mt-1">
-              닉네임의 최대 길이는 20자입니다. ({currentFullName?.length || 0}
-              /20)
+            <p className="text-red-500 text-[11px] mt-1">
+              닉네임의 최대 길이는 20자입니다.
             </p>
           )}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="username" className="font-semibold">
-            프로필 네임
+
+        {/* Username */}
+        <div className="space-y-1">
+          <Label htmlFor="username" className={labelClass}>
+            프로필 네임 <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="username"
-            name="username"
-            type="text"
-            value={currentUsername || ""}
-            onChange={handleUsernameChange}
-            className={
-              !isUsernameValid ||
-              !isUsernameLengthValid ||
-              isUsernameAvailable === false
-                ? "border-red-500"
-                : ""
-            }
-          />
-          <p className="text-sm text-muted-foreground">
-            프로필 네임은 프로필 페이지 링크와 연동돼요.
-          </p>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#777777] text-sm">@</span>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              placeholder="URL 주소에 쓰이는 고유 이름이에요."
+              value={currentUsername || ""}
+              onChange={handleUsernameChange}
+              className={cn(inputClass, "pl-7", (!isUsernameValid || !isUsernameLengthValid || isUsernameAvailable === false) && "border-red-500")}
+            />
+          </div>
           {!isUsernameValid && (
-            <p className="text-red-500 text-sm mt-1">
-              프로필 네임은 알파벳, 숫자, _ , - 만 사용할 수 있습니다.
-            </p>
-          )}
-          {!isUsernameLengthValid && (
-            <p className="text-red-500 text-sm mt-1">
-              프로필 네임의 최대 길이는 20자입니다. ({
-                currentUsername?.length || 0
-              }
-              /20)
-            </p>
-          )}
-          {isCheckingUsername && (
-            <p className="text-sm text-muted-foreground mt-1">
-              확인 중...
+            <p className="text-red-500 text-[11px] mt-1">
+              영문, 숫자, _, - 만 사용할 수 있습니다.
             </p>
           )}
           {isUsernameAvailable === false && (
-            <p className="text-red-500 text-sm mt-1">
-              이미 사용중인 프로필 네임입니다.
+            <p className="text-red-500 text-[11px] mt-1">
+              이미 사용 중인 프로필 네임입니다.
             </p>
           )}
         </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-4">
-            <div
-              className="relative w-24 h-24 rounded-full overflow-hidden cursor-pointer"
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              onClick={() => document.getElementById("avatar")?.click()}
-            >
-              {avatarPreviewUrl && (
-                <Image
-                  src={avatarPreviewUrl}
-                  alt="Avatar"
-                  className={`rounded-full object-cover aspect-square w-full h-full transition-opacity duration-300 ${
-                    isHovered ? "opacity-50" : "opacity-100"
-                  }`}
-                  width={96}
-                  height={96}
-                />
-              )}
-              <div
-                className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 transition-opacity duration-300 z-10 ${
-                  isHovered ? "opacity-30" : "opacity-0"
-                }`}
-              >
-                <Plus className="w-12 h-12" color="white" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="font-semibold pl-1">프로필 사진</Label>
-              <Input
-                id="avatar"
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleAvatarChange}
-                className="opacity-0 max-w-0 max-h-0 my-0 py-0"
+
+        {/* Profile Image Section */}
+        <div className="flex items-center gap-10 py-2">
+          <div 
+            className="relative w-[180px] h-[180px] rounded-full overflow-hidden bg-sydeblue flex items-center justify-center cursor-pointer group"
+            onClick={() => document.getElementById("avatar")?.click()}
+          >
+            {avatarPreviewUrl ? (
+              <Image
+                src={avatarPreviewUrl}
+                alt="Avatar"
+                fill
+                className="object-cover"
               />
-              <Button
-                type="button"
-                onClick={() => document.getElementById("avatar")?.click()}
-              >
-                파일 선택
-              </Button>
+            ) : (
+              <div className="relative w-20 h-20">
+                <Image
+                  src="/logo_no_bg_light.png"
+                  alt="SYDE Logo"
+                  fill
+                  className="object-contain opacity-80"
+                />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Plus className="w-10 h-10 text-white" />
             </div>
           </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="space-y-1">
+              <Label className={labelClass}>프로필 이미지</Label>
+              <p className="text-xs text-[#777777] leading-tight font-normal">
+                프로필 대표 <br /> 이미지를 설정해주세요.
+              </p>
+            </div>
+            <Input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="default"
+              className="w-20 bg-sydeblue hover:bg-sydeblue/90 text-white text-xs h-8 rounded-xl font-normal"
+              onClick={() => document.getElementById("avatar")?.click()}
+            >
+              사진 선택
+            </Button>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="tagline" className="font-semibold">
+
+        {/* Tagline */}
+        <div className="space-y-1">
+          <Label htmlFor="tagline" className={labelClass}>
             한 줄 소개
           </Label>
           <Input
             id="tagline"
             name="tagline"
             type="text"
+            placeholder="나를 표현하는 한 줄!"
             value={currentTagline || ""}
             onChange={(e) => setCurrentTagline(e.target.value)}
+            className={inputClass}
             maxLength={30}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="link" className="font-semibold">
+
+        {/* Link */}
+        <div className="space-y-1">
+          <Label htmlFor="link" className={labelClass}>
             Link
           </Label>
           <Input
@@ -431,46 +424,54 @@ export default function ProfileForm({
             type="text"
             value={currentLink || ""}
             onChange={handleLinkChange}
-            className={!isLinkValid ? "border-red-500" : ""}
+            className={cn(inputClass, !isLinkValid && "border-red-500")}
           />
           {!isLinkValid && (
-            <p className="text-red-500 text-sm mt-1">
+            <p className="text-red-500 text-[11px] mt-1">
               유효한 URL을 입력해주세요.
             </p>
           )}
         </div>
-        <div className="pt-4 flex space-x-2">
-          <div className="flex space-x-2">
-            <SubmitButton
-              isLinkValid={isLinkValid}
-              isUsernameValid={isUsernameValid}
-              isFullNameValid={isFullNameValid}
-              isUsernameLengthValid={isUsernameLengthValid}
-              isUsernameAvailable={isUsernameAvailable}
-            />
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              취소
-            </Button>
-          </div>
-          <div className="flex-grow" />
+
+        {/* Action Buttons */}
+        <div className="flex gap-2.5 pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-20 border-[#B7B7B7] text-sydeblue rounded-xl h-10 font-normal"
+            onClick={handleCancel}
+          >
+            취소
+          </Button>
+          <SubmitButton
+            isLinkValid={isLinkValid}
+            isUsernameValid={isUsernameValid}
+            isFullNameValid={isFullNameValid}
+            isUsernameLengthValid={isUsernameLengthValid}
+            isUsernameAvailable={isUsernameAvailable}
+          />
+        </div>
+
+        {/* Delete Account (Optional, small link at bottom) */}
+        <div className="flex justify-center pt-8">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button type="button" variant="ghost" className="text-gray-500">
+              <button type="button" className="text-[11px] text-[#B7B7B7] hover:underline">
                 회원 탈퇴
-              </Button>
+              </button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="rounded-2xl border-none">
               <AlertDialogHeader>
-                <AlertDialogTitle>정말 회원 탈퇴하시겠습니까?</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="text-sydeblue">정말 회원 탈퇴하시겠습니까?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-500 text-sm">
                   회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며, 되돌릴 수 없습니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>취소</AlertDialogCancel>
+                <AlertDialogCancel className="rounded-xl border-[#B7B7B7]">취소</AlertDialogCancel>
                 <form action={async () => { await deleteAccount(); }}>
                   <AlertDialogAction asChild>
-                    <Button type="submit" variant="destructive">
+                    <Button type="submit" variant="destructive" className="rounded-xl">
                       탈퇴
                     </Button>
                   </AlertDialogAction>

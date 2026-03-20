@@ -26,7 +26,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <Image src="/logo_no_bg.png" alt="SYDE" width={28} height={28} />
               <span
-                className={`text-2xl font-extrabold text-[#002040] ${paperlogy.className}`}
+                className={`text-2xl font-extrabold text-sydeblue ${paperlogy.className}`}
               >
                 <span style={{ letterSpacing: "0.01em" }}>S</span>
                 <span style={{ letterSpacing: "0.01em" }}>Y</span>
@@ -41,7 +41,7 @@ export default function Footer() {
           {/* Right Section: All Horizontal */}
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 lg:gap-12 w-full md:w-auto">
             {/* Main Nav Links (Hidden on Tablet, Visible on Desktop) */}
-            <div className="hidden lg:flex items-center justify-center w-[253px] h-[44px] gap-[24px] font-bold text-[#002040] text-xs px-[50px] py-[10px]">
+            <div className="hidden lg:flex items-center justify-center w-[253px] h-[44px] gap-[24px] font-bold text-sydeblue text-xs px-[50px] py-[10px]">
               <Link href="/about" className="hover:opacity-80">
                 SYDE 소개
               </Link>
@@ -139,30 +139,30 @@ export default function Footer() {
         <div className="flex flex-row flex-wrap justify-center items-center gap-[16px] py-[5px] px-[11px] w-full">
           <Link
             href="/guideline"
-            className="font-pretendard font-normal text-[14px] leading-[150%] text-[#002040] whitespace-nowrap"
+            className="font-pretendard font-normal text-[14px] leading-[150%] text-sydeblue whitespace-nowrap"
           >
             커뮤니티 가이드라인
           </Link>
           <Link
             href="mailto:whatsyourbeem@gmail.com"
-            className="font-pretendard font-normal text-[14px] leading-[150%] text-[#002040] whitespace-nowrap"
+            className="font-pretendard font-normal text-[14px] leading-[150%] text-sydeblue whitespace-nowrap"
           >
             협업문의
           </Link>
           <Link
             href="/term"
-            className="font-pretendard font-normal text-[14px] leading-[150%] text-[#002040] whitespace-nowrap"
+            className="font-pretendard font-normal text-[14px] leading-[150%] text-sydeblue whitespace-nowrap"
           >
             이용약관
           </Link>
           <Link
             href="/privacy"
-            className="font-pretendard font-normal text-[14px] leading-[150%] text-[#002040] whitespace-nowrap"
+            className="font-pretendard font-normal text-[14px] leading-[150%] text-sydeblue whitespace-nowrap"
           >
             개인정보처리방침
           </Link>
         </div>
-        <p className="font-pretendard font-normal text-[12px] leading-[150%] text-center text-[#002040] w-full">
+        <p className="font-pretendard font-normal text-[12px] leading-[150%] text-center text-sydeblue w-full">
           © {new Date().getFullYear()} SYDE. All rights reserved.
         </p>
 

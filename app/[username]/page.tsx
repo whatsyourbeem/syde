@@ -2,11 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
-import { Separator } from "@/components/ui/separator";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+import { Settings } from "lucide-react";
 
 import { Metadata, ResolvingMetadata } from "next";
 
@@ -67,15 +66,14 @@ export default async function UserProfilePage({
     .single();
 
   if (profileError || !profile) {
-    // If profile not found, redirect to home or a 404 page
-    redirect("/"); // Or /404
+    redirect("/");
   }
 
   // Check if the current user is viewing their own profile
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const currentUserId = user?.id || null; // Get current user ID
+  const currentUserId = user?.id || null;
   const isOwnProfile = !!(user && user.id === profile.id);
 
   const avatarUrlWithCacheBuster = profile.avatar_url
@@ -83,13 +81,53 @@ export default async function UserProfilePage({
     }`
     : null;
 
-  let initialHtml = getInitialHtmlFromTiptap(profile.bio);
+  const initialHtml = getInitialHtmlFromTiptap(profile.bio);
 
   return (
-    <div className="flex-1 w-full flex flex-col py-5 h-full">
-      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col">
-        <div className="flex flex-row-reverse items-center gap-6 px-8 py-6 rounded-lg bg-card mb-4">
-          <div className="relative w-24 h-24 flex-shrink-0">
+    <div className="flex-1 w-full flex flex-col h-full">
+      <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col">
+        {/* Title Section */}
+        <div className="flex flex-col md:flex-row items-center md:items-center justify-center gap-6 px-8 py-6 border-b-[0.5px] border-[#B7B7B7]">
+          {/* Text Block (Left) */}
+          <div className="flex-grow min-w-0 flex flex-col items-center md:items-start px-5 gap-3">
+            {/* Name Row */}
+            <div className="flex flex-col md:flex-row md:items-center gap-2">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold leading-tight text-sydeblue">
+                  {profile.full_name
+                    ? profile.full_name
+                    : profile.username || "Anonymous"}
+                </h1>
+                {profile.certified && <CertifiedBadge size="lg" />}
+              </div>
+              {profile.full_name && profile.username && (
+                <span className="text-sm text-[#777777]">
+                  @{profile.username}
+                </span>
+              )}
+            </div>
+
+            {/* Tagline */}
+            {profile.tagline && (
+              <p className="text-sm text-sydeblue">
+                {profile.tagline}
+              </p>
+            )}
+
+            {/* Edit Profile Button */}
+            {isOwnProfile && (
+              <Link
+                href="/profile"
+                className="mt-2 inline-flex items-center gap-1 px-3 py-2 bg-sydeblue text-[#EBF2F9] text-sm font-bold rounded-xl hover:bg-sydeblue/90 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                프로필 편집
+              </Link>
+            )}
+          </div>
+
+          {/* Avatar (Right) */}
+          <div className="relative w-24 h-24 flex-shrink-0 order-first md:order-last">
             {avatarUrlWithCacheBuster ? (
               <Image
                 src={avatarUrlWithCacheBuster}
@@ -99,7 +137,7 @@ export default async function UserProfilePage({
                 className="rounded-full object-cover aspect-square"
               />
             ) : (
-              <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground text-4xl font-bold">
+              <div className="w-full h-full rounded-full bg-[#D9D9D9] flex items-center justify-center text-sydeblue text-4xl font-bold">
                 {profile.full_name
                   ? profile.full_name[0].toUpperCase()
                   : profile.username
@@ -108,49 +146,9 @@ export default async function UserProfilePage({
               </div>
             )}
           </div>
-          <div className="flex-grow min-w-0">
-            <div className="flex flex-col md:flex-row md:items-baseline gap-2">
-              <div className="flex items-center gap-1">
-                <h1 className="text-2xl font-bold leading-tight">
-                  {profile.full_name
-                    ? profile.full_name
-                    : profile.username || "Anonymous"}
-                </h1>
-                {profile.certified && <CertifiedBadge size="lg" />}
-              </div>
-              {profile.full_name && profile.username && (
-                <p className="text-muted-foreground text-sm">
-                  @{profile.username}
-                </p>
-              )}
-            </div>
-            {profile.tagline && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {profile.tagline}
-              </p>
-            )}
-
-            {isOwnProfile && (
-              <div className="mt-4 flex gap-4 items-center">
-                <Button asChild size="sm">
-                  <Link href="/profile">프로필 편집</Link>
-                </Button>
-              </div>
-            )}
-
-            {profile.link && (
-              <Link
-                href={profile.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline text-sm mt-2 inline-block max-w-full truncate overflow-hidden whitespace-nowrap"
-              >
-                {profile.link}
-              </Link>
-            )}
-          </div>
         </div>
-        <Separator className="hidden md:block" />
+
+        {/* Main Content (Sidebar + Content) */}
         <ProfileContentTabs
           isOwnProfile={isOwnProfile}
           profile={profile}

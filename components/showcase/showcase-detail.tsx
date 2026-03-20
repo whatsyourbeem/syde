@@ -357,7 +357,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                         className="object-cover"
                       />
                     </div>
-                    <span className="font-['Pretendard'] text-[14px] font-semibold text-[#002040] leading-[19px] whitespace-nowrap">
+                    <span className="font-['Pretendard'] text-[14px] font-semibold text-sydeblue leading-[19px] whitespace-nowrap">
                       {showcase.profiles?.username}
                     </span>
                     <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
@@ -482,7 +482,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                       className="object-cover"
                     />
                   </div>
-                  <span className="font-['Pretendard'] font-semibold text-[14px] text-[#002040] whitespace-nowrap">
+                  <span className="font-['Pretendard'] font-semibold text-[14px] text-sydeblue whitespace-nowrap">
                     {showcase.profiles?.username}
                   </span>
                   <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
@@ -571,7 +571,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 height={26}
                 className="object-contain"
               />
-              <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
+              <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
                 소개
               </span>
             </div>
@@ -709,7 +709,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               height={26}
               className="object-contain"
             />
-            <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
+            <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
               SYDERS의 손 끝에서 탄생했어요.
             </span>
           </div>
@@ -724,7 +724,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 <div className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] rounded-[10px] flex-shrink-0 relative bg-alabasterwhite">
                   {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
                   {member.role === "author" && (
-                    <div className="absolute top-2 left-2 text-[#ED6D34]">
+                    <div className="absolute top-2 left-2 text-sydeorange">
                       {/* Crown Icon placeholder or small customized svg */}
                       <svg
                         width="20"
@@ -740,7 +740,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                         />
                         <path
                           d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
-                          fill="#ED6D34"
+                          fill="currentColor"
                         />
                       </svg>
                     </div>
@@ -754,7 +754,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                  <span className="font-['Pretendard'] font-bold text-[12px] text-[#002040] w-full text-center truncate px-1">
+                  <span className="font-['Pretendard'] font-bold text-[12px] text-sydeblue w-full text-center truncate px-1">
                     {member.name}
                   </span>
                   <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
@@ -780,7 +780,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             >
               <HeartIcon
                 suppressHydrationWarning
-                className={`w-5 h-5 ${hasLiked ? "fill-[#ED6D34] text-[#ED6D34]" : "text-[#777777]"}`}
+                className={`w-5 h-5 ${hasLiked ? "fill-sydeorange text-sydeorange" : "text-[#777777]"}`}
               />
               <span className="font-['Pretendard'] text-[14px] text-[#777777]">
                 {likesCount}
@@ -826,7 +826,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               height={26}
               className="object-contain"
             />
-            <span className="font-['Pretendard'] font-bold text-[20px] text-[#002040]">
+            <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
               댓글 및 리뷰
             </span>
           </div>

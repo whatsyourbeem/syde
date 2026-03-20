@@ -200,7 +200,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         <div className="flex flex-col bg-white w-full max-w-6xl mx-auto font-[Pretendard] px-4 md:px-6">
             {/* Page Title Section */}
             <section className="w-full flex flex-col items-center py-5 gap-4">
-                <h1 className="text-[24px] font-bold leading-[29px] text-[#002040] text-center w-full md:text-left md:py-4">
+                <h1 className="text-[24px] font-bold leading-[29px] text-sydeblue text-center w-full md:text-left md:py-4">
                     SYDE 인사이트 {isEditMode ? '수정하기' : '등록하기'}
                 </h1>
             </section>
@@ -211,10 +211,10 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 <div className="flex flex-col gap-5">
                     {/* Title Input */}
                     <div className="flex flex-col gap-1 w-full">
-                        <label className="text-[14px] font-medium text-[#002040] flex items-center gap-0.5">
+                        <label className="text-[14px] font-medium text-sydeblue flex items-center gap-0.5">
                             인사이트 제목 <span className="text-red-500">*</span>
                         </label>
-                        <div className="w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
+                        <div className="w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[sydeblue]">
                             <input
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
@@ -226,10 +226,10 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
                     {/* Tagline/Summary Input */}
                     <div className="flex flex-col gap-1 w-full">
-                        <label className="text-[14px] font-medium text-[#002040] flex items-center gap-0.5">
+                        <label className="text-[14px] font-medium text-sydeblue flex items-center gap-0.5">
                             한 줄 소개 <span className="text-red-500">*</span>
                         </label>
-                        <div className="w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040]">
+                        <div className="w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[sydeblue]">
                             <input
                                 value={summary}
                                 onChange={(e) => setSummary(e.target.value)}
@@ -242,7 +242,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
                 {/* Representative Image UI */}
                 <div className="flex flex-col gap-1 w-full">
-                    <label className="text-[14px] font-medium text-[#002040]">대표 이미지</label>
+                    <label className="text-[14px] font-medium text-sydeblue">대표 이미지</label>
                     <div className="w-full h-[180px] md:h-[240px] border-[0.5px] border-[#B7B7B7] rounded-[10px] flex flex-row items-center justify-between p-0 overflow-hidden bg-gray-50/30">
                         <div className="flex flex-col justify-center items-start flex-1 p-6 md:p-10 gap-5">
                             <p className="text-[12px] md:text-[16px] leading-[1.5] text-[#777777] text-left">
@@ -257,7 +257,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                                     accept="image/*"
                                 />
                                 <Button
-                                    className="w-20 md:w-24 h-8 md:h-10 bg-[#002040] hover:bg-[#003060] text-white text-[14px] rounded-[12px] font-normal"
+                                    className="w-20 md:w-24 h-8 md:h-10 bg-sydeblue hover:bg-sydeblue/90 text-white text-[14px] rounded-[12px] font-normal"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={uploading}
                                 >
@@ -291,8 +291,8 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
                 {/* Content Area */}
                 <div className="flex flex-col gap-1 w-full">
-                    <label className="text-[14px] font-medium text-[#002040]">내용 <span className="text-red-500">*</span></label>
-                    <div className="w-full min-h-[500px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-[#002040] overflow-hidden">
+                    <label className="text-[14px] font-medium text-sydeblue">내용 <span className="text-red-500">*</span></label>
+                    <div className="w-full min-h-[500px] border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-sydeblue overflow-hidden">
                         <TiptapEditorWrapper
                             initialContent={typeof content === 'string' ? null : content}
                             onContentChange={(json) => setContent(json)}
@@ -306,13 +306,13 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 <div className="flex flex-row justify-end gap-2.5 w-full mt-2">
                     <Button
                         variant="outline"
-                        className="w-24 h-10 border-[#002040] text-[#002040] rounded-[12px] text-[14px] hover:bg-gray-50"
+                        className="w-24 h-10 border-sydeblue text-sydeblue rounded-[12px] text-[14px] hover:bg-gray-50"
                         onClick={() => router.back()}
                     >
                         취소
                     </Button>
                     <Button
-                        className="w-48 h-10 bg-[#002040] hover:bg-[#003060] text-white rounded-[12px] text-[14px] font-medium"
+                        className="w-48 h-10 bg-sydeblue hover:bg-sydeblue/90 text-white rounded-[12px] text-[14px] font-medium"
                         onClick={handleSubmit}
                         disabled={loading}
                     >
