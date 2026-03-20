@@ -153,8 +153,8 @@ export function LogList({
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
       {logs.length === 0 && !isLoading ? (
         <div className="px-4">
-          <p className="text-center text-muted-foreground">
-            아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
+          <p className="text-center text-muted-foreground py-10">
+            검색 결과가 없습니다.
           </p>
         </div>
       ) : (

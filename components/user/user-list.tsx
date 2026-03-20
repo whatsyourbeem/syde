@@ -33,8 +33,9 @@ export function UserList({ searchQuery }: UserListProps) {
         .select("id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified", { count: "exact" });
 
       if (searchQuery) {
+        const escaped = searchQuery.replace(/"/g, '\\"');
         query = query.or(
-          `username.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%,tagline.ilike.%${searchQuery}%`
+          `username.ilike."%${escaped}%",full_name.ilike."%${escaped}%",tagline.ilike."%${escaped}%"`
         );
       }
 
@@ -69,7 +70,7 @@ export function UserList({ searchQuery }: UserListProps) {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
       {users.length === 0 && !isLoading ? (
-        <p className="text-center text-muted-foreground">
+        <p className="text-center text-muted-foreground py-10">
           검색 결과가 없습니다.
         </p>
       ) : (

@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { SearchForm } from "@/components/search/search-form";
+import { CategoryTab } from "@/components/search/category-tab";
+import { RecentSearch } from "@/components/search/recent-search";
+import { EmptyState } from "@/components/search/empty-state";
 import { LogListWrapper } from "@/components/log/log-list-wrapper";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserList } from "@/components/user/user-list";
+import { ClubSearchList } from "@/components/club/club-search-list";
+import { MeetupSearchList } from "@/components/meetup/meetup-search-list";
+import { InsightSearchList } from "@/components/insight/insight-search-list";
+import { ShowcaseSearchList } from "@/components/showcase/showcase-search-list";
+import { AllSearchResults } from "@/components/search/all-search-results";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +23,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     data: { user },
   } = await supabase.auth.getUser();
   const resolvedSearchParams = await searchParams;
-  const q = resolvedSearchParams.q;
-  const currentTab = resolvedSearchParams.tab || "logs"; // Default to 'logs'
+  const q = resolvedSearchParams.q || "";
+  const currentTab = resolvedSearchParams.tab || "all";
 
   let profile = null;
   let avatarUrl = null;
@@ -29,7 +36,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       .single();
 
     if (profileError && profileError.code !== "PGRST116") {
-      console.error("Error fetching profile for LogForm:", profileError);
+      console.error("Error fetching profile for SearchPage:", profileError);
     } else if (data) {
       profile = data;
       avatarUrl =
@@ -41,48 +48,52 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     }
   }
 
+  const renderContent = () => {
+    if (!q) {
+      return (
+        <>
+          <RecentSearch />
+          <EmptyState />
+        </>
+      );
+    }
+
+    switch (currentTab) {
+      case "all":
+        return <AllSearchResults searchQuery={q} />;
+      case "logs":
+        return <LogListWrapper user={profile} avatarUrl={avatarUrl} />;
+      case "users":
+        return <UserList searchQuery={q} />;
+      case "clubs":
+        return <ClubSearchList searchQuery={q} />;
+      case "meetups":
+        return <MeetupSearchList searchQuery={q} />;
+      case "insights":
+        return <InsightSearchList searchQuery={q} />;
+      case "showcase":
+        return <ShowcaseSearchList searchQuery={q} />;
+      default:
+        return <LogListWrapper user={profile} avatarUrl={avatarUrl} />;
+    }
+  };
+
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5">
-      <div className="w-full max-w-2xl mx-auto mb-8">
+    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center bg-white">
+      {/* Search Title + Input */}
+      <div className="w-full max-w-[720px] mx-auto pt-4 pb-4">
         <SearchForm />
       </div>
 
-      <Tabs defaultValue={currentTab} className="w-full max-w-2xl">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="logs" asChild>
-            <a href={`/search?q=${q || ''}&tab=logs`}>로그</a>
-          </TabsTrigger>
-          <TabsTrigger value="users" asChild>
-            <a href={`/search?q=${q || ''}&tab=users`}>사용자</a>
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="logs">
-          {q ? (
-            <LogListWrapper user={profile} avatarUrl={avatarUrl} />
-          ) : (
-            <div className="text-center text-muted-foreground mt-10">
-              <h2 className="text-2xl font-bold mb-4">로그 검색</h2>
-              <p className="text-lg">검색어를 입력하여 원하는 로그를 찾아보세요.</p>
-              <p className="text-sm mt-2">
-                사용자 이름, 내용 등으로 검색할 수 있습니다.
-              </p>
-            </div>
-          )}
-        </TabsContent>
-        <TabsContent value="users">
-          {q ? (
-            <UserList searchQuery={q} />
-          ) : (
-            <div className="text-center text-muted-foreground mt-10">
-              <h2 className="text-2xl font-bold mb-4">사용자 검색</h2>
-              <p className="text-lg">검색어를 입력하여 원하는 사용자를 찾아보세요.</p>
-              <p className="text-sm mt-2">
-                이름, 사용자 이름, 태그라인 등으로 검색할 수 있습니다.
-              </p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Category Toggles */}
+      <div className="w-full flex justify-center bg-white">
+        <CategoryTab />
+      </div>
+
+      {/* Content Area */}
+      <div className="w-full max-w-[720px] mx-auto py-6 px-4">
+        {renderContent()}
+      </div>
     </main>
   );
 }
