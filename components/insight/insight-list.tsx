@@ -89,17 +89,34 @@ export function InsightList({ currentUserId, userId }: InsightListProps) {
       )}
       
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4 pb-8">
-          {Array.from({ length: totalPages }, (_, i) => (
+        <div className="flex justify-center items-center gap-2 mt-8 mb-8 pb-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1 || isLoading}
+          >
+            이전
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <Button
-              key={i + 1}
-              onClick={() => setCurrentPage(i + 1)}
-              variant={currentPage === i + 1 ? "default" : "outline"}
+              key={page}
+              variant={page === currentPage ? "default" : "outline"}
               size="sm"
+              onClick={() => setCurrentPage(page)}
+              disabled={isLoading}
             >
-              {i + 1}
+              {page}
             </Button>
           ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages || isLoading}
+          >
+            다음
+          </Button>
         </div>
       )}
     </div>

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Database } from "@/types/database.types";
+import { Tables } from "@/types/database.types";
 import { Search, Calendar, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Meetup = Database["public"]["Tables"]["meetups"]["Row"];
+type Meetup = Tables<"meetups">;
 
 interface MeetupParticipantWithMeetup {
   meetup_id: string;

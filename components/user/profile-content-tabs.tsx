@@ -35,8 +35,44 @@ interface ProfileContentTabsProps {
   className?: string;
 }
 
-const tabTriggerClass =
-  "w-full justify-start rounded-xl px-3 py-1 text-sm text-[#777777] bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none";
+const MAIN_TAB_TRIGGER_CLASS = 
+  "flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0";
+
+const SUB_TAB_CLASS = 
+  "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap";
+
+// Sub-components for cleaner JSX
+const SectionHeader = ({ title, children }: { title: string; children?: React.ReactNode }) => (
+  <div className="flex items-center justify-between mb-2">
+    <div className="flex items-center gap-2">
+      <span className="text-sydeorange font-bold">—</span>
+      <span className="font-bold text-base text-black">{title}</span>
+    </div>
+    {children}
+  </div>
+);
+
+const SubTabButton = ({ 
+  label, 
+  isActive, 
+  onClick 
+}: { 
+  label: string; 
+  isActive: boolean; 
+  onClick: () => void 
+}) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      SUB_TAB_CLASS,
+      isActive 
+        ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
+        : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
+    )}
+  >
+    {label}
+  </button>
+);
 
 export function ProfileContentTabs({
   isOwnProfile,
@@ -69,23 +105,14 @@ export function ProfileContentTabs({
         isEditingStory && "hidden md:flex"
       )}>
         <TabsList className="flex items-center justify-start w-full bg-transparent p-0 h-[43px] md:h-auto border-b-[0.5px] md:border-b-0 border-[#B7B7B7] md:flex-col md:items-stretch md:justify-start md:py-5 md:px-2.5 md:gap-2.5 rounded-none">
-          <TabsTrigger 
-            value="profile" 
-            className="flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0"
-          >
+          <TabsTrigger value="profile" className={MAIN_TAB_TRIGGER_CLASS}>
             프로필
           </TabsTrigger>
-          <TabsTrigger 
-            value="posts" 
-            className="flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0"
-          >
+          <TabsTrigger value="posts" className={MAIN_TAB_TRIGGER_CLASS}>
             게시글
           </TabsTrigger>
           {isOwnProfile && (
-            <TabsTrigger 
-              value="activity" 
-              className="flex-1 md:flex-none justify-center md:justify-start h-full md:h-auto rounded-none md:rounded-xl px-4 py-3 md:px-3 md:py-1 text-base md:text-sm text-[#777777] bg-white md:bg-[#FAFAFA] hover:bg-[#F1F1F1] data-[state=active]:bg-white md:data-[state=active]:bg-[#FAFAFA] data-[state=active]:text-sydeblue data-[state=active]:font-bold data-[state=active]:shadow-none border-0 border-b-4 border-transparent data-[state=active]:border-sydeblue md:border-b-0"
-            >
+            <TabsTrigger value="activity" className={MAIN_TAB_TRIGGER_CLASS}>
               내 기록 🔒
             </TabsTrigger>
           )}
@@ -178,11 +205,7 @@ export function ProfileContentTabs({
                 <>
                   {/* 스토리 Section */}
                   <div className="px-5 py-4 md:px-8 md:py-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sydeorange font-bold">—</span>
-                        <span className="font-bold text-base text-black">스토리</span>
-                      </div>
+                    <SectionHeader title="스토리">
                       {isOwnProfile && (
                         <button 
                           onClick={() => setIsEditingStory(true)}
@@ -191,7 +214,7 @@ export function ProfileContentTabs({
                           스토리 수정 ✍️
                         </button>
                       )}
-                    </div>
+                    </SectionHeader>
                     <div className="rounded-xl relative bg-[#FAFAFA] p-5">
                       <BioEditor
                         initialBio={profile.bio}
@@ -206,10 +229,7 @@ export function ProfileContentTabs({
 
                   {/* 소속된 클럽 Section */}
                   <div className="px-5 py-4 md:px-8 md:py-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sydeorange font-bold">—</span>
-                      <span className="font-bold text-base text-black">소속된 클럽</span>
-                    </div>
+                    <SectionHeader title="소속된 클럽" />
                     <div className="bg-[#FAFAFA] rounded-xl p-2.5">
                       <UserJoinedClubsList userId={profile.id} variant="compact" />
                     </div>
@@ -217,11 +237,7 @@ export function ProfileContentTabs({
 
                   {/* 함께하는 모임 Section (Horizontal Scroll) */}
                   <div className="px-5 py-4 md:px-8 md:py-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sydeorange font-bold">—</span>
-                        <span className="font-bold text-base text-black">함께하는 모임</span>
-                      </div>
+                    <SectionHeader title="함께하는 모임">
                       <button 
                         onClick={() => setIsViewingAllMeetups(true)}
                         className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
@@ -229,7 +245,7 @@ export function ProfileContentTabs({
                         모두보기
                         <ChevronRight className="w-3.5 h-3.5" />
                       </button>
-                    </div>
+                    </SectionHeader>
                     <UserJoinedMeetupsList userId={profile.id} />
                   </div>
                 </>
@@ -242,43 +258,13 @@ export function ProfileContentTabs({
         <TabsContent value="posts" className="mt-0 p-0 flex flex-col">
           {/* Sub-tab Navigation */}
           <div className="flex items-center justify-start w-full bg-white px-6 py-3 gap-[10px] border-b-[0.5px] border-[#B7B7B7] overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setActiveSubTab("log")}
-              className={cn(
-                "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap",
-                activeSubTab === "log" 
-                  ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
-                  : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
-              )}
-            >
-              로그
-            </button>
-            <button
-              onClick={() => setActiveSubTab("showcase")}
-              className={cn(
-                "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap",
-                activeSubTab === "showcase" 
-                  ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
-                  : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
-              )}
-            >
-              쇼케이스
-            </button>
-            <button
-              onClick={() => setActiveSubTab("insight")}
-              className={cn(
-                "flex items-center justify-center px-3 py-1.5 rounded-xl transition-all whitespace-nowrap",
-                activeSubTab === "insight" 
-                  ? "bg-[rgba(237,109,52,0.1)] text-sydeorange font-bold text-[15px]" 
-                  : "bg-[#FAFAFA] text-[#777777] font-medium text-[14px]"
-              )}
-            >
-              인사이트
-            </button>
+            <SubTabButton label="로그" isActive={activeSubTab === "log"} onClick={() => setActiveSubTab("log")} />
+            <SubTabButton label="쇼케이스" isActive={activeSubTab === "showcase"} onClick={() => setActiveSubTab("showcase")} />
+            <SubTabButton label="인사이트" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
           </div>
 
-          {/* Sub-tab Content */}
-          <div className="flex-1 px-5 py-4">
+          {/* Sub-tab Content with standardized padding */}
+          <div className="flex-1 px-5 py-4 md:px-8 md:py-6">
             {activeSubTab === "log" && (
               <LogList 
                 currentUserId={currentUserId} 
@@ -303,7 +289,7 @@ export function ProfileContentTabs({
 
         {/* 내 기록 Tab */}
         {isOwnProfile && (
-          <TabsContent value="activity" className="mt-0 px-5 py-4">
+          <TabsContent value="activity" className="mt-0 px-5 py-4 md:px-8 md:py-6">
             <UserActivityLogList
               currentUserId={currentUserId}
               userId={profile.id}
@@ -314,4 +300,3 @@ export function ProfileContentTabs({
     </Tabs>
   );
 }
-
