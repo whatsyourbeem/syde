@@ -76,3 +76,10 @@ export const MEETUP_TYPE_DISPLAY_NAMES: Record<MeetupType, string> = {
   INSYDE: "정기모임",
   SPINOFF: "스핀오프",
 };
+
+export const BANNER_POSITIONS = {
+  LOG_SIDEBAR: "log_sidebar",
+} as const;
+
+export type BannerPosition =
+  (typeof BANNER_POSITIONS)[keyof typeof BANNER_POSITIONS];
