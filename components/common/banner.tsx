@@ -2,11 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { getActiveBanners, type Banner as BannerType } from "@/app/actions/banner-actions";
 import { type BannerPosition } from "@/lib/constants";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
 interface BannerProps {
@@ -34,25 +29,12 @@ export async function Banner({
   }[aspectRatio];
 
   return (
-    <div className={cn("w-full overflow-hidden", className)}>
-      {banners.length === 1 ? (
-        <BannerItem banner={banners[0]} ratioClass={ratioClass} />
-      ) : (
-        <Carousel
-          opts={{
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-0">
-            {banners.map((banner) => (
-              <CarouselItem key={banner.id} className="pl-0">
-                <BannerItem banner={banner} ratioClass={ratioClass} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-      )}
+    <div className={cn("w-full flex flex-col gap-y-4", className)}>
+      {banners.map((banner) => (
+        <div key={banner.id} className="w-full overflow-hidden rounded-lg">
+          <BannerItem banner={banner} ratioClass={ratioClass} />
+        </div>
+      ))}
     </div>
   );
 }
