@@ -34,7 +34,7 @@ export async function Banner({
   }[aspectRatio];
 
   return (
-    <div className={cn("w-full overflow-hidden rounded-xl", className)}>
+    <div className={cn("w-full overflow-hidden", className)}>
       {banners.length === 1 ? (
         <BannerItem banner={banners[0]} ratioClass={ratioClass} />
       ) : (
