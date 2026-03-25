@@ -57,6 +57,25 @@ export async function updateClubMemberRole(
   }
 
   revalidatePath(`/club/${clubId}`);
-
-  return { success: true };
-}
+ 
+   return { success: true };
+ }
+ 
+ export async function getClubMembers(clubId: string) {
+   const supabase = await createClient();
+ 
+   const { data: members, error } = await supabase
+     .from("club_members")
+     .select(`
+       *,
+       profiles(*)
+     `)
+     .eq("club_id", clubId);
+ 
+   if (error) {
+     console.error("Error fetching club members:", error);
+     return { members: [], error: error.message };
+   }
+ 
+   return { members: members || [], error: null };
+ }

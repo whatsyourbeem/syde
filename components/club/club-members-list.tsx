@@ -135,7 +135,7 @@ export default function ClubMembersList({
   };
 
   return (
-    <div>
+    <div data-nosnippet>
       <div
         className={`flex ${
           direction === "vertical" ? "flex-col gap-4" : "flex-row gap-4"

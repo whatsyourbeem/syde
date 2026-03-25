@@ -31,6 +31,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import ClubSidebarInfo from "./club-sidebar-info"; // Import ClubSidebarInfo
 import ClubMembersList from "./club-members-list"; // Import ClubMembersList
+import { getClubMembers } from "@/app/club/actions"; // Import the fetch action
 
 import MeetupCard from "@/components/meetup/meetup-card";
 
@@ -49,12 +50,12 @@ type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 interface ClubDetailClientProps {
   club: Tables<"clubs"> & { owner_profile: Profile | null };
   initialHtml?: string;
-  members: ClubMember[];
+  members?: ClubMember[];
   meetups: Meetup[];
   forums: Tables<"club_forums">[];
-  isMember: boolean;
+  isMember?: boolean;
   currentUserId?: string;
-  userRole: string | null;
+  userRole?: string | null;
   isOwner: boolean;
 }
 
@@ -79,9 +80,31 @@ export default function ClubDetailClient({
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Client-side member state
+  const [clientMembers, setClientMembers] = useState<ClubMember[]>(members || []);
+  const [clientIsMember, setClientIsMember] = useState(isMember || false);
+  const [clientUserRole, setClientUserRole] = useState<string | null>(userRole || null);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(true);
+
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+
+    const fetchMembers = async () => {
+      setIsLoadingMembers(true);
+      const { members: fetchedMembers, error } = await getClubMembers(club.id);
+      if (!error) {
+        setClientMembers(fetchedMembers);
+        
+        // Update membership status
+        const membership = currentUserId ? fetchedMembers.find(m => m.user_id === currentUserId) : null;
+        setClientIsMember(!!membership);
+        setClientUserRole(membership?.role || null);
+      }
+      setIsLoadingMembers(false);
+    };
+
+    fetchMembers();
+  }, [club.id, currentUserId]);
 
   const canReadForum = (forum: Tables<"club_forums">) => {
     const permission = forum.read_permission;
@@ -89,34 +112,34 @@ export default function ClubDetailClient({
       return true;
     }
     if (permission === CLUB_PERMISSION_LEVELS.MEMBER) {
-      return isMember;
+      return clientIsMember;
     }
     if (permission === CLUB_PERMISSION_LEVELS.FULL_MEMBER) {
       return (
-        userRole === CLUB_MEMBER_ROLES.FULL_MEMBER ||
-        userRole === CLUB_MEMBER_ROLES.LEADER
+        clientUserRole === CLUB_MEMBER_ROLES.FULL_MEMBER ||
+        clientUserRole === CLUB_MEMBER_ROLES.LEADER
       );
     }
     if (permission === CLUB_PERMISSION_LEVELS.LEADER) {
-      return userRole === CLUB_MEMBER_ROLES.LEADER;
+      return clientUserRole === CLUB_MEMBER_ROLES.LEADER;
     }
     return false;
   };
 
   const canWriteForum = (forum: Tables<"club_forums"> | undefined) => {
-    if (!forum || !isMember) return false;
+    if (!forum || !clientIsMember) return false;
     const permission = forum.write_permission;
     if (permission === CLUB_PERMISSION_LEVELS.MEMBER) {
       return true;
     }
     if (permission === CLUB_PERMISSION_LEVELS.FULL_MEMBER) {
       return (
-        userRole === CLUB_MEMBER_ROLES.FULL_MEMBER ||
-        userRole === CLUB_MEMBER_ROLES.LEADER
+        clientUserRole === CLUB_MEMBER_ROLES.FULL_MEMBER ||
+        clientUserRole === CLUB_MEMBER_ROLES.LEADER
       );
     }
     if (permission === CLUB_PERMISSION_LEVELS.LEADER) {
-      return userRole === CLUB_MEMBER_ROLES.LEADER;
+      return clientUserRole === CLUB_MEMBER_ROLES.LEADER;
     }
     return false;
   };
@@ -158,9 +181,9 @@ export default function ClubDetailClient({
           clubId={club.id}
           clubThumbnailUrl={club.thumbnail_url || undefined}
           ownerProfile={club.owner_profile}
-          isMember={isMember}
+          isMember={clientIsMember}
           currentUserId={currentUserId}
-          userRole={userRole}
+          userRole={clientUserRole}
           isOwner={isOwner}
         />
       </div>
@@ -193,7 +216,7 @@ export default function ClubDetailClient({
               <div className="p-4 overflow-y-auto">
                 <ClubMembersList
                   clubId={club.id}
-                  members={members}
+                  members={clientMembers}
                   clubOwnerId={club.owner_id}
                   currentUserId={currentUserId}
                   direction="vertical"
@@ -205,7 +228,7 @@ export default function ClubDetailClient({
         <div className="px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <ClubMembersList
             clubId={club.id}
-            members={members}
+            members={clientMembers}
             clubOwnerId={club.owner_id}
             currentUserId={currentUserId}
             direction="horizontal"

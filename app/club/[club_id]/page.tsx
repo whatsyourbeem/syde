@@ -97,15 +97,6 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     notFound();
   }
 
-  // Fetch club members with their profiles
-  const { data: members, error: membersError } = await supabase
-    .from("club_members")
-    .select(`
-      *,
-      profiles(*)
-    `)
-    .eq("club_id", club_id);
-
   // Fetch meetups associated with the club
   const { data: meetups, error: meetupsError } = await supabase
     .from("meetups")
@@ -132,33 +123,25 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     console.error("Error fetching forums with posts:", forumsError);
     notFound();
   }
-
-
-
-  if (membersError || meetupsError) {
-    // Handle errors appropriately
-    console.error(membersError || meetupsError);
-    // Potentially show an error page
-    notFound();
-  }
-
-  // Check if the current user is a member and get their role
-  const currentUserMembership = user ? members?.find(member => member.profiles?.id === user.id) : undefined;
-  const isMember = !!currentUserMembership;
-  const userRole = currentUserMembership?.role || null;
-  const isOwner = user?.id === club.owner_id;
-
-  const initialHtml = getInitialHtmlFromTiptap(club.description);
-
-  return <ClubDetailClient
-    club={club}
-    initialHtml={initialHtml}
-    members={members || []}
-    meetups={meetups || []}
-    forums={forums || []}
-    isMember={isMember}
-    currentUserId={user?.id}
-    userRole={userRole}
-    isOwner={isOwner}
-  />;
+ 
+   if (meetupsError) {
+     // Handle errors appropriately
+     console.error(meetupsError);
+     // Potentially show an error page
+     notFound();
+   }
+ 
+   // Check if the current user is a member and get their role
+   const isOwner = user?.id === club.owner_id;
+ 
+   const initialHtml = getInitialHtmlFromTiptap(club.description);
+ 
+   return <ClubDetailClient
+     club={club}
+     initialHtml={initialHtml}
+     meetups={meetups || []}
+     forums={forums || []}
+     currentUserId={user?.id}
+     isOwner={isOwner}
+   />;
 }
