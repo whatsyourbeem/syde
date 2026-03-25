@@ -18,8 +18,28 @@ const defaultUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "SYDE - 사이드프로젝트 커뮤니티",
-  description:
-    "주체적인 삶으로 가득한 세상을 꿈꾸는 사이드프로젝터들의 커뮤니티입니다.",
+  description: "주체적인 삶으로 가득한 세상을 꿈꾸는 사이드프로젝트 플랫폼 커뮤니티",
+  keywords: [
+    "사이드 프로젝트",
+    "직장인 부업",
+    "팀빌딩",
+    "IT 커뮤니티",
+    "SYDE",
+    "사이드",
+    "직장인 사이드 프로젝트",
+    "1인 개발",
+    "스타트업 네트워킹",
+    "커리어 성장",
+    "팀원 모집",
+    "프로젝트 홍보",
+    "서비스 런칭",
+    "커피챗",
+    "오프라인 모임",
+    "기획자 커뮤니티",
+    "디자이너 커뮤니티",
+    "개발자 커뮤니티",
+    "노코드 프로젝트"
+  ],
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
