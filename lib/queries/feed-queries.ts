@@ -10,7 +10,6 @@ interface ActivityFeedRow {
   user_id: string;
   activity_type: string;
   target_id: string | null;
-  target_title: string | null;
   created_at: string;
 }
 
@@ -26,20 +25,22 @@ export interface ActivityFeedItem {
   user_id: string;
   activity_type: ActivityType;
   target_id: string | null;
-  target_title: string | null;
   created_at: string;
   profiles: ProfileRow | null;
   details?: {
     showcase?: {
+      title: string | null;
       short_description: string | null;
       thumbnail_url: string | null;
     };
     insight?: {
+      title: string | null;
       summary: string | null;
       image_url: string | null;
       content_preview?: string | null;
     };
     meetup?: {
+      title: string | null;
       thumbnail_url: string | null;
       start_datetime: string | null;
       location: string | null;
@@ -77,15 +78,19 @@ export function getActivityMessage(
   activity: ActivityFeedItem,
   displayName: string
 ): string {
+  const title = activity.details?.showcase?.title || 
+                activity.details?.insight?.title || 
+                activity.details?.meetup?.title;
+
   switch (activity.activity_type) {
     case "SHOWCASE_CREATED":
-      return `${displayName}님이 새로운 쇼케이스를 등록했어요`;
+      return `${displayName}님이 쇼케이스를 등록했어요`;
     case "INSIGHT_CREATED":
-      return `${displayName}님이 새로운 인사이트를 등록했어요`;
+      return `${displayName}님이 인사이트를 등록했어요`;
     case "MEETUP_CREATED":
-      return activity.target_title
-        ? `${displayName}님이 '${activity.target_title}' 모임을 개설했어요`
-        : `${displayName}님이 새로운 모임을 개설했어요`;
+      return title
+        ? `${displayName}님이 '${title}' 모임을 개설했어요`
+        : `${displayName}님이 모임을 개설했어요`;
     default:
       return `${displayName}님의 새로운 활동이 있어요`;
   }
@@ -228,7 +233,6 @@ export async function getUnifiedFeed(
       user_id,
       activity_type,
       target_id,
-      target_title,
       created_at,
       profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified)
     `)
@@ -314,7 +318,6 @@ export async function getUnifiedFeed(
         user_id: activity.user_id,
         activity_type: activity.activity_type as ActivityType,
         target_id: activity.target_id,
-        target_title: activity.target_title,
         created_at: activity.created_at,
         profiles: profiles as ProfileRow | null,
       },
@@ -375,14 +378,15 @@ async function fetchActivityDetails(
 
   const [showcases, insights, meetups] = await Promise.all([
     showcaseIds.length > 0
-      ? supabase.from("showcases").select("id, short_description, thumbnail_url").in("id", showcaseIds)
+      ? supabase.from("showcases").select("id, name, short_description, thumbnail_url").in("id", showcaseIds)
       : Promise.resolve({ data: [] }),
     insightIds.length > 0
-      ? supabase.from("insights").select("id, summary, image_url, content").in("id", insightIds)
+      ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", insightIds)
       : Promise.resolve({ data: [] }),
     meetupIds.length > 0
       ? supabase.from("meetups").select(`
           id, 
+          title, 
           thumbnail_url, 
           start_datetime, 
           location,
@@ -401,6 +405,7 @@ async function fetchActivityDetails(
       if (detail) {
         activity.details = {
           showcase: {
+            title: detail.name,
             short_description: detail.short_description,
             thumbnail_url: detail.thumbnail_url,
           }
@@ -412,6 +417,7 @@ async function fetchActivityDetails(
         const { getPlainTextFromTiptapJson } = require("@/lib/utils");
         activity.details = {
           insight: {
+            title: detail.title,
             summary: detail.summary,
             image_url: detail.image_url,
             content_preview: getPlainTextFromTiptapJson(detail.content),
@@ -427,6 +433,7 @@ async function fetchActivityDetails(
         
         activity.details = {
           meetup: {
+            title: detail.title,
             thumbnail_url: detail.thumbnail_url,
             start_datetime: detail.start_datetime,
             location: detail.location,

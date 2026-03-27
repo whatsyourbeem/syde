@@ -83,7 +83,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
       
       <div className="flex items-center gap-2">
         {currentUserId === log.user_id && (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <button className="p-1 text-muted-foreground rounded-full hover:bg-secondary">
                 <MoreHorizontal size={16} />

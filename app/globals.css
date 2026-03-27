@@ -88,6 +88,11 @@
       overflow: auto;
     }
   }
+
+  /* Prevent layout shift when Radix UI modals/dropdowns open */
+  body[style*="overflow: hidden"] {
+    padding-right: 0 !important;
+  }
 }
 
 @layer base {

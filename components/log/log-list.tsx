@@ -175,7 +175,7 @@ export function LogList({
                 priority={index < 2}
               />
             ) : (
-              <ActivityCard activity={item.data} />
+              <ActivityCard activity={item.data} currentUserId={propCurrentUserId} />
             )}
             {index < feedItems.length - 1 && (
               <div className="border-b border-gray-200 my-4"></div>
