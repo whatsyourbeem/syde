@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Calendar, MapPin, User, Users, MoreHorizontal, Trash2 } from "lucide-react";
+import { Calendar, MapPin, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {

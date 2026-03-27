@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -35,6 +34,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_feed: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          target_id: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_feed_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banners: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_url: string
+          name: string
+          position: string
+          starts_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          ends_at?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_url: string
+          name: string
+          position: string
+          starts_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_url?: string
+          name?: string
+          position?: string
+          starts_at?: string | null
+        }
+        Relationships: []
+      }
       club_forum_post_comments: {
         Row: {
           content: string
@@ -935,7 +1005,7 @@ export type Database = {
           images?: string[]
           name?: string | null
           playstore_url?: string | null
-          short_description: string
+          short_description?: string
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id: string

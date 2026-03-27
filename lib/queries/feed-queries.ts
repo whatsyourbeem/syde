@@ -1,17 +1,10 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
 import { getOptimizedLogs, OptimizedLog, LogQueryOptions, LogQueryResult } from "./log-queries";
+import { getPlainTextFromTiptapJson } from "@/lib/utils";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-
-// Raw activity_feed row type (table not yet in database.types.ts until migration is applied)
-interface ActivityFeedRow {
-  id: string;
-  user_id: string;
-  activity_type: string;
-  target_id: string | null;
-  created_at: string;
-}
+type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 
 // ===== Activity Feed Types =====
 
@@ -183,8 +176,7 @@ export async function getUnifiedFeed(
 
   // Step 1: Get total counts for both tables
   let logCountQuery = supabase.from("logs").select("id", { count: "exact", head: true });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let activityCountQuery = (supabase as any).from("activity_feed").select("id", { count: "exact", head: true });
+  let activityCountQuery = supabase.from("activity_feed").select("id", { count: "exact", head: true });
 
   if (filterByUserId) {
     logCountQuery = logCountQuery.eq("user_id", filterByUserId);
@@ -225,8 +217,7 @@ export async function getUnifiedFeed(
     .select(logSelectQuery)
     .order("created_at", { ascending: false });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let activitiesQuery = (supabase as any)
+  let activitiesQuery = supabase
     .from("activity_feed")
     .select(`
       id,
@@ -414,7 +405,6 @@ async function fetchActivityDetails(
     } else if (activity.activity_type === "INSIGHT_CREATED") {
       const detail = insights.data?.find(i => i.id === activity.target_id);
       if (detail) {
-        const { getPlainTextFromTiptapJson } = require("@/lib/utils");
         activity.details = {
           insight: {
             title: detail.title,
