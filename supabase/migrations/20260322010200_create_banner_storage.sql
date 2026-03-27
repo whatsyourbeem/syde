@@ -1,7 +1,7 @@
 -- Create 'banners' bucket if it doesn't exist
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('banners', 'banners', true)
-ON CONFLICT (id) DO NOTHING;
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('banners', 'banners', true)
+-- ON CONFLICT (id) DO NOTHING;
 
 -- Policies for the 'banners' bucket
 DO $$

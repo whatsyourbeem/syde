@@ -64,9 +64,9 @@ CREATE POLICY "users can insert/delete their own likes" ON public.insight_likes 
 CREATE POLICY "users can insert/delete their own bookmarks" ON public.insight_bookmarks FOR ALL USING (auth.uid() = user_id);
 
 -- 3. Storage 설정 (인사이트 이미지)
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('insight-images', 'insight-images', true)
-ON CONFLICT (id) DO NOTHING;
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('insight-images', 'insight-images', true)
+-- ON CONFLICT (id) DO NOTHING;
 
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'insight-images' );
 CREATE POLICY "Authenticated users can upload images" ON storage.objects FOR INSERT TO authenticated WITH CHECK ( bucket_id = 'insight-images' );

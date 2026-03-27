@@ -1,7 +1,7 @@
 -- Create 'showcases' bucket if it doesn't exist
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('showcases', 'showcases', true)
-ON CONFLICT (id) DO NOTHING;
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('showcases', 'showcases', true)
+-- ON CONFLICT (id) DO NOTHING;
 
 
 

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { LogListWrapper } from "@/components/log/log-list-wrapper";
-import { getOptimizedLogs } from "@/lib/queries/log-queries";
+import { getUnifiedFeed } from "@/lib/queries/feed-queries";
 
 export default async function LogPage() {
   const supabase = await createClient();
@@ -17,12 +17,12 @@ export default async function LogPage() {
       ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
       : null;
 
-  // LCP Optimization: Prefetch initial logs on the server side
-  const initialLogs = await getOptimizedLogs(supabase, {
+  // LCP Optimization: Prefetch initial feed on the server side
+  const initialFeed = await getUnifiedFeed(supabase, {
     currentUserId: user?.id || null,
     currentPage: 1,
-    logsPerPage: 20, // Match LOGS_PER_PAGE in log-list.tsx
+    logsPerPage: 20,
   });
 
-  return <LogListWrapper user={profile} avatarUrl={avatarUrl} initialLogs={initialLogs} />;
+  return <LogListWrapper user={profile} avatarUrl={avatarUrl} initialFeed={initialFeed} />;
 }

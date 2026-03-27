@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { LogList } from "@/components/log/log-list";
 import { LogCreateButton } from "@/components/log/log-create-button";
 import { Database } from "@/types/database.types";
-import { LogQueryResult } from "@/lib/queries/log-queries";
+import { FeedQueryResult } from "@/lib/queries/feed-queries";
 
 interface LogListWrapperProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -13,7 +13,7 @@ interface LogListWrapperProps {
   filterByCommentedUserId?: string;
   filterByLikedUserId?: string;
   searchQuery?: string;
-  initialLogs?: LogQueryResult;
+  initialFeed?: FeedQueryResult;
 }
 
 export function LogListWrapper({
@@ -22,7 +22,7 @@ export function LogListWrapper({
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
-  initialLogs,
+  initialFeed,
 }: LogListWrapperProps) {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -41,7 +41,7 @@ export function LogListWrapper({
         filterByCommentedUserId={filterByCommentedUserId}
         filterByLikedUserId={filterByLikedUserId}
         searchQuery={searchQuery}
-        initialLogs={initialLogs}
+        initialFeed={initialFeed}
       />
     </div>
   );

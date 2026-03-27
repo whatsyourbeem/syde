@@ -4,14 +4,14 @@ import { useEffect, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "@/components/log/log-card";
+import { ActivityCard } from "@/components/log/activity-card";
 import { Button } from "@/components/ui/button";
-import { Database } from "@/types/database.types";
-import { getOptimizedLogs, OptimizedLog, LogQueryResult } from "@/lib/queries/log-queries";
+import { getUnifiedFeed, FeedQueryResult, FeedItem } from "@/lib/queries/feed-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
 
-const LOGS_PER_PAGE = 20; // Define logs per page
+const ITEMS_PER_PAGE = 20;
 
 export function LogList({
   currentUserId: propCurrentUserId,
@@ -20,7 +20,7 @@ export function LogList({
   filterByLikedUserId,
   filterByBookmarkedUserId,
   searchQuery,
-  initialLogs,
+  initialFeed,
   emptyState,
 }: {
   currentUserId: string | null;
@@ -29,7 +29,7 @@ export function LogList({
   filterByLikedUserId?: string;
   filterByBookmarkedUserId?: string;
   searchQuery?: string;
-  initialLogs?: LogQueryResult;
+  initialFeed?: FeedQueryResult;
   emptyState?: React.ReactNode;
 }) {
   const supabase = createClient();
@@ -37,7 +37,6 @@ export function LogList({
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    console.log("LogList: useEffect - Scroll to Top. Deps:", { currentPage });
     window.scrollTo(0, 0);
   }, [currentPage]);
 
@@ -48,8 +47,7 @@ export function LogList({
     if (filterByLikedUserId) filters.filterByLikedUserId = filterByLikedUserId;
     if (filterByBookmarkedUserId) filters.filterByBookmarkedUserId = filterByBookmarkedUserId;
     if (searchQuery) filters.searchQuery = searchQuery;
-    console.log("LogList: useMemo - Query Key. Result:", ["logs", filters]);
-    return ["logs", filters];
+    return ["feed", filters];
   }, [
     currentPage,
     filterByUserId,
@@ -59,13 +57,12 @@ export function LogList({
     searchQuery,
   ]);
 
-  console.log("LogList: Before useQuery. QueryKey:", queryKey);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
-    queryFn: () => getOptimizedLogs(supabase, {
+    queryFn: () => getUnifiedFeed(supabase, {
       currentUserId: propCurrentUserId,
       currentPage,
-      logsPerPage: LOGS_PER_PAGE,
+      logsPerPage: ITEMS_PER_PAGE,
       filterByUserId,
       filterByCommentedUserId,
       filterByLikedUserId,
@@ -73,52 +70,49 @@ export function LogList({
       searchQuery,
     }),
     staleTime: 30000,
-    initialData: currentPage === 1 && !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery ? initialLogs : undefined,
+    initialData: currentPage === 1 && !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery ? initialFeed : undefined,
   });
 
-  const logs: OptimizedLog[] = useMemo(() => data?.logs || [], [data?.logs]);
-  console.log("LogList: After logs memo. logsLength:", logs.length, "isLoading:", isLoading, "data:", data);
-  const totalLogsCount = data?.count || 0;
-  const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
+  const feedItems: FeedItem[] = useMemo(() => data?.items || [], [data?.items]);
+  const totalCount = data?.totalCount || 0;
+  const mentionedProfiles = data?.mentionedProfiles || [];
 
   useEffect(() => {
-    console.log("LogList: useEffect - Realtime. Deps:", { supabase, queryClient });
-    // We will listen for any changes in relevant tables and invalidate the query.
-    // This decouples the subscription from specific log IDs on the current page,
-    // which prevents complex dependency loops and ensures a stable `useEffect`.
-    // The `queryClient.invalidateQueries` will ensure the latest data is fetched.
     const channel = supabase
       .channel("syde-log-feed")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "logs" },
         () => {
-          console.log("Realtime: Invalidating logs query - table: logs");
-          queryClient.invalidateQueries({ queryKey: ["logs"] });
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "log_likes" },
         () => {
-          console.log("Realtime: Invalidating logs query - table: log_likes");
-          queryClient.invalidateQueries({ queryKey: ["logs"] });
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "log_bookmarks" },
         () => {
-          console.log("Realtime: Invalidating logs query - table: log_bookmarks");
-          queryClient.invalidateQueries({ queryKey: ["logs"] });
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
         }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "log_comments" },
         () => {
-          console.log("Realtime: Invalidating logs query - table: log_comments");
-          queryClient.invalidateQueries({ queryKey: ["logs"] });
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "activity_feed" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
         }
       )
       .subscribe();
@@ -126,7 +120,7 @@ export function LogList({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient]); // Stable dependencies only. No `logs`.
+  }, [supabase, queryClient]);
 
   if (isLoading) {
     return (
@@ -143,8 +137,8 @@ export function LogList({
       <div className="w-full max-w-2xl mx-auto pb-4">
         <div className="px-4">
           <InlineError
-            error={error?.message || "로그를 불러오는 중 오류가 발생했습니다."}
-            retry={() => queryClient.invalidateQueries({ queryKey: ["logs"] })}
+            error={error?.message || "피드를 불러오는 중 오류가 발생했습니다."}
+            retry={() => queryClient.invalidateQueries({ queryKey: ["feed"] })}
           />
         </div>
       </div>
@@ -153,7 +147,7 @@ export function LogList({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
-      {logs.length === 0 && !isLoading ? (
+      {feedItems.length === 0 && !isLoading ? (
         emptyState ? (
           emptyState
         ) : (
@@ -164,29 +158,33 @@ export function LogList({
           </div>
         )
       ) : (
-        logs.map((log, index) => (
-          <div key={log.id} className="px-4">
-            <LogCard
-              log={log}
-              currentUserId={propCurrentUserId}
-              initialLikesCount={log.likesCount}
-              initialHasLiked={log.hasLiked}
-              initialBookmarksCount={log.bookmarksCount}
-              initialHasBookmarked={log.hasBookmarked}
-              initialCommentsCount={log.log_comments.length}
-              mentionedProfiles={mentionedProfiles} // Pass mentionedProfiles to LogCard
-              searchQuery={searchQuery} // Pass searchQuery to LogCard
-              isDetailPage={false} // Add this prop
-              priority={index < 2} // Add priority to the first two logs
-            />
-            {index < logs.length - 1 && (
+        feedItems.map((item, index) => (
+          <div key={item.feed_type === "log" ? `log-${item.data.id}` : `activity-${item.data.id}`} className="px-4">
+            {item.feed_type === "log" ? (
+              <LogCard
+                log={item.data}
+                currentUserId={propCurrentUserId}
+                initialLikesCount={item.data.likesCount}
+                initialHasLiked={item.data.hasLiked}
+                initialBookmarksCount={item.data.bookmarksCount}
+                initialHasBookmarked={item.data.hasBookmarked}
+                initialCommentsCount={item.data.log_comments.length}
+                mentionedProfiles={mentionedProfiles}
+                searchQuery={searchQuery}
+                isDetailPage={false}
+                priority={index < 2}
+              />
+            ) : (
+              <ActivityCard activity={item.data} />
+            )}
+            {index < feedItems.length - 1 && (
               <div className="border-b border-gray-200 my-4"></div>
             )}
           </div>
         ))
       )}
       {/* Pagination Controls */}
-      {Math.ceil(totalLogsCount / LOGS_PER_PAGE) > 1 && (
+      {Math.ceil(totalCount / ITEMS_PER_PAGE) > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8 mb-8">
           <Button
             variant="outline"
@@ -196,7 +194,7 @@ export function LogList({
           >
             이전
           </Button>
-          {Array.from({ length: Math.ceil(totalLogsCount / LOGS_PER_PAGE) }, (_, i) => i + 1).map((page) => (
+          {Array.from({ length: Math.ceil(totalCount / ITEMS_PER_PAGE) }, (_, i) => i + 1).map((page) => (
             <Button
               key={page}
               variant={page === currentPage ? "default" : "outline"}
@@ -215,7 +213,7 @@ export function LogList({
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === Math.ceil(totalLogsCount / LOGS_PER_PAGE) || isLoading}
+            disabled={currentPage === Math.ceil(totalCount / ITEMS_PER_PAGE) || isLoading}
           >
             다음
           </Button>
