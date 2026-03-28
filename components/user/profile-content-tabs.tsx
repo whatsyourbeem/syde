@@ -268,8 +268,8 @@ export function ProfileContentTabs({
             <SubTabButton label="인사이트" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
           </div>
 
-          {/* Sub-tab Content with standardized padding */}
-          <div className="flex-1 px-5 py-4 md:px-8 md:py-6">
+          {/* Sub-tab Content with vertical padding */}
+          <div className="flex-1 py-4">
             {activeSubTab === "log" && (
               <LogList 
                 currentUserId={currentUserId} 
