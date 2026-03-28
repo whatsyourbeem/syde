@@ -178,7 +178,7 @@ export function LogList({
               <ActivityCard activity={item.data} currentUserId={propCurrentUserId} />
             )}
             {index < feedItems.length - 1 && (
-              <div className="border-b border-gray-200 my-4"></div>
+              <div className="border-b border-gray-200 my-6"></div>
             )}
           </div>
         ))
