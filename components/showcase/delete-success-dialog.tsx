@@ -42,7 +42,7 @@ export function DeleteSuccessDialog({
         <DialogHeader className="flex flex-col justify-center items-center p-0 w-full h-auto space-y-0">
           <DialogTitle className="flex items-center justify-center font-pretendard font-semibold text-[18px] leading-[28px] tracking-[-0.44px] text-sydeblue
  text-center w-full">
-            SYDE 프로덕트를 삭제했습니다.
+            프로젝트를 삭제했습니다.
           </DialogTitle>
         </DialogHeader>
       </DialogContent>

@@ -191,7 +191,7 @@ export function ShowcaseList({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-2xl mx-auto pb-4">
+      <div className="w-full max-w-3xl mx-auto pb-4">
         <div className="px-4">
           <LoadingList count={5} />
         </div>
@@ -201,7 +201,7 @@ export function ShowcaseList({
 
   if (isError) {
     return (
-      <div className="w-full max-w-2xl mx-auto pb-4">
+      <div className="w-full max-w-3xl mx-auto pb-4">
         <div className="px-4">
           <InlineError
             error={

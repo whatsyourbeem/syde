@@ -44,7 +44,7 @@ export function ShowcaseListWrapper({
   }, [searchParams, router]);
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       {/* Main Content Area: Awards + List */}
       <div className="w-full flex flex-col gap-6">
         {/* Mobile: Register Product Button */}
@@ -53,7 +53,7 @@ export function ShowcaseListWrapper({
             <div className="w-full h-[44px] bg-sydeblue rounded-[12px] flex items-center justify-center gap-2.5">
               <CirclePlus className="text-white size-5" strokeWidth={2} />
               <span className="font-pretendard font-semibold text-[16px] leading-[19px] text-white">
-                내 SYDE 프로덕트 등록하기
+                내 프로젝트 등록하기
               </span>
             </div>
           </Link>

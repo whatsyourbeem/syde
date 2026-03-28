@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { formatRelativeTime, linkifyMentions } from "@/lib/utils";
 import { Database } from "@/types/database.types";
+import { motion, AnimatePresence } from "motion/react";
 
 import {
   DropdownMenu,
@@ -76,10 +77,11 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
   // Gallery State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
   // existing state code...
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const [replyTo, setReplyTo] = useState<{
@@ -121,12 +123,14 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
   const handleNextImage = () => {
     if (galleryImages.length > 0) {
+      setDirection(1);
       setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
     }
   };
 
   const handlePrevImage = () => {
     if (galleryImages.length > 0) {
+      setDirection(-1);
       setCurrentImageIndex(
         (prev) => (prev - 1 + galleryImages.length) % galleryImages.length,
       );
@@ -291,121 +295,32 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
   const teamMembers = [authorMember, ...otherMembers];
 
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 50 : -50,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 50 : -50,
+      opacity: 0,
+    }),
+  };
+
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Title Section: Responsive Layout */}
-      <div className="flex flex-col w-full">
-        {/* Desktop Title Section (Frame 174) */}
-        <div className="hidden md:flex flex-row items-start gap-6 w-full max-w-6xl mx-auto px-5 py-5 min-h-[200px]">
-          {/* Chevron left */}
-          <button
-            onClick={() => router.back()}
-            className="flex items-center justify-center w-11 h-11 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-          >
-            <ChevronLeft className="w-6 h-6 text-[#434343]" strokeWidth={2.5} />
-          </button>
-
-          {/* Frame 173: Thumbnail + Content */}
-          <div className="flex flex-row items-start gap-[10px] flex-grow h-full">
-            {/* Thumbnail (Desktop: 160x160) */}
-            <div className="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
-              {showcase.thumbnail_url ? (
-                <Image
-                  src={showcase.thumbnail_url}
-                  alt={showcase.name || "Showcase"}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No Image
-                </div>
-              )}
-            </div>
-
-            {/* Content Area */}
-            <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow min-h-[160px]">
-              {/* Title (Frame 134) */}
-              <div className="flex flex-row items-start gap-[5px] w-full">
-                <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2">
-                  {showcase.name || "제목 없음"}
-                </h1>
-              </div>
-
-              {/* Tagline (Frame 135) */}
-              {showcase.short_description && (
-                <div className="flex flex-row items-start gap-[5px] w-full">
-                  <p className="font-['Pretendard'] text-[16px] font-normal text-black leading-[150%] line-clamp-2">
-                    {showcase.short_description}
-                  </p>
-                </div>
-              )}
-
-              {/* Profile Wrapper */}
-              <div className="flex flex-row items-center gap-[5px] w-full h-6">
-                <ProfileHoverCard
-                  userId={showcase.user_id}
-                  profileData={showcase.profiles}
-                >
-                  <div className="flex items-center gap-[5px] cursor-pointer">
-                    <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
-                      <Image
-                        src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                        alt="author"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <span className="font-['Pretendard'] text-[14px] font-semibold text-sydeblue leading-[19px] whitespace-nowrap">
-                      {showcase.profiles?.username}
-                    </span>
-                    <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
-                      {showcase.profiles?.tagline && (
-                        <>{showcase.profiles.tagline} | </>
-                      )}
-                      {showcase.profiles?.full_name} · {showcase.created_at ? formatRelativeTime(showcase.created_at) : ""}
-                    </span>
-                  </div>
-                </ProfileHoverCard>
-              </div>
-            </div>
-          </div>
-
-          {/* More options (Desktop) */}
-          <div className="flex flex-col items-start p-[16px_4px] gap-[10px] w-6 h-9 shrink-0">
-            {isAuthor && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <MoreHorizontal className="w-4 h-4 text-[#434343]" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl">
-                  <DropdownMenuItem onClick={() => router.push(`/showcase/edit/${showcase.id}`)} className="flex items-center cursor-pointer w-full p-2">
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>수정</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-red-500 cursor-pointer p-2"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setShowDeleteDialog(true);
-                    }}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>삭제</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Title Section (Two Rows) */}
-        <div className="md:hidden flex flex-col w-full px-5 py-4 border-b-[0.5px] border-[#B7B7B7]">
-          {/* Top Row: [Back, Thumbnail, More] */}
-          <div className="flex flex-row justify-between items-start w-full mb-4">
+      {/* Combined Title & Interaction Section */}
+      <div className="w-full border-b-[0.5px] border-[#B7B7B7] bg-white px-5 py-8 md:px-8 md:py-10">
+        <div className="max-w-6xl mx-auto">
+          {/* Title Row (Desktop) */}
+          <div className="hidden md:flex flex-row items-start gap-6 w-full min-h-[160px]">
+            {/* Chevron left */}
             <button
               onClick={() => router.back()}
               className="flex items-center justify-center w-11 h-11 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
@@ -413,28 +328,75 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               <ChevronLeft className="w-6 h-6 text-[#434343]" strokeWidth={2.5} />
             </button>
 
-            <div className="w-[121px] h-[120px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
-              {showcase.thumbnail_url ? (
-                <Image
-                  src={showcase.thumbnail_url}
-                  alt={showcase.name || "Showcase"}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No Image
+            {/* Thumbnail + Content */}
+            <div className="flex flex-row items-start gap-[10px] flex-grow">
+              {/* Thumbnail (Desktop: 160x160) */}
+              <div className="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
+                {showcase.thumbnail_url ? (
+                  <Image
+                    src={showcase.thumbnail_url}
+                    alt={showcase.name || "Showcase"}
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    No Image
+                  </div>
+                )}
+              </div>
+
+              {/* Content Area */}
+              <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow">
+                <div className="flex flex-row items-start gap-[5px] w-full">
+                  <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2">
+                    {showcase.name || "제목 없음"}
+                  </h1>
                 </div>
-              )}
+
+                {showcase.short_description && (
+                  <div className="flex flex-row items-start gap-[5px] w-full">
+                    <p className="font-['Pretendard'] text-[16px] font-normal text-black leading-[150%] line-clamp-2">
+                      {showcase.short_description}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex flex-row items-center gap-[5px] w-full h-6">
+                  <ProfileHoverCard
+                    userId={showcase.user_id}
+                    profileData={showcase.profiles}
+                  >
+                    <div className="flex items-center gap-[5px] cursor-pointer">
+                      <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                        <Image
+                          src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                          alt="author"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="font-['Pretendard'] text-[14px] font-semibold text-sydeblue leading-[19px] whitespace-nowrap">
+                        {showcase.profiles?.full_name ||
+                          showcase.profiles?.username}
+                      </span>
+                      <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
+                        {showcase.profiles?.tagline}
+                      </span>
+                    </div>
+                  </ProfileHoverCard>
+                </div>
+              </div>
             </div>
 
-            <div className="w-11 h-11 flex items-center justify-center">
+            {/* More options (Desktop) */}
+            <div className="flex-none p-[16px_4px]">
               {isAuthor && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="hover:bg-gray-100 rounded-lg transition-colors p-2">
-                      <MoreHorizontal className="w-6 h-6 text-[#434343]" />
+                    <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                      <MoreHorizontal className="w-4 h-4 text-[#434343]" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-xl">
@@ -458,110 +420,264 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             </div>
           </div>
 
-          {/* Bottom Row: [Title, Tagline, Profile] */}
-          <div className="flex flex-col items-center text-center gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
-                {showcase.name || "제목 없음"}
-              </h1>
-              {showcase.short_description && (
-                <p className="font-['Pretendard'] font-normal text-[16px] leading-[150%] text-black line-clamp-2">
-                  {showcase.short_description}
-                </p>
-              )}
+          {/* Title Row (Mobile) */}
+          <div className="md:hidden flex flex-col w-full gap-4">
+            <div className="flex flex-row justify-between items-start w-full mb-2">
+              <button
+                onClick={() => router.back()}
+                className="flex items-center justify-center w-11 h-11 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+              >
+                <ChevronLeft className="w-6 h-6 text-[#434343]" strokeWidth={2.5} />
+              </button>
+
+              <div className="w-[121px] h-[120px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
+                {showcase.thumbnail_url ? (
+                  <Image
+                    src={showcase.thumbnail_url}
+                    alt={showcase.name || "Showcase"}
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    No Image
+                  </div>
+                )}
+              </div>
+
+              <div className="w-11 h-11 flex items-center justify-center">
+                {isAuthor && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="hover:bg-gray-100 rounded-lg transition-colors p-2">
+                        <MoreHorizontal className="w-6 h-6 text-[#434343]" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl">
+                      <DropdownMenuItem onClick={() => router.push(`/showcase/edit/${showcase.id}`)} className="flex items-center cursor-pointer w-full p-2">
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>수정</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-500 cursor-pointer p-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>삭제</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center justify-center mt-1">
-              <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
-                <div className="flex flex-row items-center gap-[5px] h-5 cursor-pointer">
-                  <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
-                    <Image
-                      src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                      alt="author"
-                      fill
-                      className="object-cover"
-                    />
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="flex flex-col items-center gap-1">
+                <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
+                  {showcase.name || "제목 없음"}
+                </h1>
+                {showcase.short_description && (
+                  <p className="font-['Pretendard'] font-normal text-[16px] leading-[150%] text-black line-clamp-2">
+                    {showcase.short_description}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-center mt-1">
+                <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
+                  <div className="flex flex-row items-center gap-[5px] h-5 cursor-pointer">
+                    <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                      <Image
+                        src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                        alt="author"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <span className="font-['Pretendard'] font-semibold text-[14px] text-sydeblue whitespace-nowrap">
+                      {showcase.profiles?.full_name ||
+                        showcase.profiles?.username}
+                    </span>
+                    <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
+                      {showcase.profiles?.tagline}
+                    </span>
                   </div>
-                  <span className="font-['Pretendard'] font-semibold text-[14px] text-sydeblue whitespace-nowrap">
-                    {showcase.profiles?.username}
-                  </span>
-                  <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
-                    | {showcase.profiles?.tagline && <>{showcase.profiles.tagline} | </>}
-                    {showcase.profiles?.full_name} · {showcase.created_at ? formatRelativeTime(showcase.created_at) : ""}
-                  </span>
-                </div>
-              </ProfileHoverCard>
+                </ProfileHoverCard>
+              </div>
+            </div>
+          </div>
+
+          {/* Interaction Bar (Shared Container) */}
+          <div className="w-full mt-4 md:mt-6">
+            <div className="w-full h-[44px] rounded-[12px] flex items-center justify-between px-8 md:px-16 relative">
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-[5px] hover:scale-105 transition-transform"
+              >
+                <HeartIcon
+                  suppressHydrationWarning
+                  className={`w-5 h-5 ${hasLiked ? "fill-sydeorange text-sydeorange" : "text-[#777777]"}`}
+                />
+                <span className="font-['Pretendard'] text-[14px] text-[#777777]">
+                  {likesCount}
+                </span>
+              </button>
+
+              <button className="flex items-center gap-[5px] hover:scale-105 transition-transform">
+                <MessageCircle className="w-5 h-5 text-[#777777]" />
+                <span className="font-['Pretendard'] text-[14px] text-[#777777]">
+                  {commentsCount}
+                </span>
+              </button>
+
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-[5px] hover:scale-105 transition-transform"
+              >
+                <Share className="w-5 h-5 text-[#777777]" />
+              </button>
+
+              <button
+                onClick={handleBookmark}
+                className="flex items-center gap-[5px] hover:scale-105 transition-transform"
+              >
+                <Bookmark
+                  suppressHydrationWarning
+                  className={`w-5 h-5 ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
+                />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col items-center w-full max-w-full mx-auto bg-white">
-
-
-
         {/* Gallery Section */}
-        <div className="w-full h-auto md:h-[294px] border-b-[0.5px] md:border-t-[0.5px] border-[#B7B7B7] flex justify-center items-center py-4 md:px-[32px] md:py-[12px] overflow-hidden bg-white gap-[10px] md:gap-0">
-          {/* Left Arrow */}
+        <div className="w-full h-auto md:h-auto border-b-[0.5px] border-[#B7B7B7] flex justify-center items-center py-8 md:py-10 px-2 lg:px-4 bg-white group hover:cursor-pointer overflow-hidden gap-2 md:gap-4 lg:gap-4 xl:gap-6">
+          
+          {/* Left Arrow - Fixed width, never shrinks */}
           {galleryImages.length > 1 && (
             <button
               onClick={handlePrevImage}
-              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 rounded p-1 order-1 md:order-1 md:mx-[10px]"
+              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 p-2"
+              aria-label="Previous Image"
             >
-              <ChevronLeft className="w-[10px] h-[14px] text-[#808080]" />
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#404040]" />
             </button>
           )}
 
-          {/* Large Image (480x270 desktop, 320x180 mobile) */}
-          <div
-            key={`main-${currentImageIndex}`}
-            className="flex-none w-[320px] h-[180px] md:w-[480px] md:h-[270px] bg-sydeblue rounded-[10px] md:rounded-[12px] relative overflow-hidden flex items-center justify-center animate-in fade-in slide-in-from-right-8 duration-500 order-2 md:order-2"
-          >
-            {galleryImages[currentImageIndex] ? (
-              <Image
-                src={galleryImages[currentImageIndex]}
-                alt="Main"
-                fill
-                className="object-contain"
-                unoptimized
-              />
-            ) : (
-              <span className="text-[14px] text-gray-500">No Image</span>
-            )}
-          </div>
+          {/* Small Image - Previous Preview - Shrinks and clips from left */}
+          {galleryImages.length > 2 && (
+            <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+              <motion.div
+                key={`prev-${(currentImageIndex - 1 + galleryImages.length) % galleryImages.length}`}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: { type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.2 }
+                }}
+                className="hidden lg:block flex-1 min-w-0 max-w-[320px] overflow-hidden rounded-r-[12px] rounded-l-none"
+              >
+                <div className="w-full relative lg:h-[189px] bg-sydeblue">
+                  <Image
+                    src={
+                      galleryImages[(currentImageIndex - 1 + galleryImages.length) % galleryImages.length]
+                    }
+                    alt="Previous"
+                    fill
+                    className="object-cover object-right"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-white/30 pointer-events-none" />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
 
-          {/* Right Arrow */}
+          {/* Large Image - Scales down on mobile, fixed 480px on md+ */}
+          <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+            <motion.div
+              key={`main-${currentImageIndex}`}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
+              }}
+              className="flex-1 min-w-0 md:flex-none relative w-full h-0 pb-[56.25%] md:pb-0 md:h-[270px] md:w-[480px] bg-sydeblue rounded-[10px] md:rounded-[12px] overflow-hidden"
+            >
+              {galleryImages[currentImageIndex] ? (
+                <Image
+                  src={galleryImages[currentImageIndex]}
+                  alt="Main"
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              ) : (
+                <span className="text-[14px] text-gray-500 flex items-center justify-center h-full">No Image</span>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Small Image - Next Preview - Shrinks and clips from right */}
+          {galleryImages.length > 1 && (
+            <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+              <motion.div
+                key={`next-${(currentImageIndex + 1) % galleryImages.length}`}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: { type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.2 }
+                }}
+                className="hidden lg:block flex-1 min-w-0 max-w-[320px] overflow-hidden rounded-l-[12px] rounded-r-none"
+              >
+                <div className="w-full relative lg:h-[189px] bg-sydeblue">
+                  <Image
+                    src={
+                      galleryImages[(currentImageIndex + 1) % galleryImages.length]
+                    }
+                    alt="Next"
+                    fill
+                    className="object-cover object-left"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-white/30 pointer-events-none" />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
+
+          {/* Right Arrow - Fixed width, never shrinks */}
           {galleryImages.length > 1 && (
             <button
               onClick={handleNextImage}
-              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 rounded p-1 order-3 md:order-3 md:mx-[10px]"
+              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 p-2"
+              aria-label="Next Image"
             >
-              <ChevronRight className="w-[10px] h-[14px] text-[#808080]" />
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#404040]" />
             </button>
           )}
 
-          {/* Small Image (320x180) - Next Preview (Desktop Only) */}
-          {galleryImages.length > 1 && (
-            <div
-              key={`next-${(currentImageIndex + 1) % galleryImages.length}`}
-              className="hidden md:block md:flex-none md:w-[320px] md:h-[180px] bg-sydeblue rounded-[12px] relative overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500 order-4 md:order-4"
-            >
-              <Image
-                src={
-                  galleryImages[(currentImageIndex + 1) % galleryImages.length]
-                }
-                alt="Next"
-                fill
-                className="object-contain"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-            </div>
-          )}
         </div>
 
         {/* Club Description Box */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 md:px-[16px] md:py-[20px] flex flex-col gap-6">
+        <div className="w-full px-5 py-8 md:px-8 md:py-10 flex flex-col gap-6">
           <div className="flex flex-row justify-between items-center w-full">
             <div className="flex items-center gap-2">
               <Image
@@ -575,20 +691,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 소개
               </span>
             </div>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-2 text-[12px] text-[#777777]"
-            >
-              {isExpanded ? "접기" : "펼쳐보기"}
-              <ChevronDown
-                className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-              />
-            </button>
           </div>
 
-          <div
-            className={`w-full overflow-hidden transition-all ${isExpanded ? "max-h-none opacity-100" : "max-h-0 opacity-0"}`}
-          >
+          <div className="w-full">
             {(() => {
               let content = showcase.description || "";
               const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
@@ -614,7 +719,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Links Section */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] p-4 flex flex-col gap-4">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4">
           {(() => {
             const hasLinks =
               showcase.web_url || showcase.playstore_url || showcase.appstore_url;
@@ -700,7 +805,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         </div>
 
         {/* Participant List */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 py-5 md:px-[16px] md:py-[20px] flex flex-col gap-4">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Image
               src="/orange_line.png"
@@ -721,103 +826,63 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 userId={member.userId}
                 profileData={member.profileData}
               >
-                <div className="flex flex-col items-center justify-center gap-1 w-[128px] h-[118px] rounded-[10px] flex-shrink-0 relative bg-alabasterwhite">
-                  {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
-                  {member.role === "author" && (
-                    <div className="absolute top-2 left-2 text-sydeorange">
-                      {/* Crown Icon placeholder or small customized svg */}
-                      <svg
-                        width="20"
-                        height="16"
-                        viewBox="0 0 20 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
-                          fill="white"
-                          fillOpacity="0.01"
-                        />
-                        <path
-                          d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                  )}
+                <Link href={`/${member.username}`} className="block">
+                  <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
+                    {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
+                    {member.role === "author" && (
+                      <div className="absolute top-2 left-2 text-sydeorange">
+                        {/* Crown Icon placeholder or small customized svg */}
+                        <svg
+                          width="20"
+                          height="16"
+                          viewBox="0 0 20 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
+                            fill="white"
+                            fillOpacity="0.01"
+                          />
+                          <path
+                            d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </div>
+                    )}
 
-                  <div className="relative w-[48px] h-[48px]">
-                    <Avatar className="w-full h-full">
-                      <AvatarImage src={member.avatar || ""} />
-                      <AvatarFallback className="bg-[#D9D9D9]">
-                        {member.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative w-[48px] h-[48px]">
+                      <Avatar className="w-full h-full">
+                        <AvatarImage src={member.avatar || ""} />
+                        <AvatarFallback className="bg-[#D9D9D9]">
+                          {member.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex flex-col items-center gap-0 w-full">
+                      <span className="font-['Pretendard'] font-bold text-[12px] md:text-[14px] text-sydeblue w-full text-center truncate px-1">
+                        {member.name}
+                      </span>
+                      <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                        @{member.username}
+                      </span>
+                      <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                        {member.tagline ||
+                          (member.role === "author" ? "Host" : "Member")}
+                      </span>
+                    </div>
                   </div>
-                  <span className="font-['Pretendard'] font-bold text-[12px] text-sydeblue w-full text-center truncate px-1">
-                    {member.name}
-                  </span>
-                  <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                    @{member.username}
-                  </span>
-                  <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                    {member.tagline ||
-                      (member.role === "author" ? "Host" : "Member")}
-                  </span>
-                </div>
+                </Link>
               </ProfileHoverCard>
             ))}
           </div>
         </div>
 
-        {/* Action Bar */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-4 md:px-8 py-3 mt-8">
-          <div className="w-full h-[44px] rounded-[12px] flex items-center justify-between px-6 md:px-12 relative">
-            {/* Like */}
-            <button
-              onClick={handleLike}
-              className="flex items-center gap-[5px] hover:scale-105 transition-transform"
-            >
-              <HeartIcon
-                suppressHydrationWarning
-                className={`w-5 h-5 ${hasLiked ? "fill-sydeorange text-sydeorange" : "text-[#777777]"}`}
-              />
-              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
-                {likesCount}
-              </span>
-            </button>
 
-            {/* Comment */}
-            <button className="flex items-center gap-[5px] hover:scale-105 transition-transform">
-              <MessageCircle className="w-5 h-5 text-[#777777]" />
-              <span className="font-['Pretendard'] text-[14px] text-[#777777]">
-                {commentsCount}
-              </span>
-            </button>
-
-            {/* Share */}
-            <button
-              onClick={handleCopyLink}
-              className="flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              <Share className="w-5 h-5 text-[#808080]" />
-            </button>
-
-            {/* Bookmark */}
-            <button
-              onClick={handleBookmark}
-              className="flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              <Bookmark
-                suppressHydrationWarning
-                className={`w-5 h-5 ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
-              />
-            </button>
-          </div>
-        </div>
 
         {/* Comments Section */}
-        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-[24px] py-[20px] md:px-8 flex flex-col gap-4 mb-20">
+        <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4 mb-20">
           <div className="flex items-center gap-2">
             <Image
               src="/orange_line.png"

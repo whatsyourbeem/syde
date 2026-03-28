@@ -12,7 +12,7 @@ export function HeaderNavigationWrapper({ children }: { children: React.ReactNod
   const staticRoutes = [
     "log", "insight", "meetup", "club", "search", 
     "profile", "auth", "guideline", "term", 
-    "privacy", "about", "gathering"
+    "privacy", "about", "gathering", "showcase"
   ];
   
   const isProfilePage = 

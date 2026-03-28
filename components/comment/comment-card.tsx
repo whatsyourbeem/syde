@@ -237,8 +237,8 @@ export function CommentCard({
             userId={comment.user_id}
             profileData={comment.profiles}
           >
-            <div className="flex items-baseline gap-1">
-              <div className="flex flex-col md:flex-row md:gap-2">
+            <div className="flex items-center gap-1">
+              <div className="flex flex-col md:flex-row md:items-center md:gap-2">
                 <Link
                   href={`/${comment.profiles?.username || comment.user_id}`}
                   className="min-w-0"

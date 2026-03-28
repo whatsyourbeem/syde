@@ -102,7 +102,7 @@ function ShowcaseCardBase({
   return (
     <div
       ref={cardRef}
-      className="w-full h-auto md:h-[152px] border-b-[0.5px] border-[#B7B7B7] p-4 md:p-4 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden"
+      className="w-full h-auto md:h-auto border-b-[0.5px] border-[#B7B7B7] py-6 px-4 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden"
     >
       {/* Media + Content Wrapper */}
       <div
@@ -126,7 +126,7 @@ function ShowcaseCardBase({
 
         {/* Content Area */}
         <div className="flex flex-col justify-between md:h-[120px] min-w-0 flex-grow gap-1 md:gap-0">
-          <div className="flex flex-col gap-1 w-full">
+          <div className="flex flex-col gap-2 w-full">
             {/* Title (Mobile: 18px Bold / Desktop: 20px Bold) */}
             <h3 className="text-[18px] font-bold text-black line-clamp-2 md:line-clamp-1 leading-[150%] md:leading-[27px]">
               {showcase.name || "제목 없음"}
@@ -150,14 +150,14 @@ function ShowcaseCardBase({
                       className="object-cover"
                     />
                   </div>
-                  <span className="text-[14px] font-semibold text-sydeblue leading-tight">
-                    {showcase.profiles?.username}
+                  <span className="text-[14px] font-semibold text-sydeblue leading-tight whitespace-nowrap">
+                    {showcase.profiles?.full_name ||
+                      showcase.profiles?.username}
                   </span>
                   <span className="text-[12px] font-normal text-[#777777] leading-tight truncate flex-grow">
-                    | {showcase.profiles?.tagline && (
-                      <>{showcase.profiles.tagline} | </>
+                    {showcase.profiles?.tagline && (
+                      <>&nbsp;|&nbsp;{showcase.profiles.tagline}</>
                     )}
-                    {showcase.profiles?.full_name}
                   </span>
                 </div>
               </ProfileHoverCard>

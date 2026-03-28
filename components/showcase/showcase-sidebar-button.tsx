@@ -49,7 +49,7 @@ export function ShowcaseSidebarButton({
         >
           <CirclePlus className="size-5" strokeWidth={2.5} />
           <span className="text-sm leading-[14px] font-semibold">
-            내 SYDE 프로덕트 등록하기
+            내 프로젝트 등록하기
           </span>
         </Button>
       </Link>

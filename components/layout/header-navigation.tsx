@@ -31,7 +31,6 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        {/* TODO: 쇼케이스 정식 오픈 시 주석 해제
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
             <Link
@@ -47,7 +46,6 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        */}
         <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link

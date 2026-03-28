@@ -396,7 +396,7 @@ export function ProjectRegistrationForm({
           <ChevronLeft className="h-6 w-6 text-[#434343]" />
         </Button>
         <h1 className="text-[18px] md:text-[32px] font-bold text-sydeblue leading-[21px] md:leading-[38px]">
-          {initialData ? "SYDE 프로덕트 수정하기" : "SYDE 프로덕트 등록하기"}
+          {initialData ? "프로젝트 수정하기" : "프로젝트 등록하기"}
         </h1>
       </div>
 
@@ -412,7 +412,7 @@ export function ProjectRegistrationForm({
           </Label>
           <Input
             id="title"
-            placeholder="SYDE 프로덕트 이름을 적어주세요."
+            placeholder="프로젝트 이름을 적어주세요."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="h-[36px] bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
@@ -430,7 +430,7 @@ export function ProjectRegistrationForm({
           </Label>
           <Input
             id="tagline"
-            placeholder="SYDE 프로덕트를 한 줄로 소개해주세요."
+            placeholder="프로젝트를 한 줄로 소개해주세요."
             value={tagline}
             onChange={(e) => setTagline(e.target.value)}
             className="h-[36px] bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
@@ -685,7 +685,7 @@ export function ProjectRegistrationForm({
         <div className="flex flex-col gap-2 h-auto md:h-[94px]">
           <p className="text-sm font-medium text-sydeblue">팀원 등록</p>
           <p className="text-[13px] font-light text-sydeblue">
-            SYDE 프로덕트를 같이 만든 팀원이 있다면 추가해주세요.
+            프로젝트를 같이 만든 팀원이 있다면 추가해주세요.
           </p>
 
           <div className="relative" ref={teamSearchRef}>
