@@ -19,6 +19,7 @@ const SHOWCASES_PER_PAGE = 20; // Define showcases per page
 export function ShowcaseList({
   currentUserId: propCurrentUserId,
   filterByUserId,
+  filterByParticipantUserId,
   filterByCommentedUserId,
   filterByUpvotedUserId,
   searchQuery,
@@ -26,6 +27,7 @@ export function ShowcaseList({
 }: {
   currentUserId: string | null;
   filterByUserId?: string;
+  filterByParticipantUserId?: string;
   filterByCommentedUserId?: string;
   filterByUpvotedUserId?: string;
   searchQuery?: string;
@@ -62,6 +64,7 @@ export function ShowcaseList({
     {
       currentPage,
       filterByUserId,
+      filterByParticipantUserId,
       filterByCommentedUserId,
       filterByUpvotedUserId,
       searchQuery,
@@ -76,6 +79,7 @@ export function ShowcaseList({
         currentPage,
         showcasesPerPage: SHOWCASES_PER_PAGE,
         filterByUserId,
+        filterByParticipantUserId,
         filterByCommentedUserId,
         filterByUpvotedUserId,
         searchQuery,

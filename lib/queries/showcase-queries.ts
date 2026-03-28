@@ -36,6 +36,7 @@ export interface ShowcaseQueryOptions {
   currentPage: number;
   showcasesPerPage: number;
   filterByUserId?: string;
+  filterByParticipantUserId?: string;
   filterByCommentedUserId?: string;
   filterByUpvotedUserId?: string;
   searchQuery?: string;

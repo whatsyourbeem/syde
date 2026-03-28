@@ -7,6 +7,7 @@ import { LogList } from "@/components/log/log-list";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
 import { InsightList } from "@/components/insight/insight-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
+import { UserShowcaseList } from "@/components/user/user-showcase-list";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
 import { ProfileLogEmptyState } from "@/components/log/profile-log-empty-state";
 import { Button } from "@/components/ui/button";
@@ -227,11 +228,15 @@ export function ProfileContentTabs({
                     </div>
                   </div>
 
-                  {/* 소속된 클럽 Section */}
+                  {/* 쇼케이스 Section */}
                   <div className="px-5 py-4 md:px-8 md:py-6">
-                    <SectionHeader title="소속된 클럽" />
+                    <SectionHeader title="쇼케이스" />
                     <div className="bg-[#FAFAFA] rounded-xl p-2.5">
-                      <UserJoinedClubsList userId={profile.id} variant="compact" />
+                      <UserShowcaseList 
+                        userId={profile.id} 
+                        variant="compact" 
+                        currentUserId={currentUserId}
+                      />
                     </div>
                   </div>
 
@@ -275,7 +280,7 @@ export function ProfileContentTabs({
             {activeSubTab === "showcase" && (
               <ShowcaseList 
                 currentUserId={currentUserId}
-                filterByUserId={profile.id}
+                filterByParticipantUserId={profile.id}
               />
             )}
             {activeSubTab === "insight" && (

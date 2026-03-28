@@ -13,6 +13,7 @@ export async function fetchShowcasesAction({
   currentPage,
   showcasesPerPage,
   filterByUserId,
+  filterByParticipantUserId,
   filterByCommentedUserId,
   filterByUpvotedUserId,
   searchQuery,
@@ -73,6 +74,14 @@ export async function fetchShowcasesAction({
   // Apply filters
   if (filterByUserId) {
     query = query.eq("user_id", filterByUserId);
+  } else if (filterByParticipantUserId) {
+    const memberShowcaseIds = await getMemberShowcaseIds(supabase, filterByParticipantUserId);
+    // Combine author-owned showcases and member-participated showcases
+    if (memberShowcaseIds.length > 0) {
+      query = query.or(`user_id.eq.${filterByParticipantUserId},id.in.(${memberShowcaseIds.join(',')})`);
+    } else {
+      query = query.eq("user_id", filterByParticipantUserId);
+    }
   } else if (filterByCommentedUserId) {
     const commentedShowcaseIds = await getCommentedShowcaseIds(supabase, filterByCommentedUserId);
     if (commentedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
@@ -154,6 +163,15 @@ async function getCommentedShowcaseIds(supabase: any, userId: string): Promise<s
 async function getUpvotedShowcaseIds(supabase: any, userId: string): Promise<string[]> {
   const { data, error } = await supabase
     .from("showcase_upvotes")
+    .select("showcase_id")
+    .eq("user_id", userId);
+  if (error) throw error;
+  return data.map((item: { showcase_id: string }) => item.showcase_id).filter((id: string | null): id is string => id !== null);
+}
+
+async function getMemberShowcaseIds(supabase: any, userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("showcases_members")
     .select("showcase_id")
     .eq("user_id", userId);
   if (error) throw error;
