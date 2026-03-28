@@ -16,6 +16,7 @@ interface OgPreviewCardProps {
 }
 
 export function OgPreviewCard({ url }: OgPreviewCardProps) {
+  const [hasImageError, setHasImageError] = useState(false);
   const [ogData, setOgData] = useState<OGData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,6 +25,7 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
     const fetchData = async () => {
       if (!url) return;
       setIsLoading(true);
+      setHasImageError(false);
       try {
         const response = await fetch(`/api/og?url=${encodeURIComponent(url)}`);
 
@@ -85,13 +87,14 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
       className="not-prose block"
     >
       <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50 h-24 md:h-30">
-        {ogData.image && (
+        {ogData.image && !hasImageError && (
           <div className="w-24 h-24 md:w-30 md:h-30 flex-shrink-0 bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ogData.image}
               alt={ogData.title || "OG Image"}
               className="h-full object-cover"
+              onError={() => setHasImageError(true)}
             />
           </div>
         )}
