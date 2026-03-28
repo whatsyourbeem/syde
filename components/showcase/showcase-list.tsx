@@ -20,7 +20,7 @@ export function ShowcaseList({
   currentUserId: propCurrentUserId,
   filterByUserId,
   filterByCommentedUserId,
-  filterByLikedUserId,
+  filterByUpvotedUserId,
   filterByBookmarkedUserId,
   searchQuery,
   initialShowcases,
@@ -28,7 +28,7 @@ export function ShowcaseList({
   currentUserId: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
-  filterByLikedUserId?: string;
+  filterByUpvotedUserId?: string;
   filterByBookmarkedUserId?: string;
   searchQuery?: string;
   initialShowcases?: ShowcaseQueryResult;
@@ -65,7 +65,7 @@ export function ShowcaseList({
       currentPage,
       filterByUserId,
       filterByCommentedUserId,
-      filterByLikedUserId,
+      filterByUpvotedUserId,
       filterByBookmarkedUserId,
       searchQuery,
     },
@@ -80,7 +80,7 @@ export function ShowcaseList({
         showcasesPerPage: SHOWCASES_PER_PAGE,
         filterByUserId,
         filterByCommentedUserId,
-        filterByLikedUserId,
+        filterByUpvotedUserId,
         filterByBookmarkedUserId,
         searchQuery,
       }),
@@ -89,7 +89,7 @@ export function ShowcaseList({
       currentPage === 1 &&
       !filterByUserId &&
       !filterByCommentedUserId &&
-      !filterByLikedUserId &&
+      !filterByUpvotedUserId &&
       !filterByBookmarkedUserId &&
       !searchQuery
         ? initialShowcases
@@ -124,16 +124,16 @@ export function ShowcaseList({
         {
           event: "*",
           schema: "public",
-          table: "showcase_likes",
+          table: "showcase_upvotes",
           filter: `showcase_id=in.(${showcaseIdsForFilter.join(",")})`,
         },
         (payload) => {
           const changedShowcaseId =
             (
-              payload.new as Database["public"]["Tables"]["showcase_likes"]["Row"]
+              payload.new as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
             ).showcase_id ||
             (
-              payload.old as Database["public"]["Tables"]["showcase_likes"]["Row"]
+              payload.old as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
             ).showcase_id;
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
             queryClient.invalidateQueries({ queryKey: ["showcases"] });
@@ -230,8 +230,8 @@ export function ShowcaseList({
             <ShowcaseCard
               showcase={showcase}
               currentUserId={currentUserId}
-              initialLikesCount={showcase.likesCount}
-              initialHasLiked={showcase.hasLiked}
+              initialUpvotesCount={showcase.upvotesCount}
+              initialHasUpvoted={showcase.hasUpvoted}
               initialBookmarksCount={showcase.bookmarksCount}
               initialHasBookmarked={showcase.hasBookmarked}
               initialCommentsCount={showcase.showcase_comments.length}

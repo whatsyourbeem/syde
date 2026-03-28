@@ -3,7 +3,7 @@
 import { useState, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  HeartIcon,
+  ArrowUpCircle,
   MessageCircle,
   Share,
   Bookmark,
@@ -40,12 +40,12 @@ import { toggleShowcaseBookmark } from "@/app/showcase/showcase-actions";
 interface ShowcaseCardActionsProps {
   showcaseId: string;
   currentUserId: string | null;
-  likesCount: number;
-  hasLiked: boolean;
+  upvotesCount: number;
+  hasUpvoted: boolean;
   bookmarksCount: number;
   hasBookmarked: boolean;
   commentsCount: number;
-  onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
+  onUpvoteStatusChange: (newUpvotesCount: number, newHasUpvoted: boolean) => void;
   onBookmarkStatusChange: (
     newBookmarksCount: number,
     newHasBookmarked: boolean,
@@ -55,16 +55,16 @@ interface ShowcaseCardActionsProps {
 function ShowcaseCardActionsBase({
   showcaseId,
   currentUserId,
-  likesCount,
-  hasLiked,
+  upvotesCount,
+  hasUpvoted,
   bookmarksCount,
   hasBookmarked,
   commentsCount,
-  onLikeStatusChange,
+  onUpvoteStatusChange,
   onBookmarkStatusChange,
 }: ShowcaseCardActionsProps) {
   const router = useRouter();
-  const [likeLoading, setLikeLoading] = useState(false);
+  const [upvoteLoading, setUpvoteLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
@@ -74,47 +74,47 @@ function ShowcaseCardActionsBase({
     router.push(`/showcase/${showcaseId}#comments`);
   }, [router, showcaseId]);
 
-  const handleLike = useCallback(async () => {
+  const handleUpvote = useCallback(async () => {
     if (!currentUserId) {
       openLoginDialog();
       return;
     }
-    if (likeLoading) return;
+    if (upvoteLoading) return;
 
-    setLikeLoading(true);
-    const newLikesCount = hasLiked ? likesCount - 1 : likesCount + 1;
-    const newHasLiked = !hasLiked;
-    onLikeStatusChange(newLikesCount, newHasLiked);
+    setUpvoteLoading(true);
+    const newUpvotesCount = hasUpvoted ? upvotesCount - 1 : upvotesCount + 1;
+    const newHasUpvoted = !hasUpvoted;
+    onUpvoteStatusChange(newUpvotesCount, newHasUpvoted);
 
     const supabase = createClient();
-    if (hasLiked) {
+    if (hasUpvoted) {
       const { error } = await supabase
-        .from("showcase_likes")
+        .from("showcase_upvotes")
         .delete()
         .eq("showcase_id", showcaseId)
         .eq("user_id", currentUserId);
       if (error) {
-        toast.error("좋아요 취소 실패");
-        onLikeStatusChange(likesCount, hasLiked); // Revert on error
+        toast.error("업보트 취소 실패");
+        onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
       }
     } else {
       const { error } = await supabase
-        .from("showcase_likes")
+        .from("showcase_upvotes")
         .insert({ showcase_id: showcaseId, user_id: currentUserId });
       if (error) {
-        toast.error("좋아요 실패");
-        onLikeStatusChange(likesCount, hasLiked); // Revert on error
+        toast.error("업보트 실패");
+        onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
       }
     }
-    setLikeLoading(false);
+    setUpvoteLoading(false);
   }, [
     currentUserId,
     showcaseId,
-    hasLiked,
-    likesCount,
-    likeLoading,
+    hasUpvoted,
+    upvotesCount,
+    upvoteLoading,
     openLoginDialog,
-    onLikeStatusChange,
+    onUpvoteStatusChange,
   ]);
 
   const handleBookmark = useCallback(async () => {
@@ -186,23 +186,25 @@ function ShowcaseCardActionsBase({
   return (
     <>
     <div className="flex flex-row justify-between md:justify-start items-center pt-2 px-[30px] md:px-0 md:gap-[50px] w-full h-[28px] text-[#777777]">
-      {/* Like */}
+      {/* Upvote */}
       <button
-        onClick={handleLike}
-        disabled={likeLoading}
-        className="flex items-center gap-[5px] transition-colors hover:text-red-500 disabled:opacity-50"
+        onClick={handleUpvote}
+        disabled={upvoteLoading}
+        className="flex items-center gap-[5px] transition-colors hover:text-sydeorange disabled:opacity-50"
       >
-        {likeLoading ? (
-          <LoadingSpinner size="sm" className="text-red-500" />
+        {upvoteLoading ? (
+          <LoadingSpinner size="sm" className="text-sydeorange" />
         ) : (
-          <HeartIcon
-            className={hasLiked ? "fill-red-500 text-red-500" : ""}
-            size={18}
+          <ArrowUpCircle
+            className={hasUpvoted ? "fill-sydeorange text-white" : ""}
+            size={20}
             strokeWidth={1.5}
           />
         )}
-        <span className="text-[14px] leading-[150%] h-[21px]">
-          {likesCount}
+        <span
+          className={`text-[14px] leading-[150%] h-[21px] ${hasUpvoted ? "text-sydeorange font-semibold" : ""}`}
+        >
+          {upvotesCount}
         </span>
       </button>
 
@@ -298,8 +300,8 @@ export const ShowcaseCardActions = memo(
     return (
       prevProps.showcaseId === nextProps.showcaseId &&
       prevProps.currentUserId === nextProps.currentUserId &&
-      prevProps.likesCount === nextProps.likesCount &&
-      prevProps.hasLiked === nextProps.hasLiked &&
+      prevProps.upvotesCount === nextProps.upvotesCount &&
+      prevProps.hasUpvoted === nextProps.hasUpvoted &&
       prevProps.bookmarksCount === nextProps.bookmarksCount &&
       prevProps.hasBookmarked === nextProps.hasBookmarked &&
       prevProps.commentsCount === nextProps.commentsCount

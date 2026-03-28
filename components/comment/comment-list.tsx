@@ -38,7 +38,7 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type CommentWithRelations = CommentRow & {
   profiles: ProfileRow | null;
   comment_likes?: Array<{ user_id: string }>; // For log comments
-  showcase_likes?: Array<{ user_id: string }>; // For showcase comments
+  showcase_upvotes?: Array<{ user_id: string }>; // For showcase comments
   replies?: CommentWithRelations[];
 };
 
@@ -54,7 +54,7 @@ export function CommentList({
   logId,
   showcaseId,
   currentUserId,
-  pageSize = 10, // Changed to 10 as requested
+  pageSize = 10,
   isDetailPage = false,
   isMobile = false,
   setReplyTo,
@@ -98,10 +98,9 @@ export function CommentList({
       const to = from + pageSize - 1;
 
       // Determine which likes relation to fetch
-      const likesRelation =
-        parentTable === "log_comments"
-          ? "comment_likes(user_id)"
-          : "showcase_likes!showcase_likes_comment_id_fkey(user_id)";
+      const likesRelation = logId
+        ? "comment_likes(user_id)"
+        : "showcase_upvotes!showcase_upvotes_comment_id_fkey(user_id)";
 
       const { data, error, count } = await supabase
         .from(parentTable)
@@ -199,7 +198,7 @@ export function CommentList({
         comment: CommentWithRelations,
       ): ProcessedComment => {
         // Get likes from appropriate field based on comment type
-        const likes = comment.comment_likes || comment.showcase_likes || [];
+        const likes = comment.comment_likes || comment.showcase_upvotes || [];
         return {
           ...comment,
           profiles: Array.isArray(comment.profiles)
@@ -306,9 +305,9 @@ export function CommentList({
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "showcase_likes" },
+        { event: "*", schema: "public", table: "showcase_upvotes" },
         () => {
-          queryClient.invalidateQueries({ queryKey });
+          queryClient.invalidateQueries({ queryKey: ["comments", { parentId }] });
         },
       )
       .subscribe();

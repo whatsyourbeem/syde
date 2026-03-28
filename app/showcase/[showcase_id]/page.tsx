@@ -21,7 +21,7 @@ export default async function ShowcaseDetailPage({
   const { data: showcase, error } = await supabase
     .from("showcases")
     .select(
-      "*, profiles(*), showcase_likes(user_id), showcase_bookmarks(user_id), showcase_comments(id), members:showcases_members(*, profile:profiles(*))",
+      "*, profiles(*), showcase_upvotes(user_id), showcase_bookmarks(user_id), showcase_comments(id), members:showcases_members(*, profile:profiles(*))",
     )
     .eq("id", showcase_id)
     .single();

@@ -14,7 +14,7 @@ interface ShowcaseListWrapperProps {
   avatarUrl: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
-  filterByLikedUserId?: string;
+  filterByUpvotedUserId?: string;
   searchQuery?: string;
   initialShowcases?: ShowcaseQueryResult;
 }
@@ -24,7 +24,7 @@ export function ShowcaseListWrapper({
   avatarUrl,
   filterByUserId,
   filterByCommentedUserId,
-  filterByLikedUserId,
+  filterByUpvotedUserId,
   initialShowcases,
 }: ShowcaseListWrapperProps) {
   const searchParams = useSearchParams();
@@ -64,7 +64,7 @@ export function ShowcaseListWrapper({
           currentUserId={user?.id || null}
           filterByUserId={filterByUserId}
           filterByCommentedUserId={filterByCommentedUserId}
-          filterByLikedUserId={filterByLikedUserId}
+          filterByUpvotedUserId={filterByUpvotedUserId}
           searchQuery={searchQuery}
           initialShowcases={initialShowcases}
         />

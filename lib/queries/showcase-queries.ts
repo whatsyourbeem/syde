@@ -20,11 +20,11 @@ export interface OptimizedShowcase extends ShowcaseRow {
   thumbnail_url: string | null;
   user_id: string;
   profiles: ProfileRow | null;
-  showcase_likes: Array<{ user_id: string }>;
+  showcase_upvotes: Array<{ user_id: string }>;
   showcase_bookmarks: Array<{ user_id: string }>;
   showcase_comments: Array<{ id: string }>;
-  likesCount: number;
-  hasLiked: boolean;
+  upvotesCount: number;
+  hasUpvoted: boolean;
   bookmarksCount: number;
   hasBookmarked: boolean;
   members: ShowcaseMember[]; // Added members array
@@ -40,7 +40,7 @@ export interface ShowcaseQueryOptions {
   showcasesPerPage: number;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
-  filterByLikedUserId?: string;
+  filterByUpvotedUserId?: string;
   filterByBookmarkedUserId?: string;
   searchQuery?: string;
 }

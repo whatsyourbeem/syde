@@ -28,7 +28,7 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
         .select(`
           *,
           profiles(*),
-          showcase_likes(user_id),
+          showcase_upvotes(user_id),
           showcase_bookmarks(user_id),
           showcase_comments(id)
         `, { count: 'exact' });
@@ -47,8 +47,8 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
       const formattedShowcases = (showcaseData || []).map((item: any) => ({
         ...item,
         currentUserId: user?.id || null,
-        initialLikesCount: item.showcase_likes?.length || 0,
-        initialHasLiked: user ? item.showcase_likes?.some((l: any) => l.user_id === user.id) : false,
+        initialUpvotesCount: item.showcase_upvotes?.length || 0,
+        initialHasUpvoted: user ? item.showcase_upvotes?.some((l: any) => l.user_id === user.id) : false,
         initialBookmarksCount: item.showcase_bookmarks?.length || 0,
         initialHasBookmarked: user ? item.showcase_bookmarks?.some((b: any) => b.user_id === user.id) : false,
         initialCommentsCount: item.showcase_comments?.length || 0,
@@ -79,8 +79,8 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
               key={item.id} 
               showcase={item}
               currentUserId={item.currentUserId}
-              initialLikesCount={item.initialLikesCount}
-              initialHasLiked={item.initialHasLiked}
+              initialUpvotesCount={item.initialUpvotesCount}
+              initialHasUpvoted={item.initialHasUpvoted}
               initialBookmarksCount={item.initialBookmarksCount}
               initialHasBookmarked={item.initialHasBookmarked}
               initialCommentsCount={item.initialCommentsCount}

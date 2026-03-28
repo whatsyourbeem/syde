@@ -14,7 +14,7 @@ export async function fetchShowcasesAction({
   showcasesPerPage,
   filterByUserId,
   filterByCommentedUserId,
-  filterByLikedUserId,
+  filterByUpvotedUserId,
   filterByBookmarkedUserId,
   searchQuery,
 }: ShowcaseQueryOptions): Promise<ShowcaseQueryResult> {
@@ -22,17 +22,17 @@ export async function fetchShowcasesAction({
   const from = (currentPage - 1) * showcasesPerPage;
   const to = from + showcasesPerPage - 1;
 
-  // 1. Fetch liked showcase IDs for the current user in a separate query.
+  // 1. Fetch upvoted showcase IDs for the current user in a separate query.
   // Note: On server side, we can parallelize these requests better or just await them.
-  let likedShowcaseIdsSet = new Set<string>();
+  let upvotedShowcaseIdsSet = new Set<string>();
   if (currentUserId) {
-    const { data: likedShowcases } = await supabase
-      .from('showcase_likes')
+    const { data: upvotedShowcases } = await supabase
+      .from('showcase_upvotes')
       .select('showcase_id')
       .eq('user_id', currentUserId);
 
-    if (likedShowcases) {
-      likedShowcaseIdsSet = new Set(likedShowcases.map(like => like.showcase_id).filter((id): id is string => id !== null));
+    if (upvotedShowcases) {
+      upvotedShowcaseIdsSet = new Set(upvotedShowcases.map(upvote => upvote.showcase_id).filter((id): id is string => id !== null));
     }
   }
 
@@ -49,7 +49,7 @@ export async function fetchShowcasesAction({
     profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
     showcase_bookmarks(user_id),
     showcase_comments(id),
-    likes_count:showcase_likes(count),
+    upvotes_count:showcase_upvotes(count),
     members:showcases_members(
       id,
       user_id,
@@ -78,10 +78,10 @@ export async function fetchShowcasesAction({
     const commentedShowcaseIds = await getCommentedShowcaseIds(supabase, filterByCommentedUserId);
     if (commentedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", commentedShowcaseIds);
-  } else if (filterByLikedUserId) {
-    const likedShowcaseIds = await getLikedShowcaseIds(supabase, filterByLikedUserId);
-    if (likedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
-    query = query.in("id", likedShowcaseIds);
+  } else if (filterByUpvotedUserId) {
+    const upvotedShowcaseIds = await getUpvotedShowcaseIds(supabase, filterByUpvotedUserId);
+    if (upvotedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
+    query = query.in("id", upvotedShowcaseIds);
   } else if (filterByBookmarkedUserId) {
     const bookmarkedShowcaseIds = await getBookmarkedShowcaseIds(supabase, filterByBookmarkedUserId);
     if (bookmarkedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
@@ -102,17 +102,17 @@ export async function fetchShowcasesAction({
   // We can reuse the logic, but need to pass the supabase client or reimplement
   const mentionedProfiles = await getMentionedProfiles(supabase, showcasesData || []);
 
-  // 3. Process showcases and determine 'hasLiked' using the Set.
+  // 3. Process showcases and determine 'hasUpvoted' using the Set.
   const processedShowcases: OptimizedShowcase[] = (showcasesData || []).map((showcase: any) => ({
     ...showcase,
     profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
-    likesCount: showcase.likes_count?.[0]?.count || 0,
-    hasLiked: likedShowcaseIdsSet.has(showcase.id),
+    upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
+    hasUpvoted: upvotedShowcaseIdsSet.has(showcase.id),
     bookmarksCount: showcase.showcase_bookmarks?.length || 0,
     hasBookmarked: currentUserId
       ? showcase.showcase_bookmarks?.some((bookmark: any) => bookmark.user_id === currentUserId)
       : false,
-    showcase_likes: [], // Keep interface consistent
+    showcase_upvotes: [], // Keep interface consistent
     showcase_comments: showcase.showcase_comments || [],
     members: (showcase.members || []).map((m: any) => ({
       ...m,
@@ -159,9 +159,9 @@ async function getCommentedShowcaseIds(supabase: any, userId: string): Promise<s
   return data.map((item: { showcase_id: string }) => item.showcase_id).filter((id: string | null): id is string => id !== null);
 }
 
-async function getLikedShowcaseIds(supabase: any, userId: string): Promise<string[]> {
+async function getUpvotedShowcaseIds(supabase: any, userId: string): Promise<string[]> {
   const { data, error } = await supabase
-    .from("showcase_likes")
+    .from("showcase_upvotes")
     .select("showcase_id")
     .eq("user_id", userId);
   if (error) throw error;

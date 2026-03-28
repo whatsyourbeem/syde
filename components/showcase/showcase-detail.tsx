@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  HeartIcon,
+  ArrowUpCircle,
   MessageCircle,
   Share,
   Bookmark,
@@ -96,12 +96,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   // Stats State
 
   // Stats State
-  const [likesCount, setLikesCount] = useState(
-    showcase.showcase_likes?.length || 0,
+  const [upvotesCount, setUpvotesCount] = useState(
+    showcase.showcase_upvotes?.length || 0,
   );
-  const [hasLiked, setHasLiked] = useState(
+  const [hasUpvoted, setHasUpvoted] = useState(
     user
-      ? showcase.showcase_likes?.some((like: any) => like.user_id === user.id)
+      ? showcase.showcase_upvotes?.some((upvote: any) => upvote.user_id === user.id)
       : false,
   );
   const [bookmarksCount, setBookmarksCount] = useState(
@@ -166,32 +166,32 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   }, [showcase.description, showcase.short_description, supabase]);
 
   // --- Actions ---
-  const handleLike = async () => {
+  const handleUpvote = async () => {
     if (!user?.id) return openLoginDialog();
 
-    const previousLiked = hasLiked;
-    const previousCount = likesCount;
+    const previousUpvoted = hasUpvoted;
+    const previousCount = upvotesCount;
 
-    setHasLiked(!previousLiked);
-    setLikesCount(previousLiked ? previousCount - 1 : previousCount + 1);
+    setHasUpvoted(!previousUpvoted);
+    setUpvotesCount(previousUpvoted ? previousCount - 1 : previousCount + 1);
 
-    if (previousLiked) {
+    if (previousUpvoted) {
       const { error } = await supabase
-        .from("showcase_likes")
+        .from("showcase_upvotes")
         .delete()
         .eq("showcase_id", showcase.id)
         .eq("user_id", user.id);
       if (error) {
-        setHasLiked(previousLiked);
-        setLikesCount(previousCount);
+        setHasUpvoted(previousUpvoted);
+        setUpvotesCount(previousCount);
       }
     } else {
       const { error } = await supabase
-        .from("showcase_likes")
+        .from("showcase_upvotes")
         .insert({ showcase_id: showcase.id, user_id: user.id });
       if (error) {
-        setHasLiked(previousLiked);
-        setLikesCount(previousCount);
+        setHasUpvoted(previousUpvoted);
+        setUpvotesCount(previousCount);
       }
     }
   };
@@ -515,15 +515,15 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           <div className="w-full mt-4 md:mt-6">
             <div className="w-full h-[44px] rounded-[12px] flex items-center justify-between px-8 md:px-16 relative">
               <button
-                onClick={handleLike}
+                onClick={handleUpvote}
                 className="flex items-center gap-[5px] hover:scale-105 transition-transform"
               >
-                <HeartIcon
+                <ArrowUpCircle
                   suppressHydrationWarning
-                  className={`w-5 h-5 ${hasLiked ? "fill-sydeorange text-sydeorange" : "text-[#777777]"}`}
+                  className={`w-6 h-6 ${hasUpvoted ? "fill-sydeorange text-white" : "text-[#777777]"}`}
                 />
-                <span className="font-['Pretendard'] text-[14px] text-[#777777]">
-                  {likesCount}
+                <span className={`font-['Pretendard'] text-[14px] ${hasUpvoted ? "text-sydeorange font-semibold" : "text-[#777777]"}`}>
+                  {upvotesCount}
                 </span>
               </button>
 

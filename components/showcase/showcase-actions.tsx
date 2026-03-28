@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HeartIcon, Trash2, Edit } from "lucide-react";
+import { ArrowUpCircle, Trash2, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Database } from "@/types/database.types";
 import { deleteShowcase } from "@/app/showcase/showcase-actions"; // Import the server action
@@ -23,19 +23,19 @@ import { useLoginDialog } from "@/context/LoginDialogContext";
 interface ShowcaseActionsProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"];
   currentUserId: string | null;
-  likesCount: number;
-  hasLiked: boolean;
+  upvotesCount: number;
+  hasUpvoted: boolean;
   onEditClick: () => void;
-  onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
+  onUpvoteStatusChange: (newUpvotesCount: number, newHasUpvoted: boolean) => void;
 }
 
 export function ShowcaseActions({
   showcase,
   currentUserId,
-  likesCount,
-  hasLiked,
+  upvotesCount,
+  hasUpvoted,
   onEditClick,
-  onLikeStatusChange,
+  onUpvoteStatusChange,
 }: ShowcaseActionsProps) {
   const supabase = createClient();
   const router = useRouter();
@@ -44,7 +44,7 @@ export function ShowcaseActions({
 
   const { openLoginDialog } = useLoginDialog();
 
-  const handleLike = async () => {
+  const handleUpvote = async () => {
     if (!currentUserId) {
       openLoginDialog();
       return;
@@ -52,38 +52,38 @@ export function ShowcaseActions({
     if (loading) return;
 
     setLoading(true);
-    let newLikesCount = likesCount;
-    let newHasLiked = hasLiked;
+    let newUpvotesCount = upvotesCount;
+    let newHasUpvoted = hasUpvoted;
 
-    if (hasLiked) {
-      // Unlike
+    if (hasUpvoted) {
+      // Remove Upvote
       const { error } = await supabase
-        .from("showcase_likes")
+        .from("showcase_upvotes")
         .delete()
         .eq("showcase_id", showcase.id)
         .eq("user_id", currentUserId);
 
       if (!error) {
-        newLikesCount = likesCount - 1;
-        newHasLiked = false;
+        newUpvotesCount = upvotesCount - 1;
+        newHasUpvoted = false;
       } else {
-        console.error("Error unliking showcase:", error);
+        console.error("Error removing upvote from showcase:", error);
       }
     } else {
-      // Like
+      // Upvote
       const { error } = await supabase
-        .from("showcase_likes")
+        .from("showcase_upvotes")
         .insert({ showcase_id: showcase.id, user_id: currentUserId });
 
       if (!error) {
-        newLikesCount = likesCount + 1;
-        newHasLiked = true;
+        newUpvotesCount = upvotesCount + 1;
+        newHasUpvoted = true;
       } else {
-        console.error("Error liking showcase:", error);
+        console.error("Error upvoting showcase:", error);
       }
     }
     setLoading(false);
-    onLikeStatusChange(newLikesCount, newHasLiked); // Notify parent of change
+    onUpvoteStatusChange(newUpvotesCount, newHasUpvoted); // Notify parent of change
   };
 
   const handleDelete = async () => {
@@ -112,17 +112,19 @@ export function ShowcaseActions({
   return (
     <div className="flex justify-between items-center text-sm text-muted-foreground mt-4">
       <button
-        onClick={handleLike}
+        onClick={handleUpvote}
         disabled={isDeleting || loading}
         className="flex items-center gap-1 rounded-md p-2 -m-2 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
-        <HeartIcon
+        <ArrowUpCircle
           className={
-            hasLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"
+            hasUpvoted ? "fill-sydeorange text-white" : "text-muted-foreground"
           }
-          size={18}
+          size={20}
         />
-        <span>{likesCount} Likes</span>
+        <span className={hasUpvoted ? "text-sydeorange font-semibold" : ""}>
+          {upvotesCount} 업보트
+        </span>
       </button>
       {currentUserId === showcase.user_id && (
         <div className="flex items-center gap-2">

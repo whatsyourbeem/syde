@@ -138,7 +138,7 @@ export function CommentCard({
 
     // Determine which table to use for likes
     const isLog = !!logId;
-    const likesTable = isLog ? "comment_likes" : "showcase_likes";
+    const likesTable = isLog ? "comment_likes" : "showcase_upvotes";
 
     if (hasLiked) {
       // Unlike

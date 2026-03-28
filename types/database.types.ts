@@ -943,7 +943,7 @@ export type Database = {
           },
         ]
       }
-      showcase_likes: {
+      showcase_upvotes: {
         Row: {
           comment_id: string | null
           created_at: string | null
@@ -967,14 +967,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "showcase_likes_comment_id_fkey"
+            foreignKeyName: "showcase_upvotes_comment_id_fkey"
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "showcase_comments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "showcase_likes_showcase_id_fkey"
+            foreignKeyName: "showcase_upvotes_showcase_id_fkey"
             columns: ["showcase_id"]
             isOneToOne: false
             referencedRelation: "showcases"

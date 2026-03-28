@@ -14,7 +14,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 interface ShowcaseCardProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
-    showcase_likes: Array<{ user_id: string }>;
+    showcase_upvotes: Array<{ user_id: string }>;
     showcase_bookmarks: Array<{ user_id: string }>;
     showcase_comments: Array<{ id: string }>;
     name?: string | null;
@@ -22,8 +22,8 @@ interface ShowcaseCardProps {
     thumbnail_url?: string | null;
   };
   currentUserId: string | null;
-  initialLikesCount: number;
-  initialHasLiked: boolean;
+  initialUpvotesCount: number;
+  initialHasUpvoted: boolean;
   initialBookmarksCount: number;
   initialHasBookmarked: boolean;
   initialCommentsCount: number;
@@ -35,16 +35,16 @@ interface ShowcaseCardProps {
 function ShowcaseCardBase({
   showcase,
   currentUserId,
-  initialLikesCount,
-  initialHasLiked,
+  initialUpvotesCount,
+  initialHasUpvoted,
   initialBookmarksCount,
   initialHasBookmarked,
   initialCommentsCount,
   isDetailPage = false,
 }: ShowcaseCardProps) {
   const router = useRouter();
-  const [likesCount, setLikesCount] = useState(initialLikesCount);
-  const [hasLiked, setHasLiked] = useState(initialHasLiked);
+  const [upvotesCount, setUpvotesCount] = useState(initialUpvotesCount);
+  const [hasUpvoted, setHasUpvoted] = useState(initialHasUpvoted);
   const [bookmarksCount, setBookmarksCount] = useState(initialBookmarksCount);
   const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
@@ -56,23 +56,23 @@ function ShowcaseCardBase({
   });
 
   useEffect(() => {
-    setLikesCount(initialLikesCount);
-    setHasLiked(initialHasLiked);
+    setUpvotesCount(initialUpvotesCount);
+    setHasUpvoted(initialHasUpvoted);
     setCommentsCount(initialCommentsCount);
     setBookmarksCount(initialBookmarksCount);
     setHasBookmarked(initialHasBookmarked);
   }, [
-    initialLikesCount,
-    initialHasLiked,
+    initialUpvotesCount,
+    initialHasUpvoted,
     initialCommentsCount,
     initialBookmarksCount,
     initialHasBookmarked,
   ]);
 
-  const handleLikeStatusChange = useCallback(
-    (newLikesCount: number, newHasLiked: boolean) => {
-      setLikesCount(newLikesCount);
-      setHasLiked(newHasLiked);
+  const handleUpvoteStatusChange = useCallback(
+    (newUpvotesCount: number, newHasUpvoted: boolean) => {
+      setUpvotesCount(newUpvotesCount);
+      setHasUpvoted(newHasUpvoted);
     },
     [],
   );
@@ -172,12 +172,12 @@ function ShowcaseCardBase({
             <ShowcaseCardActions
               showcaseId={showcase.id}
               currentUserId={currentUserId}
-              likesCount={likesCount}
-              hasLiked={hasLiked}
+              upvotesCount={upvotesCount}
+              hasUpvoted={hasUpvoted}
               bookmarksCount={bookmarksCount}
               hasBookmarked={hasBookmarked}
               commentsCount={commentsCount}
-              onLikeStatusChange={handleLikeStatusChange}
+              onUpvoteStatusChange={handleUpvoteStatusChange}
               onBookmarkStatusChange={handleBookmarkStatusChange}
             />
           </div>
@@ -192,12 +192,12 @@ function ShowcaseCardBase({
         <ShowcaseCardActions
           showcaseId={showcase.id}
           currentUserId={currentUserId}
-          likesCount={likesCount}
-          hasLiked={hasLiked}
+          upvotesCount={upvotesCount}
+          hasUpvoted={hasUpvoted}
           bookmarksCount={bookmarksCount}
           hasBookmarked={hasBookmarked}
           commentsCount={commentsCount}
-          onLikeStatusChange={handleLikeStatusChange}
+          onUpvoteStatusChange={handleUpvoteStatusChange}
           onBookmarkStatusChange={handleBookmarkStatusChange}
         />
       </div>
@@ -209,8 +209,8 @@ export const ShowcaseCard = memo(ShowcaseCardBase, (prev, next) => {
   return (
     prev.showcase.id === next.showcase.id &&
     prev.currentUserId === next.currentUserId &&
-    prev.initialLikesCount === next.initialLikesCount &&
-    prev.initialHasLiked === next.initialHasLiked &&
+    prev.initialUpvotesCount === next.initialUpvotesCount &&
+    prev.initialHasUpvoted === next.initialHasUpvoted &&
     prev.initialBookmarksCount === next.initialBookmarksCount &&
     prev.initialHasBookmarked === next.initialHasBookmarked &&
     prev.initialCommentsCount === next.initialCommentsCount
