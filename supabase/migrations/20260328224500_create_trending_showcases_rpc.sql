@@ -26,7 +26,7 @@ BEGIN
         )
       ) AS computed_score
     FROM public.showcase_upvotes u
-    WHERE u.created_at >= NOW() - INTERVAL '7 days'
+    WHERE u.created_at >= NOW() - INTERVAL '14 days'
     GROUP BY showcase_id
   )
   SELECT
