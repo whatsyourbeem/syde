@@ -334,28 +334,3 @@ export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: st
   return createSuccessResponse(null);
 });
 
-export const toggleShowcaseBookmark = withAuth(
-  async ({ supabase, user }, showcaseId: string, hasBookmarked: boolean) => {
-    if (hasBookmarked) {
-      const { error } = await supabase
-        .from("showcase_bookmarks")
-        .delete()
-        .eq("showcase_id", showcaseId)
-        .eq("user_id", user.id);
-      if (error) throw new Error(`북마크 취소 실패: ${error.message}`);
-    } else {
-      const { error } = await supabase
-        .from("showcase_bookmarks")
-        .insert({ showcase_id: showcaseId, user_id: user.id });
-      if (error) throw new Error(`북마크 추가 실패: ${error.message}`);
-    }
-
-    revalidatePath("/");
-    revalidatePath(`/showcase/${showcaseId}`);
-    if (user?.user_metadata?.username) {
-      revalidatePath(`/${user.user_metadata.username}`);
-    }
-
-    return createSuccessResponse(null);
-  }
-);

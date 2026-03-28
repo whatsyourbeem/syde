@@ -29,7 +29,6 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
           *,
           profiles(*),
           showcase_upvotes(user_id),
-          showcase_bookmarks(user_id),
           showcase_comments(id)
         `, { count: 'exact' });
 
@@ -49,8 +48,6 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
         currentUserId: user?.id || null,
         initialUpvotesCount: item.showcase_upvotes?.length || 0,
         initialHasUpvoted: user ? item.showcase_upvotes?.some((l: any) => l.user_id === user.id) : false,
-        initialBookmarksCount: item.showcase_bookmarks?.length || 0,
-        initialHasBookmarked: user ? item.showcase_bookmarks?.some((b: any) => b.user_id === user.id) : false,
         initialCommentsCount: item.showcase_comments?.length || 0,
         mentionedProfiles: [], // Add if needed
       }));
@@ -81,8 +78,6 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
               currentUserId={item.currentUserId}
               initialUpvotesCount={item.initialUpvotesCount}
               initialHasUpvoted={item.initialHasUpvoted}
-              initialBookmarksCount={item.initialBookmarksCount}
-              initialHasBookmarked={item.initialHasBookmarked}
               initialCommentsCount={item.initialCommentsCount}
               mentionedProfiles={item.mentionedProfiles}
             />

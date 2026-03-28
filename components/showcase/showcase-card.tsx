@@ -15,7 +15,6 @@ interface ShowcaseCardProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
     showcase_upvotes: Array<{ user_id: string }>;
-    showcase_bookmarks: Array<{ user_id: string }>;
     showcase_comments: Array<{ id: string }>;
     name?: string | null;
     short_description?: string | null;
@@ -24,8 +23,6 @@ interface ShowcaseCardProps {
   currentUserId: string | null;
   initialUpvotesCount: number;
   initialHasUpvoted: boolean;
-  initialBookmarksCount: number;
-  initialHasBookmarked: boolean;
   initialCommentsCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string;
@@ -37,16 +34,12 @@ function ShowcaseCardBase({
   currentUserId,
   initialUpvotesCount,
   initialHasUpvoted,
-  initialBookmarksCount,
-  initialHasBookmarked,
   initialCommentsCount,
   isDetailPage = false,
 }: ShowcaseCardProps) {
   const router = useRouter();
   const [upvotesCount, setUpvotesCount] = useState(initialUpvotesCount);
   const [hasUpvoted, setHasUpvoted] = useState(initialHasUpvoted);
-  const [bookmarksCount, setBookmarksCount] = useState(initialBookmarksCount);
-  const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
 
   const { ref: cardRef, isVisible } = useIntersectionObserver({
@@ -59,28 +52,16 @@ function ShowcaseCardBase({
     setUpvotesCount(initialUpvotesCount);
     setHasUpvoted(initialHasUpvoted);
     setCommentsCount(initialCommentsCount);
-    setBookmarksCount(initialBookmarksCount);
-    setHasBookmarked(initialHasBookmarked);
   }, [
     initialUpvotesCount,
     initialHasUpvoted,
     initialCommentsCount,
-    initialBookmarksCount,
-    initialHasBookmarked,
   ]);
 
   const handleUpvoteStatusChange = useCallback(
     (newUpvotesCount: number, newHasUpvoted: boolean) => {
       setUpvotesCount(newUpvotesCount);
       setHasUpvoted(newHasUpvoted);
-    },
-    [],
-  );
-
-  const handleBookmarkStatusChange = useCallback(
-    (newBookmarksCount: number, newHasBookmarked: boolean) => {
-      setBookmarksCount(newBookmarksCount);
-      setHasBookmarked(newHasBookmarked);
     },
     [],
   );
@@ -174,11 +155,8 @@ function ShowcaseCardBase({
               currentUserId={currentUserId}
               upvotesCount={upvotesCount}
               hasUpvoted={hasUpvoted}
-              bookmarksCount={bookmarksCount}
-              hasBookmarked={hasBookmarked}
               commentsCount={commentsCount}
               onUpvoteStatusChange={handleUpvoteStatusChange}
-              onBookmarkStatusChange={handleBookmarkStatusChange}
             />
           </div>
         </div>
@@ -194,11 +172,8 @@ function ShowcaseCardBase({
           currentUserId={currentUserId}
           upvotesCount={upvotesCount}
           hasUpvoted={hasUpvoted}
-          bookmarksCount={bookmarksCount}
-          hasBookmarked={hasBookmarked}
           commentsCount={commentsCount}
           onUpvoteStatusChange={handleUpvoteStatusChange}
-          onBookmarkStatusChange={handleBookmarkStatusChange}
         />
       </div>
     </div>
@@ -211,8 +186,6 @@ export const ShowcaseCard = memo(ShowcaseCardBase, (prev, next) => {
     prev.currentUserId === next.currentUserId &&
     prev.initialUpvotesCount === next.initialUpvotesCount &&
     prev.initialHasUpvoted === next.initialHasUpvoted &&
-    prev.initialBookmarksCount === next.initialBookmarksCount &&
-    prev.initialHasBookmarked === next.initialHasBookmarked &&
     prev.initialCommentsCount === next.initialCommentsCount
   );
 });

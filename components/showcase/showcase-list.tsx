@@ -21,7 +21,6 @@ export function ShowcaseList({
   filterByUserId,
   filterByCommentedUserId,
   filterByUpvotedUserId,
-  filterByBookmarkedUserId,
   searchQuery,
   initialShowcases,
 }: {
@@ -29,7 +28,6 @@ export function ShowcaseList({
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByUpvotedUserId?: string;
-  filterByBookmarkedUserId?: string;
   searchQuery?: string;
   initialShowcases?: ShowcaseQueryResult;
 }) {
@@ -66,7 +64,6 @@ export function ShowcaseList({
       filterByUserId,
       filterByCommentedUserId,
       filterByUpvotedUserId,
-      filterByBookmarkedUserId,
       searchQuery,
     },
   ];
@@ -81,7 +78,6 @@ export function ShowcaseList({
         filterByUserId,
         filterByCommentedUserId,
         filterByUpvotedUserId,
-        filterByBookmarkedUserId,
         searchQuery,
       }),
     staleTime: 30000,
@@ -90,7 +86,6 @@ export function ShowcaseList({
       !filterByUserId &&
       !filterByCommentedUserId &&
       !filterByUpvotedUserId &&
-      !filterByBookmarkedUserId &&
       !searchQuery
         ? initialShowcases
         : undefined,
@@ -140,27 +135,7 @@ export function ShowcaseList({
           }
         },
       )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "showcase_bookmarks",
-          filter: `showcase_id=in.(${showcaseIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedShowcaseId =
-            (
-              payload.new as Database["public"]["Tables"]["showcase_bookmarks"]["Row"]
-            ).showcase_id ||
-            (
-              payload.old as Database["public"]["Tables"]["showcase_bookmarks"]["Row"]
-            ).showcase_id;
-          if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: ["showcases"] });
-          }
-        },
-      )
+
       .on(
         "postgres_changes",
         {
@@ -232,8 +207,6 @@ export function ShowcaseList({
               currentUserId={currentUserId}
               initialUpvotesCount={showcase.upvotesCount}
               initialHasUpvoted={showcase.hasUpvoted}
-              initialBookmarksCount={showcase.bookmarksCount}
-              initialHasBookmarked={showcase.hasBookmarked}
               initialCommentsCount={showcase.showcase_comments.length}
               mentionedProfiles={mentionedProfiles}
               isDetailPage={false}

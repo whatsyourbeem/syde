@@ -11,7 +11,6 @@ import {
   ArrowUpCircle,
   MessageCircle,
   Share,
-  Bookmark,
   ChevronLeft,
   MoreHorizontal,
   Link2,
@@ -52,10 +51,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import {
-  deleteShowcase,
-  toggleShowcaseBookmark,
-} from "@/app/showcase/showcase-actions";
+import { deleteShowcase } from "@/app/showcase/showcase-actions";
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -102,16 +98,6 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const [hasUpvoted, setHasUpvoted] = useState(
     user
       ? showcase.showcase_upvotes?.some((upvote: any) => upvote.user_id === user.id)
-      : false,
-  );
-  const [bookmarksCount, setBookmarksCount] = useState(
-    showcase.showcase_bookmarks?.length || 0,
-  );
-  const [hasBookmarked, setHasBookmarked] = useState(
-    user
-      ? showcase.showcase_bookmarks?.some(
-          (bookmark: any) => bookmark.user_id === user.id,
-        )
       : false,
   );
   const [commentsCount, setCommentsCount] = useState(
@@ -196,27 +182,6 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     }
   };
 
-  const handleBookmark = async () => {
-    if (!user?.id) return openLoginDialog();
-
-    const previousBookmarked = hasBookmarked;
-    const previousCount = bookmarksCount;
-
-    setHasBookmarked(!previousBookmarked);
-    setBookmarksCount(
-      previousBookmarked ? previousCount - 1 : previousCount + 1,
-    );
-
-    const result = await toggleShowcaseBookmark(
-      showcase.id,
-      previousBookmarked,
-    );
-    if ("error" in result && result.error) {
-      toast.error(result.error.message);
-      setHasBookmarked(previousBookmarked);
-      setBookmarksCount(previousCount);
-    }
-  };
 
   const handleCopyLink = async () => {
     const url = `${window.location.origin}/showcase/${showcase.id}`;
@@ -541,15 +506,6 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 <Share className="w-5 h-5 text-[#777777]" />
               </button>
 
-              <button
-                onClick={handleBookmark}
-                className="flex items-center gap-[5px] hover:scale-105 transition-transform"
-              >
-                <Bookmark
-                  suppressHydrationWarning
-                  className={`w-5 h-5 ${hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : "text-[#808080]"}`}
-                />
-              </button>
             </div>
           </div>
         </div>

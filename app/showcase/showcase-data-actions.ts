@@ -15,7 +15,6 @@ export async function fetchShowcasesAction({
   filterByUserId,
   filterByCommentedUserId,
   filterByUpvotedUserId,
-  filterByBookmarkedUserId,
   searchQuery,
 }: ShowcaseQueryOptions): Promise<ShowcaseQueryResult> {
   const supabase = await createClient(); // Use server client
@@ -47,7 +46,6 @@ export async function fetchShowcasesAction({
     updated_at,
     user_id,
     profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
-    showcase_bookmarks(user_id),
     showcase_comments(id),
     upvotes_count:showcase_upvotes(count),
     members:showcases_members(
@@ -82,10 +80,6 @@ export async function fetchShowcasesAction({
     const upvotedShowcaseIds = await getUpvotedShowcaseIds(supabase, filterByUpvotedUserId);
     if (upvotedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
     query = query.in("id", upvotedShowcaseIds);
-  } else if (filterByBookmarkedUserId) {
-    const bookmarkedShowcaseIds = await getBookmarkedShowcaseIds(supabase, filterByBookmarkedUserId);
-    if (bookmarkedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
-    query = query.in("id", bookmarkedShowcaseIds);
   }
 
   // Execute the main query
@@ -108,10 +102,6 @@ export async function fetchShowcasesAction({
     profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
     upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
     hasUpvoted: upvotedShowcaseIdsSet.has(showcase.id),
-    bookmarksCount: showcase.showcase_bookmarks?.length || 0,
-    hasBookmarked: currentUserId
-      ? showcase.showcase_bookmarks?.some((bookmark: any) => bookmark.user_id === currentUserId)
-      : false,
     showcase_upvotes: [], // Keep interface consistent
     showcase_comments: showcase.showcase_comments || [],
     members: (showcase.members || []).map((m: any) => ({
@@ -162,15 +152,6 @@ async function getCommentedShowcaseIds(supabase: any, userId: string): Promise<s
 async function getUpvotedShowcaseIds(supabase: any, userId: string): Promise<string[]> {
   const { data, error } = await supabase
     .from("showcase_upvotes")
-    .select("showcase_id")
-    .eq("user_id", userId);
-  if (error) throw error;
-  return data.map((item: { showcase_id: string }) => item.showcase_id).filter((id: string | null): id is string => id !== null);
-}
-
-async function getBookmarkedShowcaseIds(supabase: any, userId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("showcase_bookmarks")
     .select("showcase_id")
     .eq("user_id", userId);
   if (error) throw error;

@@ -865,32 +865,6 @@ export type Database = {
         }
         Relationships: []
       }
-      showcase_bookmarks: {
-        Row: {
-          created_at: string
-          showcase_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          showcase_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          showcase_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "showcase_bookmarks_showcase_id_fkey"
-            columns: ["showcase_id"]
-            isOneToOne: false
-            referencedRelation: "showcases"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       showcase_comments: {
         Row: {
           content: string

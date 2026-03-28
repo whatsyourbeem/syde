@@ -21,12 +21,9 @@ export interface OptimizedShowcase extends ShowcaseRow {
   user_id: string;
   profiles: ProfileRow | null;
   showcase_upvotes: Array<{ user_id: string }>;
-  showcase_bookmarks: Array<{ user_id: string }>;
   showcase_comments: Array<{ id: string }>;
   upvotesCount: number;
   hasUpvoted: boolean;
-  bookmarksCount: number;
-  hasBookmarked: boolean;
   members: ShowcaseMember[]; // Added members array
   images: string[];
   web_url: string | null;
@@ -41,7 +38,6 @@ export interface ShowcaseQueryOptions {
   filterByUserId?: string;
   filterByCommentedUserId?: string;
   filterByUpvotedUserId?: string;
-  filterByBookmarkedUserId?: string;
   searchQuery?: string;
 }
 

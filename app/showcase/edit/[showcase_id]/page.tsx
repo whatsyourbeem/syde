@@ -25,7 +25,6 @@ export default async function ShowcaseEditPage({
       *,
       profiles:user_id (*),
       showcase_upvotes(user_id),
-      showcase_bookmarks(user_id),
       showcase_comments(id),
       members:showcases_members(*, profile:profiles(*))
     `,
@@ -64,10 +63,6 @@ export default async function ShowcaseEditPage({
     upvotesCount: showcaseData.showcase_upvotes?.length || 0,
     hasUpvoted: showcaseData.showcase_upvotes?.some(
       (l: any) => l.user_id === user.id,
-    ),
-    bookmarksCount: showcaseData.showcase_bookmarks?.length || 0,
-    hasBookmarked: showcaseData.showcase_bookmarks?.some(
-      (b: any) => b.user_id === user.id,
     ),
     showcase_comments: showcaseData.showcase_comments || [],
   };

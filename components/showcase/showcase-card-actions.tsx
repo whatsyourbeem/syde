@@ -6,7 +6,6 @@ import {
   ArrowUpCircle,
   MessageCircle,
   Share,
-  Bookmark,
   Link2,
   Copy,
 } from "lucide-react";
@@ -35,21 +34,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toggleShowcaseBookmark } from "@/app/showcase/showcase-actions";
 
 interface ShowcaseCardActionsProps {
   showcaseId: string;
   currentUserId: string | null;
   upvotesCount: number;
   hasUpvoted: boolean;
-  bookmarksCount: number;
-  hasBookmarked: boolean;
   commentsCount: number;
   onUpvoteStatusChange: (newUpvotesCount: number, newHasUpvoted: boolean) => void;
-  onBookmarkStatusChange: (
-    newBookmarksCount: number,
-    newHasBookmarked: boolean,
-  ) => void;
 }
 
 function ShowcaseCardActionsBase({
@@ -57,15 +49,11 @@ function ShowcaseCardActionsBase({
   currentUserId,
   upvotesCount,
   hasUpvoted,
-  bookmarksCount,
-  hasBookmarked,
   commentsCount,
   onUpvoteStatusChange,
-  onBookmarkStatusChange,
 }: ShowcaseCardActionsProps) {
   const router = useRouter();
   const [upvoteLoading, setUpvoteLoading] = useState(false);
-  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const { openLoginDialog } = useLoginDialog();
@@ -117,35 +105,7 @@ function ShowcaseCardActionsBase({
     onUpvoteStatusChange,
   ]);
 
-  const handleBookmark = useCallback(async () => {
-    if (!currentUserId) {
-      openLoginDialog();
-      return;
-    }
-    if (bookmarkLoading) return;
 
-    setBookmarkLoading(true);
-    const newBookmarksCount = hasBookmarked
-      ? bookmarksCount - 1
-      : bookmarksCount + 1;
-    const newHasBookmarked = !hasBookmarked;
-    onBookmarkStatusChange(newBookmarksCount, newHasBookmarked);
-
-    const result = await toggleShowcaseBookmark(showcaseId, hasBookmarked);
-    if ("error" in result && result.error) {
-      toast.error(result.error.message);
-      onBookmarkStatusChange(bookmarksCount, hasBookmarked); // Revert on error
-    }
-    setBookmarkLoading(false);
-  }, [
-    currentUserId,
-    showcaseId,
-    hasBookmarked,
-    bookmarksCount,
-    bookmarkLoading,
-    openLoginDialog,
-    onBookmarkStatusChange,
-  ]);
 
   const handleCopyLink = useCallback(async () => {
     const url = `${window.location.origin}/showcase/${showcaseId}`;
@@ -227,25 +187,7 @@ function ShowcaseCardActionsBase({
         <Share size={14} strokeWidth={1.5} />
       </button>
 
-      {/* Spacer (Desktop Only): Pushes Bookmark to the right */}
-      <div className="hidden md:block md:flex-grow" />
 
-      {/* Bookmark */}
-      <button
-        onClick={handleBookmark}
-        disabled={bookmarkLoading}
-        className="flex items-center transition-colors hover:text-yellow-500 disabled:opacity-50"
-      >
-        {bookmarkLoading ? (
-          <LoadingSpinner size="sm" className="text-yellow-500" />
-        ) : (
-          <Bookmark
-            className={hasBookmarked ? "fill-[#FFD60A] text-[#FFD60A]" : ""}
-            size={16}
-            strokeWidth={1.5}
-          />
-        )}
-      </button>
     </div>
 
       <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
@@ -302,8 +244,6 @@ export const ShowcaseCardActions = memo(
       prevProps.currentUserId === nextProps.currentUserId &&
       prevProps.upvotesCount === nextProps.upvotesCount &&
       prevProps.hasUpvoted === nextProps.hasUpvoted &&
-      prevProps.bookmarksCount === nextProps.bookmarksCount &&
-      prevProps.hasBookmarked === nextProps.hasBookmarked &&
       prevProps.commentsCount === nextProps.commentsCount
     );
   },
