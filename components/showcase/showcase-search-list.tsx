@@ -27,6 +27,7 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
         .from('showcases')
         .select(`
           *,
+          views_count,
           profiles(*),
           showcase_upvotes(user_id),
           showcase_comments(id)
@@ -79,6 +80,7 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
               initialUpvotesCount={item.initialUpvotesCount}
               initialHasUpvoted={item.initialHasUpvoted}
               initialCommentsCount={item.initialCommentsCount}
+              initialViewsCount={item.views_count || 0}
               mentionedProfiles={item.mentionedProfiles}
             />
           ))}

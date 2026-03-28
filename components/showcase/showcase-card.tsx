@@ -19,11 +19,13 @@ interface ShowcaseCardProps {
     name?: string | null;
     short_description?: string | null;
     thumbnail_url?: string | null;
+    views_count?: number;
   };
   currentUserId: string | null;
   initialUpvotesCount: number;
   initialHasUpvoted: boolean;
   initialCommentsCount: number;
+  initialViewsCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string;
   isDetailPage?: boolean;
@@ -35,6 +37,7 @@ function ShowcaseCardBase({
   initialUpvotesCount,
   initialHasUpvoted,
   initialCommentsCount,
+  initialViewsCount,
   isDetailPage = false,
 }: ShowcaseCardProps) {
   const router = useRouter();
@@ -156,6 +159,7 @@ function ShowcaseCardBase({
               upvotesCount={upvotesCount}
               hasUpvoted={hasUpvoted}
               commentsCount={commentsCount}
+              viewsCount={initialViewsCount}
               onUpvoteStatusChange={handleUpvoteStatusChange}
             />
           </div>
@@ -173,6 +177,7 @@ function ShowcaseCardBase({
           upvotesCount={upvotesCount}
           hasUpvoted={hasUpvoted}
           commentsCount={commentsCount}
+          viewsCount={initialViewsCount}
           onUpvoteStatusChange={handleUpvoteStatusChange}
         />
       </div>
@@ -186,6 +191,7 @@ export const ShowcaseCard = memo(ShowcaseCardBase, (prev, next) => {
     prev.currentUserId === next.currentUserId &&
     prev.initialUpvotesCount === next.initialUpvotesCount &&
     prev.initialHasUpvoted === next.initialHasUpvoted &&
-    prev.initialCommentsCount === next.initialCommentsCount
+    prev.initialCommentsCount === next.initialCommentsCount &&
+    prev.initialViewsCount === next.initialViewsCount
   );
 });

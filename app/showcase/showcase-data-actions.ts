@@ -45,6 +45,7 @@ export async function fetchShowcasesAction({
     created_at,
     updated_at,
     user_id,
+    views_count,
     profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
     showcase_comments(id),
     upvotes_count:showcase_upvotes(count),
@@ -102,6 +103,7 @@ export async function fetchShowcasesAction({
     profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
     upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
     hasUpvoted: upvotedShowcaseIdsSet.has(showcase.id),
+    views_count: showcase.views_count || 0,
     showcase_upvotes: [], // Keep interface consistent
     showcase_comments: showcase.showcase_comments || [],
     members: (showcase.members || []).map((m: any) => ({

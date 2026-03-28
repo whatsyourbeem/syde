@@ -969,6 +969,7 @@ export type Database = {
           thumbnail_url: string | null
           updated_at: string | null
           user_id: string
+          views_count: number
           web_url: string | null
         }
         Insert: {
@@ -983,6 +984,7 @@ export type Database = {
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id: string
+          views_count?: number
           web_url?: string | null
         }
         Update: {
@@ -997,6 +999,7 @@ export type Database = {
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id?: string
+          views_count?: number
           web_url?: string | null
         }
         Relationships: [
@@ -1058,6 +1061,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["club_member_role_enum"]
       }
       get_club_owner: { Args: { club_id_text: string }; Returns: string }
+      increment_showcase_view: { Args: { p_showcase_id: string }; Returns: undefined }
     }
     Enums: {
       club_member_role_enum: "LEADER" | "FULL_MEMBER" | "GENERAL_MEMBER"

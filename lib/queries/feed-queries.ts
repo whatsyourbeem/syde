@@ -25,6 +25,7 @@ export interface ActivityFeedItem {
       title: string | null;
       short_description: string | null;
       thumbnail_url: string | null;
+      views_count?: number | null;
     };
     insight?: {
       title: string | null;
@@ -369,7 +370,7 @@ async function fetchActivityDetails(
 
   const [showcases, insights, meetups] = await Promise.all([
     showcaseIds.length > 0
-      ? supabase.from("showcases").select("id, name, short_description, thumbnail_url").in("id", showcaseIds)
+      ? supabase.from("showcases").select("id, name, short_description, thumbnail_url, views_count").in("id", showcaseIds)
       : Promise.resolve({ data: [] }),
     insightIds.length > 0
       ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", insightIds)
@@ -399,6 +400,7 @@ async function fetchActivityDetails(
             title: detail.name,
             short_description: detail.short_description,
             thumbnail_url: detail.thumbnail_url,
+            views_count: detail.views_count,
           }
         };
       }

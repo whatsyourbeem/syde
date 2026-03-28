@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Share,
   ChevronLeft,
+  Eye,
   MoreHorizontal,
   Link2,
   Copy,
@@ -51,7 +52,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { deleteShowcase } from "@/app/showcase/showcase-actions";
+import { deleteShowcase, incrementShowcaseView } from "@/app/showcase/showcase-actions";
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -70,6 +71,19 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { openLoginDialog } = useLoginDialog();
+
+  // Increment view count once per 24h per browser via localStorage
+  useEffect(() => {
+    const key = `viewed_showcase_${showcase.id}`;
+    const lastViewed = localStorage.getItem(key);
+    const now = Date.now();
+    if (!lastViewed || now - parseInt(lastViewed) > 24 * 60 * 60 * 1000) {
+      incrementShowcaseView(showcase.id);
+      localStorage.setItem(key, String(now));
+      setViewsCount(prev => prev + 1);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showcase.id]);
 
   // Gallery State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -90,8 +104,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const [showDeleteSuccessDialog, setShowDeleteSuccessDialog] = useState(false);
 
   // Stats State
-
-  // Stats State
+  const [viewsCount, setViewsCount] = useState(showcase.views_count ?? 0);
   const [upvotesCount, setUpvotesCount] = useState(
     showcase.showcase_upvotes?.length || 0,
   );
@@ -103,6 +116,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   const [commentsCount, setCommentsCount] = useState(
     showcase.showcase_comments?.length || 0,
   );
+
+  useEffect(() => {
+    setViewsCount(showcase.views_count ?? 0);
+  }, [showcase.views_count, showcase.id]);
 
   // Gallery Logic
   const galleryImages = showcase.images || [];
@@ -479,6 +496,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           {/* Interaction Bar (Shared Container) */}
           <div className="w-full mt-4 md:mt-6">
             <div className="w-full h-[44px] rounded-[12px] flex items-center justify-between px-8 md:px-16 relative">
+              <div className="flex items-center gap-[5px]">
+                <Eye className="w-5 h-5 text-[#777777]" suppressHydrationWarning />
+                <span className="font-['Pretendard'] text-[14px] text-[#777777]">
+                  {viewsCount}
+                </span>
+              </div>
+
               <button
                 onClick={handleUpvote}
                 className="flex items-center gap-[5px] hover:scale-105 transition-transform"
@@ -505,6 +529,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               >
                 <Share className="w-5 h-5 text-[#777777]" />
               </button>
+
 
             </div>
           </div>

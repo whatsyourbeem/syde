@@ -6,6 +6,7 @@ import {
   ArrowUpCircle,
   MessageCircle,
   Share,
+  Eye,
   Link2,
   Copy,
 } from "lucide-react";
@@ -41,6 +42,7 @@ interface ShowcaseCardActionsProps {
   upvotesCount: number;
   hasUpvoted: boolean;
   commentsCount: number;
+  viewsCount: number;
   onUpvoteStatusChange: (newUpvotesCount: number, newHasUpvoted: boolean) => void;
 }
 
@@ -50,6 +52,7 @@ function ShowcaseCardActionsBase({
   upvotesCount,
   hasUpvoted,
   commentsCount,
+  viewsCount,
   onUpvoteStatusChange,
 }: ShowcaseCardActionsProps) {
   const router = useRouter();
@@ -146,6 +149,14 @@ function ShowcaseCardActionsBase({
   return (
     <>
     <div className="flex flex-row justify-between md:justify-start items-center pt-2 px-[30px] md:px-0 md:gap-[50px] w-full h-[28px] text-[#777777]">
+      {/* Views */}
+      <div className="flex items-center gap-[5px]">
+        <Eye size={16} strokeWidth={1.5} className="text-[#777777]" />
+        <span className="text-[14px] leading-[150%] h-[21px] text-[#777777]">
+          {viewsCount}
+        </span>
+      </div>
+
       {/* Upvote */}
       <button
         onClick={handleUpvote}
@@ -244,7 +255,8 @@ export const ShowcaseCardActions = memo(
       prevProps.currentUserId === nextProps.currentUserId &&
       prevProps.upvotesCount === nextProps.upvotesCount &&
       prevProps.hasUpvoted === nextProps.hasUpvoted &&
-      prevProps.commentsCount === nextProps.commentsCount
+      prevProps.commentsCount === nextProps.commentsCount &&
+      prevProps.viewsCount === nextProps.viewsCount
     );
   },
 );

@@ -208,6 +208,7 @@ export function ShowcaseList({
               initialUpvotesCount={showcase.upvotesCount}
               initialHasUpvoted={showcase.hasUpvoted}
               initialCommentsCount={showcase.showcase_comments.length}
+              initialViewsCount={showcase.views_count || 0}
               mentionedProfiles={mentionedProfiles}
               isDetailPage={false}
             />

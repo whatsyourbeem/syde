@@ -334,3 +334,9 @@ export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: st
   return createSuccessResponse(null);
 });
 
+// Increments view count via SECURITY DEFINER RPC (bypasses RLS)
+export async function incrementShowcaseView(showcaseId: string): Promise<void> {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  await supabase.rpc("increment_showcase_view", { p_showcase_id: showcaseId });
+}
