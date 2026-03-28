@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { LogCard } from "@/components/log/log-card";
 import { ActivityCard } from "@/components/log/activity-card";
 import { Button } from "@/components/ui/button";
-import { getUnifiedFeed, FeedQueryResult, FeedItem } from "@/lib/queries/feed-queries";
+import { getUnifiedFeed, FeedQueryResult, FeedItem, LogFeedItem, ActivityFeedEntry } from "@/lib/queries/feed-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
@@ -34,14 +34,9 @@ export function LogList({
 }) {
   const supabase = createClient();
   const queryClient = useQueryClient();
-  const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentPage]);
 
   const queryKey = useMemo(() => {
-    const filters: { [key: string]: string | number } = { currentPage };
+    const filters: { [key: string]: string | number } = {};
     if (filterByUserId) filters.filterByUserId = filterByUserId;
     if (filterByCommentedUserId) filters.filterByCommentedUserId = filterByCommentedUserId;
     if (filterByLikedUserId) filters.filterByLikedUserId = filterByLikedUserId;
@@ -49,7 +44,6 @@ export function LogList({
     if (searchQuery) filters.searchQuery = searchQuery;
     return ["feed", filters];
   }, [
-    currentPage,
     filterByUserId,
     filterByCommentedUserId,
     filterByLikedUserId,
@@ -57,11 +51,19 @@ export function LogList({
     searchQuery,
   ]);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: queryKey,
-    queryFn: () => getUnifiedFeed(supabase, {
+    queryFn: ({ pageParam = 1 }) => getUnifiedFeed(supabase, {
       currentUserId: propCurrentUserId,
-      currentPage,
+      currentPage: pageParam,
       logsPerPage: ITEMS_PER_PAGE,
       filterByUserId,
       filterByCommentedUserId,
@@ -69,13 +71,31 @@ export function LogList({
       filterByBookmarkedUserId,
       searchQuery,
     }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const currentLoadedCount = lastPage.currentPage * ITEMS_PER_PAGE;
+      if (currentLoadedCount < lastPage.totalCount) {
+        return lastPage.currentPage + 1;
+      }
+      return undefined;
+    },
     staleTime: 30000,
-    initialData: currentPage === 1 && !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery ? initialFeed : undefined,
+    initialData: !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && initialFeed 
+      ? {
+          pages: [initialFeed],
+          pageParams: [1],
+        }
+      : undefined,
   });
 
-  const feedItems: FeedItem[] = useMemo(() => data?.items || [], [data?.items]);
-  const totalCount = data?.totalCount || 0;
-  const mentionedProfiles = data?.mentionedProfiles || [];
+  const feedItems: FeedItem[] = useMemo(
+    () => data?.pages.flatMap((page) => page.items) || [],
+    [data?.pages]
+  );
+  const mentionedProfiles = useMemo(
+    () => data?.pages.flatMap((page) => page.mentionedProfiles) || [],
+    [data?.pages]
+  );
 
   useEffect(() => {
     const channel = supabase
@@ -158,65 +178,47 @@ export function LogList({
           </div>
         )
       ) : (
-        feedItems.map((item, index) => (
-          <div key={item.feed_type === "log" ? `log-${item.data.id}` : `activity-${item.data.id}`} className="px-4">
-            {item.feed_type === "log" ? (
-              <LogCard
-                log={item.data}
-                currentUserId={propCurrentUserId}
-                initialLikesCount={item.data.likesCount}
-                initialHasLiked={item.data.hasLiked}
-                initialBookmarksCount={item.data.bookmarksCount}
-                initialHasBookmarked={item.data.hasBookmarked}
-                initialCommentsCount={item.data.log_comments.length}
-                mentionedProfiles={mentionedProfiles}
-                searchQuery={searchQuery}
-                isDetailPage={false}
-                priority={index < 2}
-              />
-            ) : (
-              <ActivityCard activity={item.data} currentUserId={propCurrentUserId} />
-            )}
-            {index < feedItems.length - 1 && (
-              <div className="border-b border-gray-200 my-6"></div>
-            )}
+        <div className="flex flex-col items-center w-full">
+          <div className="w-full space-y-4">
+            {feedItems.map((item, index) => (
+              <div key={item.feed_type === "log" ? `log-${item.data.id}` : `activity-${item.data.id}`} className="px-4">
+                {item.feed_type === "log" ? (
+                  <LogCard
+                    log={item.data}
+                    currentUserId={propCurrentUserId}
+                    initialLikesCount={item.data.likesCount}
+                    initialHasLiked={item.data.hasLiked}
+                    initialBookmarksCount={item.data.bookmarksCount}
+                    initialHasBookmarked={item.data.hasBookmarked}
+                    initialCommentsCount={item.data.log_comments.length}
+                    mentionedProfiles={mentionedProfiles}
+                    searchQuery={searchQuery}
+                    isDetailPage={false}
+                    priority={index < 2}
+                  />
+                ) : (
+                  <ActivityCard activity={item.data} currentUserId={propCurrentUserId} />
+                )}
+                {index < feedItems.length - 1 && (
+                  <div className="border-b border-gray-200 my-6"></div>
+                )}
+              </div>
+            ))}
           </div>
-        ))
-      )}
-      {/* Pagination Controls */}
-      {Math.ceil(totalCount / ITEMS_PER_PAGE) > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8 mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1 || isLoading}
-          >
-            이전
-          </Button>
-          {Array.from({ length: Math.ceil(totalCount / ITEMS_PER_PAGE) }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={page === currentPage ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentPage(page)}
-              disabled={isLoading}
-            >
-              {isLoading && currentPage === page ? (
-                <CenteredLoading message="" className="py-0" />
-              ) : (
-                page
-              )}
-            </Button>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === Math.ceil(totalCount / ITEMS_PER_PAGE) || isLoading}
-          >
-            다음
-          </Button>
+
+          {/* Load More Button - Insight Style */}
+          {hasNextPage && (
+            <div className="flex justify-center mt-12 mb-12">
+              <Button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                variant="outline"
+                className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
+              >
+                {isFetchingNextPage ? "불러오는 중..." : "더보기"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

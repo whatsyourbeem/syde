@@ -64,6 +64,7 @@ export interface FeedQueryResult {
   items: FeedItem[];
   totalCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
+  currentPage: number;
 }
 
 // ===== Activity Message Helpers =====
@@ -166,6 +167,7 @@ export async function getUnifiedFeed(
       })),
       totalCount: logResult.count,
       mentionedProfiles: logResult.mentionedProfiles,
+      currentPage: logResult.currentPage,
     };
   }
 
@@ -346,6 +348,7 @@ export async function getUnifiedFeed(
     items: pageItems,
     totalCount,
     mentionedProfiles,
+    currentPage,
   };
 }
 

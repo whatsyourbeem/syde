@@ -30,6 +30,7 @@ export interface LogQueryResult {
   logs: OptimizedLog[];
   count: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
+  currentPage: number;
 }
 
 /**
@@ -86,7 +87,7 @@ export async function getOptimizedLogs(
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(","));
     } else {
-      return { logs: [], count: 0, mentionedProfiles: [] };
+      return { logs: [], count: 0, mentionedProfiles: [], currentPage };
     }
   }
 
@@ -95,15 +96,15 @@ export async function getOptimizedLogs(
     query = query.eq("user_id", filterByUserId);
   } else if (filterByCommentedUserId) {
     const commentedLogIds = await getCommentedLogIds(supabase, filterByCommentedUserId);
-    if (commentedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
+    if (commentedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [], currentPage };
     query = query.in("id", commentedLogIds);
   } else if (filterByLikedUserId) {
     const likedLogIds = await getLikedLogIds(supabase, filterByLikedUserId);
-    if (likedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
+    if (likedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [], currentPage };
     query = query.in("id", likedLogIds);
   } else if (filterByBookmarkedUserId) {
     const bookmarkedLogIds = await getBookmarkedLogIds(supabase, filterByBookmarkedUserId);
-    if (bookmarkedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [] };
+    if (bookmarkedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [], currentPage };
     query = query.in("id", bookmarkedLogIds);
   }
 
@@ -137,6 +138,7 @@ export async function getOptimizedLogs(
     logs: processedLogs,
     count: count || 0,
     mentionedProfiles,
+    currentPage,
   };
 }
 
