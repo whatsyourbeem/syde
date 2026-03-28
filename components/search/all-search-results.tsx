@@ -150,7 +150,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 >
                   <div className="relative w-8 h-8 shrink-0 rounded-full overflow-hidden bg-gray-200">
                     {log.profiles?.avatar_url && (
-                      <Image src={log.profiles.avatar_url} alt="" fill className="object-cover" />
+                      <Image src={log.profiles.avatar_url} alt="" fill className="object-cover" unoptimized />
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
@@ -175,7 +175,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 >
                   <div className="relative w-9 h-9 shrink-0 rounded-full overflow-hidden bg-gray-200">
                     {user.avatar_url && (
-                      <Image src={user.avatar_url} alt="" fill className="object-cover" />
+                      <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized />
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
@@ -202,7 +202,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 >
                   <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200">
                     {club.thumbnail_url && (
-                      <Image src={club.thumbnail_url} alt="" fill className="object-cover" />
+                      <Image src={club.thumbnail_url} alt="" fill className="object-cover" unoptimized />
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
@@ -227,7 +227,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 >
                   {meetup.thumbnail_url && (
                     <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                      <Image src={meetup.thumbnail_url} alt="" fill className="object-cover" />
+                      <Image src={meetup.thumbnail_url} alt="" fill className="object-cover" unoptimized />
                     </div>
                   )}
                   <div className="flex flex-col min-w-0 gap-0.5">
@@ -261,7 +261,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 >
                   {insight.image_url && (
                     <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                      <Image src={insight.image_url} alt="" fill className="object-cover" />
+                      <Image src={insight.image_url} alt="" fill className="object-cover" unoptimized />
                     </div>
                   )}
                   <div className="flex flex-col min-w-0 gap-0.5">
@@ -273,7 +273,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                       <span className="flex items-center gap-1 text-xs text-[#777777] truncate">
                         <span className="relative w-4 h-4 shrink-0 rounded-full overflow-hidden bg-gray-200 inline-block">
                           {(insight.profiles as any).avatar_url && (
-                            <Image src={(insight.profiles as any).avatar_url} alt="" fill className="object-cover" />
+                            <Image src={(insight.profiles as any).avatar_url} alt="" fill className="object-cover" unoptimized />
                           )}
                         </span>
                         {(insight.profiles as any).full_name || (insight.profiles as any).username}
@@ -296,7 +296,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 >
                   {showcase.thumbnail_url && (
                     <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                      <Image src={showcase.thumbnail_url} alt="" fill className="object-cover" />
+                      <Image src={showcase.thumbnail_url} alt={showcase.name || "Showcase"} fill className="object-cover" unoptimized />
                     </div>
                   )}
                   <div className="flex flex-col min-w-0">
