@@ -46,6 +46,7 @@ export interface ShowcaseQueryResult {
   showcases: OptimizedShowcase[];
   count: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
+  currentPage: number;
 }
 
 // Client-side implementation has been moved to Server Action: @/app/showcase/showcase-data-actions.ts

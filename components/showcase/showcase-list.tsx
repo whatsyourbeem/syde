@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { ShowcaseCard } from "@/components/showcase/showcase-card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ export function ShowcaseList({
 }) {
   const supabase = createClient();
   const queryClient = useQueryClient();
-  const [currentPage, setCurrentPage] = useState(1);
   const [currentUserId, setCurrentUserId] = useState<string | null>(
     propCurrentUserId,
   );
@@ -55,14 +54,9 @@ export function ShowcaseList({
     }
   }, [supabase, propCurrentUserId]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentPage]);
-
   const queryKey = [
     "showcases",
     {
-      currentPage,
       filterByUserId,
       filterByParticipantUserId,
       filterByCommentedUserId,
@@ -71,12 +65,20 @@ export function ShowcaseList({
     },
   ];
 
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: queryKey,
-    queryFn: () =>
+    queryFn: ({ pageParam = 1 }) =>
       fetchShowcasesAction({
         currentUserId,
-        currentPage,
+        currentPage: pageParam,
         showcasesPerPage: SHOWCASES_PER_PAGE,
         filterByUserId,
         filterByParticipantUserId,
@@ -84,23 +86,37 @@ export function ShowcaseList({
         filterByUpvotedUserId,
         searchQuery,
       }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const currentLoadedCount = lastPage.currentPage * SHOWCASES_PER_PAGE;
+      if (currentLoadedCount < lastPage.count) {
+        return lastPage.currentPage + 1;
+      }
+      return undefined;
+    },
     staleTime: 30000,
     initialData:
-      currentPage === 1 &&
+      initialShowcases &&
       !filterByUserId &&
       !filterByCommentedUserId &&
       !filterByUpvotedUserId &&
       !searchQuery
-        ? initialShowcases
+        ? {
+            pages: [initialShowcases],
+            pageParams: [1],
+          }
         : undefined,
   });
 
   const showcases: OptimizedShowcase[] = useMemo(
-    () => data?.showcases || [],
-    [data?.showcases],
+    () => data?.pages.flatMap((page) => page.showcases) || [],
+    [data?.pages],
   );
-  const totalShowcasesCount = data?.count || 0;
-  const mentionedProfiles = data?.mentionedProfiles || []; // Get mentionedProfiles from data
+  
+  const mentionedProfiles = useMemo(
+    () => data?.pages.flatMap((page) => page.mentionedProfiles) || [],
+    [data?.pages]
+  );
 
   useEffect(() => {
     const showcaseIdsForFilter: string[] = showcases
@@ -166,7 +182,7 @@ export function ShowcaseList({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, showcases]); // Add showcases to dependencies
+  }, [supabase, queryClient, showcases]);
 
   if (isLoading) {
     return (
@@ -199,66 +215,42 @@ export function ShowcaseList({
     <div className="w-full">
       {showcases.length === 0 && !isLoading ? (
         <div className="px-4">
-          <p className="text-center text-muted-foreground">
+          <p className="text-center text-muted-foreground py-10">
             아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
           </p>
         </div>
       ) : (
-        showcases.map((showcase, index) => (
-          <div key={showcase.id} className="w-full">
-            <ShowcaseCard
-              showcase={showcase}
-              currentUserId={currentUserId}
-              initialUpvotesCount={showcase.upvotesCount}
-              initialHasUpvoted={showcase.hasUpvoted}
-              initialCommentsCount={showcase.showcase_comments.length}
-              initialViewsCount={showcase.views_count || 0}
-              mentionedProfiles={mentionedProfiles}
-              isDetailPage={false}
-            />
+        <div className="flex flex-col items-center">
+          <div className="w-full">
+            {showcases.map((showcase) => (
+              <div key={showcase.id} className="w-full">
+                <ShowcaseCard
+                  showcase={showcase}
+                  currentUserId={currentUserId}
+                  initialUpvotesCount={showcase.upvotesCount}
+                  initialHasUpvoted={showcase.hasUpvoted}
+                  initialCommentsCount={showcase.showcase_comments.length}
+                  initialViewsCount={showcase.views_count || 0}
+                  mentionedProfiles={mentionedProfiles}
+                  isDetailPage={false}
+                />
+              </div>
+            ))}
           </div>
-        ))
-      )}
-      {/* Pagination Controls */}
-      {Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8 mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1 || isLoading}
-          >
-            이전
-          </Button>
-          {Array.from(
-            { length: Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) },
-            (_, i) => i + 1,
-          ).map((page) => (
-            <Button
-              key={page}
-              variant={page === currentPage ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentPage(page)}
-              disabled={isLoading}
-            >
-              {isLoading && currentPage === page ? (
-                <CenteredLoading message="" className="py-0" />
-              ) : (
-                page
-              )}
-            </Button>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={
-              currentPage ===
-                Math.ceil(totalShowcasesCount / SHOWCASES_PER_PAGE) || isLoading
-            }
-          >
-            다음
-          </Button>
+
+          {/* Load More Button - Insight Style */}
+          {hasNextPage && (
+            <div className="flex justify-center mt-12 mb-12">
+              <Button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                variant="outline"
+                className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
+              >
+                {isFetchingNextPage ? "불러오는 중..." : "더보기"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

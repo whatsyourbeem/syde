@@ -67,7 +67,7 @@ export async function fetchShowcasesAction({
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(","));
     } else {
-      return { showcases: [], count: 0, mentionedProfiles: [] };
+      return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
     }
   }
 
@@ -84,11 +84,11 @@ export async function fetchShowcasesAction({
     }
   } else if (filterByCommentedUserId) {
     const commentedShowcaseIds = await getCommentedShowcaseIds(supabase, filterByCommentedUserId);
-    if (commentedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
+    if (commentedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
     query = query.in("id", commentedShowcaseIds);
   } else if (filterByUpvotedUserId) {
     const upvotedShowcaseIds = await getUpvotedShowcaseIds(supabase, filterByUpvotedUserId);
-    if (upvotedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [] };
+    if (upvotedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
     query = query.in("id", upvotedShowcaseIds);
   }
 
@@ -125,6 +125,7 @@ export async function fetchShowcasesAction({
     showcases: processedShowcases,
     count: count || 0,
     mentionedProfiles,
+    currentPage,
   };
 }
 
