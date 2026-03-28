@@ -4,16 +4,23 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getTrendingShowcases, TrendingShowcase } from "@/app/showcase/trending-actions";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 // Assuming there's a generic Skeleton component or we can just use plain divs for skeleton
 function Skeleton({ className }: { className: string }) {
   return <div className={`animate-pulse bg-gray-200 ${className}`} />;
 }
 
-export function TrendingShowcases() {
+interface TrendingShowcasesProps {
+  allowCollapse?: boolean;
+}
+
+export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesProps) {
   const [showcases, setShowcases] = useState<TrendingShowcase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!allowCollapse);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -29,10 +36,21 @@ export function TrendingShowcases() {
     load();
   }, []);
 
+  // Ticker timer: cycle through top 5 every 4 seconds when collapsed
+  useEffect(() => {
+    if (isExpanded || showcases.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % Math.min(showcases.length, 5));
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isExpanded, showcases.length]);
+
   if (loading) {
     return (
-      <div className="w-full">
-        <h3 className="font-pretendard font-bold text-[16px] text-gray-900 mb-4">지금 주목받는 🚀</h3>
+      <div className={`w-full ${allowCollapse ? 'pt-6 pb-2 px-4' : ''}`}>
+        <h3 className="font-pretendard font-bold text-[16px] text-gray-900 mb-4">지금 주목받는 🔥</h3>
         <div className="flex flex-col gap-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -57,39 +75,101 @@ export function TrendingShowcases() {
   const displayShowcases = showcases.slice(0, 5);
 
   return (
-    <div className="w-full">
-      <h3 className="font-pretendard font-bold text-[16px] leading-[19px] tracking-[-0.02em] text-[#111111] mb-5 flex items-center gap-2">
-        지금 주목받는 프로젝트 🚀
-      </h3>
-      <div className="flex flex-col gap-[18px]">
-        {displayShowcases.map((showcase, index) => (
-          <Link href={`/showcase/${showcase.id}`} key={showcase.id} className="block group">
-            <div className="flex items-center gap-2">
-              <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue">
-                {index + 1}
-              </span>
-              
-              <div className="w-[40px] h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
-                {showcase.thumbnail_url ? (
-                  <Image src={showcase.thumbnail_url} alt={showcase.name || "Thumbnail"} fill className="object-cover" unoptimized />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-[#AAAAAA]">No Img</div>
-                )}
+    <div className={`w-full ${allowCollapse ? 'pt-6 pb-2 px-4' : ''}`}>
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="font-pretendard font-bold text-[16px] leading-[19px] tracking-[-0.02em] text-[#111111] flex items-center gap-2">
+          지금 주목받는 프로젝트 🔥
+        </h3>
+
+        {allowCollapse && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-[#777777] hover:text-[#333333] transition-colors"
+          >
+            <span className="text-[13px] font-medium">
+              {isExpanded ? "접기" : "펼치기"}
+            </span>
+            {isExpanded ? (
+              <ChevronUp className="size-4" />
+            ) : (
+              <ChevronDown className="size-4" />
+            )}
+          </button>
+        )}
+      </div>
+
+      <div className="relative overflow-hidden">
+        {isExpanded ? (
+          <div className="flex flex-col gap-[18px]">
+            {displayShowcases.map((showcase, index) => (
+              <div key={showcase.id}>
+                <Link href={`/showcase/${showcase.id}`} className="block group">
+                  <div className="flex items-center gap-2">
+                    <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue">
+                      {index + 1}
+                    </span>
+
+                    <div className="w-[40px] h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
+                      {showcase.thumbnail_url ? (
+                        <Image src={showcase.thumbnail_url} alt={showcase.name || "Thumbnail"} fill className="object-cover" unoptimized />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-[#AAAAAA]">No Img</div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col flex-1 min-w-0 justify-center gap-0.5">
+                      <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors">
+                        {showcase.name}
+                      </span>
+                      {showcase.short_description && (
+                        <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate">
+                          {showcase.short_description}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
               </div>
-              
-              <div className="flex flex-col flex-1 min-w-0 justify-center gap-0.5">
-                <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors">
-                  {showcase.name}
-                </span>
-                {showcase.short_description && (
-                  <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate">
-                    {showcase.short_description}
+            ))}
+          </div>
+        ) : (
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={displayShowcases[currentIndex]?.id || "ticker"}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <Link href={`/showcase/${displayShowcases[currentIndex].id}`} className="block group">
+                <div className="flex items-center gap-2">
+                  <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue">
+                    {currentIndex + 1}
                   </span>
-                )}
-              </div>
-            </div>
-          </Link>
-        ))}
+
+                  <div className="w-[40px] h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
+                    {displayShowcases[currentIndex].thumbnail_url ? (
+                      <Image src={displayShowcases[currentIndex].thumbnail_url!} alt={displayShowcases[currentIndex].name || "Thumbnail"} fill className="object-cover" unoptimized />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-[#AAAAAA]">No Img</div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col flex-1 min-w-0 justify-center gap-0.5">
+                    <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors">
+                      {displayShowcases[currentIndex].name}
+                    </span>
+                    {displayShowcases[currentIndex].short_description && (
+                      <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate">
+                        {displayShowcases[currentIndex].short_description}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { CirclePlus } from "lucide-react";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
+import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { Database } from "@/types/database.types";
 import { ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
@@ -47,16 +48,22 @@ export function ShowcaseListWrapper({
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       {/* Main Content Area: Awards + List */}
       <div className="w-full flex flex-col gap-6">
-        {/* Mobile: Register Product Button */}
-        <div className="md:hidden w-full px-4 py-3 pb-0">
-          <Link href="/showcase/create" className="block w-full">
-            <div className="w-full h-[44px] bg-sydeblue rounded-[12px] flex items-center justify-center gap-2.5">
-              <CirclePlus className="text-white size-5" strokeWidth={2} />
-              <span className="font-pretendard font-semibold text-[16px] leading-[19px] text-white">
-                내 프로젝트 등록하기
-              </span>
-            </div>
-          </Link>
+        {/* Mobile: Trending & Register Button */}
+        <div className="lg:hidden flex flex-col gap-0">
+          <div className="px-4">
+            <TrendingShowcases allowCollapse={true} />
+          </div>
+
+          <div className="w-full px-4 pt-3 pb-3">
+            <Link href="/showcase/create" className="block w-full">
+              <div className="w-full h-[44px] bg-sydeblue rounded-[12px] flex items-center justify-center gap-2.5">
+                <CirclePlus className="text-white size-5" strokeWidth={2} />
+                <span className="font-pretendard font-semibold text-[16px] leading-[19px] text-white">
+                  내 프로젝트 등록하기
+                </span>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* <MainAwardBanner /> */}
