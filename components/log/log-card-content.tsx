@@ -31,6 +31,7 @@ function LogCardContentBase({
   const router = useRouter();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [hasImageError, setHasImageError] = useState(false);
   const [isClamped, setIsClamped] = useState(false);
   const contentRef = useRef<HTMLParagraphElement>(null);
 
@@ -92,7 +93,7 @@ function LogCardContentBase({
           <OgPreviewCard url={previewUrl} />
         </div>
       )}
-      {log.image_url && ensureSecureImageUrl(log.image_url) && (
+      {log.image_url && ensureSecureImageUrl(log.image_url) && !hasImageError && (
         <div
           className="relative w-full mt-3 rounded-md overflow-hidden bg-sydeblue"
           style={{ aspectRatio: "16 / 9" }}
@@ -108,6 +109,10 @@ function LogCardContentBase({
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAAAAAAB/8QAFxEAAwEAAAAAAAAAAAAAAAAAAAERAv/aAAwDAQACEQMRAD8A0XmIuxHfFYGfyAP/2Q=="
             onLoad={() => setIsImageLoading(false)}
+            onError={() => {
+              setIsImageLoading(false);
+              setHasImageError(true);
+            }}
           />
           {isImageLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
