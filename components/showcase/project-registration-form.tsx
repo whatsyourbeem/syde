@@ -561,7 +561,7 @@ export function ProjectRegistrationForm({
                 프로덕트의 스크린샷 또는 관련 설명 이미지가 있다면 추가해주세요.
                 <span className="md:hidden">
                   <br />
-                  (최대 10장)
+                  (최대 5장)
                 </span>
                 <span className="hidden md:inline"> (최대 5장)</span>
               </p>
