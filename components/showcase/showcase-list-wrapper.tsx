@@ -9,6 +9,7 @@ import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { Database } from "@/types/database.types";
 import { ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 
 interface ShowcaseListWrapperProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -30,6 +31,7 @@ export function ShowcaseListWrapper({
 }: ShowcaseListWrapperProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { openLoginDialog } = useLoginDialog();
   const searchQuery = searchParams.get("q") || "";
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
@@ -55,14 +57,23 @@ export function ShowcaseListWrapper({
           </div>
 
           <div className="w-full px-4 pt-3 pb-1">
-            <Link href="/showcase/create" className="block w-full">
+            <button
+              onClick={() => {
+                if (!user) {
+                  openLoginDialog();
+                } else {
+                  router.push("/showcase/create");
+                }
+              }}
+              className="block w-full"
+            >
               <div className="w-full h-[44px] bg-sydeblue rounded-[12px] flex items-center justify-center gap-2.5">
                 <CirclePlus className="text-white size-5" strokeWidth={2} />
                 <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-white">
                   내 프로젝트 등록하기
                 </span>
               </div>
-            </Link>
+            </button>
           </div>
         </div>
 

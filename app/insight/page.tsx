@@ -2,13 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useLoginDialog } from "@/context/LoginDialogContext";
 import { InsightCard, InsightCardProps } from "@/components/insight/insight-card";
 
 export default function InsightPage() {
     const supabase = createClient();
+    const router = useRouter();
+    const { openLoginDialog } = useLoginDialog();
     const [insights, setInsights] = useState<InsightCardProps[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -163,11 +167,17 @@ export default function InsightPage() {
             </div>
 
             {/* Floating Create Button */}
-            <Link href="/insight/write">
-                <Button className="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-sydeblue hover:bg-sydeblue/90 shadow-xl flex items-center justify-center p-0 z-50">
-                    <Plus className="w-8 h-8 text-white" />
-                </Button>
-            </Link>
+            <Button
+                onClick={() => {
+                    if (!currentUserId) {
+                        openLoginDialog();
+                    } else {
+                        router.push("/insight/write");
+                    }
+                }}
+                className="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-sydeblue hover:bg-sydeblue/90 shadow-xl flex items-center justify-center p-0 z-50">
+                <Plus className="w-8 h-8 text-white" />
+            </Button>
         </div>
     );
 }
