@@ -49,8 +49,8 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
 
   if (loading) {
     return (
-      <div className={`w-full ${allowCollapse ? 'pt-6 pb-2 px-4' : ''}`}>
-        <h3 className="font-pretendard font-bold text-[16px] text-gray-900 mb-4">지금 주목받는 🔥</h3>
+      <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
+        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] text-gray-900 mb-2">지금 주목받는 🔥</h3>
         <div className="flex flex-col gap-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -75,9 +75,9 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
   const displayShowcases = showcases.slice(0, 5);
 
   return (
-    <div className={`w-full ${allowCollapse ? 'pt-6 pb-2 px-4' : ''}`}>
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-pretendard font-bold text-[16px] leading-[19px] tracking-[-0.02em] text-[#111111] flex items-center gap-2">
+    <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] tracking-[-0.02em] text-[#111111] flex items-center gap-2">
           지금 주목받는 프로젝트 🔥
         </h3>
 
@@ -86,7 +86,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-1 text-[#777777] hover:text-[#333333] transition-colors"
           >
-            <span className="text-[13px] font-medium">
+            <span className="text-[12px] font-medium">
               {isExpanded ? "접기" : "펼치기"}
             </span>
             {isExpanded ? (
@@ -100,16 +100,16 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
 
       <div className="relative overflow-hidden">
         {isExpanded ? (
-          <div className="flex flex-col gap-[18px]">
+          <div className="flex flex-col gap-2 lg:gap-3">
             {displayShowcases.map((showcase, index) => (
               <div key={showcase.id}>
                 <Link href={`/showcase/${showcase.id}`} className="block group">
                   <div className="flex items-center gap-2">
-                    <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue">
+                    <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue flex-shrink-0">
                       {index + 1}
                     </span>
 
-                    <div className="w-[40px] h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
+                    <div className="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
                       {showcase.thumbnail_url ? (
                         <Image src={showcase.thumbnail_url} alt={showcase.name || "Thumbnail"} fill className="object-cover" unoptimized />
                       ) : (
@@ -117,12 +117,12 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                       )}
                     </div>
 
-                    <div className="flex flex-col flex-1 min-w-0 justify-center gap-0.5">
-                      <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors">
+                    <div className="flex flex-row items-baseline lg:flex-col flex-1 min-w-0 lg:justify-center gap-1.5 lg:gap-0.5">
+                      <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors flex-shrink-0 max-w-[120px] lg:max-w-none">
                         {showcase.name}
                       </span>
                       {showcase.short_description && (
-                        <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate">
+                        <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate flex-1">
                           {showcase.short_description}
                         </span>
                       )}
@@ -143,11 +143,11 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
             >
               <Link href={`/showcase/${displayShowcases[currentIndex].id}`} className="block group">
                 <div className="flex items-center gap-2">
-                  <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue">
+                  <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue flex-shrink-0">
                     {currentIndex + 1}
                   </span>
 
-                  <div className="w-[40px] h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
+                  <div className="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
                     {displayShowcases[currentIndex].thumbnail_url ? (
                       <Image src={displayShowcases[currentIndex].thumbnail_url!} alt={displayShowcases[currentIndex].name || "Thumbnail"} fill className="object-cover" unoptimized />
                     ) : (
@@ -155,12 +155,12 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                     )}
                   </div>
 
-                  <div className="flex flex-col flex-1 min-w-0 justify-center gap-0.5">
-                    <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors">
+                  <div className="flex flex-row items-baseline lg:flex-col flex-1 min-w-0 lg:justify-center gap-1.5 lg:gap-0.5">
+                    <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors flex-shrink-0 max-w-[120px] lg:max-w-none">
                       {displayShowcases[currentIndex].name}
                     </span>
                     {displayShowcases[currentIndex].short_description && (
-                      <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate">
+                      <span className="font-pretendard font-medium text-[12px] leading-[14px] text-[#777777] truncate flex-1">
                         {displayShowcases[currentIndex].short_description}
                       </span>
                     )}

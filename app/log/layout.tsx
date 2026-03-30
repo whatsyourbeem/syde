@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { LogSidebarServer, LogSidebarSkeleton } from "@/components/log/log-sidebar-server";
+import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import Image from "next/image";
 import Link from "next/link";
 import { Banner } from "@/components/common/banner";
@@ -17,7 +18,8 @@ export default function LogLayout({ children }: { children: React.ReactNode }) {
       <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
         {children}
       </div>
-      <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen py-4 px-0 space-y-6">
+      <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen py-4 px-0 space-y-8">
+        <TrendingShowcases />
         <Banner position={BANNER_POSITIONS.LOG_SIDEBAR} />
         <div className="flex flex-col items-center text-center">
           <p className="text-sm text-gray-500 mb-4">ⓒ {new Date().getFullYear()}. SYDE</p>
