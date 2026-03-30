@@ -526,17 +526,18 @@ export function ProjectRegistrationForm({
           <p className="text-sm font-medium text-sydeblue">프로덕트 설명</p>
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white min-h-[216px] flex flex-col overflow-hidden">
             <TiptapEditorWrapper
-              initialContent={
-                initialData?.description
-                  ? generateJSON(
-                      initialData.description,
-                      commonTiptapExtensions,
-                    )
-                  : null
-              }
+              initialContent={(() => {
+                if (!initialData?.description) return null;
+                try {
+                  // Try parsing as JSON first
+                  return JSON.parse(initialData.description);
+                } catch (e) {
+                  // If not JSON, it is legacy HTML
+                  return generateJSON(initialData.description, commonTiptapExtensions);
+                }
+              })()}
               onContentChange={(json) => {
-                const html = generateHTML(json, commonTiptapExtensions);
-                setDescription(html);
+                setDescription(JSON.stringify(json));
               }}
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}

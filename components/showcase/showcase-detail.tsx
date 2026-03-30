@@ -59,6 +59,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
+import TiptapViewer from "@/components/common/tiptap-viewer";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -658,27 +659,21 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </div>
 
           <div className="w-full">
-            {(() => {
-              let content = showcase.description || "";
-              const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
-              const processedContent = content.replace(
-                mentionRegex,
-                (match, userId) => {
-                  const profile = mentionedProfiles.find(
-                    (p) => p.id === userId,
-                  );
-                  const username = profile ? profile.username : "unknown";
-                  return `<a href="/${username}" class="text-blue-500 hover:underline font-semibold" target="_self">@${username}</a>`;
-                },
-              );
-
-              return (
-                <div
-                  className="text-[14px] leading-[150%] text-black link-reset"
-                  dangerouslySetInnerHTML={{ __html: processedContent }}
-                />
-              );
-            })()}
+            <TiptapViewer 
+              content={(() => {
+                if (!showcase.description) return null;
+                // If the description is already an object, return it (new jsonb format)
+                if (typeof showcase.description === "object") return showcase.description;
+                
+                try {
+                  // If it's a string, try parsing as JSON
+                  return JSON.parse(showcase.description);
+                } catch (e) {
+                  // Legacy HTML or fallback
+                  return showcase.description;
+                }
+              })()} 
+            />
           </div>
         </div>
 

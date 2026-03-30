@@ -10,7 +10,7 @@ export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
     const name = formData.get("name") as string;
     const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
-    const description = formData.get("description") as string;
+    const descriptionString = formData.get("description") as string;
     const thumbnailFile = formData.get("thumbnailFile") as File | null;
     const detailImageFiles = formData.getAll("detailImageFiles") as File[];
     const websiteLinks = formData.getAll("links_website") as string[];
@@ -30,7 +30,15 @@ export const createShowcase = withAuthForm(
 
     console.log(`[createShowcase] Received ${detailImageFiles.length} detail images.`);
 
-    const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
+    let processedDescription: any = descriptionString;
+    
+    try {
+      // If it's valid JSON, we parse it to an object for jsonb column
+      processedDescription = JSON.parse(descriptionString);
+    } catch (e) {
+      // If not JSON, it's legacy text/HTML, process mentions and store as string
+      processedDescription = descriptionString ? await processMentionsForSave(descriptionString, supabase) : null;
+    }
 
     const { data, error: insertError } = await supabase
       .from("showcases")
@@ -135,7 +143,7 @@ export const updateShowcase = withAuthForm(
     const showcaseId = validateRequired(formData.get("showcaseId") as string, "쇼케이스 ID");
     const name = formData.get("name") as string;
     const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
-    const description = formData.get("description") as string;
+    const descriptionString = formData.get("description") as string;
     const thumbnailFile = formData.get("thumbnailFile") as File | null;
     const thumbnailRemoved = formData.get("thumbnailRemoved") === "true";
     const detailImageFiles = formData.getAll("detailImageFiles") as File[];
@@ -171,7 +179,14 @@ export const updateShowcase = withAuthForm(
       thumbnailRemoved,
       oldShowcaseData?.thumbnail_url
     );
-    const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
+
+    let processedDescription: any = descriptionString;
+    
+    try {
+      processedDescription = JSON.parse(descriptionString);
+    } catch (e) {
+      processedDescription = descriptionString ? await processMentionsForSave(descriptionString, supabase) : null;
+    }
 
     const updateData: { 
       name: string; 
