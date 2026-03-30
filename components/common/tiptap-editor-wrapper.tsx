@@ -32,7 +32,7 @@ export default function TiptapEditorWrapper({
     }),
     editorProps: {
       attributes: {
-        class: "prose max-w-none focus:outline-none p-4",
+        class: "prose max-w-none focus:outline-none p-4 min-h-full",
       },
       handlePaste: (view, event) => {
         const text = event.clipboardData?.getData("text/plain");
@@ -119,7 +119,7 @@ export default function TiptapEditorWrapper({
   }
 
   return (
-    <div>
+    <div className="flex flex-col min-h-[inherit] h-full">
       <TiptapToolbar
         editor={editor}
         onImageUploadClick={() => fileInputRef.current?.click()}
@@ -131,7 +131,10 @@ export default function TiptapEditorWrapper({
         className="hidden"
         accept="image/jpeg,image/png,image/gif,image/webp"
       />
-      <div className="max-h-[60vh] overflow-y-auto">
+      <div 
+        className="flex-1 max-h-[60vh] overflow-y-auto cursor-text min-h-[inherit] h-full"
+        onClick={() => editor.commands.focus()}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>

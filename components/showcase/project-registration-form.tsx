@@ -505,9 +505,9 @@ export function ProjectRegistrationForm({
         </div>
 
         {/* Project Description (TipTap) */}
-        <div className="flex flex-col gap-1 h-[237px]">
+        <div className="flex flex-col gap-1 min-h-[237px]">
           <p className="text-sm font-medium text-sydeblue">프로덕트 설명</p>
-          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white h-[216px] flex flex-col overflow-hidden">
+          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white min-h-[216px] flex flex-col overflow-hidden">
             <TiptapEditorWrapper
               initialContent={
                 initialData?.description
