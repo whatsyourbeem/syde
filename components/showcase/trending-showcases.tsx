@@ -52,7 +52,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
       <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
         <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] text-gray-900 mb-2 lg:mb-3">지금 주목받는 🔥</h3>
         <div className="flex flex-col gap-4">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(isExpanded ? 5 : 1)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
               <Skeleton className="w-[14px] h-[20px] rounded" />
               <Skeleton className="w-[40px] h-[40px] rounded-lg flex-shrink-0" />
