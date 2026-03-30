@@ -58,6 +58,7 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
+import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -313,21 +314,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             {/* Thumbnail + Content */}
             <div className="flex flex-row items-start gap-[10px] flex-grow">
               {/* Thumbnail (Desktop: 160x160) */}
-              <div className="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
-                {showcase.thumbnail_url ? (
-                  <Image
-                    src={showcase.thumbnail_url}
-                    alt={showcase.name || "Showcase"}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
-              </div>
+              <ShowcaseThumbnail
+                src={showcase.thumbnail_url}
+                alt={showcase.name || "Showcase"}
+                containerClassName="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] border border-gray-100"
+                className="object-contain"
+              />
 
               {/* Content Area */}
               <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow">
@@ -412,21 +404,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 <ChevronLeft className="w-6 h-6 text-[#434343]" strokeWidth={2.5} />
               </button>
 
-              <div className="w-[121px] h-[120px] bg-sydeblue rounded-[10px] overflow-hidden border border-gray-100 relative">
-                {showcase.thumbnail_url ? (
-                  <Image
-                    src={showcase.thumbnail_url}
-                    alt={showcase.name || "Showcase"}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
-              </div>
+              <ShowcaseThumbnail
+                src={showcase.thumbnail_url}
+                alt={showcase.name || "Showcase"}
+                containerClassName="w-[121px] h-[120px] bg-sydeblue rounded-[10px] border border-gray-100"
+                className="object-contain"
+              />
 
               <div className="w-11 h-11 flex items-center justify-center">
                 {isAuthor && (

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, Calendar, MapPin } from 'lucide-react';
+import { ShowcaseThumbnail } from '@/components/showcase/showcase-thumbnail';
 
 
 function formatDate(dateString: string) {
@@ -294,11 +295,11 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                   href={`/showcase/${showcase.id}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
-                  {showcase.thumbnail_url && (
-                    <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                      <Image src={showcase.thumbnail_url} alt={showcase.name || "Showcase"} fill className="object-cover" unoptimized />
-                    </div>
-                  )}
+                  <ShowcaseThumbnail
+                    src={showcase.thumbnail_url}
+                    alt={showcase.name || "Showcase"}
+                    containerClassName="w-14 h-14 shrink-0 rounded-lg"
+                  />
                   <div className="flex flex-col min-w-0">
                     <span className="text-sm font-semibold text-sydeblue truncate">{showcase.name}</span>
                     {showcase.short_description && (

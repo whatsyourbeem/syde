@@ -8,6 +8,7 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import Link from "next/link";
 import Image from "next/image";
 import { ShowcaseCard } from "@/components/showcase/showcase-card";
+import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 
 interface UserShowcaseListProps {
   userId: string;
@@ -85,19 +86,12 @@ export function UserShowcaseList({
             href={`/showcase/${showcase.id}`}
             className="flex flex-col items-center gap-2 group"
           >
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-[#f0f0f0] flex items-center justify-center">
-              {showcase.thumbnail_url ? (
-                <Image
-                  src={showcase.thumbnail_url}
-                  alt={showcase.name || ""}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  unoptimized
-                />
-              ) : (
-                <div className="text-gray-400 text-[10px]">No Image</div>
-              )}
-            </div>
+            <ShowcaseThumbnail
+              src={showcase.thumbnail_url}
+              alt={showcase.name || ""}
+              containerClassName="w-20 h-20 rounded-xl"
+              className="group-hover:scale-110 transition-transform duration-300"
+            />
             <span className="text-[11px] font-semibold text-black text-center line-clamp-1 w-20">
               {showcase.name}
             </span>

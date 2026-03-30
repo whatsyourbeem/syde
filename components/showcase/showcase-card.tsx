@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Database } from "@/types/database.types";
 import { deleteShowcase } from "@/app/showcase/showcase-actions";
 import { ShowcaseCardActions } from "./showcase-card-actions";
+import { ShowcaseThumbnail } from "./showcase-thumbnail";
 import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -93,20 +94,12 @@ function ShowcaseCardBase({
         className="flex flex-row gap-3 md:gap-4 items-start cursor-pointer w-full"
         onClick={handleCardClick}
       >
-        {/* Thumbnail (Mobile: 100x100 / Desktop: 120x120) */}
-        <div className="relative w-[80px] h-[80px] md:w-[120px] md:h-[120px] shrink-0 bg-[#f0f0f0] rounded-[10px] overflow-hidden flex items-center justify-center">
-          {showcase.thumbnail_url ? (
-            <Image
-              src={showcase.thumbnail_url}
-              alt={showcase.name || "Showcase"}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="text-gray-400 text-[10px]">No Image</div>
-          )}
-        </div>
+        {/* Thumbnail (Mobile: 80x80 / Desktop: 120x120) */}
+        <ShowcaseThumbnail
+          src={showcase.thumbnail_url}
+          alt={showcase.name || "Showcase"}
+          containerClassName="w-[80px] h-[80px] md:w-[120px] md:h-[120px] shrink-0 rounded-[10px]"
+        />
 
         {/* Content Area */}
         <div className="flex flex-col justify-between md:h-[120px] min-w-0 flex-grow gap-1 md:gap-0">

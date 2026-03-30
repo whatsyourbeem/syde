@@ -33,6 +33,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteActivity } from "@/app/log/activity-actions";
+import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 
 interface ActivityCardProps {
   activity: ActivityFeedItem;
@@ -96,17 +97,11 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
       const { showcase } = details;
       return (
         <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pr-3">
-          {showcase.thumbnail_url && ensureSecureImageUrl(showcase.thumbnail_url) && (
-            <div className="relative w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md overflow-hidden bg-muted">
-              <Image
-                src={ensureSecureImageUrl(showcase.thumbnail_url)!}
-                alt="Showcase thumbnail"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          )}
+          <ShowcaseThumbnail
+            src={showcase.thumbnail_url}
+            alt="Showcase thumbnail"
+            containerClassName="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
+          />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
               {showcase.title}

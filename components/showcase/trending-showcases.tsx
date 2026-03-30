@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getTrendingShowcases, TrendingShowcase } from "@/app/showcase/trending-actions";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { ShowcaseThumbnail } from "./showcase-thumbnail";
 
 // Assuming there's a generic Skeleton component or we can just use plain divs for skeleton
 function Skeleton({ className }: { className: string }) {
@@ -109,13 +110,11 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                       {index + 1}
                     </span>
 
-                    <div className="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
-                      {showcase.thumbnail_url ? (
-                        <Image src={showcase.thumbnail_url} alt={showcase.name || "Thumbnail"} fill className="object-cover" unoptimized />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-[#AAAAAA]">No Img</div>
-                      )}
-                    </div>
+                    <ShowcaseThumbnail
+                      src={showcase.thumbnail_url}
+                      alt={showcase.name || "Thumbnail"}
+                      containerClassName="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] border border-[#EEEEEE]"
+                    />
 
                     <div className="flex flex-row items-baseline lg:flex-col flex-1 min-w-0 lg:justify-center gap-1.5 lg:gap-0.5">
                       <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors flex-shrink-0 max-w-[120px] lg:max-w-none">
@@ -147,13 +146,11 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                     {currentIndex + 1}
                   </span>
 
-                  <div className="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] overflow-hidden flex-shrink-0 border border-[#EEEEEE] relative bg-[#F8F9FA]">
-                    {displayShowcases[currentIndex].thumbnail_url ? (
-                      <Image src={displayShowcases[currentIndex].thumbnail_url!} alt={displayShowcases[currentIndex].name || "Thumbnail"} fill className="object-cover" unoptimized />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[10px] text-[#AAAAAA]">No Img</div>
-                    )}
-                  </div>
+                  <ShowcaseThumbnail
+                    src={displayShowcases[currentIndex].thumbnail_url}
+                    alt={displayShowcases[currentIndex].name || "Thumbnail"}
+                    containerClassName="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] border border-[#EEEEEE]"
+                  />
 
                   <div className="flex flex-row items-baseline lg:flex-col flex-1 min-w-0 lg:justify-center gap-1.5 lg:gap-0.5">
                     <span className="font-pretendard font-semibold text-[14px] leading-[17px] text-sydeblue truncate transition-colors flex-shrink-0 max-w-[120px] lg:max-w-none">
