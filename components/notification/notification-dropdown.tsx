@@ -47,11 +47,10 @@ const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropd
     fetchNotifications(); // Refresh list
   };
 
-  const onNotificationClick = async (notificationId: string, logId: string) => {
-    await handleNotificationClick(notificationId, logId);
+  const onNotificationClick = async (notificationId: string, logId?: string | null, showcaseId?: string | null) => {
+    await handleNotificationClick(notificationId, logId, showcaseId);
     // Optimistically update the count
     setUnreadCount(prev => Math.max(0, prev - 1));
-    router.push(`/log/${logId}`);
   };
 
   if (!isMounted) {
@@ -87,7 +86,7 @@ const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropd
         <div className="max-h-96 overflow-y-auto">
           {notifications?.map((notification) => (
             <DropdownMenuItem key={notification.id} asChild>
-              <button onClick={() => onNotificationClick(notification.id, notification.log_id)} className="w-full text-left">
+              <button onClick={() => onNotificationClick(notification.id, notification.log_id, notification.showcase_id)} className="w-full text-left">
                 <NotificationItem notification={notification} />
               </button>
             </DropdownMenuItem>

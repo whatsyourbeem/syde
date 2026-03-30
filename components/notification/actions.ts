@@ -13,6 +13,9 @@ export type NotificationType = Tables<"notifications"> & {
   logs: {
     content: string;
   } | null;
+  showcases: {
+    title: string | null;
+  } | null;
 };
 
 export async function getNotifications(): Promise<{ data: NotificationType[] | null, error: string | null }> {
@@ -29,7 +32,8 @@ export async function getNotifications(): Promise<{ data: NotificationType[] | n
     .select(`
       *,
       trigger_user:profiles!trigger_user_id(username, avatar_url),
-      logs(content)
+      logs(content),
+      showcases(title)
     `)
     .eq('recipient_user_id', user.id)
     .order('created_at', { ascending: false });
@@ -67,7 +71,14 @@ export async function markAllAsRead() {
   revalidatePath('/'); // Revalidate layout to update unread count
 }
 
-export async function handleNotificationClick(notificationId: string, logId: string) {
+export async function handleNotificationClick(notificationId: string, logId?: string | null, showcaseId?: string | null) {
   await markAsRead(notificationId);
-  redirect(`/log/${logId}`);
+  
+  if (logId) {
+    redirect(`/log/${logId}`);
+  } else if (showcaseId) {
+    redirect(`/showcase/${showcaseId}`);
+  } else {
+    redirect('/');
+  }
 }
