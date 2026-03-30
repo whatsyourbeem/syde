@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteActivity } from "@/app/log/activity-actions";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
+import { InsightThumbnail } from "@/components/insight/insight-thumbnail";
 
 interface ActivityCardProps {
   activity: ActivityFeedItem;
@@ -120,17 +121,11 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
       const { insight } = details;
       return (
         <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pr-3">
-          {insight.image_url && ensureSecureImageUrl(insight.image_url) && (
-            <div className="relative w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md overflow-hidden bg-muted">
-              <Image
-                src={ensureSecureImageUrl(insight.image_url)!}
-                alt="Insight thumbnail"
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          )}
+          <InsightThumbnail
+            src={insight.image_url}
+            alt="Insight thumbnail"
+            containerClassName="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
+          />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
               {insight.title}

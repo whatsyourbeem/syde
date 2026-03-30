@@ -12,6 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
 import { cn } from "@/lib/utils";
+import { InsightThumbnail } from "./insight-thumbnail";
 
 export interface InsightCardProps {
     id: string;
@@ -126,22 +127,18 @@ export function InsightCard({
         <div className="bg-transparent border-none shadow-none flex flex-col w-full max-w-[369px] md:max-w-[352px] h-fit">
             {/* Thumbnail Area - Links to Insight */}
             {disableLink ? (
-                <div className="relative w-full aspect-w-1 aspect-h-1 bg-[#222E35] overflow-hidden flex-none rounded-[12px]">
-                    {imageUrl ? (
-                        <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-                    ) : (
-                        <img src="/we-are-syders.png" alt="We are SYDERS" className="absolute inset-0 w-full h-full object-cover" />
-                    )}
-                </div>
+                <InsightThumbnail
+                    src={imageUrl}
+                    alt={title}
+                    containerClassName="w-full aspect-w-1 aspect-h-1 flex-none rounded-[12px]"
+                />
             ) : (
                 <Link href={`/insight/${id}`} className="block focus:outline-none">
-                    <div className="relative w-full aspect-w-1 aspect-h-1 bg-[#222E35] overflow-hidden cursor-pointer flex-none rounded-[12px]">
-                        {imageUrl ? (
-                            <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-                        ) : (
-                            <img src="/we-are-syders.png" alt="We are SYDERS" className="absolute inset-0 w-full h-full object-cover" />
-                        )}
-                    </div>
+                    <InsightThumbnail
+                        src={imageUrl}
+                        alt={title}
+                        containerClassName="w-full aspect-w-1 aspect-h-1 cursor-pointer flex-none rounded-[12px]"
+                    />
                 </Link>
             )}
 

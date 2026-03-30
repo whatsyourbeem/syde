@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { ShowcaseThumbnail } from '@/components/showcase/showcase-thumbnail';
+import { InsightThumbnail } from '@/components/insight/insight-thumbnail';
 
 
 function formatDate(dateString: string) {
@@ -260,11 +261,11 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                   href={`/insight/${insight.id}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
-                  {insight.image_url && (
-                    <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                      <Image src={insight.image_url} alt="" fill className="object-cover" unoptimized />
-                    </div>
-                  )}
+                  <InsightThumbnail
+                    src={insight.image_url}
+                    alt={insight.title}
+                    containerClassName="w-16 h-16 shrink-0 rounded-lg"
+                  />
                   <div className="flex flex-col min-w-0 gap-0.5">
                     <span className="text-sm font-semibold text-sydeblue line-clamp-1">{insight.title}</span>
                     {insight.summary && (

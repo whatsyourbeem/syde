@@ -28,6 +28,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InsightThumbnail } from "./insight-thumbnail";
 
 interface InsightDetailClientProps {
     id: string;
@@ -334,13 +335,11 @@ export default function InsightDetailClient({
                                 </Link>
 
                                 {/* Thumbnail */}
-                                <div className="aspect-square bg-[#222E35] flex items-center justify-center relative overflow-hidden flex-none w-[200px] sm:w-[280px] md:w-[300px] h-[200px] sm:h-[280px] md:h-[300px] rounded-[12px] shrink-0">
-                                    {insight.image_url ? (
-                                        <img src={insight.image_url} alt={insight.title} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover" />
-                                    )}
-                                </div>
+                                <InsightThumbnail
+                                    src={insight.image_url}
+                                    alt={insight.title}
+                                    containerClassName="aspect-square flex-none w-[200px] sm:w-[280px] md:w-[300px] h-[200px] sm:h-[280px] md:h-[300px] rounded-[12px] shrink-0"
+                                />
 
                                 {isAuthor ? (
                                     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} modal={false}>
