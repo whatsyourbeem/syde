@@ -186,9 +186,20 @@ export function ShowcaseList({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-3xl mx-auto pb-4">
-        <div className="px-4">
-          <LoadingList count={5} />
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="flex flex-col">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="w-full border-b border-gray-200 last:border-0 px-4 py-6">
+              <div className="flex gap-4 animate-pulse">
+                <div className="w-[100px] h-[100px] md:w-[120px] md:h-[120px] bg-gray-200 rounded-[10px] shrink-0" />
+                <div className="flex-1 space-y-4 py-1">
+                  <div className="h-6 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -223,7 +234,7 @@ export function ShowcaseList({
         <div className="flex flex-col items-center">
           <div className="w-full">
             {showcases.map((showcase) => (
-              <div key={showcase.id} className="w-full">
+              <div key={showcase.id} className="w-full border-b border-gray-200 last:border-0">
                 <ShowcaseCard
                   showcase={showcase}
                   currentUserId={currentUserId}

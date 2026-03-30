@@ -251,3 +251,14 @@ export function ensureSecureImageUrl(
 ): string | null {
   return upgradeToHttps(imageUrl);
 }
+/**
+ * Formats a number with 'k' suffix for values >= 1000
+ * @param num - The number to format
+ * @returns Formatted string
+ */
+export function formatNumber(num: number): string {
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  }
+  return num.toString();
+}

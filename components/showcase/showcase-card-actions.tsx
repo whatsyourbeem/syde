@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { formatNumber } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 import {
@@ -148,12 +149,12 @@ function ShowcaseCardActionsBase({
 
   return (
     <>
-    <div className="flex flex-row justify-between md:justify-start items-center pt-2 px-[30px] md:px-0 md:gap-[50px] w-full h-[28px] text-[#777777]">
+    <div className="flex flex-row justify-between md:justify-start items-center pt-1 px-3 md:px-0 md:gap-[50px] w-full h-[28px] text-[#777777]">
       {/* Views */}
       <div className="flex items-center gap-[5px]">
-        <Eye size={16} strokeWidth={1.5} className="text-[#777777]" />
-        <span className="text-[14px] leading-[150%] h-[21px] text-[#777777]">
-          {viewsCount}
+        <Eye size={18} strokeWidth={1.5} className="text-[#777777]" />
+        <span className="text-[13px] leading-[150%] h-[21px] text-[#777777]">
+          {formatNumber(viewsCount)}
         </span>
       </div>
 
@@ -168,14 +169,14 @@ function ShowcaseCardActionsBase({
         ) : (
           <ArrowUpCircle
             className={hasUpvoted ? "fill-sydeorange text-white" : ""}
-            size={20}
+            size={18}
             strokeWidth={1.5}
           />
         )}
         <span
-          className={`text-[14px] leading-[150%] h-[21px] ${hasUpvoted ? "text-sydeorange font-semibold" : ""}`}
+          className={`text-[13px] leading-[150%] h-[21px] ${hasUpvoted ? "text-sydeorange font-semibold" : ""}`}
         >
-          {upvotesCount}
+          {formatNumber(upvotesCount)}
         </span>
       </button>
 
@@ -185,8 +186,8 @@ function ShowcaseCardActionsBase({
         className="flex items-center gap-[5px] transition-colors hover:text-green-500"
       >
         <MessageCircle size={18} strokeWidth={1.5} />
-        <span className="text-[14px] leading-[150%] h-[21px]">
-          {commentsCount}
+        <span className="text-[13px] leading-[150%] h-[21px]">
+          {formatNumber(commentsCount)}
         </span>
       </button>
 
@@ -195,7 +196,7 @@ function ShowcaseCardActionsBase({
         onClick={handleCopyLink}
         className="flex items-center transition-colors hover:text-blue-500"
       >
-        <Share size={14} strokeWidth={1.5} />
+        <Share size={18} strokeWidth={1.5} />
       </button>
 
 

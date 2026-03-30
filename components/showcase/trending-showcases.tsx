@@ -50,7 +50,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
   if (loading) {
     return (
       <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
-        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] text-gray-900 mb-2">지금 주목받는 🔥</h3>
+        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] text-gray-900 mb-2 lg:mb-3">지금 주목받는 🔥</h3>
         <div className="flex flex-col gap-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
 
   return (
     <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-2 lg:mb-3">
         <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] tracking-[-0.02em] text-[#111111] flex items-center gap-2">
           지금 주목받는 프로젝트 🔥
         </h3>
