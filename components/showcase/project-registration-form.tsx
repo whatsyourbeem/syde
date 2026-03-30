@@ -28,6 +28,7 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { updateShowcase } from "@/app/showcase/showcase-actions";
 import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
+import { FILE_SIZE_LIMITS } from "@/lib/storage";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -211,6 +212,13 @@ export function ProjectRegistrationForm({
   ) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
+      
+      if (file.size > FILE_SIZE_LIMITS.THUMBNAIL) {
+        toast.error(`대표 이미지는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.`);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+
       setMainImagePreview(URL.createObjectURL(file));
       // In a real implementation, you'd handle file upload to storage here or on submit
     }
@@ -226,6 +234,15 @@ export function ProjectRegistrationForm({
   ) => {
     if (event.target.files && event.target.files.length > 0) {
       const newFiles = Array.from(event.target.files);
+
+      // Check file size
+      const largeFiles = newFiles.filter(file => file.size > FILE_SIZE_LIMITS.IMAGE);
+      if (largeFiles.length > 0) {
+        toast.error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다: ${largeFiles.map(f => f.name).join(", ")}`);
+        if (detailInputRef.current) detailInputRef.current.value = "";
+        return;
+      }
+
       const validFiles = newFiles.slice(0, 5 - detailImagePreviews.length);
 
       if (validFiles.length < newFiles.length) {
@@ -524,6 +541,10 @@ export function ProjectRegistrationForm({
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
               onImageUpload={async (file) => {
+                if (file.size > FILE_SIZE_LIMITS.IMAGE) {
+                  toast.error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.`);
+                  return "";
+                }
                 const blobUrl = URL.createObjectURL(file);
                 // In future: setContentImageFiles(prev => [...prev, file])
                 return blobUrl;

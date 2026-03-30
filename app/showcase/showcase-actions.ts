@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
-import { handleShowcaseImage, handleShowcaseDetailImages, deleteShowcaseStorage } from "@/lib/storage";
+import { handleShowcaseImage, handleShowcaseDetailImages, deleteShowcaseStorage, FILE_SIZE_LIMITS } from "@/lib/storage";
 
 export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
@@ -16,6 +16,18 @@ export const createShowcase = withAuthForm(
     const websiteLinks = formData.getAll("links_website") as string[];
     const googlePlayLink = formData.get("links_google_play") as string | null;
     const appStoreLink = formData.get("links_app_store") as string | null;
+
+    // Validate image sizes
+    if (thumbnailFile && thumbnailFile.size > FILE_SIZE_LIMITS.THUMBNAIL) {
+      return { error: `대표 이미지는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.` };
+    }
+
+    for (const file of detailImageFiles) {
+      if (file.size > FILE_SIZE_LIMITS.IMAGE) {
+        return { error: `상세 이미지는 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.` };
+      }
+    }
+
     console.log(`[createShowcase] Received ${detailImageFiles.length} detail images.`);
 
     const processedDescription = description ? await processMentionsForSave(description, supabase) : null;
@@ -140,6 +152,17 @@ export const updateShowcase = withAuthForm(
 
     if (oldShowcaseData?.user_id !== user.id) {
       return { error: "수정할 권한이 없습니다." };
+    }
+
+    // Validate image sizes
+    if (thumbnailFile && thumbnailFile.size > FILE_SIZE_LIMITS.THUMBNAIL) {
+      return { error: `대표 이미지는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.` };
+    }
+
+    for (const file of detailImageFiles) {
+      if (file.size > FILE_SIZE_LIMITS.IMAGE) {
+        return { error: `상세 이미지는 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.` };
+      }
     }
 
     const thumbnailUrl = await handleShowcaseImage(
