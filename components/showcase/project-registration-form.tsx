@@ -173,7 +173,13 @@ export function ProjectRegistrationForm({
     if (initialData) {
       setTitle(initialData.name || "");
       setTagline(initialData.short_description || "");
-      setDescription(initialData.description || "");
+      
+      const desc = initialData.description;
+      if (desc && typeof desc === "object") {
+        setDescription(JSON.stringify(desc));
+      } else {
+        setDescription(desc || "");
+      }
 
       if (initialData.thumbnail_url) {
         setMainImagePreview(initialData.thumbnail_url);
@@ -527,21 +533,26 @@ export function ProjectRegistrationForm({
           <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white min-h-[216px] flex flex-col overflow-hidden">
             <TiptapEditorWrapper
               initialContent={(() => {
-                if (!initialData?.description) return null;
+                const content = initialData?.description;
+                if (!content) return null;
+                
+                // If it's already an object (jsonb), return it directly
+                if (typeof content === "object") return content;
+                
                 try {
-                  // Try parsing as JSON first
-                  return JSON.parse(initialData.description);
+                  // If it's a string, try parsing as JSON
+                  return JSON.parse(content);
                 } catch (e) {
-                  // If not JSON, it is legacy HTML
-                  return generateJSON(initialData.description, commonTiptapExtensions);
+                  // If not JSON, it is legacy HTML, generate TipTap JSON from it
+                  return generateJSON(content, commonTiptapExtensions);
                 }
               })()}
-              onContentChange={(json) => {
+              onContentChange={(json: any) => {
                 setDescription(JSON.stringify(json));
               }}
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
-              onImageUpload={async (file) => {
+              onImageUpload={async (file: File) => {
                 if (file.size > FILE_SIZE_LIMITS.IMAGE) {
                   throw new Error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.`);
                 }
