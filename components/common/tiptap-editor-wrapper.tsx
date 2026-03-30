@@ -35,6 +35,13 @@ export default function TiptapEditorWrapper({
         class: "prose max-w-none focus:outline-none p-4 min-h-full",
       },
       handlePaste: (view, event) => {
+        // If there are files, don't try to handle it as a URL
+        const file = event.clipboardData?.files?.[0];
+        if (file && file.type.startsWith("image/")) {
+          insertImageFile(file);
+          return true;
+        }
+
         const text = event.clipboardData?.getData("text/plain");
         if (text) {
           try {
@@ -56,6 +63,21 @@ export default function TiptapEditorWrapper({
           }
         }
         return false; // Use default paste behavior
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (
+          !moved &&
+          event.dataTransfer &&
+          event.dataTransfer.files &&
+          event.dataTransfer.files[0]
+        ) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.startsWith("image/")) {
+            insertImageFile(file);
+            return true;
+          }
+        }
+        return false;
       },
     },
     content: initialContent || { type: "doc", content: [] },
@@ -87,10 +109,9 @@ export default function TiptapEditorWrapper({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file || !onImageUpload) return;
+  const insertImageFile = useCallback(
+    async (file: File) => {
+      if (!file || !onImageUpload || !editor) return;
 
       const promise = onImageUpload(file);
 
@@ -101,17 +122,30 @@ export default function TiptapEditorWrapper({
             // Ensure HTTPS for security
             const secureUrl = upgradeToHttps(publicUrl) || publicUrl;
             editor.chain().focus().setImage({ src: secureUrl }).run();
+            return "이미지가 성공적으로 삽입되었습니다.";
           }
-          return "이미지가 성공적으로 삽입되었습니다.";
+          return "업로드되었으나 URL이 유효하지 않습니다.";
         },
-        error: (err) => `이미지 업로드 실패: ${err.message}`,
+        error: (err) => {
+          // If it's the size error we threw, we can show it directly
+          return `${err.message}`;
+        },
       });
+    },
+    [editor, onImageUpload],
+  );
 
+  const handleImageUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        insertImageFile(file);
+      }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     },
-    [editor, onImageUpload],
+    [insertImageFile],
   );
 
   if (!editor) {

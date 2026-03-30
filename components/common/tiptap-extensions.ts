@@ -22,7 +22,7 @@ export const commonTiptapExtensions = [
   // Replace CustomImage with ResizeImage
   ResizeImage.configure({
     inline: false,
-    allowBase64: true,
+    allowBase64: false, // Prevent large base64 images
     // You might need to configure default width/height or other options here
     // based on the ResizeImage extension's documentation.
     // For now, let's keep it simple.

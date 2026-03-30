@@ -542,8 +542,7 @@ export function ProjectRegistrationForm({
               editable={true}
               onImageUpload={async (file) => {
                 if (file.size > FILE_SIZE_LIMITS.IMAGE) {
-                  toast.error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.`);
-                  return "";
+                  throw new Error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.`);
                 }
                 const blobUrl = URL.createObjectURL(file);
                 // In future: setContentImageFiles(prev => [...prev, file])
