@@ -29,7 +29,7 @@ export function LogListWrapper({
   const searchQuery = searchParams.get("q") || "";
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Mobile: Trending Leaderboard */}
       {!filterByUserId &&
         !filterByCommentedUserId &&

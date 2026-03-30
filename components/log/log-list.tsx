@@ -144,7 +144,7 @@ export function LogList({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-2xl mx-auto pb-4">
+      <div className="w-full pb-4">
         <div className="px-4">
           <LoadingList count={5} />
         </div>
@@ -154,7 +154,7 @@ export function LogList({
 
   if (isError) {
     return (
-      <div className="w-full max-w-2xl mx-auto pb-4">
+      <div className="w-full pb-4">
         <div className="px-4">
           <InlineError
             error={error?.message || "피드를 불러오는 중 오류가 발생했습니다."}
@@ -166,7 +166,7 @@ export function LogList({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 pb-4">
+    <div className="w-full space-y-4 pb-4">
       {feedItems.length === 0 && !isLoading ? (
         emptyState ? (
           emptyState
@@ -179,28 +179,30 @@ export function LogList({
         )
       ) : (
         <div className="flex flex-col items-center w-full">
-          <div className="w-full space-y-4">
+          <div className="w-full">
             {feedItems.map((item, index) => (
-              <div key={item.feed_type === "log" ? `log-${item.data.id}` : `activity-${item.data.id}`} className="px-4">
-                {item.feed_type === "log" ? (
-                  <LogCard
-                    log={item.data}
-                    currentUserId={propCurrentUserId}
-                    initialLikesCount={item.data.likesCount}
-                    initialHasLiked={item.data.hasLiked}
-                    initialBookmarksCount={item.data.bookmarksCount}
-                    initialHasBookmarked={item.data.hasBookmarked}
-                    initialCommentsCount={item.data.log_comments.length}
-                    mentionedProfiles={mentionedProfiles}
-                    searchQuery={searchQuery}
-                    isDetailPage={false}
-                    priority={index < 2}
-                  />
-                ) : (
-                  <ActivityCard activity={item.data} currentUserId={propCurrentUserId} />
-                )}
+              <div key={item.feed_type === "log" ? `log-${item.data.id}` : `activity-${item.data.id}`} className="w-full">
+                <div className="px-4">
+                  {item.feed_type === "log" ? (
+                    <LogCard
+                      log={item.data}
+                      currentUserId={propCurrentUserId}
+                      initialLikesCount={item.data.likesCount}
+                      initialHasLiked={item.data.hasLiked}
+                      initialBookmarksCount={item.data.bookmarksCount}
+                      initialHasBookmarked={item.data.hasBookmarked}
+                      initialCommentsCount={item.data.log_comments.length}
+                      mentionedProfiles={mentionedProfiles}
+                      searchQuery={searchQuery}
+                      isDetailPage={false}
+                      priority={index < 2}
+                    />
+                  ) : (
+                    <ActivityCard activity={item.data} currentUserId={propCurrentUserId} />
+                  )}
+                </div>
                 {index < feedItems.length - 1 && (
-                  <div className="border-b border-gray-200 my-6"></div>
+                  <div className="border-b border-gray-200"></div>
                 )}
               </div>
             ))}

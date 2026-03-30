@@ -122,7 +122,7 @@ function LogCardBase({
   }, [isDetailPage, log.id, router]);
 
   return (
-    <div ref={cardRef} className="rounded-lg bg-card flex flex-col">
+    <div ref={cardRef} className="rounded-lg bg-card flex flex-col py-4">
       {isDetailPage || isVisible ? (
         <>
           <LogCardHeader

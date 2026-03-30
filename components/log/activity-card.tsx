@@ -101,14 +101,14 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
           <ShowcaseThumbnail
             src={showcase.thumbnail_url}
             alt="Showcase thumbnail"
-            containerClassName="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
+            containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
           />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
               {showcase.title}
             </h4>
             {showcase.short_description && (
-              <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-snug">
+              <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-2 leading-snug">
                 {showcase.short_description}
               </p>
             )}
@@ -124,7 +124,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
           <InsightThumbnail
             src={insight.image_url}
             alt="Insight thumbnail"
-            containerClassName="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
+            containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
           />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
@@ -134,11 +134,6 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
               {insight.summary && (
                 <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-snug">
                   {insight.summary}
-                </p>
-              )}
-              {insight.content_preview && (
-                <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-snug">
-                  {insight.content_preview}
                 </p>
               )}
             </div>
@@ -152,7 +147,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
       return (
         <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pr-3">
           {meetup.thumbnail_url && ensureSecureImageUrl(meetup.thumbnail_url) && (
-            <div className="relative w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-l-md overflow-hidden bg-muted">
+            <div className="relative w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md overflow-hidden bg-muted">
               <Image
                 src={ensureSecureImageUrl(meetup.thumbnail_url)!}
                 alt="Meetup thumbnail"
@@ -163,7 +158,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
             </div>
           )}
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-            <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
+            <h4 className="text-sm md:text-base font-semibold line-clamp-1 leading-tight">
               {meetup.title}
             </h4>
             <div className="flex flex-col gap-0.5">
@@ -191,7 +186,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
   };
 
   const content = (
-    <div className="flex items-start gap-2 py-1 transition-all duration-200">
+    <div className="flex items-start gap-2 py-4 transition-all duration-200">
       {/* Avatar */}
       <div className="flex-shrink-0">
         <Image
