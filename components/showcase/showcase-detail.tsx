@@ -250,7 +250,6 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   // --- Real Content for UI ---
   const projectTitle = showcase.name || "제목 없음";
   const projectTagline = showcase.short_description || "설명이 없습니다.";
-  const authorRole = showcase.profiles?.tagline || "[JobTitle]";
   const isAuthor = user?.id === showcase.user_id;
 
   // Combine Author and Members
@@ -827,8 +826,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                         @{member.username}
                       </span>
                       <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                        {member.tagline ||
-                          (member.role === "author" ? "Host" : "Member")}
+                        {member.tagline || "\u00A0"}
                       </span>
                     </div>
                   </div>
