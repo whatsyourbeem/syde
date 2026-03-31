@@ -1,7 +1,7 @@
 import { NotificationType } from './actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatRelativeTime } from '@/lib/utils';
-import { HeartIcon, MessageCircle, ArrowUpCircle } from 'lucide-react';
+import { HeartIcon, MessageCircle, ArrowUp } from 'lucide-react';
 
 const NotificationItem = ({ notification }: { notification: NotificationType }) => {
   const getMessage = () => {
@@ -21,8 +21,8 @@ const NotificationItem = ({ notification }: { notification: NotificationType }) 
     }
 
     if (notification.type === 'upvote') {
-      const showcaseTitle = notification.showcases?.title ?? '쇼케이스';
-      return <p><strong>{triggerUsername}</strong>님이 &apos;{showcaseTitle}&apos;을 업보트했습니다</p>;
+      const showcaseName = notification.showcases?.name ?? '쇼케이스';
+      return <p><strong>{triggerUsername}</strong>님이 &apos;{showcaseName}&apos;을 업보트했습니다</p>;
     }
 
     return <p>새로운 알림</p>;
@@ -40,7 +40,7 @@ const NotificationItem = ({ notification }: { notification: NotificationType }) 
             {notification.type === 'like' ? (
               <HeartIcon className="h-3 w-3 text-white fill-white" />
             ) : (
-              <ArrowUpCircle className="h-3 w-3 text-white fill-white" />
+              <ArrowUp className="h-3 w-3 text-white" strokeWidth={3} />
             )}
           </div>
         )}

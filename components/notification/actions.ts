@@ -14,7 +14,7 @@ export type NotificationType = Tables<"notifications"> & {
     content: string;
   } | null;
   showcases: {
-    title: string | null;
+    name: string | null;
   } | null;
 };
 
@@ -33,7 +33,7 @@ export async function getNotifications(): Promise<{ data: NotificationType[] | n
       *,
       trigger_user:profiles!trigger_user_id(username, avatar_url),
       logs(content),
-      showcases(title)
+      showcases(name)
     `)
     .eq('recipient_user_id', user.id)
     .order('created_at', { ascending: false });
