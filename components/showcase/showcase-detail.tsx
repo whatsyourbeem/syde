@@ -407,7 +407,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               <ShowcaseThumbnail
                 src={showcase.thumbnail_url}
                 alt={showcase.name || "Showcase"}
-                containerClassName="w-[121px] h-[120px] bg-sydeblue rounded-[10px] border border-gray-100"
+                containerClassName="w-[120px] h-[120px] bg-white rounded-[10px] border border-gray-100"
                 className="object-contain"
               />
 
