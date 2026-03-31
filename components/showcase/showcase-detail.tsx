@@ -521,24 +521,56 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
       <div className="flex flex-col items-center w-full max-w-full mx-auto bg-white">
         {/* Gallery Section */}
-        <div className="w-full h-auto md:h-auto border-b-[0.5px] border-[#B7B7B7] flex justify-center items-center py-8 md:py-10 px-2 lg:px-4 bg-white group hover:cursor-pointer overflow-hidden gap-2 md:gap-4 lg:gap-4 xl:gap-6">
-          
-          {/* Left Arrow - Fixed width, never shrinks */}
-          {galleryImages.length > 1 && (
-            <button
-              onClick={handlePrevImage}
-              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 p-2"
-              aria-label="Previous Image"
-            >
-              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#404040]" />
-            </button>
-          )}
+        {galleryImages.length > 0 && (
+          <div className="w-full h-auto md:h-auto border-b-[0.5px] border-[#B7B7B7] flex justify-center items-center py-8 md:py-10 px-2 lg:px-4 bg-white group hover:cursor-pointer overflow-hidden gap-2 md:gap-4 lg:gap-4 xl:gap-6">
+            
+            {/* Left Arrow - Fixed width, never shrinks */}
+            {galleryImages.length > 1 && (
+              <button
+                onClick={handlePrevImage}
+                className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 p-2"
+                aria-label="Previous Image"
+              >
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#404040]" />
+              </button>
+            )}
 
-          {/* Small Image - Previous Preview - Shrinks and clips from left */}
-          {galleryImages.length > 2 && (
+            {/* Small Image - Previous Preview - Shrinks and clips from left */}
+            {galleryImages.length > 2 && (
+              <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+                <motion.div
+                  key={`prev-${(currentImageIndex - 1 + galleryImages.length) % galleryImages.length}`}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  className="hidden lg:block flex-1 min-w-0 max-w-[320px] overflow-hidden rounded-r-[12px] rounded-l-none"
+                >
+                  <div className="w-full relative lg:h-[189px] bg-sydeblue">
+                    <Image
+                      src={
+                        galleryImages[(currentImageIndex - 1 + galleryImages.length) % galleryImages.length]
+                      }
+                      alt="Previous"
+                      fill
+                      className="object-cover object-right"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 bg-white/30 pointer-events-none" />
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
+
+            {/* Large Image - Scales down on mobile, fixed 480px on md+ */}
             <AnimatePresence initial={false} mode="popLayout" custom={direction}>
               <motion.div
-                key={`prev-${(currentImageIndex - 1 + galleryImages.length) % galleryImages.length}`}
+                key={`main-${currentImageIndex}`}
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
@@ -548,97 +580,67 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
                 }}
-                className="hidden lg:block flex-1 min-w-0 max-w-[320px] overflow-hidden rounded-r-[12px] rounded-l-none"
+                className="flex-1 min-w-0 md:flex-none relative w-full h-0 pb-[56.25%] md:pb-0 md:h-[270px] md:w-[480px] bg-sydeblue rounded-[10px] md:rounded-[12px] overflow-hidden"
               >
-                <div className="w-full relative lg:h-[189px] bg-sydeblue">
+                {galleryImages[currentImageIndex] ? (
                   <Image
-                    src={
-                      galleryImages[(currentImageIndex - 1 + galleryImages.length) % galleryImages.length]
-                    }
-                    alt="Previous"
+                    src={galleryImages[currentImageIndex]}
+                    alt="Main"
                     fill
-                    className="object-cover object-right"
+                    className="object-contain"
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-white/30 pointer-events-none" />
-                </div>
+                ) : (
+                  <span className="text-[14px] text-gray-500 flex items-center justify-center h-full">No Image</span>
+                )}
               </motion.div>
             </AnimatePresence>
-          )}
 
-          {/* Large Image - Scales down on mobile, fixed 480px on md+ */}
-          <AnimatePresence initial={false} mode="popLayout" custom={direction}>
-            <motion.div
-              key={`main-${currentImageIndex}`}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
-              }}
-              className="flex-1 min-w-0 md:flex-none relative w-full h-0 pb-[56.25%] md:pb-0 md:h-[270px] md:w-[480px] bg-sydeblue rounded-[10px] md:rounded-[12px] overflow-hidden"
-            >
-              {galleryImages[currentImageIndex] ? (
-                <Image
-                  src={galleryImages[currentImageIndex]}
-                  alt="Main"
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              ) : (
-                <span className="text-[14px] text-gray-500 flex items-center justify-center h-full">No Image</span>
-              )}
-            </motion.div>
-          </AnimatePresence>
+            {/* Small Image - Next Preview - Shrinks and clips from right */}
+            {galleryImages.length > 1 && (
+              <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+                <motion.div
+                  key={`next-${(currentImageIndex + 1) % galleryImages.length}`}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  className="hidden lg:block flex-1 min-w-0 max-w-[320px] overflow-hidden rounded-l-[12px] rounded-r-none"
+                >
+                  <div className="w-full relative lg:h-[189px] bg-sydeblue">
+                    <Image
+                      src={
+                        galleryImages[(currentImageIndex + 1) % galleryImages.length]
+                      }
+                      alt="Next"
+                      fill
+                      className="object-cover object-left"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 bg-white/30 pointer-events-none" />
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
 
-          {/* Small Image - Next Preview - Shrinks and clips from right */}
-          {galleryImages.length > 1 && (
-            <AnimatePresence initial={false} mode="popLayout" custom={direction}>
-              <motion.div
-                key={`next-${(currentImageIndex + 1) % galleryImages.length}`}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
-                }}
-                className="hidden lg:block flex-1 min-w-0 max-w-[320px] overflow-hidden rounded-l-[12px] rounded-r-none"
+            {/* Right Arrow - Fixed width, never shrinks */}
+            {galleryImages.length > 1 && (
+              <button
+                onClick={handleNextImage}
+                className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 p-2"
+                aria-label="Next Image"
               >
-                <div className="w-full relative lg:h-[189px] bg-sydeblue">
-                  <Image
-                    src={
-                      galleryImages[(currentImageIndex + 1) % galleryImages.length]
-                    }
-                    alt="Next"
-                    fill
-                    className="object-cover object-left"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-white/30 pointer-events-none" />
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          )}
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#404040]" />
+              </button>
+            )}
 
-          {/* Right Arrow - Fixed width, never shrinks */}
-          {galleryImages.length > 1 && (
-            <button
-              onClick={handleNextImage}
-              className="flex-none flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 p-2"
-              aria-label="Next Image"
-            >
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#404040]" />
-            </button>
-          )}
-
-        </div>
+          </div>
+        )}
 
         {/* Club Description Box */}
         <div className="w-full px-5 py-8 md:px-8 md:py-10 flex flex-col gap-6">
