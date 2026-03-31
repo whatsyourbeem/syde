@@ -80,6 +80,26 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
           </SheetClose>
           <SheetClose asChild>
             <Link
+              href="/showcase"
+              className={`p-2 hover:bg-secondary rounded-md transition-all ${
+                pathname.startsWith("/showcase") ? "font-bold text-primary" : ""
+              }`}
+            >
+              쇼케이스
+            </Link>
+          </SheetClose>
+          <SheetClose asChild>
+            <Link
+              href="/insight"
+              className={`p-2 hover:bg-secondary rounded-md transition-all ${
+                pathname.startsWith("/insight") ? "font-bold text-primary" : ""
+              }`}
+            >
+              인사이트
+            </Link>
+          </SheetClose>
+          <SheetClose asChild>
+            <Link
               href="/meetup"
               className={`p-2 hover:bg-secondary rounded-md transition-all ${
                 pathname.startsWith("/meetup") ? "font-bold text-primary" : ""
