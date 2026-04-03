@@ -759,42 +759,45 @@ export type Database = {
       }
       notifications: {
         Row: {
-          comment_id: string | null
           created_at: string
           id: string
           is_read: boolean
-          log_id: string
+          log_comment_id: string | null
+          log_id: string | null
           recipient_user_id: string
+          showcase_comment_id: string | null
           showcase_id: string | null
           trigger_user_id: string
           type: string
         }
         Insert: {
-          comment_id?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
-          log_id: string
+          log_comment_id?: string | null
+          log_id?: string | null
           recipient_user_id: string
+          showcase_comment_id?: string | null
           showcase_id?: string | null
           trigger_user_id: string
           type: string
         }
         Update: {
-          comment_id?: string | null
           created_at?: string
           id?: string
           is_read?: boolean
-          log_id?: string
+          log_comment_id?: string | null
+          log_id?: string | null
           recipient_user_id?: string
+          showcase_comment_id?: string | null
           showcase_id?: string | null
           trigger_user_id?: string
           type?: string
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_comment_id_fkey"
-            columns: ["comment_id"]
+            foreignKeyName: "notifications_log_comment_id_fkey"
+            columns: ["log_comment_id"]
             isOneToOne: false
             referencedRelation: "log_comments"
             referencedColumns: ["id"]
@@ -811,6 +814,13 @@ export type Database = {
             columns: ["recipient_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_showcase_comment_id_fkey"
+            columns: ["showcase_comment_id"]
+            isOneToOne: false
+            referencedRelation: "showcase_comments"
             referencedColumns: ["id"]
           },
           {
@@ -960,7 +970,7 @@ export type Database = {
         Row: {
           appstore_url: string | null
           created_at: string | null
-          description: string | null
+          description: Json | null
           id: string
           images: string[]
           name: string | null
@@ -975,7 +985,7 @@ export type Database = {
         Insert: {
           appstore_url?: string | null
           created_at?: string | null
-          description?: string | null
+          description?: Json | null
           id?: string
           images?: string[]
           name?: string | null
@@ -990,7 +1000,7 @@ export type Database = {
         Update: {
           appstore_url?: string | null
           created_at?: string | null
-          description?: string | null
+          description?: Json | null
           id?: string
           images?: string[]
           name?: string | null
@@ -1061,7 +1071,22 @@ export type Database = {
         Returns: Database["public"]["Enums"]["club_member_role_enum"]
       }
       get_club_owner: { Args: { club_id_text: string }; Returns: string }
-      increment_showcase_view: { Args: { p_showcase_id: string }; Returns: undefined }
+      get_trending_showcases: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          score: number
+          short_description: string
+          thumbnail_url: string
+          upvotes_count: number
+          views_count: number
+        }[]
+      }
+      increment_showcase_view: {
+        Args: { p_showcase_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       club_member_role_enum: "LEADER" | "FULL_MEMBER" | "GENERAL_MEMBER"

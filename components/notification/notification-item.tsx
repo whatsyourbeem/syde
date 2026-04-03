@@ -7,17 +7,23 @@ const NotificationItem = ({ notification }: { notification: NotificationType }) 
   const getMessage = () => {
     const triggerUsername = notification.trigger_user?.username ?? '누군가';
     
-    if (notification.type === 'like' || notification.type === 'comment') {
+    if (notification.type === 'comment') {
+      if (notification.log_id) {
+        const logContent = notification.logs?.content
+          ? notification.logs.content.substring(0, 25) + '...'
+          : '로그';
+        return <p><strong>{triggerUsername}</strong>님이 회원님의 로그에 댓글을 남겼습니다: &quot;{logContent}&quot;</p>;
+      } else if (notification.showcase_id) {
+        const showcaseName = notification.showcases?.name ?? '쇼케이스';
+        return <p><strong>{triggerUsername}</strong>님이 회원님의 쇼케이스 &apos;{showcaseName}&apos;에 댓글을 남겼습니다</p>;
+      }
+    }
+
+    if (notification.type === 'like') {
       const logContent = notification.logs?.content
         ? notification.logs.content.substring(0, 25) + '...'
         : '로그';
-
-      switch (notification.type) {
-        case 'like':
-          return <p><strong>{triggerUsername}</strong>님이 회원님의 로그를 좋아합니다: &quot;{logContent}&quot;</p>;
-        case 'comment':
-          return <p><strong>{triggerUsername}</strong>님이 회원님의 로그에 댓글을 남겼습니다: &quot;{logContent}&quot;</p>;
-      }
+      return <p><strong>{triggerUsername}</strong>님이 회원님의 로그를 좋아합니다: &quot;{logContent}&quot;</p>;
     }
 
     if (notification.type === 'upvote') {
