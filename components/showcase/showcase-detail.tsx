@@ -261,7 +261,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       showcase.profiles?.full_name || showcase.profiles?.username || "Unknown",
     role: "author", // Special role for styling
     tagline: showcase.profiles?.tagline,
-    username: showcase.profiles?.username || "unknown",
+    username: showcase.profiles?.username,
     avatar: showcase.profiles?.avatar_url,
   };
 
@@ -272,7 +272,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     name: m.profile?.full_name || m.profile?.username || "Unknown",
     role: "member", // Default role since DB has no role column
     tagline: m.profile?.tagline,
-    username: m.profile?.username || "unknown",
+    username: m.profile?.username,
     avatar: m.profile?.avatar_url,
   }));
 
@@ -342,7 +342,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     userId={showcase.user_id}
                     profileData={showcase.profiles}
                   >
-                    <div className="flex items-center gap-[5px] cursor-pointer">
+                    <Link
+                      href={`/${showcase.profiles?.username || showcase.user_id}`}
+                      className="flex items-center gap-[5px] cursor-pointer"
+                    >
                       <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
                         <Image
                           src={showcase.profiles?.avatar_url || "/default_avatar.png"}
@@ -358,7 +361,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                       <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
                         {showcase.profiles?.tagline}
                       </span>
-                    </div>
+                    </Link>
                   </ProfileHoverCard>
                 </div>
               </div>
@@ -454,7 +457,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
               <div className="flex items-center justify-center mt-1">
                 <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
-                  <div className="flex flex-row items-center gap-[5px] h-5 cursor-pointer">
+                  <Link
+                    href={`/${showcase.profiles?.username || showcase.user_id}`}
+                    className="flex flex-row items-center gap-[5px] h-5 cursor-pointer"
+                  >
                     <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
                       <Image
                         src={showcase.profiles?.avatar_url || "/default_avatar.png"}
@@ -470,7 +476,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
                       {showcase.profiles?.tagline}
                     </span>
-                  </div>
+                  </Link>
                 </ProfileHoverCard>
               </div>
             </div>
@@ -786,7 +792,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 userId={member.userId}
                 profileData={member.profileData}
               >
-                <Link href={`/${member.username}`} className="block">
+                <Link href={`/${member.username || member.userId}`} className="block">
                   <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
                     {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
                     {member.role === "author" && (
