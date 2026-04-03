@@ -342,26 +342,28 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     userId={showcase.user_id}
                     profileData={showcase.profiles}
                   >
-                    <Link
-                      href={`/${showcase.profiles?.username || showcase.user_id}`}
-                      className="flex items-center gap-[5px] cursor-pointer"
-                    >
-                      <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
-                        <Image
-                          src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                          alt="author"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <span className="font-['Pretendard'] text-[14px] font-semibold text-sydeblue leading-[19px] whitespace-nowrap">
-                        {showcase.profiles?.full_name ||
-                          showcase.profiles?.username}
-                      </span>
-                      <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
-                        {showcase.profiles?.tagline}
-                      </span>
-                    </Link>
+                    <div>
+                      <Link
+                        href={`/${showcase.profiles?.username || showcase.user_id}`}
+                        className="flex items-center gap-[5px] cursor-pointer"
+                      >
+                        <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                          <Image
+                            src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                            alt="author"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <span className="font-['Pretendard'] text-[14px] font-semibold text-sydeblue leading-[19px] whitespace-nowrap">
+                          {showcase.profiles?.full_name ||
+                            showcase.profiles?.username}
+                        </span>
+                        <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
+                          {showcase.profiles?.tagline}
+                        </span>
+                      </Link>
+                    </div>
                   </ProfileHoverCard>
                 </div>
               </div>
@@ -457,26 +459,28 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
               <div className="flex items-center justify-center mt-1">
                 <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
-                  <Link
-                    href={`/${showcase.profiles?.username || showcase.user_id}`}
-                    className="flex flex-row items-center gap-[5px] h-5 cursor-pointer"
-                  >
-                    <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
-                      <Image
-                        src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                        alt="author"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <span className="font-['Pretendard'] font-semibold text-[14px] text-sydeblue whitespace-nowrap">
-                      {showcase.profiles?.full_name ||
-                        showcase.profiles?.username}
-                    </span>
-                    <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
-                      {showcase.profiles?.tagline}
-                    </span>
-                  </Link>
+                  <div>
+                    <Link
+                      href={`/${showcase.profiles?.username || showcase.user_id}`}
+                      className="flex flex-row items-center gap-[5px] h-5 cursor-pointer"
+                    >
+                      <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                        <Image
+                          src={showcase.profiles?.avatar_url || "/default_avatar.png"}
+                          alt="author"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="font-['Pretendard'] font-semibold text-[14px] text-sydeblue whitespace-nowrap">
+                        {showcase.profiles?.full_name ||
+                          showcase.profiles?.username}
+                      </span>
+                      <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
+                        {showcase.profiles?.tagline}
+                      </span>
+                    </Link>
+                  </div>
                 </ProfileHoverCard>
               </div>
             </div>
@@ -792,53 +796,55 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 userId={member.userId}
                 profileData={member.profileData}
               >
-                <Link href={`/${member.username || member.userId}`} className="block">
-                  <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
-                    {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
-                    {member.role === "author" && (
-                      <div className="absolute top-2 left-2 text-sydeorange">
-                        {/* Crown Icon placeholder or small customized svg */}
-                        <svg
-                          width="20"
-                          height="16"
-                          viewBox="0 0 20 16"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
-                            fill="white"
-                            fillOpacity="0.01"
-                          />
-                          <path
-                            d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </div>
-                    )}
+                <div>
+                  <Link href={`/${member.username || member.userId}`} className="block">
+                    <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
+                      {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
+                      {member.role === "author" && (
+                        <div className="absolute top-2 left-2 text-sydeorange">
+                          {/* Crown Icon placeholder or small customized svg */}
+                          <svg
+                            width="20"
+                            height="16"
+                            viewBox="0 0 20 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M2.5 16C1.12188 16 0 14.8781 0 13.5V2.5C0 1.12188 1.12188 0 2.5 0H17.5C18.8781 0 20 1.12188 20 2.5V13.5C20 14.8781 18.8781 16 17.5 16H2.5Z"
+                              fill="white"
+                              fillOpacity="0.01"
+                            />
+                            <path
+                              d="M10 0.240234L12.93 5.92023L19.55 6.75023L14.66 11.3902L15.93 17.7602L10 14.4902L4.07 17.7602L5.34 11.3902L0.45 6.75023L7.07 5.92023L10 0.240234Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                        </div>
+                      )}
 
-                    <div className="relative w-[48px] h-[48px]">
-                      <Avatar className="w-full h-full">
-                        <AvatarImage src={member.avatar || ""} />
-                        <AvatarFallback className="bg-[#D9D9D9]">
-                          {member.name?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative w-[48px] h-[48px]">
+                        <Avatar className="w-full h-full">
+                          <AvatarImage src={member.avatar || ""} />
+                          <AvatarFallback className="bg-[#D9D9D9]">
+                            {member.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <div className="flex flex-col items-center gap-0 w-full">
+                        <span className="font-['Pretendard'] font-bold text-[12px] md:text-[14px] text-sydeblue w-full text-center truncate px-1">
+                          {member.name}
+                        </span>
+                        <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                          @{member.username}
+                        </span>
+                        <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
+                          {member.tagline || "\u00A0"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-center gap-0 w-full">
-                      <span className="font-['Pretendard'] font-bold text-[12px] md:text-[14px] text-sydeblue w-full text-center truncate px-1">
-                        {member.name}
-                      </span>
-                      <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                        @{member.username}
-                      </span>
-                      <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
-                        {member.tagline || "\u00A0"}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                  </Link>
+                </div>
               </ProfileHoverCard>
             ))}
           </div>
