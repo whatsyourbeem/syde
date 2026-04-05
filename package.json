@@ -9,7 +9,9 @@
     "analyze": "ANALYZE=true next build",
     "sb:version": ".\\node_modules\\.bin\\supabase --version",
     "sb": "supabase",
-    "sb:start": ".\\node_modules\\.bin\\supabase start"
+    "sb:start": ".\\node_modules\\.bin\\supabase start",
+    "sb:pull-seed": "npx supabase db dump --data-only --linked --exclude storage.buckets > supabase/seed.sql",
+    "sb:reset": "npx supabase db reset"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
