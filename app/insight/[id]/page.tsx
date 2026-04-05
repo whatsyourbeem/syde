@@ -1,7 +1,10 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { notFound, redirect } from "next/navigation";
 import InsightDetailClient from "@/components/insight/insight-detail-client";
 import TiptapViewer from "@/components/common/tiptap-viewer";
+
+const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
 interface InsightDetailPageProps {
     params: Promise<{
@@ -13,14 +16,21 @@ export async function generateMetadata(
     { params }: InsightDetailPageProps,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    const { id } = await params;
+    const rawParams = await params;
+    const id = decodeURIComponent(rawParams.id);
     const supabase = await createClient();
 
-    const { data: insight } = await supabase
+    let query = supabase
         .from("insights")
-        .select("title, summary, content, image_url")
-        .eq("id", id)
-        .single();
+        .select("id, slug, title, summary, content, image_url") as any;
+        
+    if (isUUID(id)) {
+        query = query.eq("id", id);
+    } else {
+        query = query.eq("slug", id);
+    }
+
+    const { data: insight } = await query.maybeSingle();
 
     if (!insight) {
         return { title: "Insight Not Found - SYDE" };
@@ -51,15 +61,34 @@ export async function generateMetadata(
         plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText || "SYDE 인사이트를 확인해보세요.";
     const images = insight.image_url ? [insight.image_url] : ["/we-are-syders.png"];
 
+    const keywords = ["SYDE", "사이드프로젝트", "인사이트", "IT 커뮤니티"];
+    if (insight.title) keywords.push(insight.title);
+    if (plainText) {
+        const words = plainText.split(/\s+/).filter((w: string) => w.length > 1);
+        keywords.push(...words.slice(0, 5));
+    }
+
+    const url = `/insight/${insight.slug || insight.id}`;
+
     return {
         title,
         description,
+        keywords: keywords.join(", "),
+        alternates: {
+            canonical: url,
+        },
         openGraph: {
             title,
             description,
             images,
             type: "article",
-            url: `/insight/${id}`,
+            url,
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images,
         },
     };
 }
@@ -67,13 +96,13 @@ export async function generateMetadata(
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 
 export default async function InsightDetailPage({ params }: InsightDetailPageProps) {
-    const { id } = await params;
+    const rawParams = await params;
+    const id = decodeURIComponent(rawParams.id);
     const supabase = await createClient();
 
     // Fetch Insight
-    const { data: insight, error: insightError } = await supabase
+    let query = supabase
         .from("insights")
-        // ...
         .select(`
             *,
             profiles:user_id (
@@ -82,9 +111,15 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
               avatar_url,
               tagline
             )
-          `)
-        .eq("id", id)
-        .single();
+          `) as any;
+
+    if (isUUID(id)) {
+        query = query.eq("id", id);
+    } else {
+        query = query.eq("slug", id);
+    }
+
+    const { data: insight, error: insightError } = await query.maybeSingle();
 
     if (insightError || !insight) {
         return (
@@ -93,6 +128,10 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
                 <a href="/insight" className="px-4 py-2 bg-sydeblue text-white rounded-md">목록으로 돌아가기</a>
             </div>
         );
+    }
+
+    if (isUUID(id) && insight.slug) {
+        redirect(`/insight/${insight.slug}`);
     }
 
     const initialHtml = getInitialHtmlFromTiptap(insight.content);
@@ -108,19 +147,19 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
               tagline
             )
           `)
-        .eq("insight_id", id)
+        .eq("insight_id", insight.id)
         .order("created_at", { ascending: true });
 
     // Fetch Stats
     const { count: likesCount } = await supabase
         .from("insight_likes")
         .select("*", { count: "exact", head: true })
-        .eq("insight_id", id);
+        .eq("insight_id", insight.id);
 
     const { count: bookmarksCount } = await supabase
         .from("insight_bookmarks")
         .select("*", { count: "exact", head: true })
-        .eq("insight_id", id);
+        .eq("insight_id", insight.id);
 
     // Fetch User State
     const { data: { user } } = await supabase.auth.getUser();
@@ -131,14 +170,14 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         const { data: likeData } = await supabase
             .from("insight_likes")
             .select("id")
-            .eq("insight_id", id)
+            .eq("insight_id", insight.id)
             .eq("user_id", user.id)
             .maybeSingle();
 
         const { data: bookmarkData } = await supabase
             .from("insight_bookmarks")
             .select("insight_id")
-            .eq("insight_id", id)
+            .eq("insight_id", insight.id)
             .eq("user_id", user.id)
             .maybeSingle();
 
@@ -152,16 +191,56 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         bookmarks: bookmarksCount || 0
     };
 
+    let plainText = "";
+    if (insight.summary) {
+        plainText = insight.summary;
+    } else {
+        try {
+            const parsed = JSON.parse(insight.content);
+            const extractText = (node: any): string => {
+                if (node.type === "text" && node.text) return node.text;
+                if (node.content && Array.isArray(node.content)) {
+                    return node.content.map(extractText).join(" ");
+                }
+                return "";
+            };
+            plainText = extractText(parsed).trim();
+        } catch (e) {
+            plainText = insight.content || "";
+        }
+    }
+
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": insight.title,
+        "description": insight.summary || plainText.slice(0, 160) || "SYDE insight article",
+        "image": insight.image_url || "https://syde.community/we-are-syders.png",
+        "author": {
+            "@type": "Person",
+            "name": insight.profiles?.full_name || insight.profiles?.username || "SYDER",
+        },
+        "url": `https://syde.community/insight/${insight.slug || insight.id}`,
+        "datePublished": insight.created_at,
+        "dateModified": insight.updated_at || insight.created_at,
+    };
+
     return (
-        <InsightDetailClient
-            id={id}
-            initialInsight={insight}
-            initialHtml={initialHtml}
-            initialComments={comments || []}
-            initialStats={stats}
-            initialIsLiked={isLiked}
-            initialIsBookmarked={isBookmarked}
-            initialCurrentUserId={user?.id || null}
-        />
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <InsightDetailClient
+                id={insight.id}
+                initialInsight={insight}
+                initialHtml={initialHtml}
+                initialComments={comments || []}
+                initialStats={stats}
+                initialIsLiked={isLiked}
+                initialIsBookmarked={isBookmarked}
+                initialCurrentUserId={user?.id || null}
+            />
+        </>
     );
 }

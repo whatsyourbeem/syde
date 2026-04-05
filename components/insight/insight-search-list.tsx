@@ -46,6 +46,7 @@ export function InsightSearchList({ searchQuery }: InsightSearchListProps) {
 
       const formattedInsights = (insightsData || []).map((item: any) => ({
         id: item.id,
+        slug: item.slug,
         title: item.title,
         summary: item.summary,
         createdAt: item.created_at,

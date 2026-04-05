@@ -69,13 +69,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }));
 
-    // 6. Dynamic Routes: Insights (/insight/[id])
+    // 6. Dynamic Routes: Insights (/insight/[slug_or_id])
     const { data: insights } = await supabase
         .from("insights")
-        .select("id, updated_at");
+        .select("id, slug, updated_at");
 
-    const insightRoutes = (insights || []).map((insight) => ({
-        url: `${baseUrl}/insight/${insight.id}`,
+    const insightRoutes = (insights || []).map((insight: any) => ({
+        url: `${baseUrl}/insight/${insight.slug || insight.id}`,
         lastModified: insight.updated_at || new Date().toISOString(),
         changeFrequency: "weekly" as const,
         priority: 0.7,

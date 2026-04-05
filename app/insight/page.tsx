@@ -35,6 +35,7 @@ export default function InsightPage() {
             .from("insights")
             .select(`
                 id,
+                slug,
                 user_id,
                 title,
                 summary,
@@ -57,6 +58,7 @@ export default function InsightPage() {
 
         const mappedData: InsightCardProps[] = (data || []).map((item: any) => ({
             id: item.id,
+            slug: item.slug,
             title: item.title,
             summary: item.summary,
             createdAt: item.created_at,

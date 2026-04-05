@@ -16,6 +16,7 @@ import { InsightThumbnail } from "./insight-thumbnail";
 
 export interface InsightCardProps {
     id: string;
+    slug?: string;
     title: string;
     summary: string | null;
     createdAt: string;
@@ -43,6 +44,7 @@ export interface InsightCardProps {
 
 export function InsightCard({
     id,
+    slug,
     title,
     summary,
     createdAt,
@@ -133,7 +135,7 @@ export function InsightCard({
                     containerClassName="w-full aspect-w-1 aspect-h-1 flex-none rounded-[12px]"
                 />
             ) : (
-                <Link href={`/insight/${id}`} className="block focus:outline-none">
+                <Link href={`/insight/${slug || id}`} className="block focus:outline-none">
                     <InsightThumbnail
                         src={imageUrl}
                         alt={title}
@@ -158,7 +160,7 @@ export function InsightCard({
                         </p>
                     </div>
                 ) : (
-                    <Link href={`/insight/${id}`} className="flex flex-col gap-[5px] focus:outline-none">
+                    <Link href={`/insight/${slug || id}`} className="flex flex-col gap-[5px] focus:outline-none">
                         <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-1 overflow-hidden">
                             {title}
                         </h3>
@@ -202,7 +204,7 @@ export function InsightCard({
                         loading={loading}
                         onLikeToggle={handleLikeToggle}
                         onBookmarkToggle={handleBookmarkToggle}
-                        shareUrl={`/insight/${id}`}
+                        shareUrl={`/insight/${slug || id}`}
                         shareTitle={title}
                         className="px-3 pt-0 md:pt-1 pb-1"
                     />
