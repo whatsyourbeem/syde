@@ -262,3 +262,18 @@ export function formatNumber(num: number): string {
   }
   return num.toString();
 }
+/**
+ * Generates a URL-friendly slug from a string.
+ * Supports Korean characters, replaces spaces with hyphens, and removes special characters.
+ */
+export function generateSlug(text: string): string {
+  if (!text) return "";
+  
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9가-힣\s-]/g, "") // Allow alphanumeric, Korean, spaces, and hyphens
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with a single one
+    .replace(/^-+|-+$/g, ""); // Remove leading and trailing hyphens
+}

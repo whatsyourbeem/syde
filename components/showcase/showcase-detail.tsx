@@ -316,7 +316,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
               {/* Thumbnail (Desktop: 160x160) */}
               <ShowcaseThumbnail
                 src={showcase.thumbnail_url}
-                alt={showcase.name || "Showcase"}
+                alt={`${projectTitle} 썸네일`}
                 containerClassName="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] border border-gray-100"
                 className="object-contain"
               />
@@ -350,7 +350,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                         <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
                           <Image
                             src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                            alt="author"
+                            alt={`${authorMember.name} 프로필 이미지`}
                             fill
                             className="object-cover"
                           />
@@ -411,7 +411,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
               <ShowcaseThumbnail
                 src={showcase.thumbnail_url}
-                alt={showcase.name || "Showcase"}
+                alt={`${projectTitle} 썸네일`}
                 containerClassName="w-[120px] h-[120px] bg-white rounded-[10px] border border-gray-100"
                 className="object-contain"
               />
@@ -467,7 +467,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                       <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
                         <Image
                           src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                          alt="author"
+                          alt={`${authorMember.name} 프로필 이미지`}
                           fill
                           className="object-cover"
                         />
@@ -566,7 +566,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                       src={
                         galleryImages[(currentImageIndex - 1 + galleryImages.length) % galleryImages.length]
                       }
-                      alt="Previous"
+                      alt={`${projectTitle} 스크린샷 이전`}
                       fill
                       className="object-cover object-right"
                       unoptimized
@@ -595,7 +595,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                 {galleryImages[currentImageIndex] ? (
                   <Image
                     src={galleryImages[currentImageIndex]}
-                    alt="Main"
+                    alt={`${projectTitle} 스크린샷 ${currentImageIndex + 1}`}
                     fill
                     className="object-contain"
                     unoptimized
@@ -627,7 +627,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                       src={
                         galleryImages[(currentImageIndex + 1) % galleryImages.length]
                       }
-                      alt="Next"
+                      alt={`${projectTitle} 스크린샷 다음`}
                       fill
                       className="object-cover object-left"
                       unoptimized
@@ -658,7 +658,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             <div className="flex items-center gap-2">
               <Image
                 src="/orange_line.png"
-                alt="icon"
+                alt="소개 아이콘"
                 width={26}
                 height={26}
                 className="object-contain"
@@ -779,7 +779,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           <div className="flex items-center gap-2">
             <Image
               src="/orange_line.png"
-              alt="icon"
+              alt="멤버 아이콘"
               width={26}
               height={26}
               className="object-contain"
@@ -857,7 +857,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           <div className="flex items-center gap-2">
             <Image
               src="/orange_line.png"
-              alt="icon"
+              alt="댓글 아이콘"
               width={26}
               height={26}
               className="object-contain"

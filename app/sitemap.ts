@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     // 1. Static Routes
-    const staticRoutes = ["", "/log", "/meetup", "/gathering/club", "/insight"].map(
+    const staticRoutes = ["", "/log", "/meetup", "/gathering/club", "/insight", "/showcase"].map(
         (route) => ({
             url: `${baseUrl}${route}`,
             lastModified: new Date().toISOString(),
@@ -81,6 +81,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }));
 
+    // 7. Dynamic Routes: Showcases (/showcase/[slug_or_id])
+    const { data: showcases } = await supabase
+        .from("showcases")
+        .select("id, slug, updated_at");
+
+    const showcaseRoutes = (showcases || []).map((showcase: any) => ({
+        url: `${baseUrl}/showcase/${showcase.slug || showcase.id}`,
+        lastModified: showcase.updated_at || new Date().toISOString(),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+    }));
+
     return [
         ...staticRoutes,
         ...profileRoutes,
@@ -88,5 +100,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ...meetupRoutes,
         ...clubRoutes,
         ...insightRoutes,
+        ...showcaseRoutes,
     ];
 }

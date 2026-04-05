@@ -40,6 +40,7 @@ export async function fetchShowcasesAction({
   const selectQuery = `
     id,
     name,
+    slug,
     short_description,
     description,
     thumbnail_url,

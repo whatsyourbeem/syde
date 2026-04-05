@@ -104,7 +104,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
           <div className="flex flex-col gap-2 lg:gap-3">
             {displayShowcases.map((showcase, index) => (
               <div key={showcase.id}>
-                <Link href={`/showcase/${showcase.id}`} className="block group">
+                <Link href={`/showcase/${showcase.slug || showcase.id}`} className="block group">
                   <div className="flex items-center gap-2">
                     <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue flex-shrink-0">
                       {index + 1}
@@ -140,7 +140,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
             >
-              <Link href={`/showcase/${displayShowcases[currentIndex].id}`} className="block group">
+              <Link href={`/showcase/${displayShowcases[currentIndex].slug || displayShowcases[currentIndex].id}`} className="block group">
                 <div className="flex items-center gap-2">
                   <span className="font-pretendard font-bold text-[14px] w-[14px] text-center text-sydeblue flex-shrink-0">
                     {currentIndex + 1}

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export interface TrendingShowcase {
   id: string;
   name: string;
+  slug: string | null;
   short_description: string | null;
   thumbnail_url: string | null;
   score: number;

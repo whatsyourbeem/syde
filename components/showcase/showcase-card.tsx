@@ -21,6 +21,7 @@ interface ShowcaseCardProps {
     short_description?: string | null;
     thumbnail_url?: string | null;
     views_count?: number;
+    slug?: string | null;
   };
   currentUserId: string | null;
   initialUpvotesCount: number;
@@ -72,8 +73,8 @@ function ShowcaseCardBase({
 
   const handleCardClick = useCallback(() => {
     if (isDetailPage) return;
-    router.push(`/showcase/${showcase.id}`);
-  }, [isDetailPage, showcase.id, router]);
+    router.push(`/showcase/${showcase.slug || showcase.id}`);
+  }, [isDetailPage, showcase.slug, showcase.id, router]);
 
   if (!isDetailPage && !isVisible) {
     return (

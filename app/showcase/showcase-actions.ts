@@ -5,6 +5,7 @@ import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
 import { handleShowcaseImage, handleShowcaseDetailImages, deleteShowcaseStorage, FILE_SIZE_LIMITS } from "@/lib/storage";
+import { generateSlug } from "@/lib/utils";
 
 export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
@@ -40,10 +41,26 @@ export const createShowcase = withAuthForm(
       processedDescription = descriptionString ? await processMentionsForSave(descriptionString, supabase) : null;
     }
 
+    // Generate unique slug
+    let slug = generateSlug(name);
+    if (!slug) slug = "project";
+    
+    // Check for existing slug to ensure uniqueness
+    const { data: existingSlug } = await supabase
+      .from("showcases")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (existingSlug) {
+      slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
+    }
+
     const { data, error: insertError } = await supabase
       .from("showcases")
       .insert({
         name,
+        slug,
         short_description: shortDescription,
         description: processedDescription,
         user_id: user.id,
@@ -154,7 +171,7 @@ export const updateShowcase = withAuthForm(
 
     const { data: oldShowcaseData } = await supabase
       .from("showcases")
-      .select("thumbnail_url, user_id")
+      .select("thumbnail_url, user_id, slug")
       .eq("id", showcaseId)
       .single();
 
@@ -197,6 +214,7 @@ export const updateShowcase = withAuthForm(
       playstore_url?: string | null;
       appstore_url?: string | null;
       images?: string[];
+      slug?: string;
     } = {
       name,
       short_description: shortDescription,
@@ -205,6 +223,23 @@ export const updateShowcase = withAuthForm(
       playstore_url: googlePlayLink || null,
       appstore_url: appStoreLink || null,
     };
+
+    // Only set slug if it doesn't exist yet (Immutable)
+    if (!oldShowcaseData?.slug) {
+      let slug = generateSlug(name);
+      if (!slug) slug = "project";
+      
+      const { data: existingSlug } = await supabase
+        .from("showcases")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existingSlug) {
+        slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
+      }
+      updateData.slug = slug;
+    }
     if (thumbnailUrl !== undefined) {
       updateData.thumbnail_url = thumbnailUrl;
     }
