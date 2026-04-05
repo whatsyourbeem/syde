@@ -24,6 +24,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatRelativeTime, linkifyMentions } from "@/lib/utils";
@@ -90,6 +91,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
   // Gallery State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   // existing state code...
   const [isDeleting, setIsDeleting] = useState(false);
@@ -141,6 +143,24 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       );
     }
   };
+
+  // Keyboard Navigation for Viewer
+  useEffect(() => {
+    if (!isViewerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsViewerOpen(false);
+      } else if (e.key === "ArrowLeft") {
+        setDirection(-1);
+        setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+      } else if (e.key === "ArrowRight") {
+        setDirection(1);
+        setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isViewerOpen, galleryImages.length]);
 
   // Mention State (Legacy support for content rendering)
   const [mentionedProfiles, setMentionedProfiles] = useState<
@@ -590,7 +610,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
                 }}
-                className="flex-1 min-w-0 md:flex-none relative w-full h-0 pb-[56.25%] md:pb-0 md:h-[270px] md:w-[480px] bg-sydeblue rounded-[10px] md:rounded-[12px] overflow-hidden"
+                className="flex-1 min-w-0 md:flex-none relative w-full h-0 pb-[56.25%] md:pb-0 md:h-[270px] md:w-[480px] bg-sydeblue rounded-[10px] md:rounded-[12px] overflow-hidden cursor-pointer"
+                onClick={() => setIsViewerOpen(true)}
               >
                 {galleryImages[currentImageIndex] ? (
                   <Image
@@ -923,6 +944,66 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         open={showDeleteSuccessDialog}
         onOpenChange={setShowDeleteSuccessDialog}
       />
+
+      {/* Full Screen Image Viewer Modal */}
+      {isViewerOpen && galleryImages.length > 0 && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95">
+          <button
+            onClick={() => setIsViewerOpen(false)}
+            className="absolute top-4 right-4 z-50 p-2 text-white/70 hover:text-white transition-colors"
+            aria-label="Close Viewer"
+          >
+            <X className="w-8 h-8" />
+          </button>
+
+          {/* Left Navigation */}
+          {galleryImages.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevImage();
+              }}
+              className="absolute left-4 z-50 p-2 text-white/50 hover:text-white transition-colors"
+              aria-label="Previous Image"
+            >
+              <ChevronLeft className="w-10 h-10" />
+            </button>
+          )}
+
+          {/* Main Content Areas */}
+          <div 
+            className="relative w-full h-full px-16 py-8 flex items-center justify-center"
+            onClick={() => setIsViewerOpen(false)}
+          >
+            <div 
+              className="relative w-full h-full max-w-[1200px]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={galleryImages[currentImageIndex]}
+                alt={`${projectTitle} 스크린샷 뷰어 ${currentImageIndex + 1}`}
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            </div>
+          </div>
+
+          {/* Right Navigation */}
+          {galleryImages.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextImage();
+              }}
+              className="absolute right-4 z-50 p-2 text-white/50 hover:text-white transition-colors"
+              aria-label="Next Image"
+            >
+              <ChevronRight className="w-10 h-10" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
