@@ -14,13 +14,13 @@ const TiptapEditorWrapper = dynamic(
 interface MeetupDescriptionEditorProps {
   initialDescription: JSONContent | null;
   onDescriptionChange: (json: JSONContent) => void;
-  onImageAdded: (file: File, blobUrl: string) => void;
+  onImageUpload: (file: File) => Promise<string>;
 }
 
 export default function MeetupDescriptionEditor({
   initialDescription,
   onDescriptionChange,
-  onImageAdded,
+  onImageUpload,
 }: MeetupDescriptionEditorProps) {
 
   return (
@@ -30,14 +30,7 @@ export default function MeetupDescriptionEditor({
         onContentChange={onDescriptionChange}
         placeholder="모임 상세 설명을 작성해주세요."
         editable={true}
-        onImageUpload={async (file) => {
-          // Don't upload here. Create a local URL for preview.
-          const blobUrl = URL.createObjectURL(file);
-          // Pass the file and its blob URL to the parent component.
-          onImageAdded(file, blobUrl);
-          // Return the blob URL to Tiptap for display.
-          return blobUrl;
-        }}
+        onImageUpload={onImageUpload}
       />
     </div>
   );

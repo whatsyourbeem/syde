@@ -6,9 +6,7 @@ import { Database, Enums } from "@/types/database.types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { v4 as uuidv4 } from "uuid";
 import { redirect } from "next/navigation";
-import { uploadAndGetUrl, getFileExtension } from "@/lib/storage";
 
 type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
   meetup_participants: Database["public"]["Tables"]["meetup_participants"]["Row"][];
@@ -23,75 +21,21 @@ export async function createMeetup(
   } = await supabase.auth.getUser();
   if (!user) return { error: "로그인이 필요합니다." };
 
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  const id = uuidv4();
   const clubId = formData.get("clubId") as string | null;
   const title = formData.get("title") as string;
   const descriptionJSON = formData.get("description") as string;
-  const thumbnailFile = formData.get("thumbnailFile") as File | null;
-  const defaultThumbnailUrl = formData.get("thumbnailUrl") as string | null;
-  const descriptionImageFiles = formData.getAll(
-    "descriptionImageFiles"
-  ) as File[];
+  const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
 
-  let descriptionContent = JSON.parse(descriptionJSON);
-  let finalThumbnailUrl: string | null = null;
+  const descriptionContent = JSON.parse(descriptionJSON);
 
   try {
-    // 1. Upload thumbnail if it exists, otherwise use default
-    if (thumbnailFile && thumbnailFile.size > 0) {
-      const fileExt = getFileExtension(thumbnailFile.type);
-      const thumbnailPath = `${id}/thumbnail/${uuidv4()}.${fileExt}`;
-      finalThumbnailUrl = await uploadAndGetUrl(
-        adminClient,
-        "meetups",
-        thumbnailPath,
-        thumbnailFile
-      );
-    } else if (defaultThumbnailUrl) {
-      finalThumbnailUrl = defaultThumbnailUrl;
-    }
-
-    // 2. Upload description images and replace blob URLs
-    if (descriptionImageFiles.length > 0) {
-      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-        const blobUrl = formData.get(
-          `descriptionImageBlobUrl_${index}`
-        ) as string;
-        const fileExt = getFileExtension(file.type);
-        const descriptionPath = `${id}/description/${uuidv4()}.${fileExt}`;
-        const publicUrl = await uploadAndGetUrl(
-          adminClient,
-          "meetups",
-          descriptionPath,
-          file
-        );
-        return { blobUrl, publicUrl };
-      });
-
-      const uploadedImages = await Promise.all(uploadPromises);
-      let descriptionString = JSON.stringify(descriptionContent);
-      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-        descriptionString = descriptionString.replace(
-          new RegExp(blobUrl, "g"),
-          publicUrl
-        );
-      });
-      descriptionContent = JSON.parse(descriptionString);
-    }
-
-    // 3. Insert meetup data into the database
+    // Insert meetup data into the database
     const meetupData = {
-      id: id,
       organizer_id: user.id,
       club_id: clubId,
       title,
       description: descriptionContent,
-      thumbnail_url: finalThumbnailUrl,
+      thumbnail_url: thumbnailUrl || null,
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
@@ -162,64 +106,20 @@ export async function updateMeetup(
       return { error: "모임을 수정할 권한이 없습니다." };
     }
 
-    const thumbnailFile = formData.get("thumbnailFile") as File | null;
-    let newThumbnailUrl = existingMeetup.thumbnail_url;
+    const newThumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
 
-    if (thumbnailFile && thumbnailFile.size > 0) {
-      const fileExt = thumbnailFile.type.split("/")[1];
-      const thumbnailPath = `${meetupId}/thumbnail/${uuidv4()}.${fileExt}`;
-      newThumbnailUrl = await uploadAndGetUrl(
-        adminClient,
-        "meetups",
-        thumbnailPath,
-        thumbnailFile
-      );
-
-      // Optional: Delete old thumbnail if it exists
-      if (existingMeetup.thumbnail_url) {
-        const oldThumbnailPath =
-          existingMeetup.thumbnail_url.split("/meetups/")[1];
-        await adminClient.storage.from("meetups").remove([oldThumbnailPath]);
+    // Delete old thumbnail if a new one was uploaded
+    if (newThumbnailUrl !== existingMeetup.thumbnail_url && existingMeetup.thumbnail_url) {
+      try {
+        const oldPath = existingMeetup.thumbnail_url.split("/meetups/")[1];
+        if (oldPath) await adminClient.storage.from("meetups").remove([oldPath]);
+      } catch (e) {
+        console.warn("Failed to delete old thumbnail:", e);
       }
     }
 
-    const descriptionImageFiles = formData.getAll(
-      "descriptionImageFiles"
-    ) as File[];
     const descriptionJSON = formData.get("description") as string;
-    let descriptionContent = JSON.parse(descriptionJSON);
-
-    if (descriptionImageFiles.length > 0) {
-      const uploadPromises = descriptionImageFiles.map(async (file, index) => {
-        if (file.size === 0) return null;
-        const blobUrl = formData.get(
-          `descriptionImageBlobUrl_${index}`
-        ) as string;
-        const fileExt = getFileExtension(file.type);
-        const descriptionPath = `${meetupId}/description/${uuidv4()}.${fileExt}`;
-        const publicUrl = await uploadAndGetUrl(
-          adminClient,
-          "meetups",
-          descriptionPath,
-          file
-        );
-        return { blobUrl, publicUrl };
-      });
-
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(
-        Boolean
-      ) as { blobUrl: string; publicUrl: string }[];
-      let descriptionString = JSON.stringify(descriptionContent);
-      uploadedImages.forEach(({ blobUrl, publicUrl }) => {
-        if (blobUrl && publicUrl) {
-          descriptionString = descriptionString.replace(
-            new RegExp(blobUrl, "g"),
-            publicUrl
-          );
-        }
-      });
-      descriptionContent = JSON.parse(descriptionString);
-    }
+    const descriptionContent = JSON.parse(descriptionJSON);
 
     const updateData = {
       title: formData.get("title") as string,

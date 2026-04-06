@@ -9,7 +9,9 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
-import { FILE_SIZE_LIMITS } from "@/lib/storage";
+import { compressImage } from "@/lib/image-compression";
+
+const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 const TiptapEditorWrapper = dynamic(
     () => import("@/components/common/tiptap-editor-wrapper"),
@@ -130,20 +132,19 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
     const handleTiptapImageUpload = async (file: File): Promise<string | null> => {
         try {
-            if (file.size > FILE_SIZE_LIMITS.IMAGE) {
-                throw new Error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.`);
+            if (file.size > FILE_SIZE_LIMIT) {
+                throw new Error(`이미지 용량은 20MB를 초과할 수 없습니다.`);
             }
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("로그인이 필요합니다.");
 
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
-            const filePath = `editor/${fileName}`;
+            const compressed = await compressImage(file, "detail");
+            const filePath = `${user.id}/editor/${uuidv4()}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('insight-images')
-                .upload(filePath, file);
+                .upload(filePath, compressed);
 
             if (uploadError) throw uploadError;
 
@@ -162,9 +163,8 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // 용량 제한 (2MB)
-        if (file.size > FILE_SIZE_LIMITS.THUMBNAIL) {
-            toast.error(`이미지 크기는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.`);
+        if (file.size > FILE_SIZE_LIMIT) {
+            toast.error(`이미지는 20MB를 초과할 수 없습니다.`);
             return;
         }
 
@@ -176,13 +176,12 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 return;
             }
 
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            const compressed = await compressImage(file, "thumbnail");
+            const filePath = `${user.id}/${uuidv4()}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('insight-images')
-                .upload(filePath, file);
+                .upload(filePath, compressed);
 
             if (uploadError) throw uploadError;
 
@@ -319,9 +318,9 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     <Button
                         className="w-48 h-10 bg-sydeblue hover:bg-sydeblue/90 text-white rounded-[12px] text-[14px] font-medium"
                         onClick={handleSubmit}
-                        disabled={loading}
+                        disabled={loading || uploading}
                     >
-                        {loading ? "처리 중..." : `인사이트 ${isEditMode ? '수정하기' : '등록하기'}`}
+                        {uploading ? "업로드 중..." : loading ? "처리 중..." : `인사이트 ${isEditMode ? '수정하기' : '등록하기'}`}
                     </Button>
                 </div>
             </main>

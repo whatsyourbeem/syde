@@ -1,10 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image-compression";
+import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -48,6 +51,8 @@ const MeetupDescriptionEditor = dynamic(
   }
 );
 
+const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+
 type Meetup = Tables<"meetups">;
 
 interface MeetupEditFormProps {
@@ -59,9 +64,10 @@ interface MeetupEditFormProps {
 export default function MeetupEditForm({
   meetup,
   clubId,
-  thumbnailUrl,
+  thumbnailUrl: defaultThumbnailUrl,
 }: MeetupEditFormProps) {
   const router = useRouter();
+  const supabase = createClient();
   const formRef = React.useRef<HTMLFormElement>(null);
   const isEditMode = !!meetup;
 
@@ -85,22 +91,14 @@ export default function MeetupEditForm({
   const [fee, setFee] = useState<number | string>(meetup?.fee || "");
   const [maxParticipantsError, setMaxParticipantsError] = useState<string | null>(null);
 
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
-    meetup?.thumbnail_url || (thumbnailUrl ? thumbnailUrl : null)
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
+    meetup?.thumbnail_url || defaultThumbnailUrl || null
   );
-  const [descriptionImages, setDescriptionImages] = useState<{ file: File; blobUrl: string }[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Clean up blob URLs on unmount
-    return () => {
-      descriptionImages.forEach(({ blobUrl }) => URL.revokeObjectURL(blobUrl));
-    };
-  }, [descriptionImages]);
 
   useEffect(() => {
     if (!startDatetime || !endDatetime) {
@@ -123,22 +121,48 @@ export default function MeetupEditForm({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setThumbnailFile(file);
-      if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
-        URL.revokeObjectURL(thumbnailPreview);
-      }
-      setThumbnailPreview(URL.createObjectURL(file));
-    } else {
-      setThumbnailFile(null);
-      setThumbnailPreview(meetup?.thumbnail_url || null);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > FILE_SIZE_LIMIT) {
+      toast.error("이미지는 20MB를 초과할 수 없습니다.");
+      return;
+    }
+
+    setIsCompressing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("로그인이 필요합니다."); return; }
+
+      const compressed = await compressImage(file, "thumbnail");
+      const filePath = `${user.id}/${uuidv4()}`;
+      const { error: uploadError } = await supabase.storage.from("meetups").upload(filePath, compressed);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("meetups").getPublicUrl(filePath);
+      setThumbnailUrl(publicUrl);
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error);
+      toast.error("썸네일 업로드에 실패했습니다.");
+    } finally {
+      setIsCompressing(false);
     }
   };
 
-  const handleDescriptionImageAdded = (file: File, blobUrl: string) => {
-    setDescriptionImages((prev) => [...prev, { file, blobUrl }]);
+  const handleEditorImageUpload = async (file: File): Promise<string> => {
+    if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지는 20MB를 초과할 수 없습니다.");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("로그인이 필요합니다.");
+
+    const compressed = await compressImage(file, "detail");
+    const filePath = `${user.id}/editor/${uuidv4()}`;
+    const { error: uploadError } = await supabase.storage.from("meetups").upload(filePath, compressed);
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage.from("meetups").getPublicUrl(filePath);
+    return publicUrl;
   };
 
   const clientAction = async (formData: FormData) => {
@@ -167,16 +191,7 @@ export default function MeetupEditForm({
     if (clubId) {
       formData.append("clubId", clubId);
     }
-    if (thumbnailFile) {
-      formData.append("thumbnailFile", thumbnailFile);
-    } else if (thumbnailUrl) {
-      formData.append("thumbnailUrl", thumbnailUrl);
-    }
-
-    descriptionImages.forEach((img, index) => {
-      formData.append("descriptionImageFiles", img.file);
-      formData.append(`descriptionImageBlobUrl_${index}`, img.blobUrl);
-    });
+    formData.append("thumbnailUrl", thumbnailUrl || "");
 
     const result = isEditMode
       ? await updateMeetup(formData)
@@ -215,7 +230,7 @@ export default function MeetupEditForm({
         <MeetupDescriptionEditor
           initialDescription={description}
           onDescriptionChange={setDescription}
-          onImageAdded={handleDescriptionImageAdded}
+          onImageUpload={handleEditorImageUpload}
         />
       </div>
 
@@ -231,7 +246,7 @@ export default function MeetupEditForm({
             onClick={() => document.getElementById("thumbnailFile")?.click()}
           >
             <Image
-              src={thumbnailPreview || "/default_meetup_thumbnail.png"}
+              src={thumbnailUrl || "/default_meetup_thumbnail.png"}
               alt="썸네일 미리보기"
               fill
               className={`object-cover object-center w-full h-full transition-opacity duration-300 ${isHovered ? "opacity-50" : "opacity-100"}`}
@@ -251,8 +266,8 @@ export default function MeetupEditForm({
               onChange={handleFileChange}
               className="hidden"
             />
-            <Button type="button" onClick={() => document.getElementById("thumbnailFile")?.click()}>
-              파일 선택
+            <Button type="button" onClick={() => document.getElementById("thumbnailFile")?.click()} disabled={isCompressing}>
+              {isCompressing ? <Loader2 className="w-4 h-4 animate-spin" /> : "파일 선택"}
             </Button>
           </div>
         </div>
@@ -383,7 +398,7 @@ export default function MeetupEditForm({
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button type="button" disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !status || !type || !location}>
+            <Button type="button" disabled={isSubmitting || isCompressing || !!dateError || !!maxParticipantsError || !title || !status || !type || !location}>
               {isSubmitting ? (isEditMode ? "저장 중..." : "생성 중...") : (isEditMode ? "저장" : "생성")}
             </Button>
           </AlertDialogTrigger>
@@ -396,7 +411,7 @@ export default function MeetupEditForm({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || !!dateError || !!maxParticipantsError || !title || !status || !type || !location}>
+              <AlertDialogAction onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting || isCompressing || !!dateError || !!maxParticipantsError || !title || !status || !type || !location}>
                 확인
               </AlertDialogAction>
             </AlertDialogFooter>

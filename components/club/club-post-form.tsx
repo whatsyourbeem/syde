@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { createClubPost, updateClubPost } from '@/app/club/club-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/image-compression';
+import { v4 as uuidv4 } from 'uuid';
 
 const TiptapEditorWrapper = dynamic(
   () => import('@/components/common/tiptap-editor-wrapper'),
@@ -40,22 +43,29 @@ interface ClubPostFormProps {
   onCancel?: () => void;
 }
 
+const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+
 export default function ClubPostForm({ clubId, forums, userRole, isOwner, initialForumId, initialData, onSuccess = () => {}, onCancel = () => {} }: ClubPostFormProps) {
   const router = useRouter();
+  const supabase = createClient();
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState(initialData?.title || '');
   const [content, setContent] = useState<JSONContent | null>((initialData?.content as JSONContent) || null);
-  const [descriptionImages, setDescriptionImages] = useState<{ file: File; blobUrl: string }[]>([]);
 
-  useEffect(() => {
-    return () => {
-      descriptionImages.forEach(({ blobUrl }) => URL.revokeObjectURL(blobUrl));
-    };
-  }, [descriptionImages]);
+  const handleEditorImageUpload = async (file: File): Promise<string> => {
+    if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지는 20MB를 초과할 수 없습니다.");
 
-  const handleDescriptionImageAdded = (file: File, blobUrl: string) => {
-    setDescriptionImages((prev) => [...prev, { file, blobUrl }]);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("로그인이 필요합니다.");
+
+    const compressed = await compressImage(file, "detail");
+    const filePath = `${user.id}/posts/${uuidv4()}`;
+    const { error: uploadError } = await supabase.storage.from("clubs").upload(filePath, compressed);
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage.from("clubs").getPublicUrl(filePath);
+    return publicUrl;
   };
 
   const canWriteForum = (forum: Forum) => {
@@ -105,11 +115,6 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
       }
       formData.append('forumId', selectedForumId);
     }
-
-    descriptionImages.forEach((img, index) => {
-      formData.append('descriptionImageFiles', img.file);
-      formData.append(`descriptionImageBlobUrl_${index}`, img.blobUrl);
-    });
 
     try {
       const result = initialData?.postId
@@ -175,11 +180,7 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
             initialContent={content}
             onContentChange={setContent}
             placeholder="클럽 멤버들과 나눌 이야기를 작성해보세요..."
-            onImageUpload={async (file) => {
-              const blobUrl = URL.createObjectURL(file);
-              handleDescriptionImageAdded(file, blobUrl);
-              return blobUrl;
-            }}
+            onImageUpload={handleEditorImageUpload}
           />
         </div>
       </div>

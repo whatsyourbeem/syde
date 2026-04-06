@@ -5,7 +5,7 @@ import { Enums } from "@/types/database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
-import { handleClubContentImages, handlePostContentImages } from "@/lib/storage";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import {
   CreateResponse,
   UpdateResponse,
@@ -24,13 +24,8 @@ export const createClub = withAuth(async ({ supabase, user }, formData: FormData
   const name = validateRequired(formData.get("name") as string, "클럽 이름");
   const tagline = formData.get("tagline") as string;
   const descriptionJSON = formData.get("description") as string;
-
-  const { thumbnailUrl, processedContent } = await handleClubContentImages({
-    formData,
-    resourceId: id,
-    bucketName: "clubs",
-    contentJson: descriptionJSON,
-  });
+  const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
+  const processedContent = JSON.parse(descriptionJSON);
 
   const { data: newClub, error } = await supabase
     .from("clubs")
@@ -81,20 +76,28 @@ export const updateClub = withAuth(async ({ supabase, user }, formData: FormData
   }
 
   const descriptionJSON = formData.get("description") as string;
+  const newThumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
+  const processedContent = JSON.parse(descriptionJSON);
 
-  const { thumbnailUrl, processedContent } = await handleClubContentImages({
-    formData,
-    resourceId: clubId,
-    bucketName: "clubs",
-    contentJson: descriptionJSON,
-    existingThumbnailUrl: existingClub.thumbnail_url,
-  });
+  // Delete old thumbnail if a new one was uploaded
+  if (newThumbnailUrl !== existingClub.thumbnail_url && existingClub.thumbnail_url) {
+    try {
+      const adminClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const oldPath = existingClub.thumbnail_url.split("/clubs/")[1];
+      if (oldPath) await adminClient.storage.from("clubs").remove([oldPath]);
+    } catch (e) {
+      console.warn("Failed to delete old thumbnail:", e);
+    }
+  }
 
   const updateData = {
     name: formData.get("name") as string,
     tagline: formData.get("tagline") as string,
     description: processedContent,
-    thumbnail_url: thumbnailUrl,
+    thumbnail_url: newThumbnailUrl,
   };
 
   const { error: updateError } = await supabase
@@ -152,37 +155,19 @@ export const createClubPost = withAuth(async ({ supabase, user }, formData: Form
     const forumId = validateRequired(formData.get("forumId") as string, "게시판");
     const clubId = validateRequired(formData.get("clubId") as string, "클럽 ID");
 
-    // Insert post first to get an ID, with initial empty content
     const { data: newPost, error: insertError } = await supabase
       .from("club_forum_posts")
       .insert({
         forum_id: forumId,
         user_id: user.id,
         title: title,
-        content: JSON.parse(contentJSON), // Start with blob-URL content
+        content: JSON.parse(contentJSON),
       })
       .select("id")
       .single();
 
     if (insertError) throw new Error(insertError.message);
     const postId = newPost.id;
-
-    // Handle image uploads and get processed content
-    const { processedContent } = await handlePostContentImages({
-      formData,
-      clubId,
-      forumId,
-      postId,
-      contentJson: contentJSON,
-    });
-
-    // Update post with final content containing public URLs
-    const { error: updateError } = await supabase
-      .from("club_forum_posts")
-      .update({ content: processedContent })
-      .eq("id", postId);
-
-    if (updateError) throw new Error(updateError.message);
 
     revalidatePath(`/club/${clubId}`);
     revalidatePath(`/club/${clubId}/post/${postId}`);
@@ -204,7 +189,7 @@ export const updateClubPost = withAuth(async ({ supabase, user }, formData: Form
 
     const { data: existingPost, error: fetchError } = await supabase
       .from("club_forum_posts")
-      .select("user_id, forum_id")
+      .select("user_id")
       .eq("id", postId)
       .single();
 
@@ -215,17 +200,9 @@ export const updateClubPost = withAuth(async ({ supabase, user }, formData: Form
       throw new Error("게시글을 수정할 권한이 없습니다.");
     }
 
-    const { processedContent } = await handlePostContentImages({
-      formData,
-      clubId,
-      forumId: existingPost.forum_id,
-      postId,
-      contentJson: contentJSON,
-    });
-
     const { error: updateError } = await supabase
       .from("club_forum_posts")
-      .update({ title, content: processedContent })
+      .update({ title, content: JSON.parse(contentJSON) })
       .eq("id", postId);
 
     if (updateError) throw new Error(updateError.message);

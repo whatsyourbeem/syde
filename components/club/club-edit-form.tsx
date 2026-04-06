@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { Tables } from "@/types/database.types";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image-compression";
+import { v4 as uuidv4 } from "uuid";
+import { Loader2 } from "lucide-react";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -24,12 +28,15 @@ const TiptapEditorWrapper = dynamic(
 import { JSONContent } from "@tiptap/react";
 import { createClub, updateClub } from "@/app/club/club-actions";
 
+const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+
 interface ClubFormProps {
   club?: Tables<"clubs">;
 }
 
 export default function ClubEditForm({ club }: ClubFormProps) {
   const router = useRouter();
+  const supabase = createClient();
   const formRef = useRef<HTMLFormElement>(null);
   const isEditMode = !!club;
 
@@ -51,36 +58,55 @@ export default function ClubEditForm({ club }: ClubFormProps) {
     return null;
   });
 
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
     club?.thumbnail_url || null
   );
-  const [descriptionImages, setDescriptionImages] = useState<
-    { file: File; blobUrl: string }[]
-  >([]);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    return () => {
-      descriptionImages.forEach(({ blobUrl }) => URL.revokeObjectURL(blobUrl));
-    };
-  }, [descriptionImages]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setThumbnailFile(file);
-      const newPreviewUrl = URL.createObjectURL(file);
-      if (previewUrl && previewUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setPreviewUrl(newPreviewUrl);
+    if (!file) return;
+
+    if (file.size > FILE_SIZE_LIMIT) {
+      toast.error("이미지는 20MB를 초과할 수 없습니다.");
+      return;
+    }
+
+    setIsCompressing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast.error("로그인이 필요합니다."); return; }
+
+      const compressed = await compressImage(file, "thumbnail");
+      const filePath = `${user.id}/${uuidv4()}`;
+      const { error: uploadError } = await supabase.storage.from("clubs").upload(filePath, compressed);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("clubs").getPublicUrl(filePath);
+      setThumbnailUrl(publicUrl);
+    } catch (error) {
+      console.error("Error uploading thumbnail:", error);
+      toast.error("썸네일 업로드에 실패했습니다.");
+    } finally {
+      setIsCompressing(false);
     }
   };
 
-  const handleDescriptionImageAdded = (file: File, blobUrl: string) => {
-    setDescriptionImages((prev) => [...prev, { file, blobUrl }]);
+  const handleEditorImageUpload = async (file: File): Promise<string> => {
+    if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지는 20MB를 초과할 수 없습니다.");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("로그인이 필요합니다.");
+
+    const compressed = await compressImage(file, "detail");
+    const filePath = `${user.id}/editor/${uuidv4()}`;
+    const { error: uploadError } = await supabase.storage.from("clubs").upload(filePath, compressed);
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage.from("clubs").getPublicUrl(filePath);
+    return publicUrl;
   };
 
   const clientAction = async (formData: FormData) => {
@@ -93,14 +119,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
     if (isEditMode && club) {
       formData.append("id", club.id);
     }
-    if (thumbnailFile) {
-      formData.append("thumbnailFile", thumbnailFile);
-    }
-
-    descriptionImages.forEach((img, index) => {
-      formData.append("descriptionImageFiles", img.file);
-      formData.append(`descriptionImageBlobUrl_${index}`, img.blobUrl);
-    });
+    formData.append("thumbnailUrl", thumbnailUrl || "");
 
     const result = isEditMode
       ? await updateClub(formData)
@@ -173,11 +192,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
             initialContent={description}
             onContentChange={(json) => setDescription(json)}
             placeholder="클럽 설명을 입력하세요..."
-            onImageUpload={async (file) => {
-              const blobUrl = URL.createObjectURL(file);
-              handleDescriptionImageAdded(file, blobUrl);
-              return blobUrl;
-            }}
+            onImageUpload={handleEditorImageUpload}
           />
         </div>
       </div>
@@ -185,10 +200,10 @@ export default function ClubEditForm({ club }: ClubFormProps) {
       <div>
         <Label htmlFor="thumbnail">썸네일 이미지</Label>
         <div className="mt-1 flex flex-col items-center space-y-4">
-          {previewUrl && (
+          {thumbnailUrl && (
             <div className="w-40 h-40 relative mx-auto">
               <Image
-                src={previewUrl}
+                src={thumbnailUrl}
                 alt="Thumbnail preview"
                 fill
                 className="object-cover rounded-md"
@@ -208,13 +223,14 @@ export default function ClubEditForm({ club }: ClubFormProps) {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             variant="outline"
+            disabled={isCompressing}
           >
-            이미지 선택
+            {isCompressing ? <Loader2 className="w-4 h-4 animate-spin" /> : "이미지 선택"}
           </Button>
         </div>
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || isCompressing} className="w-full">
         {isSubmitting
           ? isEditMode
             ? "저장 중..."
