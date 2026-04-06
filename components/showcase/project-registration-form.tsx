@@ -324,6 +324,19 @@ export function ProjectRegistrationForm({
       return;
     }
 
+    // Validate total file size before submitting (Vercel 4.5MB limit)
+    const TOTAL_SIZE_LIMIT = 4 * 1024 * 1024; // 4MB to be safe
+    const thumbnailFileForCheck = fileInputRef.current?.files?.[0];
+    const totalSize =
+      (thumbnailFileForCheck?.size ?? 0) +
+      detailImageFiles.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > TOTAL_SIZE_LIMIT) {
+      toast.error(
+        `이미지 총 용량이 4MB를 초과할 수 없습니다. (현재 ${(totalSize / (1024 * 1024)).toFixed(1)}MB)`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
