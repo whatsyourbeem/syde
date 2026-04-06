@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
-import { handleShowcaseImage, handleShowcaseDetailImages, deleteShowcaseStorage, FILE_SIZE_LIMITS } from "@/lib/storage";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { deleteShowcaseStorage, deleteFile } from "@/lib/storage";
 import { generateSlug } from "@/lib/utils";
 
 export const createShowcase = withAuthForm(
@@ -12,24 +13,12 @@ export const createShowcase = withAuthForm(
     const name = formData.get("name") as string;
     const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
     const descriptionString = formData.get("description") as string;
-    const thumbnailFile = formData.get("thumbnailFile") as File | null;
-    const detailImageFiles = formData.getAll("detailImageFiles") as File[];
+    // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
+    const thumbnailUrl = formData.get("thumbnailUrl") as string | null;
+    const detailImageUrls = formData.getAll("detailImageUrls") as string[];
     const websiteLinks = formData.getAll("links_website") as string[];
     const googlePlayLink = formData.get("links_google_play") as string | null;
     const appStoreLink = formData.get("links_app_store") as string | null;
-
-    // Validate image sizes
-    if (thumbnailFile && thumbnailFile.size > FILE_SIZE_LIMITS.THUMBNAIL) {
-      return { error: `대표 이미지는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.` };
-    }
-
-    for (const file of detailImageFiles) {
-      if (file.size > FILE_SIZE_LIMITS.IMAGE) {
-        return { error: `상세 이미지는 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.` };
-      }
-    }
-
-    console.log(`[createShowcase] Received ${detailImageFiles.length} detail images.`);
 
     let processedDescription: any = descriptionString;
     
@@ -78,45 +67,19 @@ export const createShowcase = withAuthForm(
 
     const showcaseId = data.id;
 
-    const thumbnailUrl = await handleShowcaseImage(showcaseId, thumbnailFile, false, null);
+    // 이미지 URL을 DB에 직접 저장 (업로드는 클라이언트에서 완료됨)
+    const { error: imageUpdateError } = await supabase
+      .from("showcases")
+      .update({
+        thumbnail_url: thumbnailUrl || null,
+        images: detailImageUrls.length > 0 ? detailImageUrls : null,
+      })
+      .eq("id", showcaseId);
 
-    if (thumbnailUrl) {
-      const { error: updateError } = await supabase
-        .from("showcases")
-        .update({ thumbnail_url: thumbnailUrl })
-        .eq("id", showcaseId);
-
-      if (updateError) {
-        console.error("Failed to update showcase with thumbnail:", updateError);
-        return { error: "쇼케이스 대표 이미지 정보 업데이트에 실패했습니다." };
-      }
+    if (imageUpdateError) {
+      console.error("Failed to update showcase images:", imageUpdateError);
+      return { error: "이미지 정보 저장에 실패했습니다." };
     }
-
-    if (detailImageFiles && detailImageFiles.length > 0) {
-      console.log("[createShowcase] Uploading detail images to storage...");
-      try {
-        const detailImageUrls = await handleShowcaseDetailImages(showcaseId, detailImageFiles);
-        console.log(`[createShowcase] Uploaded ${detailImageUrls.length} images. URLs:`, detailImageUrls);
-
-        if (detailImageUrls.length > 0) {
-          const { error: imagesError } = await supabase
-            .from("showcases")
-            .update({ images: detailImageUrls })
-            .eq("id", showcaseId);
-
-          if (imagesError) {
-             console.error("[createShowcase] Failed to update showcase with images:", imagesError);
-             return { error: `상세 이미지 저장 실패: ${imagesError.message}` };
-          } else {
-             console.log("[createShowcase] Successfully updated images in showcases table.");
-          }
-        }
-      } catch (uploadError) {
-          console.error("[createShowcase] Storage upload error:", uploadError);
-          return { error: "상세 이미지 업로드 중 오류가 발생했습니다." };
-      }
-    }
-
 
 
     // Insert Team Members
@@ -161,9 +124,9 @@ export const updateShowcase = withAuthForm(
     const name = formData.get("name") as string;
     const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
     const descriptionString = formData.get("description") as string;
-    const thumbnailFile = formData.get("thumbnailFile") as File | null;
-    const thumbnailRemoved = formData.get("thumbnailRemoved") === "true";
-    const detailImageFiles = formData.getAll("detailImageFiles") as File[];
+    // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
+    const newThumbnailUrl = formData.get("thumbnailUrl") as string | null;
+    const newDetailImageUrls = formData.getAll("detailImageUrls") as string[];
 
     const websiteLinks = formData.getAll("links_website") as string[];
     const googlePlayLink = formData.get("links_google_play") as string | null;
@@ -171,7 +134,7 @@ export const updateShowcase = withAuthForm(
 
     const { data: oldShowcaseData } = await supabase
       .from("showcases")
-      .select("thumbnail_url, user_id, slug")
+      .select("thumbnail_url, images, user_id, slug")
       .eq("id", showcaseId)
       .single();
 
@@ -179,22 +142,25 @@ export const updateShowcase = withAuthForm(
       return { error: "수정할 권한이 없습니다." };
     }
 
-    // Validate image sizes
-    if (thumbnailFile && thumbnailFile.size > FILE_SIZE_LIMITS.THUMBNAIL) {
-      return { error: `대표 이미지는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.` };
+    // 제거된 이미지를 storage에서 삭제 (admin client 사용 - 구 경로 파일 호환)
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+
+    const oldThumbnailUrl = oldShowcaseData?.thumbnail_url;
+    if (oldThumbnailUrl && oldThumbnailUrl !== newThumbnailUrl) {
+      const oldPath = oldThumbnailUrl.split("/storage/v1/object/public/showcases/")[1];
+      if (oldPath) await deleteFile(adminClient, "showcases", oldPath);
     }
 
-    for (const file of detailImageFiles) {
-      if (file.size > FILE_SIZE_LIMITS.IMAGE) {
-        return { error: `상세 이미지는 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.` };
-      }
-    }
-
-    const thumbnailUrl = await handleShowcaseImage(
-      showcaseId,
-      thumbnailFile,
-      thumbnailRemoved,
-      oldShowcaseData?.thumbnail_url
+    const oldImages = (oldShowcaseData?.images as string[] | null) ?? [];
+    const removedImages = oldImages.filter((url) => !newDetailImageUrls.includes(url));
+    await Promise.allSettled(
+      removedImages.map(async (url) => {
+        const path = url.split("/storage/v1/object/public/showcases/")[1];
+        if (path) await deleteFile(adminClient, "showcases", path);
+      }),
     );
 
     let processedDescription: any = descriptionString;
@@ -240,9 +206,8 @@ export const updateShowcase = withAuthForm(
       }
       updateData.slug = slug;
     }
-    if (thumbnailUrl !== undefined) {
-      updateData.thumbnail_url = thumbnailUrl;
-    }
+    updateData.thumbnail_url = newThumbnailUrl || null;
+    updateData.images = newDetailImageUrls;
 
     const { error } = await supabase
       .from("showcases")
@@ -253,11 +218,9 @@ export const updateShowcase = withAuthForm(
       return { error: `쇼케이스 업데이트 실패: ${error.message}` };
     }
 
-
-
     // --- Update Members ---
     await supabase.from("showcases_members").delete().eq("showcase_id", showcaseId);
-    
+
     const teamMembersJson = formData.get("teamMembers") as string | null;
     if (teamMembersJson) {
       try {
@@ -273,41 +236,6 @@ export const updateShowcase = withAuthForm(
       } catch (e) {
         console.error("Error parsing team members JSON:", e);
       }
-    }
-
-    // --- Update Detail Images ---
-    const remainingImagesJson = formData.get("remainingImages") as string | null;
-    let remainingImages: string[] = [];
-    if (remainingImagesJson) {
-      try {
-        remainingImages = JSON.parse(remainingImagesJson) as string[];
-      } catch(e) {
-        console.error("Error parsing remaining images JSON:", e);
-      }
-    }
-
-    // Upload new files
-    let newImageUrls: string[] = [];
-    if (detailImageFiles && detailImageFiles.length > 0) {
-      try {
-         newImageUrls = await handleShowcaseDetailImages(showcaseId, detailImageFiles);
-      } catch (e) {
-        console.error("Error uploading new detail images:", e);
-        // Continue with preserving old ones at least
-      }
-    }
-
-    const finalImages = [...remainingImages, ...newImageUrls];
-
-    // Update images in showcases table
-    const { error: imagesUpdateError } = await supabase
-      .from("showcases")
-      .update({ images: finalImages })
-      .eq("id", showcaseId);
-
-    if (imagesUpdateError) {
-      console.error("[updateShowcase] Failed to update images:", imagesUpdateError);
-      return { error: `이미지 정보 업데이트 실패: ${imagesUpdateError.message}` };
     }
 
     revalidatePath("/");

@@ -28,7 +28,9 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { updateShowcase } from "@/app/showcase/showcase-actions";
 import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
-import { FILE_SIZE_LIMITS } from "@/lib/storage";
+import { compressImage } from "@/lib/image-compression";
+
+const FILE_SIZE_LIMIT = 4 * 1024 * 1024; // 4MB
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -53,11 +55,15 @@ export function ProjectRegistrationForm({
   const queryClient = useQueryClient();
   const supabase = createClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [detailImagePreviews, setDetailImagePreviews] = useState<string[]>([]);
-  const [detailImageFiles, setDetailImageFiles] = useState<File[]>([]);
+  const [detailImageUrls, setDetailImageUrls] = useState<string[]>([]);
   const detailInputRef = useRef<HTMLInputElement>(null);
+  // 이번 세션에 새로 업로드된 URL 추적 (제거 시 storage에서 삭제하기 위해)
+  const newlyUploadedUrls = useRef<Set<string>>(new Set());
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -183,11 +189,13 @@ export function ProjectRegistrationForm({
 
       if (initialData.thumbnail_url) {
         setMainImagePreview(initialData.thumbnail_url);
+        setMainImageUrl(initialData.thumbnail_url);
       }
 
       // Initialize Detail Images
       if (initialData.images) {
         setDetailImagePreviews(initialData.images);
+        setDetailImageUrls(initialData.images);
       }
 
       // Initialize Links
@@ -213,62 +221,131 @@ export function ProjectRegistrationForm({
     }
   }, [initialData]);
 
-  const handleMainImageChange = (
+  const handleMainImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      
-      if (file.size > FILE_SIZE_LIMITS.THUMBNAIL) {
-        toast.error(`대표 이미지는 ${FILE_SIZE_LIMITS.THUMBNAIL / (1024 * 1024)}MB를 초과할 수 없습니다.`);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
+    if (!event.target.files || !event.target.files[0]) return;
+    const file = event.target.files[0];
+
+    if (file.size > FILE_SIZE_LIMIT) {
+      toast.error(`이미지는 4MB를 초과할 수 없습니다.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setIsCompressing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("로그인이 필요합니다.");
+
+      const compressed = await compressImage(file, "thumbnail");
+      const fileName = `${user.id}/${crypto.randomUUID()}`;
+
+      const { error } = await supabase.storage
+        .from("showcases")
+        .upload(fileName, compressed);
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("showcases")
+        .getPublicUrl(fileName);
+
+      // 이전에 이번 세션에서 업로드한 썸네일이 있으면 storage에서 삭제
+      if (mainImageUrl && newlyUploadedUrls.current.has(mainImageUrl)) {
+        const oldPath = mainImageUrl.split("/storage/v1/object/public/showcases/")[1];
+        if (oldPath) await supabase.storage.from("showcases").remove([oldPath]);
+        newlyUploadedUrls.current.delete(mainImageUrl);
       }
 
-      setMainImagePreview(URL.createObjectURL(file));
-      // In a real implementation, you'd handle file upload to storage here or on submit
+      newlyUploadedUrls.current.add(publicUrl);
+      setMainImageUrl(publicUrl);
+      setMainImagePreview(publicUrl);
+    } catch (err) {
+      console.error(err);
+      toast.error("이미지 업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsCompressing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const removeMainImage = () => {
+  const removeMainImage = async () => {
+    // 이번 세션에 새로 업로드된 파일이면 storage에서 즉시 삭제
+    if (mainImageUrl && newlyUploadedUrls.current.has(mainImageUrl)) {
+      const path = mainImageUrl.split("/storage/v1/object/public/showcases/")[1];
+      if (path) await supabase.storage.from("showcases").remove([path]);
+      newlyUploadedUrls.current.delete(mainImageUrl);
+    }
+    setMainImageUrl(null);
     setMainImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleDetailImageChange = (
+  const handleDetailImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const newFiles = Array.from(event.target.files);
+    if (!event.target.files || event.target.files.length === 0) return;
+    const newFiles = Array.from(event.target.files);
 
-      // Check file size
-      const largeFiles = newFiles.filter(file => file.size > FILE_SIZE_LIMITS.IMAGE);
-      if (largeFiles.length > 0) {
-        toast.error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다: ${largeFiles.map(f => f.name).join(", ")}`);
-        if (detailInputRef.current) detailInputRef.current.value = "";
-        return;
-      }
-
-      const validFiles = newFiles.slice(0, 5 - detailImagePreviews.length);
-
-      if (validFiles.length < newFiles.length) {
-        toast.error("최대 5장까지 업로드할 수 있습니다.");
-      }
-
-      const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
-      setDetailImagePreviews((prev) => [...prev, ...newPreviews]);
-      setDetailImageFiles((prev) => [...prev, ...validFiles]);
-
-      // Reset input so same files can be selected again
+    const largeFiles = newFiles.filter((file) => file.size > FILE_SIZE_LIMIT);
+    if (largeFiles.length > 0) {
+      toast.error(`이미지 용량은 4MB를 초과할 수 없습니다: ${largeFiles.map((f) => f.name).join(", ")}`);
       if (detailInputRef.current) detailInputRef.current.value = "";
+      return;
+    }
+
+    const remaining = 5 - detailImagePreviews.length;
+    const validFiles = newFiles.slice(0, remaining);
+    if (validFiles.length < newFiles.length) {
+      toast.error("최대 5장까지 업로드할 수 있습니다.");
+    }
+    if (validFiles.length === 0) return;
+
+    if (detailInputRef.current) detailInputRef.current.value = "";
+
+    setIsCompressing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("로그인이 필요합니다.");
+
+      const uploadResults = await Promise.all(
+        validFiles.map(async (file) => {
+          const compressed = await compressImage(file, "detail");
+          const fileName = `${user.id}/details/${crypto.randomUUID()}`;
+          const { error } = await supabase.storage
+            .from("showcases")
+            .upload(fileName, compressed);
+          if (error) throw error;
+          const { data: { publicUrl } } = supabase.storage
+            .from("showcases")
+            .getPublicUrl(fileName);
+          newlyUploadedUrls.current.add(publicUrl);
+          return publicUrl;
+        }),
+      );
+
+      setDetailImageUrls((prev) => [...prev, ...uploadResults]);
+      setDetailImagePreviews((prev) => [...prev, ...uploadResults]);
+    } catch (err) {
+      console.error(err);
+      toast.error("이미지 업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsCompressing(false);
     }
   };
 
-  const removeDetailImage = (indexToRemove: number) => {
+  const removeDetailImage = async (indexToRemove: number) => {
+    const urlToRemove = detailImageUrls[indexToRemove];
+    // 이번 세션에 새로 업로드된 파일이면 storage에서 즉시 삭제
+    if (urlToRemove && newlyUploadedUrls.current.has(urlToRemove)) {
+      const path = urlToRemove.split("/storage/v1/object/public/showcases/")[1];
+      if (path) await supabase.storage.from("showcases").remove([path]);
+      newlyUploadedUrls.current.delete(urlToRemove);
+    }
     setDetailImagePreviews((prev) =>
       prev.filter((_, index) => index !== indexToRemove),
     );
-    setDetailImageFiles((prev) =>
+    setDetailImageUrls((prev) =>
       prev.filter((_, index) => index !== indexToRemove),
     );
   };
@@ -332,14 +409,12 @@ export function ProjectRegistrationForm({
       formData.append("shortDescription", tagline);
       formData.append("description", description);
 
-      const thumbnailFile = fileInputRef.current?.files?.[0];
-      if (thumbnailFile) {
-        formData.append("thumbnailFile", thumbnailFile);
+      // 이미지 URL 전달 (클라이언트에서 이미 업로드 완료)
+      if (mainImageUrl) {
+        formData.append("thumbnailUrl", mainImageUrl);
       }
-
-      // Append detail images
-      detailImageFiles.forEach((file) => {
-        formData.append("detailImageFiles", file);
+      detailImageUrls.forEach((url) => {
+        formData.append("detailImageUrls", url);
       });
 
       // Append links
@@ -353,22 +428,12 @@ export function ProjectRegistrationForm({
 
       // Append team members
       if (selectedTeamMembers.length > 0) {
-        // Send array of user IDs
         const teamMemberIds = selectedTeamMembers.map((m) => m.id);
         formData.append("teamMembers", JSON.stringify(teamMemberIds));
       }
 
-      // Append remaining images (for update)
       if (initialData) {
         formData.append("showcaseId", initialData.id);
-
-        // Filter out blob URLs (newly added files) to get only existing remote URLs
-        const remainingImages = detailImagePreviews.filter(
-          (url) => url.startsWith("http") || url.startsWith("/"),
-        );
-        formData.append("remainingImages", JSON.stringify(remainingImages));
-
-        // Handle thumbnail removal/change logic could be refined but basic override works
       }
 
       const result = initialData
@@ -553,11 +618,10 @@ export function ProjectRegistrationForm({
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
               onImageUpload={async (file: File) => {
-                if (file.size > FILE_SIZE_LIMITS.IMAGE) {
-                  throw new Error(`이미지 용량은 ${FILE_SIZE_LIMITS.IMAGE / (1024 * 1024)}MB를 초과할 수 없습니다.`);
+                if (file.size > FILE_SIZE_LIMIT) {
+                  throw new Error(`이미지 용량은 4MB를 초과할 수 없습니다.`);
                 }
                 const blobUrl = URL.createObjectURL(file);
-                // In future: setContentImageFiles(prev => [...prev, file])
                 return blobUrl;
               }}
             />
@@ -814,9 +878,9 @@ export function ProjectRegistrationForm({
           <Button
             type="submit"
             className="flex-1 h-[36px] rounded-[12px] bg-sydeblue hover:bg-sydeblue/90 text-white text-[14px] font-normal"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isCompressing}
           >
-            {initialData ? "수정하기" : "등록하기"}
+            {isCompressing ? "업로드 중..." : initialData ? "수정하기" : "등록하기"}
           </Button>
         </div>
       </form>
