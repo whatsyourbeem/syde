@@ -309,47 +309,6 @@ export async function handlePostContentImages({
   return { processedContent };
 }
 
-export async function handleLogImage(
-  logId: string,
-  imageFile: File | null,
-  imageRemoved: boolean,
-  currentImageUrl?: string | null
-): Promise<string | null | undefined> {
-  if (!imageFile && !imageRemoved) {
-    return undefined; // No change
-  }
-
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  // Delete the old image if a new one is uploaded or if removal is requested
-  if (currentImageUrl && (imageFile || imageRemoved)) {
-    try {
-      const oldPath = currentImageUrl.split("/logs/").pop();
-      if (oldPath) {
-        await deleteFile(adminClient, "logs", oldPath);
-      }
-    } catch (error) {
-      console.warn("Failed to delete old log image:", error);
-    }
-  }
-
-  // Upload a new image if provided
-  if (imageFile && imageFile.size > 0) {
-    const fileName = `${logId}/${uuidv4()}`;
-    return await uploadAndGetUrl(adminClient, "logs", fileName, imageFile);
-  }
-
-  // Return null if the image was removed
-  if (imageRemoved) {
-    return null;
-  }
-
-  return undefined;
-}
-
 export async function deleteLogStorage(logId: string): Promise<void> {
   const adminClient = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

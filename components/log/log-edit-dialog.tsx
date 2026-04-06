@@ -17,6 +17,10 @@ import { Database } from "@/types/database.types";
 import { createLog, updateLog } from "@/app/log/log-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image-compression";
+
+const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,21 +66,25 @@ interface LogEditDialogProps {
 function SubmitButton({
   initialLogData,
   content,
+  isCompressing,
 }: {
   initialLogData?: Database["public"]["Tables"]["logs"]["Row"];
   content: string;
+  isCompressing: boolean;
 }) {
   const { pending } = useFormStatus();
-  const isDisabled = pending || content.trim() === "";
+  const isDisabled = pending || isCompressing || content.trim() === "";
   return (
     <Button type="submit" disabled={isDisabled}>
-      {pending
-        ? initialLogData
-          ? "로그 수정 중..."
-          : "로그 기록 중..."
-        : initialLogData
-          ? "로그 수정하기"
-          : "로그 기록하기"}
+      {isCompressing
+        ? "업로드 중..."
+        : pending
+          ? initialLogData
+            ? "로그 수정 중..."
+            : "로그 기록 중..."
+          : initialLogData
+            ? "로그 수정하기"
+            : "로그 기록하기"}
     </Button>
   );
 }
@@ -99,6 +107,7 @@ function LogForm({
   removeImage,
   fileInputRef,
   handleImageChange,
+  isCompressing,
   onCancel,
   setOpen,
   ogUrl,
@@ -121,6 +130,7 @@ function LogForm({
   removeImage: () => void;
   fileInputRef: React.Ref<HTMLInputElement>;
   handleImageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isCompressing: boolean;
   onCancel?: () => void;
   setOpen: (open: boolean) => void;
   ogUrl: string | null;
@@ -235,23 +245,18 @@ function LogForm({
           <Input
             id="log-image-input"
             type="file"
-            name="imageFile"
             accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleImageChange}
             className="hidden"
-            disabled={pending}
+            disabled={pending || isCompressing}
             ref={fileInputRef}
           />
-          {/* This hidden input tells the server action to remove the image */}
-          {!imagePreviewUrl && initialLogData?.image_url && (
-            <input type="hidden" name="imageRemoved" value="true" />
-          )}
           <Button
             type="button"
             variant="link"
             size="icon"
             onClick={() => document.getElementById("log-image-input")?.click()}
-            disabled={pending}
+            disabled={pending || isCompressing}
             className="hover:bg-secondary"
           >
             <ImagePlus className="h-4 w-4 text-muted-foreground" />
@@ -271,7 +276,7 @@ function LogForm({
               취소
             </Button>
           )}
-          <SubmitButton initialLogData={initialLogData} content={content} />
+          <SubmitButton initialLogData={initialLogData} content={content} isCompressing={isCompressing} />
         </div>
       </div>
     </form>
@@ -295,10 +300,16 @@ export function LogEditDialog({
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const supabase = createClient();
   const [content, setContent] = useState(initialLogData?.content || "");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
     initialLogData?.image_url || null
   );
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    initialLogData?.image_url || null
+  );
+  const [isCompressing, setIsCompressing] = useState(false);
+  const newlyUploadedUrl = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { openLoginDialog } = useLoginDialog();
@@ -319,6 +330,8 @@ export function LogEditDialog({
     if (!open) {
       setContent(initialLogData?.content || "");
       setImagePreviewUrl(initialLogData?.image_url || null);
+      setImageUrl(initialLogData?.image_url || null);
+      newlyUploadedUrl.current = null;
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [open, initialLogData]);
@@ -379,8 +392,6 @@ export function LogEditDialog({
       setShowSuggestions(false);
       return;
     }
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
     const { data, error } = await supabase
       .from("profiles")
       .select("id, username, full_name, avatar_url")
@@ -491,14 +502,59 @@ export function LogEditDialog({
     }
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      setImagePreviewUrl(URL.createObjectURL(file));
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0]) return;
+    const file = event.target.files[0];
+
+    if (file.size > FILE_SIZE_LIMIT) {
+      toast.error("이미지는 20MB를 초과할 수 없습니다.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setIsCompressing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("로그인이 필요합니다.");
+
+      const compressed = await compressImage(file, "thumbnail");
+      const fileName = `${user.id}/${crypto.randomUUID()}`;
+
+      const { error } = await supabase.storage
+        .from("logs")
+        .upload(fileName, compressed);
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("logs")
+        .getPublicUrl(fileName);
+
+      // 이전에 이번 세션에서 업로드한 이미지가 있으면 storage에서 삭제
+      if (newlyUploadedUrl.current) {
+        const oldPath = newlyUploadedUrl.current.split("/storage/v1/object/public/logs/")[1];
+        if (oldPath) await supabase.storage.from("logs").remove([oldPath]);
+      }
+
+      newlyUploadedUrl.current = publicUrl;
+      setImageUrl(publicUrl);
+      setImagePreviewUrl(publicUrl);
+    } catch (err) {
+      console.error(err);
+      toast.error("이미지 업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsCompressing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const removeImage = () => {
+  const removeImage = async () => {
+    // 이번 세션에 새로 업로드된 파일이면 storage에서 즉시 삭제
+    if (newlyUploadedUrl.current) {
+      const path = newlyUploadedUrl.current.split("/storage/v1/object/public/logs/")[1];
+      if (path) await supabase.storage.from("logs").remove([path]);
+      newlyUploadedUrl.current = null;
+    }
+    setImageUrl(null);
     setImagePreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -509,8 +565,7 @@ export function LogEditDialog({
         openLoginDialog();
         return;
       }
-      // The 'content' is already in the textarea with the correct name,
-      // so we don't need to manually append it.
+      formData.append("imageUrl", imageUrl ?? "");
       formAction(formData);
     },
     initialLogData,
@@ -529,6 +584,7 @@ export function LogEditDialog({
     removeImage,
     fileInputRef,
     handleImageChange,
+    isCompressing,
     onCancel,
     setOpen,
     ogUrl,

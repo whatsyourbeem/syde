@@ -5,37 +5,25 @@ import { redirect } from "next/navigation";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
-import { handleLogImage, deleteLogStorage } from "@/lib/storage";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { deleteLogStorage, deleteFile } from "@/lib/storage";
 
 export const createLog = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
     const content = validateRequired(formData.get("content") as string, "내용");
-    const imageFile = formData.get("imageFile") as File | null;
+    // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
+    const imageUrl = formData.get("imageUrl") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
 
     const { data: log, error: createError } = await supabase
       .from("logs")
-      .insert({ content: processedContent, user_id: user.id })
+      .insert({ content: processedContent, user_id: user.id, image_url: imageUrl || null })
       .select("id")
       .single();
 
     if (createError) {
       return { error: `로그 생성 실패: ${createError.message}` };
-    }
-
-    const imageUrl = await handleLogImage(log.id, imageFile, false);
-
-    if (imageUrl) {
-      const { error: updateError } = await supabase
-        .from("logs")
-        .update({ image_url: imageUrl })
-        .eq("id", log.id);
-
-      if (updateError) {
-        await deleteLogStorage(log.id);
-        return { error: `로그 업데이트 실패: ${updateError.message}` };
-      }
     }
 
     revalidatePath("/");
@@ -51,8 +39,8 @@ export const updateLog = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
     const logId = validateRequired(formData.get("logId") as string, "로그 ID");
     const content = validateRequired(formData.get("content") as string, "내용");
-    const imageFile = formData.get("imageFile") as File | null;
-    const imageRemoved = formData.get("imageRemoved") === "true";
+    // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
+    const newImageUrl = formData.get("imageUrl") as string | null;
 
     const { data: oldLogData } = await supabase
       .from("logs")
@@ -64,24 +52,22 @@ export const updateLog = withAuthForm(
       return { error: "수정할 권한이 없습니다." };
     }
 
-    const imageUrl = await handleLogImage(
-      logId,
-      imageFile,
-      imageRemoved,
-      oldLogData?.image_url
-    );
-    const processedContent = await processMentionsForSave(content, supabase);
-
-    const updateData: { content: string; image_url?: string | null } = {
-      content: processedContent,
-    };
-    if (imageUrl !== undefined) {
-      updateData.image_url = imageUrl;
+    // 기존 이미지가 변경/제거된 경우 admin client로 storage에서 삭제
+    const oldImageUrl = oldLogData?.image_url;
+    if (oldImageUrl && oldImageUrl !== newImageUrl) {
+      const adminClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      );
+      const path = oldImageUrl.split("/storage/v1/object/public/logs/")[1];
+      if (path) await deleteFile(adminClient, "logs", path).catch(console.warn);
     }
+
+    const processedContent = await processMentionsForSave(content, supabase);
 
     const { error } = await supabase
       .from("logs")
-      .update(updateData)
+      .update({ content: processedContent, image_url: newImageUrl || null })
       .eq("id", logId);
 
     if (error) {
