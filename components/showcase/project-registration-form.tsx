@@ -30,7 +30,7 @@ import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
 import { compressImage } from "@/lib/image-compression";
 
-const FILE_SIZE_LIMIT = 4 * 1024 * 1024; // 4MB
+const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -228,7 +228,7 @@ export function ProjectRegistrationForm({
     const file = event.target.files[0];
 
     if (file.size > FILE_SIZE_LIMIT) {
-      toast.error(`이미지는 4MB를 초과할 수 없습니다.`);
+      toast.error(`이미지는 20MB를 초과할 수 없습니다.`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -619,7 +619,7 @@ export function ProjectRegistrationForm({
               editable={true}
               onImageUpload={async (file: File) => {
                 if (file.size > FILE_SIZE_LIMIT) {
-                  throw new Error(`이미지 용량은 4MB를 초과할 수 없습니다.`);
+                  throw new Error(`이미지 용량은 20MB를 초과할 수 없습니다.`);
                 }
                 const blobUrl = URL.createObjectURL(file);
                 return blobUrl;
