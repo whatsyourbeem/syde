@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage } from "@/lib/image-compression";
+import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 import { v4 as uuidv4 } from "uuid";
 import { Loader2 } from "lucide-react";
 
@@ -27,8 +27,6 @@ const TiptapEditorWrapper = dynamic(
 );
 import { JSONContent } from "@tiptap/react";
 import { createClub, updateClub } from "@/app/club/club-actions";
-
-const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 interface ClubFormProps {
   club?: Tables<"clubs">;

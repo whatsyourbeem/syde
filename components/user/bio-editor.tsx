@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect } from "react";
-import { updateBio, uploadBioImage } from "@/app/[username]/actions";
+import { updateBio } from "@/app/[username]/actions";
+import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image-compression";
+import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import TiptapViewer from "@/components/common/tiptap-viewer";
@@ -37,6 +40,7 @@ export default function BioEditor({
   isEditing,
   onEditingChange,
 }: BioEditorProps) {
+  const supabase = createClient();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentBioContent, setCurrentBioContent] = useState<JSONContent | null>(initialBio as JSONContent | null);
@@ -92,14 +96,14 @@ export default function BioEditor({
               placeholder="당신의 SYDE를 자유롭게 표현해보세요."
               editable={true}
               onImageUpload={async (file) => {
-                const formData = new FormData();
-                formData.append("file", file);
-                const result = await uploadBioImage(formData);
-                if (result.error) {
-                  toast.error("이미지 업로드 실패: " + result.error);
-                  return null;
-                }
-                return result.publicUrl || null;
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error("로그인이 필요합니다.");
+                const compressed = await compressImage(file, "detail");
+                const filePath = `${user.id}/bio/${uuidv4()}`;
+                const { error: uploadError } = await supabase.storage.from("profiles").upload(filePath, compressed);
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl } } = supabase.storage.from("profiles").getPublicUrl(filePath);
+                return publicUrl;
               }}
             />
           </div>

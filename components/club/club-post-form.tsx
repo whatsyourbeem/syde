@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
-import { compressImage } from '@/lib/image-compression';
+import { compressImage, FILE_SIZE_LIMIT } from '@/lib/image-compression';
 import { v4 as uuidv4 } from 'uuid';
 
 const TiptapEditorWrapper = dynamic(
@@ -42,8 +42,6 @@ interface ClubPostFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
 }
-
-const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 export default function ClubPostForm({ clubId, forums, userRole, isOwner, initialForumId, initialData, onSuccess = () => {}, onCancel = () => {} }: ClubPostFormProps) {
   const router = useRouter();

@@ -9,9 +9,7 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
-import { compressImage } from "@/lib/image-compression";
-
-const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 
 const TiptapEditorWrapper = dynamic(
     () => import("@/components/common/tiptap-editor-wrapper"),

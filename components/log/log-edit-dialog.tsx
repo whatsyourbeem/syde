@@ -18,9 +18,7 @@ import { createLog, updateLog } from "@/app/log/log-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage } from "@/lib/image-compression";
-
-const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

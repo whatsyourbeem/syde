@@ -28,9 +28,8 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { updateShowcase } from "@/app/showcase/showcase-actions";
 import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
-import { compressImage } from "@/lib/image-compression";
-
-const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
+import { v4 as uuidv4 } from "uuid";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -618,11 +617,15 @@ export function ProjectRegistrationForm({
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
               onImageUpload={async (file: File) => {
-                if (file.size > FILE_SIZE_LIMIT) {
-                  throw new Error(`이미지 용량은 20MB를 초과할 수 없습니다.`);
-                }
-                const blobUrl = URL.createObjectURL(file);
-                return blobUrl;
+                if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지 용량은 20MB를 초과할 수 없습니다.");
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error("로그인이 필요합니다.");
+                const compressed = await compressImage(file, "detail");
+                const filePath = `${user.id}/editor/${uuidv4()}`;
+                const { error: uploadError } = await supabase.storage.from("showcases").upload(filePath, compressed);
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl } } = supabase.storage.from("showcases").getPublicUrl(filePath);
+                return publicUrl;
               }}
             />
           </div>

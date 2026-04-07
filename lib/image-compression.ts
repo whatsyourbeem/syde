@@ -1,5 +1,7 @@
 import imageCompression from "browser-image-compression";
 
+export const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
+
 export async function compressImage(
   file: File,
   type: "thumbnail" | "detail",

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage } from "@/lib/image-compression";
+import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,8 +50,6 @@ const MeetupDescriptionEditor = dynamic(
     loading: () => <div className="h-64 mt-2 flex items-center justify-center bg-muted/20 animate-pulse rounded-md w-full">에디터 로딩 중...</div>
   }
 );
-
-const FILE_SIZE_LIMIT = 20 * 1024 * 1024; // 20MB
 
 type Meetup = Tables<"meetups">;
 
