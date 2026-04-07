@@ -1,30 +1,26 @@
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { LinkPreview } from "./tiptap-link-preview";
 
 import TextAlign from "@tiptap/extension-text-align";
-import ResizeImage from "tiptap-extension-resize-image"; // Import ResizeImage
+import ResizeImage from "tiptap-extension-resize-image";
 
 export const commonTiptapExtensions = [
-  StarterKit,
+  StarterKit.configure({
+    link: {
+      openOnClick: true,
+      autolink: true,
+    },
+  }),
   LinkPreview,
   TextAlign.configure({
-    types: ["heading", "paragraph"], // Keep this for text alignment
-  }),
-  Link.configure({
-    openOnClick: true,
-    autolink: true,
+    types: ["heading", "paragraph"],
   }),
   Placeholder.configure({
-    placeholder: "내용을 입력해주세요.", // Generic placeholder
+    placeholder: "내용을 입력해주세요.",
   }),
-  // Replace CustomImage with ResizeImage
   ResizeImage.configure({
     inline: false,
-    allowBase64: false, // Prevent large base64 images
-    // You might need to configure default width/height or other options here
-    // based on the ResizeImage extension's documentation.
-    // For now, let's keep it simple.
+    allowBase64: false,
   }),
 ];

@@ -1,5 +1,4 @@
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
 import ResizeImage from "tiptap-extension-resize-image";
 import { mergeAttributes, Node } from '@tiptap/core';
@@ -38,14 +37,15 @@ const ServerLinkPreview = Node.create({
 import { generateHTML } from "@tiptap/html";
 
 export const serverTiptapExtensions = [
-    StarterKit,
+    StarterKit.configure({
+        link: {
+            openOnClick: true,
+            autolink: true,
+        },
+    }),
     ServerLinkPreview,
     TextAlign.configure({
         types: ["heading", "paragraph"],
-    }),
-    Link.configure({
-        openOnClick: true,
-        autolink: true,
     }),
     ResizeImage.configure({
         inline: false,
