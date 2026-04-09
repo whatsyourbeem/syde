@@ -7,10 +7,11 @@ export async function compressImage(
   type: "thumbnail" | "detail",
 ): Promise<File> {
   const options = {
-    maxSizeMB: type === "thumbnail" ? 1 : 2,
-    maxWidthOrHeight: type === "thumbnail" ? 1200 : 1920,
+    maxSizeMB: type === "thumbnail" ? 0.3 : 1,
+    maxWidthOrHeight: type === "thumbnail" ? 600 : 1200,
     useWebWorker: true,
-    fileType: file.type,
+    fileType: "image/webp",
   };
-  return imageCompression(file, options);
+  const compressed = await imageCompression(file, options);
+  return new File([compressed], compressed.name, { type: "image/webp" });
 }

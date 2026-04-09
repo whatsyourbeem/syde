@@ -72,7 +72,7 @@ export const createShowcase = withAuthForm(
       .from("showcases")
       .update({
         thumbnail_url: thumbnailUrl || null,
-        images: detailImageUrls.length > 0 ? detailImageUrls : null,
+        images: detailImageUrls,
       })
       .eq("id", showcaseId);
 
