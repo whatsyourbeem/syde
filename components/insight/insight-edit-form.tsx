@@ -174,7 +174,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 return;
             }
 
-            const compressed = await compressImage(file, "thumbnail-lg");
+            const compressed = await compressImage(file, "detail");
             const filePath = `${user.id}/${uuidv4()}`;
 
             const { error: uploadError } = await supabase.storage

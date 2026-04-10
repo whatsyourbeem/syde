@@ -133,7 +133,7 @@ export default function MeetupEditForm({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("로그인이 필요합니다."); return; }
 
-      const compressed = await compressImage(file, "thumbnail-lg");
+      const compressed = await compressImage(file, "detail");
       const filePath = `${user.id}/${uuidv4()}`;
       const { error: uploadError } = await supabase.storage.from("meetups").upload(filePath, compressed);
       if (uploadError) throw uploadError;
