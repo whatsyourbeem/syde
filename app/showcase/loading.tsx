@@ -1,66 +1,48 @@
-export default function LogPageLoading() {
+export default function ShowcasePageLoading() {
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:px-5 md:pb-5">
-      <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-        <div className="w-full h-32 bg-gray-200 animate-pulse rounded-lg"></div>
-      </div>
-      <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
-        <div className="w-full max-w-2xl mx-auto px-4 py-4">
-          <div className="mb-6 p-4 border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-full" />
-              <div className="h-4 bg-gray-200 animate-pulse rounded-md w-24" />
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+      {/* Mobile: TrendingShowcases skeleton (collapsed = 1 item) */}
+      <div className="lg:hidden flex flex-col gap-0">
+        <div className="pt-4 pb-2 px-4 border-b border-gray-200">
+          <div className="h-[14px] bg-gray-200 animate-pulse rounded w-32 mb-2" />
+          <div className="flex items-center gap-2">
+            <div className="w-[14px] h-[20px] bg-gray-200 animate-pulse rounded" />
+            <div className="w-[40px] h-[40px] bg-gray-200 animate-pulse rounded-lg shrink-0" />
+            <div className="flex flex-col gap-1.5 flex-1">
+              <div className="h-[14px] bg-gray-200 animate-pulse rounded w-3/4" />
+              <div className="h-[12px] bg-gray-200 animate-pulse rounded w-1/2" />
             </div>
-            <div className="h-20 bg-gray-200 animate-pulse rounded-md w-full mb-3" />
-            <div className="h-8 bg-gray-200 animate-pulse rounded-md w-16" />
           </div>
-          
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="rounded-lg bg-card flex flex-col p-6 min-h-[280px]">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start">
-                    <div className="w-9 h-9 bg-gray-200 animate-pulse rounded-full mr-3 flex-shrink-0" />
-                    <div className="flex-grow min-w-0">
-                      <div className="h-4 bg-gray-200 animate-pulse rounded-md w-32 mb-2" />
-                      <div className="h-3 bg-gray-200 animate-pulse rounded-md w-20" />
-                    </div>
+        </div>
+        <div className="w-full px-4 pt-3 pb-1">
+          <div className="w-full h-[44px] bg-gray-200 animate-pulse rounded-[12px]" />
+        </div>
+      </div>
+
+      {/* Showcase list skeleton — must match ShowcaseList isLoading state exactly */}
+      <div className="w-full">
+        <div className="flex flex-col">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="w-full border-b border-gray-200 last:border-0 py-6 px-3"
+            >
+              <div className="flex gap-3 md:gap-4 animate-pulse">
+                <div className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] bg-gray-200 rounded-[10px] shrink-0" />
+                <div className="flex flex-col justify-between md:h-[120px] flex-1 gap-1 md:gap-0">
+                  <div className="flex flex-col gap-1 md:gap-2">
+                    <div className="h-6 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-5 bg-gray-200 rounded w-2/5" />
                   </div>
-                </div>
-                
-                <div className="pl-12 space-y-3 flex-grow">
-                  <div className="h-4 bg-gray-200 animate-pulse rounded-md w-full" />
-                  <div className="h-4 bg-gray-200 animate-pulse rounded-md w-3/4" />
-                  <div className="h-32 bg-gray-200 animate-pulse rounded-md w-full" />
-                </div>
-                
-                <div className="flex items-center justify-between pt-4 pl-12 mt-auto">
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 bg-gray-200 animate-pulse rounded-md w-16" />
-                    <div className="h-8 bg-gray-200 animate-pulse rounded-md w-16" />
-                  </div>
+                  <div className="hidden md:block h-[28px] bg-gray-200 rounded w-1/3" />
                 </div>
               </div>
-            ))}
-          </div>
-          
-          <div className="flex justify-center space-x-2 mt-6">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="w-10 h-10 bg-gray-200 animate-pulse rounded-md" />
-            ))}
-          </div>
+              <div className="md:hidden mt-2 h-[28px] bg-gray-200 animate-pulse rounded w-1/3" />
+            </div>
+          ))}
         </div>
       </div>
-      <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen p-4">
-        <div className="flex flex-col items-center text-center">
-          <div className="w-full h-16 bg-gray-200 animate-pulse rounded-md mb-4" />
-          <div className="flex justify-center gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="w-6 h-6 bg-gray-200 animate-pulse rounded-md" />
-            ))}
-          </div>
-        </div>
-      </div>
-    </main>
+    </div>
   );
 }

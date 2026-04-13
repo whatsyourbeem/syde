@@ -80,8 +80,21 @@ function ShowcaseCardBase({
     return (
       <div
         ref={cardRef}
-        className="h-[180px] bg-gray-50/50 animate-pulse rounded-xl"
-      />
+        className="py-6 px-3 flex flex-col gap-2 md:gap-0"
+      >
+        <div className="flex gap-3 md:gap-4">
+          <div className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] bg-gray-100 rounded-[10px] shrink-0" />
+          <div className="flex flex-col justify-between md:h-[120px] flex-1 gap-1 md:gap-0">
+            <div className="flex flex-col gap-1 md:gap-2">
+              <div className="h-6 bg-gray-100 rounded w-3/4" />
+              <div className="h-4 bg-gray-100 rounded w-full" />
+              <div className="h-5 bg-gray-100 rounded w-2/5" />
+            </div>
+            <div className="hidden md:block h-[28px] bg-gray-100 rounded w-1/3" />
+          </div>
+        </div>
+        <div className="md:hidden h-[28px] bg-gray-100 rounded w-1/3" />
+      </div>
     );
   }
 

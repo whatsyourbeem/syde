@@ -186,18 +186,25 @@ export function ShowcaseList({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="w-full">
         <div className="flex flex-col">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="w-full border-b border-gray-200 last:border-0 px-4 py-6">
-              <div className="flex gap-4 animate-pulse">
-                <div className="w-[100px] h-[100px] md:w-[120px] md:h-[120px] bg-gray-200 rounded-[10px] shrink-0" />
-                <div className="flex-1 space-y-4 py-1">
-                  <div className="h-6 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-full" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+            <div
+              key={i}
+              className="w-full border-b border-gray-200 last:border-0 py-6 px-3"
+            >
+              <div className="flex gap-3 md:gap-4 animate-pulse">
+                <div className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] bg-gray-200 rounded-[10px] shrink-0" />
+                <div className="flex flex-col justify-between md:h-[120px] flex-1 gap-1 md:gap-0">
+                  <div className="flex flex-col gap-1 md:gap-2">
+                    <div className="h-6 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-5 bg-gray-200 rounded w-2/5" />
+                  </div>
+                  <div className="hidden md:block h-[28px] bg-gray-200 rounded w-1/3" />
                 </div>
               </div>
+              <div className="md:hidden mt-2 h-[28px] bg-gray-200 animate-pulse rounded w-1/3" />
             </div>
           ))}
         </div>
