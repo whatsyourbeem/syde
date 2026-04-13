@@ -158,7 +158,7 @@ export default async function ShowcaseDetailPage({
       "@type": "Person",
       "name": showcase.profiles?.full_name || showcase.profiles?.username || "SYDER",
     },
-    "url": `https://syde.community/showcase/${showcase.slug || showcase.id}`,
+    "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/showcase/${showcase.slug || showcase.id}`,
   };
 
   return (
