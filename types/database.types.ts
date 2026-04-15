@@ -376,12 +376,42 @@ export type Database = {
           },
         ]
       }
+      insight_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insight_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "insight_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insight_comments: {
         Row: {
           content: string
           created_at: string
           id: string
           insight_id: string
+          parent_comment_id: string | null
           updated_at: string
           user_id: string
         }
@@ -390,6 +420,7 @@ export type Database = {
           created_at?: string
           id?: string
           insight_id: string
+          parent_comment_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -398,6 +429,7 @@ export type Database = {
           created_at?: string
           id?: string
           insight_id?: string
+          parent_comment_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -407,6 +439,13 @@ export type Database = {
             columns: ["insight_id"]
             isOneToOne: false
             referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insight_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "insight_comments"
             referencedColumns: ["id"]
           },
           {
@@ -453,6 +492,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          slug: string | null
           summary: string | null
           title: string
           updated_at: string
@@ -463,6 +503,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          slug?: string | null
           summary?: string | null
           title: string
           updated_at?: string
@@ -473,6 +514,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          slug?: string | null
           summary?: string | null
           title?: string
           updated_at?: string
@@ -976,6 +1018,7 @@ export type Database = {
           name: string | null
           playstore_url: string | null
           short_description: string
+          slug: string | null
           thumbnail_url: string | null
           updated_at: string | null
           user_id: string
@@ -991,6 +1034,7 @@ export type Database = {
           name?: string | null
           playstore_url?: string | null
           short_description?: string
+          slug?: string | null
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id: string
@@ -1006,6 +1050,7 @@ export type Database = {
           name?: string | null
           playstore_url?: string | null
           short_description?: string
+          slug?: string | null
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id?: string
@@ -1066,6 +1111,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_insight_slug: { Args: { title_text: string }; Returns: string }
+      generate_showcase_slug: { Args: { name_text: string }; Returns: string }
       get_club_member_role: {
         Args: { p_club_id: string; p_user_id: string }
         Returns: Database["public"]["Enums"]["club_member_role_enum"]
@@ -1078,6 +1125,7 @@ export type Database = {
           name: string
           score: number
           short_description: string
+          slug: string
           thumbnail_url: string
           upvotes_count: number
           views_count: number

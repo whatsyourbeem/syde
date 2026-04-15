@@ -79,14 +79,14 @@ export const toggleCommentLike = withAuth(
   async ({ supabase, user }, commentId: string, insightId: string, hasLiked: boolean) => {
     if (hasLiked) {
       const { error } = await supabase
-        .from("insight_likes")
+        .from("insight_comment_likes")
         .delete()
         .eq("comment_id", commentId)
         .eq("user_id", user.id);
       if (error) throw new Error(`좋아요 취소 실패: ${error.message}`);
     } else {
       const { error } = await supabase
-        .from("insight_likes")
+        .from("insight_comment_likes")
         .insert({ comment_id: commentId, user_id: user.id });
       if (error) throw new Error(`좋아요 실패: ${error.message}`);
     }

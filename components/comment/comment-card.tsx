@@ -144,7 +144,7 @@ export function CommentCard({
       ? "comment_likes" 
       : showcaseId 
       ? "showcase_upvotes" 
-      : "insight_likes";
+      : "insight_comment_likes";
 
     if (hasLiked) {
       // Unlike
