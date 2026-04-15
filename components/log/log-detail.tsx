@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { linkifyMentions, formatRelativeTime, ensureSecureImageUrl } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,8 +78,6 @@ export function LogDetail({ log, user }: LogDetailProps) {
     aspectRatio: string;
     objectFit: "cover" | "contain";
   } | null>(null);
-  const [showCopyDialog, setShowCopyDialog] = useState(false);
-  const [copyUrl, setCopyUrl] = useState("");
   const [ogUrl, setOgUrl] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<{
     parentId: string;
@@ -86,6 +85,8 @@ export function LogDetail({ log, user }: LogDetailProps) {
     authorUsername: string | null;
     authorAvatarUrl: string | null;
   } | null>(null);
+  const [newCommentId, setNewCommentId] = useState<string | undefined>(undefined);
+  const [newParentCommentId, setNewParentCommentId] = useState<string | undefined>(undefined);
 
   const {
     mutate: deleteLogMutation,
@@ -267,46 +268,17 @@ export function LogDetail({ log, user }: LogDetailProps) {
 
   const handleCommentAdded = () => {
     setCommentsCount((prev) => prev + 1);
+    // Use the correct query key matching CommentList: ["comments", { parentId }]
     queryClient.invalidateQueries({
-      queryKey: ["comments", { logId: log.id }],
+      queryKey: ["comments", { parentId: log.id }],
     });
+    // Also trigger the reset logic in CommentList via newCommentId
+    setNewCommentId(Math.random().toString());
+    setNewParentCommentId(replyTo?.parentId);
+    setReplyTo(null);
   };
 
-  const handleCopyLink = async () => {
-    const url = `${window.location.origin}/log/${log.id}`;
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(url);
-        toast.success("링크를 복사했어요!");
-      } catch {
-        setCopyUrl(url);
-        setShowCopyDialog(true);
-      }
-    } else {
-      setCopyUrl(url);
-      setShowCopyDialog(true);
-    }
-  };
 
-  const handleShareAll = async () => {
-    const url = `${window.location.origin}/log/${log.id}`;
-    const text = "Check out this log on SYDE!";
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "SYDE Log",
-          text: text,
-          url: url,
-        });
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
-          console.error("Error sharing:", error);
-        }
-      }
-    } else {
-      toast.info("Web Share is not supported on your browser.");
-    }
-  };
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
     ? `${log.profiles.avatar_url}?t=${log.profiles.updated_at
@@ -347,16 +319,17 @@ export function LogDetail({ log, user }: LogDetailProps) {
         <div className="flex items-center justify-between">
           <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
             <div className="flex items-center">
-              <Link href={`/${log.profiles?.username || log.user_id}`}>
-                {avatarUrlWithCacheBuster && (
-                  <Image
-                    src={avatarUrlWithCacheBuster}
+              <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-3">
+                <Avatar className="size-8">
+                  <AvatarImage
+                    src={avatarUrlWithCacheBuster || undefined}
                     alt={`${log.profiles?.username || "User"}'s avatar`}
-                    width={32}
-                    height={32}
-                    className="rounded-full object-cover aspect-square mr-3"
+                    className="object-cover"
                   />
-                )}
+                  <AvatarFallback className="text-xs">
+                    {(log.profiles?.full_name || log.profiles?.username || "A").charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               </Link>
               <div className="flex items-baseline gap-1">
                 <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
@@ -504,7 +477,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
           onCommentClick={() => {
             document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" });
           }}
-          shareUrl={`${window.location.origin}/log/${log.id}`}
+          shareUrl={`/log/${log.id}`}
           className="px-[52px] pt-2"
         />
         {/* Comments Section */}
@@ -516,6 +489,8 @@ export function LogDetail({ log, user }: LogDetailProps) {
             pageSize={10}
             isDetailPage={true}
             setReplyTo={setReplyTo}
+            newCommentId={newCommentId}
+            newParentCommentId={newParentCommentId}
           />
           <CommentForm
             logId={log.id}
@@ -524,48 +499,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
             replyTo={replyTo}
           />
         </div>
-        <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
-          <AlertDialogContent className="w-[350px] rounded-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle>링크 복사</AlertDialogTitle>
-              <AlertDialogDescription>
-                자동 복사를 지원하지 않는 환경입니다. 수동으로 복사해주세요.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="py-2 flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={copyUrl}
-                className="w-full p-2 border rounded bg-muted text-muted-foreground flex-grow"
-                onFocus={(e) => e.target.select()}
-              />
-              <button
-                onClick={async () => {
-                  if (navigator.clipboard && window.isSecureContext) {
-                    try {
-                      await navigator.clipboard.writeText(copyUrl);
-                      toast.success("링크를 복사했어요!");
-                    } catch {
-                      toast.error("복사에 실패했어요. 수동으로 복사해주세요.");
-                    }
-                  } else {
-                    toast.error("브라우저에서 클립보드 복사를 지원하지 않아요.");
-                  }
-                }}
-                className="p-2 rounded-md hover:bg-secondary"
-                aria-label="Copy link"
-              >
-                <Copy size={18} />
-              </button>
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={() => setShowCopyDialog(false)}>
-                닫기
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
       </div>
     </>
   );

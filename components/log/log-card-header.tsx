@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
-import { Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { memo } from "react";
 import {
@@ -22,6 +21,7 @@ import { LogEditDialog } from "@/components/log/log-edit-dialog";
 import { Database } from "@/types/database.types";
 import { formatRelativeTime } from "@/lib/utils";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { Edit, Trash2, MoreHorizontal } from "lucide-react";
 
 interface LogCardHeaderProps {
   log: Database['public']['Tables']['logs']['Row'] & {
@@ -45,21 +45,18 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
     <div className="flex items-start justify-between">
       <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
         <div className="flex items-start">
-          {avatarUrlWithCacheBuster && (
-            <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
-              <Image
-                src={avatarUrlWithCacheBuster}
+          <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-2">
+            <Avatar className="size-9">
+              <AvatarImage
+                src={avatarUrlWithCacheBuster || undefined}
                 alt={`${log.profiles?.username || "User"}'s avatar`}
-                width={36}
-                height={36}
-                className="rounded-full object-cover mr-2"
-                style={{ aspectRatio: '1' }}
-                loading="lazy"
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNmMGYwZjAiLz4KPC9zdmc+"
+                className="object-cover"
               />
-            </Link>
-          )}
+              <AvatarFallback className="text-xs">
+                {(log.profiles?.full_name || log.profiles?.username || "A").charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-grow min-w-0 overflow-hidden">
             <div className="flex items-baseline gap-1 overflow-hidden">
               <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">

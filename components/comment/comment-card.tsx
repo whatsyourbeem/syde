@@ -284,6 +284,7 @@ export function CommentCard({
               insightId={insightId}
               currentUserId={currentUserId}
               initialCommentData={comment}
+              mentionedProfiles={mentionedProfiles}
               onCommentUpdated={() => {
                 setIsEditing(false);
                 const parentId = logId || showcaseId || insightId;
@@ -498,6 +499,7 @@ export function CommentCard({
               }}
               onCancel={() => setShowReplies(false)}
               replyTo={internalReplyTo}
+              mentionedProfiles={mentionedProfiles}
             />
           </div>
         )}

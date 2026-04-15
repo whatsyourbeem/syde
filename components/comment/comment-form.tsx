@@ -13,6 +13,7 @@ import { Database } from "@/types/database.types";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import { X } from "lucide-react";
+import { reverseMentions } from "@/lib/utils";
 
 interface CommentFormProps {
   logId?: string;
@@ -31,6 +32,7 @@ interface CommentFormProps {
     authorUsername: string | null;
     authorAvatarUrl: string | null;
   } | null;
+  mentionedProfiles?: Array<{ id: string; username: string | null }>;
 }
 
 function SubmitButton({
@@ -69,12 +71,18 @@ export function CommentForm({
   onCancel,
   placeholder,
   replyTo,
+  mentionedProfiles = [],
 }: CommentFormProps) {
   const supabase = createClient();
   const { openLoginDialog } = useLoginDialog();
 
   const formRef = useRef<HTMLFormElement>(null);
-  const [content, setContent] = useState(initialCommentData?.content || "");
+  const [content, setContent] = useState(() => {
+    if (initialCommentData?.content) {
+      return reverseMentions(initialCommentData.content, mentionedProfiles);
+    }
+    return initialCommentData?.content || "";
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<{
     avatar_url: string | null;

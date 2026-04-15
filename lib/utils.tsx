@@ -84,6 +84,18 @@ export function linkifyMentions(
   });
 }
 
+export function reverseMentions(
+  text: string | null | undefined,
+  profiles: Array<{ id: string; username: string | null }>,
+) {
+  if (!text) return "";
+  const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
+  return text.replace(mentionRegex, (match, userId) => {
+    const profile = profiles.find((p) => p.id === userId);
+    return profile ? `@${profile.username}` : match;
+  });
+}
+
 export function isTiptapJsonEmpty(jsonContent: Json | null): boolean {
   if (!jsonContent) {
     return true;
