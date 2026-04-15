@@ -105,6 +105,39 @@ export type Database = {
         }
         Relationships: []
       }
+      club_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "club_forum_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_forum_post_comments: {
         Row: {
           content: string
@@ -317,72 +350,6 @@ export type Database = {
           },
         ]
       }
-      club_comment_likes: {
-        Row: {
-          comment_id: string
-          created_at: string
-          user_id: string
-        }
-        Insert: {
-          comment_id: string
-          created_at?: string
-          user_id: string
-        }
-        Update: {
-          comment_id?: string
-          created_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "club_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "club_forum_post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "club_comment_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      log_comment_likes: {
-        Row: {
-          comment_id: string
-          created_at: string
-          user_id: string
-        }
-        Insert: {
-          comment_id: string
-          created_at?: string
-          user_id: string
-        }
-        Update: {
-          comment_id?: string
-          created_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "log_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "log_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "log_comment_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       insight_bookmarks: {
         Row: {
           created_at: string
@@ -585,6 +552,39 @@ export type Database = {
             columns: ["log_id"]
             isOneToOne: false
             referencedRelation: "logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      log_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "log_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "log_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "log_comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -940,6 +940,42 @@ export type Database = {
         }
         Relationships: []
       }
+      showcase_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcase_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "showcase_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "showcase_comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       showcase_comments: {
         Row: {
           content: string
@@ -994,34 +1030,24 @@ export type Database = {
       }
       showcase_upvotes: {
         Row: {
-          comment_id: string | null
           created_at: string | null
           id: string
           showcase_id: string | null
           user_id: string
         }
         Insert: {
-          comment_id?: string | null
           created_at?: string | null
           id?: string
           showcase_id?: string | null
           user_id: string
         }
         Update: {
-          comment_id?: string | null
           created_at?: string | null
           id?: string
           showcase_id?: string | null
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "showcase_upvotes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "showcase_comments"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "showcase_upvotes_showcase_id_fkey"
             columns: ["showcase_id"]

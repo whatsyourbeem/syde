@@ -143,7 +143,7 @@ export function CommentCard({
     const likesTable = logId 
       ? "log_comment_likes" 
       : showcaseId 
-      ? "showcase_upvotes" 
+      ? "showcase_comment_likes" 
       : "insight_comment_likes";
 
     if (hasLiked) {
@@ -161,11 +161,7 @@ export function CommentCard({
         console.error("Error unliking comment:", error);
       }
     } else {
-      const insertData = logId
-        ? { comment_id: comment.id, user_id: currentUserId }
-        : showcaseId
-        ? { comment_id: comment.id, user_id: currentUserId, showcase_id: null }
-        : { comment_id: comment.id, user_id: currentUserId };
+      const insertData = { comment_id: comment.id, user_id: currentUserId };
 
       const { error } = await supabase.from(likesTable).insert(insertData);
 

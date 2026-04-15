@@ -39,7 +39,7 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type CommentWithRelations = CommentRow & {
   profiles: ProfileRow | null;
   log_comment_likes?: Array<{ user_id: string }>; // For log comments
-  showcase_upvotes?: Array<{ user_id: string }>; // For showcase comments
+  showcase_comment_likes?: Array<{ user_id: string }>; // For showcase comments
   insight_comment_likes?: Array<{ user_id: string }>; // For insight comments
   replies?: CommentWithRelations[];
 };
@@ -114,7 +114,7 @@ export function CommentList({
       const likesRelation = logId
         ? "log_comment_likes(user_id)"
         : showcaseId
-        ? "showcase_upvotes!showcase_upvotes_comment_id_fkey(user_id)"
+        ? "showcase_comment_likes!showcase_comment_likes_comment_id_fkey(user_id)"
         : "insight_comment_likes(user_id)";
 
       const { data, error, count } = await supabase
@@ -213,7 +213,7 @@ export function CommentList({
         comment: CommentWithRelations,
       ): ProcessedComment => {
         // Get likes from appropriate field based on comment type
-        const likes = comment.log_comment_likes || comment.showcase_upvotes || comment.insight_comment_likes || [];
+        const likes = comment.log_comment_likes || comment.showcase_comment_likes || comment.insight_comment_likes || [];
         return {
           ...comment,
           profiles: Array.isArray(comment.profiles)
@@ -320,7 +320,7 @@ export function CommentList({
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "showcase_upvotes" },
+        { event: "*", schema: "public", table: "showcase_comment_likes" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["comments", { parentId }] });
         },
