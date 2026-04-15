@@ -140,7 +140,7 @@ export default async function MeetupDetailPage({ params }: PageProps) {
     "startDate": meetup.start_datetime,
     "endDate": meetup.end_datetime || meetup.start_datetime,
     "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-    "eventStatus": meetup.status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
+    "eventStatus": "https://schema.org/EventScheduled",
     "location": {
       "@type": "Place",
       "name": meetup.location || "SYDE 모임 장소",
