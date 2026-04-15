@@ -219,6 +219,16 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         "author": {
             "@type": "Person",
             "name": insight.profiles?.full_name || insight.profiles?.username || "SYDER",
+            "url": insight.profiles?.username ? `https://syde.kr/${insight.profiles.username}` : "https://syde.kr",
+            "jobTitle": insight.profiles?.tagline || "메이커"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "SYDE (사이드프로젝트 커뮤니티)",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://syde.kr/icon.png"
+            }
         },
         "url": `https://syde.community/insight/${insight.slug || insight.id}`,
         "datePublished": insight.created_at,

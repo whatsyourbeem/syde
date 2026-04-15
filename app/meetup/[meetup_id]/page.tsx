@@ -152,7 +152,8 @@ export default async function MeetupDetailPage({ params }: PageProps) {
     "description": (typeof meetup.description === "string" ? meetup.description.slice(0, 160) : "") || "SYDE 커뮤니티 모임",
     "organizer": {
       "@type": "Person",
-      "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER"
+      "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER",
+      "url": meetup.organizer_profile?.username ? `https://syde.kr/${meetup.organizer_profile.username}` : "https://syde.kr"
     }
   };
 
