@@ -54,6 +54,9 @@ export async function generateMetadata(
   return {
     title,
     description: description || "SYDE 로그",
+    alternates: {
+      canonical: `/log/${log_id}`,
+    },
     openGraph: {
       title,
       description: description || "SYDE 로그",

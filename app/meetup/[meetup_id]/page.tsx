@@ -73,6 +73,9 @@ export async function generateMetadata(
   return {
     title,
     description,
+    alternates: {
+      canonical: `/meetup/${meetup_id}`,
+    },
     openGraph: {
       title,
       description,
@@ -130,13 +133,42 @@ export default async function MeetupDetailPage({ params }: PageProps) {
     }
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": meetup.title,
+    "startDate": meetup.start_datetime,
+    "endDate": meetup.end_datetime || meetup.start_datetime,
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": meetup.status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": meetup.location || "SYDE 모임 장소",
+      "address": meetup.address || ""
+    },
+    "image": [
+      meetup.thumbnail_url || "https://syde.community/default_meetup_thumbnail.png"
+    ],
+    "description": (typeof meetup.description === "string" ? meetup.description.slice(0, 160) : "") || "SYDE 커뮤니티 모임",
+    "organizer": {
+      "@type": "Person",
+      "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER"
+    }
+  };
+
   return (
-    <MeetupDetailClient
-      meetup={meetup as Meetup}
-      initialHtml={initialHtml}
-      isOrganizer={isOrganizer}
-      user={user}
-      joinedClubIds={joinedClubIds}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <MeetupDetailClient
+        meetup={meetup as Meetup}
+        initialHtml={initialHtml}
+        isOrganizer={isOrganizer}
+        user={user}
+        joinedClubIds={joinedClubIds}
+      />
+    </>
   );
 }

@@ -40,6 +40,9 @@ export async function generateMetadata(
   return {
     title,
     description,
+    alternates: {
+      canonical: `/${profile.username}`,
+    },
     openGraph: {
       title,
       description,

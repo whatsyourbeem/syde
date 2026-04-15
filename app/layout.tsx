@@ -45,9 +45,6 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     apple: "/apple-icon.png",
   },
-  alternates: {
-    canonical: "./",
-  },
 };
 
 export const viewport = {
