@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "모임 | SYDE",
+  title: "모임 | SYDE - 사이드프로젝트 커뮤니티 플랫폼",
   description: "사이드프로젝트 밋업 및 커뮤니티 네트워킹 모임",
   alternates: {
     canonical: "/meetup",

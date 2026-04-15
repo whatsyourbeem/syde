@@ -3,7 +3,7 @@ import { ShowcaseLayoutContent } from "@/components/showcase/showcase-layout-con
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "쇼케이스 | SYDE",
+  title: "쇼케이스 | SYDE - 사이드프로젝트 커뮤니티 플랫폼",
   description: "사이드프로젝트 쇼케이스: 다양한 IT 메이커들의 웹/앱 프로덕트를 확인하세요",
   alternates: {
     canonical: "/showcase",
