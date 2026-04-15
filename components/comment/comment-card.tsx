@@ -14,9 +14,20 @@ import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { useRouter } from "next/navigation";
 
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
-
 import { Database } from "@/types/database.types";
 import { deleteComment as deleteInsightComment } from "@/app/insight/insight-actions";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type ProcessedComment = Database["public"]["Tables"]["log_comments"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -180,9 +191,6 @@ export function CommentCard({
 
   const handleDelete = async () => {
     if (currentUserId !== comment.user_id) return;
-
-    const isConfirmed = window.confirm("정말로 이 댓글을 삭제하시겠습니까?");
-    if (!isConfirmed) return;
 
     setLoading(true);
     try {
@@ -387,15 +395,35 @@ export function CommentCard({
                     >
                       수정
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleDelete}
-                      disabled={loading}
-                      className="text-xs text-muted-foreground hover:text-red-500"
-                    >
-                      삭제
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={loading}
+                          className="text-xs text-muted-foreground hover:text-red-500"
+                        >
+                          삭제
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>정말로 이 댓글을 삭제하시겠습니까?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            이 작업은 되돌릴 수 없습니다. 삭제된 댓글은 복구할 수 없습니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-red-500 hover:bg-red-600 border-red-500 hover:border-red-600"
+                          >
+                            삭제
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </>
                 )}
               </div>
