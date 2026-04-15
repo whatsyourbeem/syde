@@ -15,6 +15,7 @@ import { LoadingSpinner } from "@/components/ui/loading-states";
 interface CommentListProps {
   logId?: string;
   showcaseId?: string;
+  insightId?: string;
   currentUserId: string | null;
   pageSize?: number;
   isDetailPage?: boolean;
@@ -39,6 +40,7 @@ type CommentWithRelations = CommentRow & {
   profiles: ProfileRow | null;
   comment_likes?: Array<{ user_id: string }>; // For log comments
   showcase_upvotes?: Array<{ user_id: string }>; // For showcase comments
+  insight_likes?: Array<{ user_id: string }>; // For insight comments
   replies?: CommentWithRelations[];
 };
 
@@ -53,6 +55,7 @@ type ProcessedComment = CommentRow & {
 export function CommentList({
   logId,
   showcaseId,
+  insightId,
   currentUserId,
   pageSize = 10,
   isDetailPage = false,
@@ -65,12 +68,22 @@ export function CommentList({
   const supabase = createClient();
   const queryClient = useQueryClient();
 
-  const parentId = logId || showcaseId;
-  const parentTable = logId ? "log_comments" : "showcase_comments";
-  const parentColumn = logId ? "log_id" : "showcase_id";
+  const parentId = logId || showcaseId || insightId;
+  const parentTable = logId 
+    ? "log_comments" 
+    : showcaseId 
+    ? "showcase_comments" 
+    : "insight_comments";
+  const parentColumn = logId 
+    ? "log_id" 
+    : showcaseId 
+    ? "showcase_id" 
+    : "insight_id";
   const channelName = logId
     ? `comments-for-log-${logId}`
-    : `comments-for-showcase-${showcaseId}`;
+    : showcaseId
+    ? `comments-for-showcase-${showcaseId}`
+    : `comments-for-insight-${insightId}`;
 
   const queryKey = useMemo(() => ["comments", { parentId }], [parentId]);
 
@@ -100,7 +113,9 @@ export function CommentList({
       // Determine which likes relation to fetch
       const likesRelation = logId
         ? "comment_likes(user_id)"
-        : "showcase_upvotes!showcase_upvotes_comment_id_fkey(user_id)";
+        : showcaseId
+        ? "showcase_upvotes!showcase_upvotes_comment_id_fkey(user_id)"
+        : "insight_likes!insight_likes_comment_id_fkey(user_id)";
 
       const { data, error, count } = await supabase
         .from(parentTable)
@@ -198,7 +213,7 @@ export function CommentList({
         comment: CommentWithRelations,
       ): ProcessedComment => {
         // Get likes from appropriate field based on comment type
-        const likes = comment.comment_likes || comment.showcase_upvotes || [];
+        const likes = comment.comment_likes || comment.showcase_upvotes || comment.insight_likes || [];
         return {
           ...comment,
           profiles: Array.isArray(comment.profiles)
@@ -310,6 +325,13 @@ export function CommentList({
           queryClient.invalidateQueries({ queryKey: ["comments", { parentId }] });
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "insight_likes" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["comments", { parentId }] });
+        },
+      )
       .subscribe();
 
     return () => {
@@ -365,6 +387,7 @@ export function CommentList({
             onLikeStatusChange={handleLikeStatusChange}
             logId={logId} // Pass logId if available
             showcaseId={showcaseId} // Pass showcaseId if available
+            insightId={insightId} // Pass insightId if available
             level={0}
             isDetailPage={isDetailPage}
             isMobile={isMobile}

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { CommentForm } from "@/components/comment/comment-form";
+import { CommentList } from "@/components/comment/comment-list";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
@@ -55,22 +57,25 @@ export default function InsightDetailClient({
 
     const [isMounted, setIsMounted] = useState(false);
     const [insight, setInsight] = useState<any>(initialInsight);
-    const [comments, setComments] = useState<any[]>(initialComments);
     const [stats, setStats] = useState(initialStats);
     const [isLiked, setIsLiked] = useState(initialIsLiked);
     const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
-    const [newComment, setNewComment] = useState("");
-    const [submitting, setSubmitting] = useState(false);
+    
+    // Unified comment states
+    const [replyTo, setReplyTo] = useState<{
+        parentId: string;
+        authorName: string;
+        authorUsername: string | null;
+        authorAvatarUrl: string | null;
+    } | null>(null);
+    const [newCommentId, setNewCommentId] = useState<string | undefined>(undefined);
+    const [newParentCommentId, setNewParentCommentId] = useState<string | undefined>(undefined);
+    
     const [isAuthor, setIsAuthor] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(initialCurrentUserId);
-    const [activeCommentMenuId, setActiveCommentMenuId] = useState<string | null>(null);
-    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-    const [editingContent, setEditingContent] = useState("");
-    const [isCommentDeleteDialogOpen, setIsCommentDeleteDialogOpen] = useState(false);
-    const [commentToDeleteId, setCommentToDeleteId] = useState<string | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const router = useRouter();
 
@@ -111,110 +116,6 @@ export default function InsightDetailClient({
         } finally {
             setDeleting(false);
             setIsDeleteDialogOpen(false);
-        }
-    };
-
-    const handleCommentSubmit = async () => {
-        if (!newComment.trim()) return;
-
-        setSubmitting(true);
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                toast.error("로그인이 필요한 서비스입니다.");
-                return;
-            }
-
-            const { data, error } = await supabase
-                .from("insight_comments")
-                .insert([
-                    {
-                        insight_id: id,
-                        user_id: user.id,
-                        content: newComment.trim()
-                    }
-                ])
-                .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url,
-            tagline
-          )
-        `)
-                .single();
-
-            if (error) throw error;
-
-            setComments(prev => [...prev, data]);
-            setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
-            setNewComment("");
-
-            if (textareaRef.current) {
-                textareaRef.current.style.height = "48px";
-            }
-
-            toast.success("댓글이 등록되었습니다.");
-        } catch (error: any) {
-            console.error("Error submitting comment:", error);
-            toast.error("댓글 등록 중 오류가 발생했습니다.");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleCommentUpdate = async () => {
-        if (!editingCommentId || !editingContent.trim()) return;
-
-        try {
-            const { error } = await supabase
-                .from("insight_comments")
-                .update({ content: editingContent.trim() })
-                .eq("id", editingCommentId);
-
-            if (error) throw error;
-
-            setComments(prev => prev.map(c =>
-                c.id === editingCommentId ? { ...c, content: editingContent.trim() } : c
-            ));
-            setEditingCommentId(null);
-            setEditingContent("");
-            toast.success("댓글이 수정되었습니다.");
-        } catch (error) {
-            console.error("Error updating comment:", error);
-            toast.error("수정 중 오류가 발생했습니다.");
-        }
-    };
-
-    const handleCommentDeleteRequest = (commentId: string) => {
-        setCommentToDeleteId(commentId);
-        setActiveCommentMenuId(null);
-        setIsCommentDeleteDialogOpen(true);
-    };
-
-    const confirmCommentDelete = async () => {
-        if (!commentToDeleteId) return;
-
-        // Use the same 'deleting' state for simplicity or add a new one if needed
-        setDeleting(true);
-        try {
-            const { error } = await supabase
-                .from("insight_comments")
-                .delete()
-                .eq("id", commentToDeleteId);
-
-            if (error) throw error;
-
-            setComments(prev => prev.filter(c => c.id !== commentToDeleteId));
-            setStats(prev => ({ ...prev, comments: Math.max(0, prev.comments - 1) }));
-            toast.success("댓글이 삭제되었습니다.");
-        } catch (error) {
-            console.error("Error deleting comment:", error);
-            toast.error("삭제 중 오류가 발생했습니다.");
-        } finally {
-            setDeleting(false);
-            setIsCommentDeleteDialogOpen(false);
-            setCommentToDeleteId(null);
         }
     };
 
@@ -449,127 +350,34 @@ export default function InsightDetailClient({
                         <h2 className="text-xl font-bold text-sydeblue">댓글 및 리뷰</h2>
                     </div>
 
-                    <div className="flex flex-col gap-6 px-1 min-h-[100px]">
-                        {comments.length > 0 ? comments.map((comment, index) => (
-                            <div key={comment.id} className="flex flex-row gap-4 items-start relative">
-                                <Avatar className="w-[36px] h-[36px] flex-none border border-gray-100">
-                                    <AvatarImage src={comment.profiles?.avatar_url} />
-                                    <AvatarFallback className="bg-[#D9D9D9] text-sm">{comment.profiles?.username?.[0] || 'A'}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex flex-col gap-1.5 flex-grow">
-                                    <div className="flex flex-row justify-between items-center">
-                                        <div className="flex gap-2 items-center">
-                                            <span className="text-[14px] font-bold text-sydeblue">{comment.profiles?.username}</span>
-                                            <span className="text-[12px] text-[#777777]">{comment.profiles?.tagline || '멤버'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[12px] text-[#777777]">
-                                                {isMounted ? new Date(comment.created_at).toLocaleDateString() : ""}
-                                            </span>
-                                            {currentUserId === comment.user_id && (
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={() => setActiveCommentMenuId(activeCommentMenuId === comment.id ? null : comment.id)}
-                                                        className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-ellipsis w-4 h-4 text-[#777777]"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
-                                                    </button>
-                                                    {activeCommentMenuId === comment.id && (
-                                                        <>
-                                                            <div
-                                                                className="fixed inset-0 z-40"
-                                                                onClick={() => setActiveCommentMenuId(null)}
-                                                            />
-                                                            <div className="absolute right-0 top-8 w-[103px] bg-white shadow-[2px_4px_10px_rgba(0,0,0,0.25)] rounded-[10px] p-1 flex flex-col items-start z-50">
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setEditingCommentId(comment.id);
-                                                                        setEditingContent(comment.content);
-                                                                        setActiveCommentMenuId(null);
-                                                                    }}
-                                                                    className="w-full h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
-                                                                >
-                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sydeblue"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                                                    <span className="text-[14px] text-sydeblue">수정</span>
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleCommentDeleteRequest(comment.id)}
-                                                                    className="w-full h-8 flex flex-row justify-center items-center p-[4px_8px] gap-2 bg-white rounded-[12px] hover:bg-gray-50 transition-colors"
-                                                                >
-                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                                                    <span className="text-[14px] text-[#FF0004]">삭제</span>
-                                                                </button>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {editingCommentId === comment.id ? (
-                                        <div className="flex flex-col gap-2 mt-1">
-                                            <textarea
-                                                value={editingContent}
-                                                onChange={(e) => setEditingContent(e.target.value)}
-                                                className="w-full bg-white border border-[#B7B7B7] rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-sydeblue transition-shadow min-h-[80px] resize-none"
-                                                autoFocus
-                                            />
-                                            <div className="flex justify-end gap-3">
-                                                <button
-                                                    onClick={() => setEditingCommentId(null)}
-                                                    className="text-sm text-[#777777] hover:text-black font-medium"
-                                                >
-                                                    취소
-                                                </button>
-                                                <button
-                                                    onClick={handleCommentUpdate}
-                                                    className="text-sm text-sydeblue hover:underline font-bold"
-                                                >
-                                                    저장
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm md:text-base leading-relaxed text-gray-800">{comment.content}</p>
-                                    )}
-                                </div>
-                                {index < comments.length - 1 && (
-                                    <div className="absolute left-[19px] top-11 w-[0.5px] h-8 bg-[#B7B7B7]/50" />
-                                )}
-                            </div>
-                        )) : (
-                            <p className="text-base text-gray-400 py-12 text-center bg-white rounded-xl border border-dashed border-gray-200">
-                                첫 번째 댓글을 남겨보세요!
-                            </p>
-                        )}
+                    <div className="flex flex-col gap-4 px-1 min-h-[100px]">
+                        <CommentList
+                            insightId={id}
+                            currentUserId={currentUserId}
+                            isDetailPage={true}
+                            setReplyTo={setReplyTo}
+                            newCommentId={newCommentId}
+                            newParentCommentId={newParentCommentId}
+                            onCommentDeleted={() => {
+                                setStats(prev => ({ ...prev, comments: Math.max(0, prev.comments - 1) }));
+                            }}
+                        />
                     </div>
 
-                    <div className="flex flex-row items-center gap-3 pt-4">
-                        <div className="flex-grow">
-                            <textarea
-                                ref={textareaRef}
-                                value={newComment}
-                                onChange={(e) => {
-                                    setNewComment(e.target.value);
-                                    if (textareaRef.current) {
-                                        textareaRef.current.style.height = '48px'; // Reset height to recalculate
-                                        const scrollHeight = textareaRef.current.scrollHeight;
-                                        textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px'; // Max approx 4 lines (120px)
-                                    }
-                                }}
-                                disabled={submitting}
-                                placeholder="댓글을 작성해 보세요..."
-                                rows={1}
-                                className="w-full h-[48px] py-3 bg-white border border-[#B7B7B7] rounded-xl px-4 text-base focus:outline-none focus:ring-1 focus:ring-sydeblue transition-shadow disabled:opacity-50 resize-none overflow-y-auto"
-                            />
-                        </div>
-                        <Button
-                            onClick={handleCommentSubmit}
-                            disabled={submitting || !newComment.trim()}
-                            className="h-12 px-6 bg-sydeblue hover:bg-sydeblue/90 text-white text-base font-semibold rounded-xl"
-                        >
-                            {submitting ? "..." : "등록"}
-                        </Button>
+                    <div className="pt-4">
+                        <CommentForm
+                            insightId={id}
+                            parentCommentId={replyTo?.parentId}
+                            currentUserId={currentUserId}
+                            onCommentAdded={() => {
+                                setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
+                                setReplyTo(null);
+                                setNewCommentId(Math.random().toString());
+                                setNewParentCommentId(replyTo?.parentId);
+                            }}
+                            onCancel={replyTo ? () => setReplyTo(null) : undefined}
+                            replyTo={replyTo}
+                        />
                     </div>
                 </section>
             </main>
@@ -579,15 +387,6 @@ export default function InsightDetailClient({
                 onClose={() => setIsDeleteDialogOpen(false)}
                 onConfirm={confirmDelete}
                 loading={deleting}
-            />
-
-            <InsightDeleteDialog
-                isOpen={isCommentDeleteDialogOpen}
-                onClose={() => setIsCommentDeleteDialogOpen(false)}
-                onConfirm={confirmCommentDelete}
-                loading={deleting}
-                title="잠깐! 정말 댓글을 삭제하실건가요?"
-                description="삭제 후에는 되돌릴 수 없어요."
             />
         </div>
     );

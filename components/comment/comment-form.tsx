@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createComment as createLogComment, updateComment as updateLogComment } from "@/app/log/log-actions";
 import { createComment as createShowcaseComment, updateComment as updateShowcaseComment } from "@/app/showcase/showcase-actions";
+import { createComment as createInsightComment, updateComment as updateInsightComment } from "@/app/insight/insight-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useFormStatus } from "react-dom";
@@ -16,9 +17,10 @@ import { X } from "lucide-react";
 interface CommentFormProps {
   logId?: string;
   showcaseId?: string;
+  insightId?: string;
   currentUserId: string | null;
   parentCommentId?: string | null;
-  initialCommentData?: Database["public"]["Tables"]["log_comments"]["Row"]; // This type might need adjustment if comments are separate for showcase
+  initialCommentData?: any; // Using any to support multiple table row types
   onCommentAdded?: () => void;
   onCommentUpdated?: () => void;
   onCancel?: () => void;
@@ -36,7 +38,7 @@ function SubmitButton({
   content,
   isSubmitting,
 }: {
-  initialCommentData?: Database["public"]["Tables"]["log_comments"]["Row"];
+  initialCommentData?: any;
   content: string;
   isSubmitting: boolean;
 }) {
@@ -58,6 +60,7 @@ function SubmitButton({
 export function CommentForm({
   logId,
   showcaseId,
+  insightId,
   currentUserId,
   parentCommentId,
   initialCommentData,
@@ -320,11 +323,26 @@ export function CommentForm({
       formData.set("log_id", logId);
     } else if (showcaseId) {
       formData.set("showcase_id", showcaseId);
+    } else if (insightId) {
+      formData.set("insight_id", insightId);
     }
 
-    const isLog = !!logId;
-    const createAction = isLog ? createLogComment : createShowcaseComment;
-    const updateAction = isLog ? updateLogComment : updateShowcaseComment;
+    if (parentCommentId) {
+      formData.set("parent_comment_id", parentCommentId);
+    }
+
+    const createAction = logId 
+      ? createLogComment 
+      : showcaseId 
+      ? createShowcaseComment 
+      : createInsightComment;
+      
+    const updateAction = logId 
+      ? updateLogComment 
+      : showcaseId 
+      ? updateShowcaseComment 
+      : updateInsightComment;
+
     const actionToCall = initialCommentData ? updateAction : createAction;
 
     try {
@@ -351,6 +369,7 @@ export function CommentForm({
     >
       {logId && <input type="hidden" name="log_id" value={logId} />}
       {showcaseId && <input type="hidden" name="showcase_id" value={showcaseId} />}
+      {insightId && <input type="hidden" name="insight_id" value={insightId} />}
       {initialCommentData && (
         <input type="hidden" name="comment_id" value={initialCommentData.id} />
       )}
@@ -359,16 +378,18 @@ export function CommentForm({
       )}
       <div className="flex items-start gap-3">
         {/* Current User Avatar */}
-        <div className="flex-shrink-0 mt-0.5">
-          <div className="relative w-9 h-9 overflow-hidden rounded-full bg-[#D9D9D9]">
-            <Image
-              src={currentUserProfile?.avatar_url || "/default_avatar.png"}
-              alt="My avatar"
-              fill
-              className="object-cover"
-            />
+        {!initialCommentData && (
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="relative w-9 h-9 overflow-hidden rounded-full bg-[#D9D9D9]">
+              <Image
+                src={currentUserProfile?.avatar_url || "/default_avatar.png"}
+                alt="My avatar"
+                fill
+                className="object-cover"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex-grow flex gap-2">
           <div className="flex-grow relative">

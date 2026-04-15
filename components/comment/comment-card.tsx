@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
+import { deleteComment as deleteInsightComment } from "@/app/insight/insight-actions";
 
 type ProcessedComment = Database["public"]["Tables"]["log_comments"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -30,6 +31,7 @@ interface CommentCardProps {
   comment: ProcessedComment;
   logId?: string;
   showcaseId?: string;
+  insightId?: string;
   userId: string | null;
   isLiked: boolean;
   likeCount: number;
@@ -66,6 +68,7 @@ export function CommentCard({
   onLikeStatusChange,
   logId,
   showcaseId,
+  insightId,
   level = 0,
   isDetailPage = false,
   isMobile = false,
@@ -137,8 +140,11 @@ export function CommentCard({
     let newHasLiked = hasLiked;
 
     // Determine which table to use for likes
-    const isLog = !!logId;
-    const likesTable = isLog ? "comment_likes" : "showcase_upvotes";
+    const likesTable = logId 
+      ? "comment_likes" 
+      : showcaseId 
+      ? "showcase_upvotes" 
+      : "insight_likes";
 
     if (hasLiked) {
       // Unlike
@@ -155,10 +161,11 @@ export function CommentCard({
         console.error("Error unliking comment:", error);
       }
     } else {
-      // Like
-      const insertData = isLog
+      const insertData = logId
         ? { comment_id: comment.id, user_id: currentUserId }
-        : { comment_id: comment.id, user_id: currentUserId, showcase_id: null };
+        : showcaseId
+        ? { comment_id: comment.id, user_id: currentUserId, showcase_id: null }
+        : { comment_id: comment.id, user_id: currentUserId };
 
       const { error } = await supabase.from(likesTable).insert(insertData);
 
@@ -183,19 +190,23 @@ export function CommentCard({
 
     setLoading(true);
     try {
-      const parentTable = logId ? "log_comments" : "showcase_comments";
-      const { error } = await supabase
-        .from(parentTable)
-        .delete()
-        .eq("id", comment.id);
+      if (insightId) {
+        await deleteInsightComment(comment.id, insightId);
+      } else {
+        const parentTable = logId ? "log_comments" : "showcase_comments";
+        const { error } = await supabase
+          .from(parentTable)
+          .delete()
+          .eq("id", comment.id);
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
       }
 
       onCommentDeleted?.(); // Notify parent of deletion success
 
-      const parentId = logId || showcaseId;
+      const parentId = logId || showcaseId || insightId;
       queryClient.invalidateQueries({
         queryKey: ["comments", { parentId }],
       });
@@ -270,11 +281,12 @@ export function CommentCard({
             <CommentForm
               logId={logId || comment.log_id}
               showcaseId={showcaseId}
+              insightId={insightId}
               currentUserId={currentUserId}
               initialCommentData={comment}
               onCommentUpdated={() => {
                 setIsEditing(false);
-                const parentId = logId || showcaseId;
+                const parentId = logId || showcaseId || insightId;
                 queryClient.invalidateQueries({
                   queryKey: ["comments", { parentId }],
                 });
@@ -410,6 +422,7 @@ export function CommentCard({
                   onLikeStatusChange={onLikeStatusChange}
                   logId={logId}
                   showcaseId={showcaseId}
+                  insightId={insightId}
                   level={level + 1}
                   isMobile={isMobile}
                   onCommentDeleted={onCommentDeleted}
@@ -474,10 +487,11 @@ export function CommentCard({
             <CommentForm
               logId={logId}
               showcaseId={showcaseId}
+              insightId={insightId}
               currentUserId={currentUserId}
               parentCommentId={comment.id}
               onCommentAdded={() => {
-                const parentId = logId || showcaseId;
+                const parentId = logId || showcaseId || insightId;
                 queryClient.invalidateQueries({
                   queryKey: ["comments", { parentId }],
                 });
