@@ -17,6 +17,17 @@ import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 
 import { Database } from "@/types/database.types";
 import { deleteClubPostComment } from "@/app/club/club-actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type AuthorProfile = Database['public']['Tables']['profiles']['Row'];
 
@@ -150,9 +161,6 @@ export function ClubPostCommentCard({
   const handleDelete = async () => {
     if (currentUserId !== comment.user_id) return;
 
-    const isConfirmed = window.confirm("정말로 이 댓글을 삭제하시겠습니까?");
-    if (!isConfirmed) return;
-
     setLoading(true);
     try {
       const result = await deleteClubPostComment(comment.id);
@@ -190,9 +198,9 @@ export function ClubPostCommentCard({
           </ProfileHoverCard>
         </div>
         <div className="flex-grow min-w-0">
-          <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
-            <div className="flex items-center justify-between gap-1 w-full">
-              <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-1 w-full">
+            <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
+              <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0 cursor-pointer">
                 <Link href={`/${comment.author?.username || comment.user_id}`} className="min-w-0">
                   <div className="flex items-center gap-1">
                     <p className="font-semibold text-sm hover:underline truncate max-w-48">
@@ -207,9 +215,9 @@ export function ClubPostCommentCard({
                 <p className="text-xs text-muted-foreground truncate min-w-0 max-w-48">{comment.author.tagline}</p>
               )}
               </div>
-              <p className="text-xs text-muted-foreground shrink-0">{formattedCommentDate}</p>
-            </div>
-          </ProfileHoverCard>
+            </ProfileHoverCard>
+            <p className="text-xs text-muted-foreground shrink-0">{formattedCommentDate}</p>
+          </div>
           {isEditing ? (
             <ClubPostCommentForm
               postId={comment.post_id}
@@ -298,15 +306,35 @@ export function ClubPostCommentCard({
                     >
                       수정
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleDelete}
-                      disabled={loading}
-                      className="text-xs text-muted-foreground hover:text-red-500"
-                    >
-                      삭제
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={loading}
+                          className="text-xs text-muted-foreground hover:text-red-500"
+                        >
+                          삭제
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>정말로 이 댓글을 삭제하시겠습니까?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            이 작업은 되돌릴 수 없습니다. 삭제된 댓글은 복구할 수 없습니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-red-500 hover:bg-red-600 border-red-500 hover:border-red-600"
+                          >
+                            삭제
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </>
                 )}
               </div>

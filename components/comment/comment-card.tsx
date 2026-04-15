@@ -249,12 +249,12 @@ export function CommentCard({
           </ProfileHoverCard>
         </div>
         <div className="flex-grow min-w-0">
-          <ProfileHoverCard
-            userId={comment.user_id}
-            profileData={comment.profiles}
-          >
-            <div className="flex items-center justify-between gap-2 w-full">
-              <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 w-full">
+            <ProfileHoverCard
+              userId={comment.user_id}
+              profileData={comment.profiles}
+            >
+              <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0 cursor-pointer">
                 <Link
                   href={`/${comment.profiles?.username || comment.user_id}`}
                   className="min-w-0"
@@ -276,11 +276,11 @@ export function CommentCard({
                   </p>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground shrink-0">
-                {formattedCommentDate}
-              </p>
-            </div>
-          </ProfileHoverCard>
+            </ProfileHoverCard>
+            <p className="text-xs text-muted-foreground shrink-0">
+              {formattedCommentDate}
+            </p>
+          </div>
           {isEditing ? (
             <CommentForm
               logId={logId || comment.log_id}

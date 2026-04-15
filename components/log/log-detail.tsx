@@ -317,41 +317,43 @@ export function LogDetail({ log, user }: LogDetailProps) {
         <div className="border-b border-border mb-4"></div> {/* Separator */}
         {/* Section 1: Profile Header */}
         <div className="flex items-center justify-between">
-          <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
             <div className="flex items-center">
-              <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-3">
-                <Avatar className="size-8">
-                  <AvatarImage
-                    src={avatarUrlWithCacheBuster || undefined}
-                    alt={`${log.profiles?.username || "User"}'s avatar`}
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="text-xs">
-                    {(log.profiles?.full_name || log.profiles?.username || "A").charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
-              <div className="flex items-baseline gap-1">
-                <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
-                  <Link href={`/${log.profiles?.username || log.user_id}`}>
-                    <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
-                      {log.profiles?.full_name ||
-                        log.profiles?.username ||
-                        "Anonymous"}
-                    </p>
+              <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
+                <div className="flex items-center cursor-pointer">
+                  <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-3">
+                    <Avatar className="size-8">
+                      <AvatarImage
+                        src={avatarUrlWithCacheBuster || undefined}
+                        alt={`${log.profiles?.username || "User"}'s avatar`}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-xs">
+                        {(log.profiles?.full_name || log.profiles?.username || "A").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                   </Link>
-                  {log.profiles?.tagline && (
-                    <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
-                      {log.profiles.tagline}
-                    </p>
-                  )}
+                  <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
+                    <Link href={`/${log.profiles?.username || log.user_id}`}>
+                      <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
+                        {log.profiles?.full_name ||
+                          log.profiles?.username ||
+                          "Anonymous"}
+                      </p>
+                    </Link>
+                    {log.profiles?.tagline && (
+                      <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
+                        {log.profiles.tagline}
+                      </p>
+                    )}
+                  </div>
                 </div>
+              </ProfileHoverCard>
+              <div className="flex items-baseline gap-1 ml-1">
                 <p className="text-xs text-muted-foreground">
                   ·&nbsp;&nbsp;&nbsp;{formattedLogDate}
                 </p>
               </div>
             </div>
-          </ProfileHoverCard>
           {user?.id === log.user_id && (
             <AlertDialog>
               <DropdownMenu>

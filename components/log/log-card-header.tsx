@@ -43,40 +43,42 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
 
   return (
     <div className="flex items-start justify-between">
-      <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
-        <div className="flex items-start">
-          <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-2">
-            <Avatar className="size-9">
-              <AvatarImage
-                src={avatarUrlWithCacheBuster || undefined}
-                alt={`${log.profiles?.username || "User"}'s avatar`}
-                className="object-cover"
-              />
-              <AvatarFallback className="text-xs">
-                {(log.profiles?.full_name || log.profiles?.username || "A").charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-          <div className="flex-grow min-w-0 overflow-hidden">
-            <div className="flex items-baseline gap-1 overflow-hidden">
-              <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
-                <div className="flex items-center gap-1">
-                  <p className="font-semibold hover:underline text-sm md:text-log-content">
-                    {log.profiles?.full_name ||
-                      log.profiles?.username ||
-                      "Anonymous"}
-                  </p>
-                  {log.profiles?.certified && <CertifiedBadge size="sm" />}
-                </div>
-              </Link>
-              {log.profiles?.tagline && (
-                <p className="text-xs text-muted-foreground flex-grow min-w-0 truncate">{log.profiles.tagline}</p>
-              )}
-              <p className="text-xs text-muted-foreground flex-shrink-0">·&nbsp;&nbsp;{formattedLogDate}</p>
+      <div className="flex items-start">
+        <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
+          <div className="flex items-start cursor-pointer">
+            <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-2">
+              <Avatar className="size-9">
+                <AvatarImage
+                  src={avatarUrlWithCacheBuster || undefined}
+                  alt={`${log.profiles?.username || "User"}'s avatar`}
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-xs">
+                  {(log.profiles?.full_name || log.profiles?.username || "A").charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+            <div className="flex-grow min-w-0 overflow-hidden">
+              <div className="flex items-baseline gap-1 overflow-hidden">
+                <Link href={`/${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
+                  <div className="flex items-center gap-1">
+                    <p className="font-semibold hover:underline text-sm md:text-log-content">
+                      {log.profiles?.full_name ||
+                        log.profiles?.username ||
+                        "Anonymous"}
+                    </p>
+                    {log.profiles?.certified && <CertifiedBadge size="sm" />}
+                  </div>
+                </Link>
+                {log.profiles?.tagline && (
+                  <p className="text-xs text-muted-foreground flex-grow min-w-0 truncate">{log.profiles.tagline}</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </ProfileHoverCard>
+        </ProfileHoverCard>
+        <p className="text-xs text-muted-foreground flex-shrink-0 ml-1 mt-[2px] md:mt-[3px]">·&nbsp;&nbsp;{formattedLogDate}</p>
+      </div>
       
       <div className="flex items-center gap-2">
         {currentUserId === log.user_id && (
