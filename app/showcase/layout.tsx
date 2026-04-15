@@ -1,13 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 import { ShowcaseLayoutContent } from "@/components/showcase/showcase-layout-content";
-import Image from "next/image";
-import Link from "next/link";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "사이드프로젝트 쇼케이스: IT 서비스 포트폴리오 및 레퍼런스 | SYDE",
-  description: "기획부터 개발까지, 다양한 직군의 메이커들이 완성한 웹/앱 프로덕트를 확인하세요. SYDE 메이커들의 프로젝트에서 영감을 얻고 인사이트를 나누어보세요.",
+  title: "쇼케이스 | SYDE",
+  description: "사이드프로젝트 쇼케이스: 다양한 IT 메이커들의 웹/앱 프로덕트를 확인하세요",
   alternates: {
     canonical: "/showcase",
   },

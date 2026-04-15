@@ -124,13 +124,13 @@ export default function InsightPage() {
     return (
         <div className="min-h-screen bg-background pb-20 relative flex flex-col h-full overflow-y-scroll custom-scrollbar">
             {/* Unified Title Section (Same as Meetup Page) */}
-            <div className="w-full bg-card border-b-[0.5px] border-b-[#B7B7B7]">
+            <div className="w-full bg-card border-b">
                 <div className="w-full max-w-6xl mx-auto px-4 py-8">
-                    <div className="flex flex-col justify-center items-center gap-4 text-center">
-                        <h2 className="text-[24px] font-bold text-sydeblue py-2 leading-[29px]">
+                    <div className="text-center text-muted-foreground">
+                        <h1 className="text-2xl font-bold mb-2 text-foreground py-2">
                             Insights
-                        </h2>
-                        <p className="text-[14px] font-normal text-[#777777] leading-[17px]">사이드 프로젝트를 더 오래, 더 잘 하기 위한 이야기들.</p>
+                        </h1>
+                        <h2>사이드프로젝트 기획·개발·수익화 노하우</h2>
                     </div>
                 </div>
             </div>

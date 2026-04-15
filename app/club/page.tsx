@@ -97,10 +97,10 @@ export default async function ClubPage() {
       <div className="w-full bg-card border-b">
         <div className="w-full max-w-6xl mx-auto px-4 py-8">
           <div className="text-center text-muted-foreground">
-            <h2 className="text-2xl font-bold mb-2 text-foreground py-2">
+            <h1 className="text-2xl font-bold mb-2 text-foreground py-2">
               Clubs
-            </h2>
-            <p>함께 모여 성장하는 SYDE 클럽</p>
+            </h1>
+            <h2>관심사가 맞는 메이커들과의 스핀오프 모임</h2>
           </div>
         </div>
       </div>

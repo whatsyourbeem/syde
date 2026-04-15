@@ -8,8 +8,8 @@ import { BANNER_POSITIONS } from "@/lib/constants";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "사이드프로젝트 실시간 트렌드 및 인사이트 | SYDE",
-  description: "지금 가장 주목받는 IT 웹/앱 프로덕트는 무엇일까요? SYDE 커뮤니티에 실시간으로 업데이트되는 새로운 쇼케이스, 오프라인 모임 소식, 그리고 메이커들의 생생한 인사이트를 가장 먼저 확인해 보세요.",
+  title: "로그 | SYDE",
+  description: "사이드프로젝트 실시간 트렌드 및 인사이트 - SYDE 커뮤니티에 실시간으로 업데이트되는 새로운 쇼케이스, 오프라인 모임 소식, 그리고 메이커들의 생생한 인사이트를 가장 먼저 확인해 보세요.",
   alternates: {
     canonical: "/log",
   },
