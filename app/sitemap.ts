@@ -1,6 +1,8 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
 
+export const revalidate = 3600; // 1 hour caching
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabase = await createClient();
 
@@ -14,81 +16,79 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         baseUrl = baseUrl.slice(0, -1);
     }
 
-    // 1. Static Routes
+    const today = new Date().toISOString().split("T")[0];
+
+    // 1. Fetch all data in parallel
+    const [
+        { data: profiles },
+        { data: logs },
+        { data: meetups },
+        { data: clubs },
+        { data: insights },
+        { data: showcases }
+    ] = await Promise.all([
+        supabase.from("profiles").select("username, updated_at").not("username", "is", null),
+        supabase.from("logs").select("id, updated_at"),
+        supabase.from("meetups").select("id, created_at"),
+        supabase.from("clubs").select("id, updated_at"),
+        supabase.from("insights").select("id, slug, updated_at"),
+        supabase.from("showcases").select("id, slug, updated_at")
+    ]);
+
+    // 2. Static Routes
     const staticRoutes = ["", "/log", "/meetup", "/gathering/club", "/insight", "/showcase"].map(
         (route) => ({
             url: `${baseUrl}${route}`,
-            lastModified: new Date().toISOString(),
+            lastModified: today,
             changeFrequency: "daily" as const,
             priority: route === "" ? 1.0 : 0.8,
         })
     );
 
-    // 2. Dynamic Routes: Profiles (/[username])
-    const { data: profiles } = await supabase
-        .from("profiles")
-        .select("username, updated_at")
-        .not("username", "is", null);
-
+    // 3. Profiles
     const profileRoutes = (profiles || []).map((profile) => ({
         url: `${baseUrl}/${profile.username}`,
-        lastModified: profile.updated_at || new Date().toISOString(),
+        lastModified: (profile.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));
 
-    // 3. Dynamic Routes: Logs (/log/[id])
-    const { data: logs } = await supabase.from("logs").select("id, updated_at");
-
+    // 4. Logs
     const logRoutes = (logs || []).map((log) => ({
         url: `${baseUrl}/log/${log.id}`,
-        lastModified: log.updated_at || new Date().toISOString(),
+        lastModified: (log.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));
 
-    // 4. Dynamic Routes: Meetups (/meetup/[id])
-    const { data: meetups } = await supabase
-        .from("meetups")
-        .select("id, created_at");
-
+    // 5. Meetups
     const meetupRoutes = (meetups || []).map((meetup) => ({
         url: `${baseUrl}/meetup/${meetup.id}`,
-        lastModified: meetup.created_at || new Date().toISOString(),
+        lastModified: (meetup.created_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));
 
-    // 5. Dynamic Routes: Clubs (/gathering/club/[id])
-    const { data: clubs } = await supabase.from("clubs").select("id, updated_at");
-
-    const clubRoutes = (clubs || []).map((club) => ({
+    // 6. Clubs
+    const clubRoutes = (clubs || []).map((club: any) => ({
         url: `${baseUrl}/gathering/club/${club.id}`,
-        lastModified: club.updated_at || new Date().toISOString(),
+        lastModified: (club.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));
 
-    // 6. Dynamic Routes: Insights (/insight/[slug_or_id])
-    const { data: insights } = await supabase
-        .from("insights")
-        .select("id, slug, updated_at");
-
+    // 7. Insights
     const insightRoutes = (insights || []).map((insight: any) => ({
         url: `${baseUrl}/insight/${insight.slug || insight.id}`,
-        lastModified: insight.updated_at || new Date().toISOString(),
+        lastModified: (insight.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));
 
-    // 7. Dynamic Routes: Showcases (/showcase/[slug_or_id])
-    const { data: showcases } = await supabase
-        .from("showcases")
-        .select("id, slug, updated_at");
-
+    // 8. Showcases
     const showcaseRoutes = (showcases || []).map((showcase: any) => ({
         url: `${baseUrl}/showcase/${showcase.slug || showcase.id}`,
-        lastModified: showcase.updated_at || new Date().toISOString(),
+        lastModified: (showcase.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.8,
     }));
