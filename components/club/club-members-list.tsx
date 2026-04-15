@@ -89,7 +89,8 @@ export default function ClubMembersList({
     group.sort((a, b) => {
       const aName = a.profiles?.full_name || a.profiles?.username || "";
       const bName = b.profiles?.full_name || b.profiles?.username || "";
-      return aName.localeCompare(bName);
+      // Use a stable comparison to avoid hydration issues across different locales
+      return aName > bName ? 1 : aName < bName ? -1 : 0;
     });
   });
 

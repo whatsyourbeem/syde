@@ -117,7 +117,7 @@ export function ClubPostCommentCard({
     if (hasLiked) {
       // Unlike
       const { error } = await supabase
-        .from("comment_likes")
+        .from("club_comment_likes")
         .delete()
         .eq("comment_id", comment.id)
         .eq("user_id", currentUserId);
@@ -131,7 +131,7 @@ export function ClubPostCommentCard({
     } else {
       // Like
       const { error } = await supabase
-        .from("comment_likes")
+        .from("club_comment_likes")
         .insert({ comment_id: comment.id, user_id: currentUserId });
 
       if (!error) {

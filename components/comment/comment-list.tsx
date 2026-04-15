@@ -38,7 +38,7 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 type CommentWithRelations = CommentRow & {
   profiles: ProfileRow | null;
-  comment_likes?: Array<{ user_id: string }>; // For log comments
+  log_comment_likes?: Array<{ user_id: string }>; // For log comments
   showcase_upvotes?: Array<{ user_id: string }>; // For showcase comments
   insight_comment_likes?: Array<{ user_id: string }>; // For insight comments
   replies?: CommentWithRelations[];
@@ -46,7 +46,7 @@ type CommentWithRelations = CommentRow & {
 
 type ProcessedComment = CommentRow & {
   profiles: ProfileRow | null;
-  comment_likes: Array<{ user_id: string }>;
+  log_comment_likes: Array<{ user_id: string }>;
   initialLikesCount: number;
   initialHasLiked: boolean;
   replies?: ProcessedComment[];
@@ -112,7 +112,7 @@ export function CommentList({
 
       // Determine which likes relation to fetch
       const likesRelation = logId
-        ? "comment_likes(user_id)"
+        ? "log_comment_likes(user_id)"
         : showcaseId
         ? "showcase_upvotes!showcase_upvotes_comment_id_fkey(user_id)"
         : "insight_comment_likes(user_id)";
@@ -213,13 +213,13 @@ export function CommentList({
         comment: CommentWithRelations,
       ): ProcessedComment => {
         // Get likes from appropriate field based on comment type
-        const likes = comment.comment_likes || comment.showcase_upvotes || comment.insight_comment_likes || [];
+        const likes = comment.log_comment_likes || comment.showcase_upvotes || comment.insight_comment_likes || [];
         return {
           ...comment,
           profiles: Array.isArray(comment.profiles)
             ? comment.profiles[0]
             : comment.profiles,
-          comment_likes: likes,
+          log_comment_likes: likes,
           initialLikesCount: likes.length,
           initialHasLiked: currentUserId
             ? likes.some((like) => like.user_id === currentUserId)
@@ -313,7 +313,7 @@ export function CommentList({
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "comment_likes" },
+        { event: "*", schema: "public", table: "log_comment_likes" },
         () => {
           queryClient.invalidateQueries({ queryKey });
         },

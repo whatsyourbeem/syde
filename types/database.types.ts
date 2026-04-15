@@ -317,7 +317,7 @@ export type Database = {
           },
         ]
       }
-      comment_likes: {
+      club_comment_likes: {
         Row: {
           comment_id: string
           created_at: string
@@ -335,14 +335,47 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "comment_likes_comment_id_fkey"
+            foreignKeyName: "club_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "club_forum_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      log_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "log_comment_likes_comment_id_fkey"
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "log_comments"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "comment_likes_user_id_fkey"
+            foreignKeyName: "log_comment_likes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -610,34 +643,24 @@ export type Database = {
       }
       log_likes: {
         Row: {
-          comment_id: string | null
           created_at: string | null
           id: string
-          log_id: string | null
+          log_id: string
           user_id: string
         }
         Insert: {
-          comment_id?: string | null
           created_at?: string | null
           id?: string
-          log_id?: string | null
+          log_id: string
           user_id: string
         }
         Update: {
-          comment_id?: string | null
           created_at?: string | null
           id?: string
-          log_id?: string | null
+          log_id?: string
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "log_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "log_comments"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "log_likes_log_id_fkey"
             columns: ["log_id"]

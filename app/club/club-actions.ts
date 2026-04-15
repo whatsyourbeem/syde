@@ -338,7 +338,8 @@ export async function fetchClubPostComments(
     .select(
       `
       *,
-      author:profiles(*)
+      author:profiles!club_forum_post_comments_user_id_fkey(*),
+      club_comment_likes(user_id)
     `
     )
     .eq("post_id", postId)
@@ -368,16 +369,24 @@ export async function fetchClubPostComments(
   // Apply pagination to parent comments only
   const paginatedParentComments = parentComments.slice(offset, offset + limit);
 
-  // Build comments with their replies
-  const commentsWithReplies = paginatedParentComments.map((comment) => ({
+  // Build comments with their replies and processed fields
+  const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+
+  const processComment = (comment: any) => ({
     ...comment,
-    replies: repliesMap.get(comment.id) || [],
-  }));
+    initialLikesCount: comment.club_comment_likes?.length || 0,
+    initialHasLiked: currentUserId 
+      ? comment.club_comment_likes?.some((like: any) => like.user_id === currentUserId) 
+      : false,
+    replies: (repliesMap.get(comment.id) || []).map(processComment)
+  });
+
+  const processedComments = paginatedParentComments.map(processComment);
 
   // Use the already fetched parent comments count for better performance
   const totalCount = parentComments.length;
 
-  return { comments: commentsWithReplies, count: totalCount, error: null };
+  return { comments: processedComments, count: totalCount, error: null };
 }
 
 export const deleteClubPostComment = withAuth(async ({ supabase, user }, commentId: string) => {

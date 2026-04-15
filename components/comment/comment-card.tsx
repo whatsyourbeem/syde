@@ -141,7 +141,7 @@ export function CommentCard({
 
     // Determine which table to use for likes
     const likesTable = logId 
-      ? "comment_likes" 
+      ? "log_comment_likes" 
       : showcaseId 
       ? "showcase_upvotes" 
       : "insight_comment_likes";
