@@ -18,7 +18,10 @@ export default function robots(): MetadataRoute.Robots {
             disallow: [
                 "/api/",
                 "/auth/",
-                "/settings/", // Add any other private routes here
+                "/settings/",
+                "/profile",
+                "/*/edit",
+                "/password-protect"
             ],
         },
         sitemap: `${baseUrl}/sitemap.xml`,

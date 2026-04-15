@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     // 2. Static Routes
-    const staticRoutes = ["", "/log", "/meetup", "/gathering/club", "/insight", "/showcase"].map(
+    const staticRoutes = ["", "/log", "/meetup", "/club", "/insight", "/showcase"].map(
         (route) => ({
             url: `${baseUrl}${route}`,
             lastModified: today,
@@ -71,7 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 6. Clubs
     const clubRoutes = (clubs || []).map((club: any) => ({
-        url: `${baseUrl}/gathering/club/${club.id}`,
+        url: `${baseUrl}/club/${club.id}`,
         lastModified: (club.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
