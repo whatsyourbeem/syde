@@ -21,6 +21,15 @@ DELETE FROM "public"."showcase_upvotes" WHERE "comment_id" IS NOT NULL;
 ALTER TABLE "public"."showcase_upvotes" DROP CONSTRAINT IF EXISTS "unique_upvote_per_showcase_or_comment";
 -- Note: 'unique_upvote_per_showcase_or_comment' was renamed from 'unique_like_per_showcase_or_comment' in migration 20260328000000
 
+-- Clean up duplicate (user_id, showcase_id) pairs before adding the constraint
+WITH duplicates AS (
+  SELECT id,
+         ROW_NUMBER() OVER(PARTITION BY user_id, showcase_id ORDER BY created_at ASC) as rn
+  FROM "public"."showcase_upvotes"
+)
+DELETE FROM "public"."showcase_upvotes"
+WHERE id IN (SELECT id FROM duplicates WHERE rn > 1);
+
 -- Add a new unique constraint for showcase upvotes
 ALTER TABLE "public"."showcase_upvotes" ADD CONSTRAINT "unique_upvote_per_showcase" UNIQUE ("user_id", "showcase_id");
 
