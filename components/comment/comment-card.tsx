@@ -221,13 +221,14 @@ export function CommentCard({
           >
             <Link href={`/${comment.profiles?.username || comment.user_id}`}>
               {avatarUrlWithCacheBuster && (
-                <Image
-                  src={avatarUrlWithCacheBuster}
-                  alt={`${comment.profiles?.username || "User"}'s avatar`}
-                  width={36}
-                  height={36}
-                  className="rounded-full object-cover aspect-square"
-                />
+                <div className="relative w-9 h-9 overflow-hidden shrink-0 rounded-full bg-[#D9D9D9]">
+                  <Image
+                    src={avatarUrlWithCacheBuster}
+                    alt={`${comment.profiles?.username || "User"}'s avatar`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               )}
             </Link>
           </ProfileHoverCard>
@@ -237,8 +238,8 @@ export function CommentCard({
             userId={comment.user_id}
             profileData={comment.profiles}
           >
-            <div className="flex items-center gap-1">
-              <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+            <div className="flex items-center justify-between gap-2 w-full">
+              <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0">
                 <Link
                   href={`/${comment.profiles?.username || comment.user_id}`}
                   className="min-w-0"
@@ -260,8 +261,8 @@ export function CommentCard({
                   </p>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                ·&nbsp;&nbsp;{formattedCommentDate}
+              <p className="text-xs text-muted-foreground shrink-0">
+                {formattedCommentDate}
               </p>
             </div>
           </ProfileHoverCard>

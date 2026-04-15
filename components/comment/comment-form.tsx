@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { createComment as createLogComment, updateComment as updateLogComment } from "@/app/log/log-actions";
 import { createComment as createShowcaseComment, updateComment as updateShowcaseComment } from "@/app/showcase/showcase-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
@@ -47,10 +47,10 @@ function SubmitButton({
       {pending || isSubmitting
         ? initialCommentData
           ? "수정 중..."
-          : "작성 중..."
+          : "등록 중..."
         : initialCommentData
         ? "수정"
-        : "작성"}
+        : "등록"}
     </Button>
   );
 }
@@ -73,14 +73,39 @@ export function CommentForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [content, setContent] = useState(initialCommentData?.content || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{
+    avatar_url: string | null;
+    username: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!currentUserId) {
+        setCurrentUserProfile(null);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("avatar_url, username")
+        .eq("id", currentUserId)
+        .single();
+      
+      if (!error && data) {
+        setCurrentUserProfile(data);
+      }
+    };
+    
+    fetchProfile();
+  }, [currentUserId, supabase]);
 
   useEffect(() => {
     if (!initialCommentData) {
       if (replyTo && replyTo.authorUsername) {
         setContent(`@${replyTo.authorUsername} `);
-        if (inputRef.current) {
-          console.log("Attempting to focus input:", inputRef.current);
-          inputRef.current.focus();
+        if (textareaRef.current) {
+          console.log("Attempting to focus textarea:", textareaRef.current);
+          textareaRef.current.focus();
         }
       } else {
         setContent("");
@@ -101,7 +126,15 @@ export function CommentForm({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [content]);
 
   // Mobile keyboard handling
   useEffect(() => {
@@ -134,7 +167,7 @@ export function CommentForm({
       }, 100);
     };
 
-    const inputElement = inputRef.current;
+    const inputElement = textareaRef.current;
     if (inputElement) {
       inputElement.addEventListener("focus", handleFocus);
       inputElement.addEventListener("blur", handleBlur);
@@ -188,7 +221,7 @@ export function CommentForm({
     };
   }, [mentionSearchTerm, fetchMentionSuggestions]);
 
-  const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
 
@@ -230,16 +263,16 @@ export function CommentForm({
     setContent(newContent);
     setMentionSearchTerm("");
     setShowSuggestions(false);
-    if (inputRef.current) {
+    if (textareaRef.current) {
       const newCursorPosition =
         mentionStartIndex + (suggestion.username?.length || 0) + 2;
-      inputRef.current.selectionStart = newCursorPosition;
-      inputRef.current.selectionEnd = newCursorPosition;
-      inputRef.current.focus();
+      textareaRef.current.selectionStart = newCursorPosition;
+      textareaRef.current.selectionEnd = newCursorPosition;
+      textareaRef.current.focus();
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (showSuggestions && mentionSuggestions.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -256,6 +289,14 @@ export function CommentForm({
       } else if (e.key === "Enter") {
         e.preventDefault();
         handleSelectSuggestion(mentionSuggestions[activeSuggestionIndex]);
+      }
+    } else {
+      // Option 1: Enter for newline, Cmd/Ctrl+Enter for submit
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (content.trim() !== "" && !isSubmitting) {
+          formRef.current?.requestSubmit();
+        }
       }
     }
   };
@@ -306,7 +347,7 @@ export function CommentForm({
     <form
       ref={formRef}
       action={clientAction}
-      className="flex flex-col gap-2 mx-4 my-2 relative mobile-keyboard-fix"
+      className="flex flex-col gap-2 mx-2 my-2 relative mobile-keyboard-fix"
     >
       {logId && <input type="hidden" name="log_id" value={logId} />}
       {showcaseId && <input type="hidden" name="showcase_id" value={showcaseId} />}
@@ -316,86 +357,92 @@ export function CommentForm({
       {parentCommentId && (
         <input type="hidden" name="parent_comment_id" value={parentCommentId} />
       )}
-      <div className="flex gap-2">
-        <div className="flex-grow relative">
-          <Input
-            name="content"
-            placeholder={
-              placeholder ||
-              (initialCommentData
-                ? "댓글을 수정하세요..."
-                : parentCommentId
-                ? "답글을 작성하세요..."
-                : "댓글을 작성하세요...")
-            }
-            disabled={isSubmitting}
-            value={content}
-            onChange={handleContentChange}
-            onKeyDown={handleKeyDown}
-            className="w-full text-sm placeholder:text-sm pr-8"
-            ref={inputRef}
-            onClick={handleInputClick}
-          />
-          {content && (
-            <button
-              type="button"
-              onClick={() => setContent("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full"
-              aria-label="Clear input"
-            >
-              <X size={16} />
-            </button>
-          )}
-          {showSuggestions && mentionSuggestions.length > 0 && (
-            <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-              {mentionSuggestions.map((suggestion, index) => (
-                <li
-                  key={suggestion.id}
-                  className={`px-4 py-2 cursor-pointer hover:bg-accent ${
-                    index === activeSuggestionIndex ? "bg-accent" : ""
-                  }`}
-                  onClick={() => handleSelectSuggestion(suggestion)}
-                >
-                  <div className="flex items-center text-xs">
-                    {suggestion.avatar_url && (
-                      <Image
-                        src={suggestion.avatar_url}
-                        alt={`${suggestion.username}'s avatar`}
-                        width={24}
-                        height={24}
-                        className="rounded-full object-cover aspect-square mr-2"
-                      />
-                    )}
-                    <span className="font-semibold truncate">
-                      {suggestion.full_name || suggestion.username}
-                    </span>
-                    {suggestion.full_name && suggestion.username && (
-                      <span className="text-muted-foreground ml-2 truncate">
-                        @{suggestion.username}
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+      <div className="flex items-start gap-3">
+        {/* Current User Avatar */}
+        <div className="flex-shrink-0 mt-0.5">
+          <div className="relative w-9 h-9 overflow-hidden rounded-full bg-[#D9D9D9]">
+            <Image
+              src={currentUserProfile?.avatar_url || "/default_avatar.png"}
+              alt="My avatar"
+              fill
+              className="object-cover"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {initialCommentData && onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
+
+        <div className="flex-grow flex gap-2">
+          <div className="flex-grow relative">
+            <Textarea
+              name="content"
+              placeholder={
+                placeholder ||
+                (initialCommentData
+                  ? "댓글을 수정하세요..."
+                  : parentCommentId
+                  ? "답글을 작성하세요..."
+                  : "댓글을 작성하세요...")
+              }
               disabled={isSubmitting}
-            >
-              취소
-            </Button>
-          )}
-          <SubmitButton
-            initialCommentData={initialCommentData}
-            content={content}
-            isSubmitting={isSubmitting}
-          />
+              value={content}
+              onChange={handleContentChange}
+              onKeyDown={handleKeyDown}
+              className="w-full text-sm placeholder:text-sm pr-1 min-h-[40px] max-h-[132px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none border-[#E5E5E5] bg-white rounded-[8px] no-scrollbar overflow-y-auto"
+              ref={textareaRef}
+              onClick={handleInputClick}
+              rows={1}
+            />
+
+            {showSuggestions && mentionSuggestions.length > 0 && (
+              <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+                {mentionSuggestions.map((suggestion, index) => (
+                  <li
+                    key={suggestion.id}
+                    className={`px-4 py-2 cursor-pointer hover:bg-accent ${
+                      index === activeSuggestionIndex ? "bg-accent" : ""
+                    }`}
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                  >
+                    <div className="flex items-center text-xs">
+                      {suggestion.avatar_url && (
+                        <Image
+                          src={suggestion.avatar_url}
+                          alt={`${suggestion.username}'s avatar`}
+                          width={24}
+                          height={24}
+                          className="rounded-full object-cover aspect-square mr-2"
+                        />
+                      )}
+                      <span className="font-semibold truncate">
+                        {suggestion.full_name || suggestion.username}
+                      </span>
+                      {suggestion.full_name && suggestion.username && (
+                        <span className="text-muted-foreground ml-2 truncate">
+                          @{suggestion.username}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex items-start gap-2">
+            {initialCommentData && onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                취소
+              </Button>
+            )}
+            <SubmitButton
+              initialCommentData={initialCommentData}
+              content={content}
+              isSubmitting={isSubmitting}
+            />
+          </div>
         </div>
       </div>
     </form>

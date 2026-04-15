@@ -148,8 +148,10 @@
     padding-bottom: 0;
   }
 
-  .mobile-keyboard-fix.keyboard-open {
-    margin-bottom: 0;
-    padding-bottom: 8px;
+  @media (max-width: 768px) {
+    .mobile-keyboard-fix.keyboard-open {
+      margin-bottom: 0;
+      padding-bottom: 8px;
+    }
   }
 }
