@@ -125,7 +125,33 @@ export default async function ShowcaseDetailPage({
   let query = supabase
     .from("showcases")
     .select(
-      "*, profiles(*), showcase_upvotes(user_id), showcase_comments(id), members:showcases_members(*, profile:profiles(*))"
+      `
+      id,
+      name,
+      slug,
+      short_description,
+      description,
+      thumbnail_url,
+      images,
+      created_at,
+      updated_at,
+      user_id,
+      views_count,
+      web_url,
+      playstore_url,
+      appstore_url,
+      showcase_awards(date, type),
+      profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
+      showcase_comments(id),
+      upvotes_count:showcase_upvotes(count),
+      showcase_upvotes(user_id),
+      members:showcases_members(
+        id,
+        user_id,
+        display_order,
+        profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
+      )
+    `
     ) as any;
 
   if (isUUID(showcase_id)) {
@@ -161,13 +187,27 @@ export default async function ShowcaseDetailPage({
     "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/showcase/${showcase.slug || showcase.id}`,
   };
 
+  // Normalize showcase data for consistency
+  const processedShowcase = {
+    ...showcase,
+    profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
+    upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
+    showcase_awards: showcase.showcase_awards || [],
+    showcase_upvotes: showcase.showcase_upvotes || [],
+    showcase_comments: showcase.showcase_comments || [],
+    members: (showcase.members || []).map((m: any) => ({
+      ...m,
+      profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
+    })).sort((a: any, b: any) => a.display_order - b.display_order),
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ShowcaseDetail showcase={showcase as any} user={user} />
+      <ShowcaseDetail showcase={processedShowcase as any} user={user} />
     </>
   );
 }

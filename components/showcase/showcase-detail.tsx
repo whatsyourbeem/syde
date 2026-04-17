@@ -61,6 +61,7 @@ import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import TiptapViewer from "@/components/common/tiptap-viewer";
+import { SydePickBadge } from "./syde-pick-badge";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -343,10 +344,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
               {/* Content Area */}
               <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow">
-                <div className="flex flex-row items-start gap-[5px] w-full">
-                  <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2">
+                <div className="flex flex-row items-center justify-between gap-4 w-full">
+                  <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2 flex-1">
                     {showcase.name || "제목 없음"}
                   </h1>
+                  {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
+                    <SydePickBadge awards={showcase.showcase_awards} size={42} />
+                  )}
                 </div>
 
                 {showcase.short_description && (
@@ -420,7 +424,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </div>
 
           {/* Title Row (Mobile) */}
-          <div className="md:hidden flex flex-col w-full gap-4">
+          <div className="md:hidden flex flex-col w-full gap-2">
             <div className="flex flex-row justify-between items-start w-full mb-2">
               <button
                 onClick={() => router.back()}
@@ -466,7 +470,10 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             </div>
 
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="flex flex-col items-center gap-1">
+              <div className="flex flex-col items-center gap-4">
+                {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
+                  <SydePickBadge awards={showcase.showcase_awards} size={34} />
+                )}
                 <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
                   {showcase.name || "제목 없음"}
                 </h1>

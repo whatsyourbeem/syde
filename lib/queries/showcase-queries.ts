@@ -30,6 +30,7 @@ export interface OptimizedShowcase extends ShowcaseRow {
   playstore_url: string | null;
   appstore_url: string | null;
   slug: string | null;
+  showcase_awards: Array<{ date: string; type: string }>;
 }
 
 export interface ShowcaseQueryOptions {

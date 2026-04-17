@@ -289,3 +289,38 @@ export function generateSlug(text: string): string {
     .replace(/-+/g, "-") // Replace multiple hyphens with a single one
     .replace(/^-+|-+$/g, ""); // Remove leading and trailing hyphens
 }
+
+/**
+ * Formats a date string into "Month Year" format (e.g., "April 2026")
+ * for SYDE Pick badge.
+ */
+export function formatSydePickDate(dateString: string): string {
+  const date = new Date(dateString);
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  return `${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+/**
+ * Formats a date string into "YYYY년 M월 N째주" format (e.g., "2026년 4월 셋째주")
+ * for SYDE Pick badge Korean display.
+ */
+export function formatSydePickDateKR(dateString: string): string {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  // Calculate Nth week (Week starts on Monday)
+  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 is Sunday, 1 is Monday
+  const firstDayOfWeekAdjusted = (firstDayOfWeek + 6) % 7; // Monday = 0, Sunday = 6
+  const weekNum = Math.ceil((day + firstDayOfWeekAdjusted) / 7);
+  
+  const weekOrdinals = ["", "첫째주", "둘째주", "셋째주", "넷째주", "다섯째주", "여섯째주"];
+  const weekString = weekOrdinals[weekNum] || `${weekNum}째주`;
+  
+  return `${year}년 ${month}월 ${weekString}`;
+}

@@ -48,6 +48,7 @@ export async function fetchShowcasesAction({
     updated_at,
     user_id,
     views_count,
+    showcase_awards(date, type),
     profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
     showcase_comments(id),
     upvotes_count:showcase_upvotes(count),
@@ -120,6 +121,7 @@ export async function fetchShowcasesAction({
       ...m,
       profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
     })).sort((a: any, b: any) => a.display_order - b.display_order),
+    showcase_awards: showcase.showcase_awards || [],
   }));
 
   return {
