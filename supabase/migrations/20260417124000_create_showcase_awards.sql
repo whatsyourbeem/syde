@@ -9,7 +9,7 @@ $$;
 
 -- 1. 신규 어워드 테이블 생성
 CREATE TABLE IF NOT EXISTS public.showcase_awards (
-    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
     showcase_id uuid NOT NULL REFERENCES public.showcases(id) ON DELETE CASCADE,
     date date NOT NULL,
     type public.showcase_award_type NOT NULL, -- Enum 적용
