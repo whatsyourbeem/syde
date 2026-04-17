@@ -12,6 +12,7 @@ import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { SydePickBadge } from "./syde-pick-badge";
+import { cn } from "@/lib/utils";
 
 interface ShowcaseCardProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"] & {
@@ -33,6 +34,8 @@ interface ShowcaseCardProps {
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string;
   isDetailPage?: boolean;
+  variant?: "default" | "featured";
+  awardDateLabel?: string;
 }
 
 function ShowcaseCardBase({
@@ -43,7 +46,10 @@ function ShowcaseCardBase({
   initialCommentsCount,
   initialViewsCount,
   isDetailPage = false,
+  variant = "default",
+  awardDateLabel,
 }: ShowcaseCardProps) {
+  const isFeatured = variant === "featured";
   const router = useRouter();
   const [upvotesCount, setUpvotesCount] = useState(initialUpvotesCount);
   const [hasUpvoted, setHasUpvoted] = useState(initialHasUpvoted);
@@ -103,18 +109,55 @@ function ShowcaseCardBase({
   return (
     <div
       ref={cardRef}
-      className="w-full h-auto md:h-auto py-6 px-3 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden"
+      className={cn(
+        "w-full h-auto py-6 px-4 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden transition-all duration-300",
+        isFeatured ? "bg-[#0F172A] rounded-none relative shadow-md" : "bg-transparent"
+      )}
     >
+      {/* Background Spotlight Image (Featured Only) */}
+      {isFeatured && (
+        <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
+          <Image
+            src="/spotlight.png"
+            alt="Spotlight Background"
+            fill
+            priority
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      {/* Featured Award Header */}
+      {isFeatured && awardDateLabel && (
+        <div className="relative z-10 flex flex-row items-center justify-between w-full mb-5 px-1 md:px-0">
+          <div className="flex items-center gap-2">
+            <div className="w-[18px] h-[3px] bg-sydeorange rounded-full" />
+            <span className="font-['Paperlogy'] font-extrabold text-[14px] md:text-[16px] text-white tracking-tight">
+              SYDE Pick - {awardDateLabel}
+            </span>
+          </div>
+          <div>
+            <SydePickBadge awards={showcase.showcase_awards} size={24} />
+          </div>
+        </div>
+      )}
+
       {/* Media + Content Wrapper */}
       <div
-        className="flex flex-row gap-3 md:gap-4 items-start cursor-pointer w-full"
+        className={cn(
+          "relative z-10 flex flex-row gap-3 md:gap-4 items-start cursor-pointer w-full",
+          isFeatured ? "group" : ""
+        )}
         onClick={handleCardClick}
       >
         {/* Thumbnail (Mobile: 80x80 / Desktop: 120x120) */}
         <ShowcaseThumbnail
           src={showcase.thumbnail_url}
           alt={showcase.name || "Showcase"}
-          containerClassName="w-[80px] h-[80px] md:w-[120px] md:h-[120px] shrink-0 rounded-[10px]"
+          containerClassName={cn(
+            "w-[80px] h-[80px] md:w-[120px] md:h-[120px] shrink-0",
+            isFeatured ? "rounded-[10px] border border-white/10 shadow-xl" : "rounded-[10px]"
+          )}
         />
 
         {/* Content Area */}
@@ -122,17 +165,21 @@ function ShowcaseCardBase({
           <div className="flex flex-col gap-1 md:gap-2 w-full">
             <div className="flex flex-row items-center justify-between gap-4 w-full">
               {/* Title (Mobile: 16px / Desktop: 20px Bold) */}
-              <h3 className="text-[16px] md:text-[20px] font-bold text-black line-clamp-1 leading-[150%] md:leading-[27px] flex-1 min-w-0">
+              <h3 className={cn(
+                "text-[16px] md:text-[20px] font-bold line-clamp-1 leading-[150%] md:leading-[27px] flex-1 min-w-0",
+                isFeatured ? "text-white" : "text-black"
+              )}>
                 {showcase.name || "제목 없음"}
               </h3>
-              {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
-                <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center">
-                  <SydePickBadge awards={showcase.showcase_awards} size={24} />
-                </div>
-              )}
+              <div onClick={(e) => e.stopPropagation()} className={cn("shrink-0 flex items-center", isFeatured ? "hidden" : "flex")}>
+                <SydePickBadge awards={showcase.showcase_awards} size={24} />
+              </div>
             </div>
             {/* Description (Mobile: 13px / Desktop: 15px) */}
-            <p className="text-[13px] md:text-[15px] font-normal text-black line-clamp-1 leading-[150%] md:leading-[21px]">
+            <p className={cn(
+              "text-[13px] md:text-[15px] font-normal line-clamp-1 leading-[150%] md:leading-[21px]",
+              isFeatured ? "text-white/70" : "text-black"
+            )}>
               {showcase.short_description || "설명이 없습니다."}
             </p>
             {/* Profile Line (Mobile: 13px/11px / Desktop: 14px/12px) */}
@@ -142,7 +189,7 @@ function ShowcaseCardBase({
                 profileData={showcase.profiles}
               >
                 <div className="flex items-center gap-[5px] h-5">
-                  <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
+                  <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full border border-white/5">
                     <Image
                       src={showcase.profiles?.avatar_url || "/default_avatar.png"}
                       alt="author"
@@ -150,11 +197,17 @@ function ShowcaseCardBase({
                       className="object-cover"
                     />
                   </div>
-                  <span className="text-[13px] md:text-[14px] font-semibold text-sydeblue leading-tight whitespace-nowrap">
+                  <span className={cn(
+                    "text-[13px] md:text-[14px] font-semibold leading-tight whitespace-nowrap",
+                    isFeatured ? "text-white/90" : "text-sydeblue"
+                  )}>
                     {showcase.profiles?.full_name ||
                       showcase.profiles?.username}
                   </span>
-                  <span className="text-[11px] md:text-[12px] font-normal text-[#777777] leading-tight truncate flex-grow">
+                  <span className={cn(
+                    "text-[11px] md:text-[12px] font-normal leading-tight truncate flex-grow",
+                    isFeatured ? "text-white/40" : "text-[#777777]"
+                  )}>
                     {showcase.profiles?.tagline && (
                       <>&nbsp;|&nbsp;{showcase.profiles.tagline}</>
                     )}
@@ -177,6 +230,7 @@ function ShowcaseCardBase({
               commentsCount={commentsCount}
               viewsCount={initialViewsCount}
               onUpvoteStatusChange={handleUpvoteStatusChange}
+              variant={variant}
             />
           </div>
         </div>
@@ -184,7 +238,7 @@ function ShowcaseCardBase({
 
       {/* Actions (Mobile: Bottom row) */}
       <div
-        className="md:hidden w-full h-[28px]"
+        className="md:hidden w-full h-[28px] relative z-10"
         onClick={(e) => e.stopPropagation()}
       >
         <ShowcaseCardActions
@@ -195,6 +249,7 @@ function ShowcaseCardBase({
           commentsCount={commentsCount}
           viewsCount={initialViewsCount}
           onUpvoteStatusChange={handleUpvoteStatusChange}
+          variant={variant}
         />
       </div>
     </div>

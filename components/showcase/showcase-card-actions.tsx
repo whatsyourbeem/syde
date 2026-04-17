@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 import {
@@ -45,6 +45,7 @@ interface ShowcaseCardActionsProps {
   commentsCount: number;
   viewsCount: number;
   onUpvoteStatusChange: (newUpvotesCount: number, newHasUpvoted: boolean) => void;
+  variant?: "default" | "featured";
 }
 
 function ShowcaseCardActionsBase({
@@ -55,7 +56,9 @@ function ShowcaseCardActionsBase({
   commentsCount,
   viewsCount,
   onUpvoteStatusChange,
+  variant = "default",
 }: ShowcaseCardActionsProps) {
+  const isFeatured = variant === "featured";
   const router = useRouter();
   const [upvoteLoading, setUpvoteLoading] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
@@ -149,11 +152,14 @@ function ShowcaseCardActionsBase({
 
   return (
     <>
-    <div className="flex flex-row justify-between md:justify-start items-center pt-1 px-3 md:px-0 md:gap-[50px] w-full h-[28px] text-[#777777]">
+    <div className={cn(
+      "flex flex-row justify-between md:justify-start items-center pt-1 px-3 md:px-0 md:gap-[50px] w-full h-[28px]",
+      isFeatured ? "text-white/60" : "text-[#777777]"
+    )}>
       {/* Views */}
       <div className="flex items-center gap-[5px]">
-        <Eye size={18} strokeWidth={1.5} className="text-[#777777]" />
-        <span className="text-[13px] leading-[150%] h-[21px] text-[#777777]">
+        <Eye size={18} strokeWidth={1.5} className={cn(isFeatured ? "text-white/60" : "text-[#777777]")} />
+        <span className={cn("text-[13px] leading-[150%] h-[21px]", isFeatured ? "text-white/60" : "text-[#777777]")}>
           {formatNumber(viewsCount)}
         </span>
       </div>
@@ -162,7 +168,10 @@ function ShowcaseCardActionsBase({
       <button
         onClick={handleUpvote}
         disabled={upvoteLoading}
-        className="flex items-center gap-[5px] transition-colors hover:text-sydeorange disabled:opacity-50"
+        className={cn(
+          "flex items-center gap-[5px] transition-colors disabled:opacity-50",
+          isFeatured ? "hover:text-white" : "hover:text-sydeorange"
+        )}
       >
         {upvoteLoading ? (
           <LoadingSpinner size="sm" className="text-sydeorange" />
@@ -174,7 +183,10 @@ function ShowcaseCardActionsBase({
           />
         )}
         <span
-          className={`text-[13px] leading-[150%] h-[21px] ${hasUpvoted ? "text-sydeorange font-semibold" : ""}`}
+          className={cn(
+            "text-[13px] leading-[150%] h-[21px]",
+            hasUpvoted ? "text-sydeorange font-semibold" : ""
+          )}
         >
           {formatNumber(upvotesCount)}
         </span>
@@ -183,7 +195,10 @@ function ShowcaseCardActionsBase({
       {/* Comment */}
       <button
         onClick={handleCommentClick}
-        className="flex items-center gap-[5px] transition-colors hover:text-green-500"
+        className={cn(
+          "flex items-center gap-[5px] transition-colors",
+          isFeatured ? "hover:text-white" : "hover:text-green-500"
+        )}
       >
         <MessageCircle size={18} strokeWidth={1.5} />
         <span className="text-[13px] leading-[150%] h-[21px]">
@@ -194,12 +209,13 @@ function ShowcaseCardActionsBase({
       {/* Share */}
       <button
         onClick={handleCopyLink}
-        className="flex items-center transition-colors hover:text-blue-500"
+        className={cn(
+          "flex items-center transition-colors",
+          isFeatured ? "hover:text-white" : "hover:text-blue-500"
+        )}
       >
         <Share size={18} strokeWidth={1.5} />
       </button>
-
-
     </div>
 
       <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
