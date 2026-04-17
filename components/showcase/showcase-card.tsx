@@ -120,14 +120,14 @@ function ShowcaseCardBase({
         {/* Content Area */}
         <div className="flex flex-col justify-between md:h-[120px] min-w-0 flex-grow gap-1 md:gap-0">
           <div className="flex flex-col gap-1 md:gap-2 w-full">
-            <div className="flex flex-row items-center justify-between gap-[10px] w-full">
+            <div className="flex flex-row items-center justify-between gap-4 w-full">
               {/* Title (Mobile: 16px / Desktop: 20px Bold) */}
               <h3 className="text-[16px] md:text-[20px] font-bold text-black line-clamp-1 leading-[150%] md:leading-[27px] flex-1 min-w-0">
                 {showcase.name || "제목 없음"}
               </h3>
               {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
-                <div onClick={(e) => e.stopPropagation()}>
-                  <SydePickBadge awards={showcase.showcase_awards} />
+                <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center">
+                  <SydePickBadge awards={showcase.showcase_awards} size={24} />
                 </div>
               )}
             </div>

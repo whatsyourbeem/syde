@@ -86,7 +86,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       localStorage.setItem(key, String(now));
       setViewsCount(prev => prev + 1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showcase.id]);
 
   // Gallery State
@@ -172,9 +172,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     const fetchMentionedProfiles = async () => {
       const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
       const mentionedUserIds = new Set<string>();
-      const textToSearch = `${showcase.short_description || ""} ${
-        showcase.description || ""
-      }`;
+      const textToSearch = `${showcase.short_description || ""} ${showcase.description || ""
+        }`;
       const matches = textToSearch.matchAll(mentionRegex);
       for (const match of matches) {
         mentionedUserIds.add(match[1]);
@@ -349,7 +348,9 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                     {showcase.name || "제목 없음"}
                   </h1>
                   {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
-                    <SydePickBadge awards={showcase.showcase_awards} size={42} />
+                    <div className="shrink-0">
+                      <SydePickBadge awards={showcase.showcase_awards} size={30} />
+                    </div>
                   )}
                 </div>
 
@@ -472,13 +473,13 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             <div className="flex flex-col items-center text-center gap-2">
               <div className="flex flex-col items-center gap-4">
                 {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
-                  <SydePickBadge awards={showcase.showcase_awards} size={34} />
+                  <SydePickBadge awards={showcase.showcase_awards} size={24} />
                 )}
                 <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
                   {showcase.name || "제목 없음"}
                 </h1>
                 {showcase.short_description && (
-                  <p className="font-['Pretendard'] font-normal text-[16px] leading-[150%] text-black line-clamp-2">
+                  <p className="font-['Pretendard'] font-normal text-[14px] leading-[150%] text-black line-clamp-2">
                     {showcase.short_description}
                   </p>
                 )}
@@ -560,7 +561,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Gallery Section */}
         {galleryImages.length > 0 && (
           <div className="w-full h-auto md:h-auto border-b-[0.5px] border-[#B7B7B7] flex justify-center items-center py-8 md:py-10 px-2 lg:px-4 bg-white group hover:cursor-pointer overflow-hidden gap-2 md:gap-4 lg:gap-4 xl:gap-6">
-            
+
             {/* Left Arrow - Fixed width, never shrinks */}
             {galleryImages.length > 1 && (
               <button
@@ -698,12 +699,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </div>
 
           <div className="w-full">
-            <TiptapViewer 
+            <TiptapViewer
               content={(() => {
                 if (!showcase.description) return null;
                 // If the description is already an object, return it (new jsonb format)
                 if (typeof showcase.description === "object") return showcase.description;
-                
+
                 try {
                   // If it's a string, try parsing as JSON
                   return JSON.parse(showcase.description);
@@ -711,7 +712,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                   // Legacy HTML or fallback
                   return showcase.description;
                 }
-              })()} 
+              })()}
             />
           </div>
         </div>
@@ -978,11 +979,11 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           )}
 
           {/* Main Content Areas */}
-          <div 
+          <div
             className="relative w-full h-full px-16 py-8 flex items-center justify-center"
             onClick={() => setIsViewerOpen(false)}
           >
-            <div 
+            <div
               className="relative w-full h-full max-w-[1200px]"
               onClick={(e) => e.stopPropagation()}
             >
