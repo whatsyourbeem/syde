@@ -685,13 +685,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         <div className="w-full px-5 py-8 md:px-8 md:py-10 flex flex-col gap-6">
           <div className="flex flex-row justify-between items-center w-full">
             <div className="flex items-center gap-2">
-              <Image
-                src="/orange_line.png"
-                alt="소개 아이콘"
-                width={26}
-                height={26}
-                className="object-contain"
-              />
+              <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
               <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
                 소개
               </span>
@@ -806,13 +800,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Participant List */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Image
-              src="/orange_line.png"
-              alt="멤버 아이콘"
-              width={26}
-              height={26}
-              className="object-contain"
-            />
+            <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
             <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
               SYDERS의 손 끝에서 탄생했어요.
             </span>
@@ -884,13 +872,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Comments Section */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4 mb-20">
           <div className="flex items-center gap-2">
-            <Image
-              src="/orange_line.png"
-              alt="댓글 아이콘"
-              width={26}
-              height={26}
-              className="object-contain"
-            />
+            <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
             <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
               댓글 및 리뷰
             </span>
