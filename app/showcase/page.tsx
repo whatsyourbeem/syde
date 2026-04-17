@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
 import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 import { redirect } from "next/navigation";
+import { fetchLatestAwardedShowcase } from "@/app/showcase/showcase-data-actions";
 
 export default async function ShowcasePage() {
   const supabase = await createClient();
@@ -18,7 +19,14 @@ export default async function ShowcasePage() {
       ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
       : null;
 
+  // Fetch latest awarded showcase
+  const latestAwardedShowcase = await fetchLatestAwardedShowcase(user?.id);
+
   return (
-    <ShowcaseListWrapper user={profile} avatarUrl={avatarUrl} />
+    <ShowcaseListWrapper 
+      user={profile} 
+      avatarUrl={avatarUrl} 
+      latestAwardedShowcase={latestAwardedShowcase}
+    />
   );
 }

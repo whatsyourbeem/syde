@@ -976,6 +976,38 @@ export type Database = {
           },
         ]
       }
+      showcase_awards: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          showcase_id: string
+          type: Database["public"]["Enums"]["showcase_award_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          showcase_id: string
+          type: Database["public"]["Enums"]["showcase_award_type"]
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          showcase_id?: string
+          type?: Database["public"]["Enums"]["showcase_award_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcase_awards_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       showcase_comments: {
         Row: {
           content: string
@@ -1195,6 +1227,7 @@ export type Database = {
         | "APPLY_CLOSED"
         | "ENDED"
       meetup_type_enum: "INSYDE" | "SPINOFF"
+      showcase_award_type: "SYDE_PICK"
     }
     CompositeTypes: {
       [_ in never]: never

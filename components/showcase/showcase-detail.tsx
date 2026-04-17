@@ -61,6 +61,7 @@ import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import TiptapViewer from "@/components/common/tiptap-viewer";
+import { SydePickBadge } from "./syde-pick-badge";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -85,7 +86,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
       localStorage.setItem(key, String(now));
       setViewsCount(prev => prev + 1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showcase.id]);
 
   // Gallery State
@@ -171,9 +172,8 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
     const fetchMentionedProfiles = async () => {
       const mentionRegex = /\[mention:([a-f0-9\-]+)\]/g;
       const mentionedUserIds = new Set<string>();
-      const textToSearch = `${showcase.short_description || ""} ${
-        showcase.description || ""
-      }`;
+      const textToSearch = `${showcase.short_description || ""} ${showcase.description || ""
+        }`;
       const matches = textToSearch.matchAll(mentionRegex);
       for (const match of matches) {
         mentionedUserIds.add(match[1]);
@@ -343,10 +343,15 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
 
               {/* Content Area */}
               <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow">
-                <div className="flex flex-row items-start gap-[5px] w-full">
-                  <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2">
+                <div className="flex flex-row items-center justify-between gap-4 w-full">
+                  <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2 flex-1">
                     {showcase.name || "제목 없음"}
                   </h1>
+                  {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
+                    <div className="shrink-0">
+                      <SydePickBadge awards={showcase.showcase_awards} size={30} />
+                    </div>
+                  )}
                 </div>
 
                 {showcase.short_description && (
@@ -420,7 +425,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </div>
 
           {/* Title Row (Mobile) */}
-          <div className="md:hidden flex flex-col w-full gap-4">
+          <div className="md:hidden flex flex-col w-full gap-2">
             <div className="flex flex-row justify-between items-start w-full mb-2">
               <button
                 onClick={() => router.back()}
@@ -466,12 +471,15 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
             </div>
 
             <div className="flex flex-col items-center text-center gap-2">
-              <div className="flex flex-col items-center gap-1">
+              <div className="flex flex-col items-center gap-4">
+                {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
+                  <SydePickBadge awards={showcase.showcase_awards} size={24} />
+                )}
                 <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
                   {showcase.name || "제목 없음"}
                 </h1>
                 {showcase.short_description && (
-                  <p className="font-['Pretendard'] font-normal text-[16px] leading-[150%] text-black line-clamp-2">
+                  <p className="font-['Pretendard'] font-normal text-[14px] leading-[150%] text-black line-clamp-2">
                     {showcase.short_description}
                   </p>
                 )}
@@ -553,7 +561,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Gallery Section */}
         {galleryImages.length > 0 && (
           <div className="w-full h-auto md:h-auto border-b-[0.5px] border-[#B7B7B7] flex justify-center items-center py-8 md:py-10 px-2 lg:px-4 bg-white group hover:cursor-pointer overflow-hidden gap-2 md:gap-4 lg:gap-4 xl:gap-6">
-            
+
             {/* Left Arrow - Fixed width, never shrinks */}
             {galleryImages.length > 1 && (
               <button
@@ -677,13 +685,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         <div className="w-full px-5 py-8 md:px-8 md:py-10 flex flex-col gap-6">
           <div className="flex flex-row justify-between items-center w-full">
             <div className="flex items-center gap-2">
-              <Image
-                src="/orange_line.png"
-                alt="소개 아이콘"
-                width={26}
-                height={26}
-                className="object-contain"
-              />
+              <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
               <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
                 소개
               </span>
@@ -691,12 +693,12 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           </div>
 
           <div className="w-full">
-            <TiptapViewer 
+            <TiptapViewer
               content={(() => {
                 if (!showcase.description) return null;
                 // If the description is already an object, return it (new jsonb format)
                 if (typeof showcase.description === "object") return showcase.description;
-                
+
                 try {
                   // If it's a string, try parsing as JSON
                   return JSON.parse(showcase.description);
@@ -704,7 +706,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
                   // Legacy HTML or fallback
                   return showcase.description;
                 }
-              })()} 
+              })()}
             />
           </div>
         </div>
@@ -798,13 +800,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Participant List */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Image
-              src="/orange_line.png"
-              alt="멤버 아이콘"
-              width={26}
-              height={26}
-              className="object-contain"
-            />
+            <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
             <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
               SYDERS의 손 끝에서 탄생했어요.
             </span>
@@ -876,13 +872,7 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
         {/* Comments Section */}
         <div className="w-full border-t-[0.5px] border-[#B7B7B7] px-5 py-8 md:px-8 md:py-10 flex flex-col gap-4 mb-20">
           <div className="flex items-center gap-2">
-            <Image
-              src="/orange_line.png"
-              alt="댓글 아이콘"
-              width={26}
-              height={26}
-              className="object-contain"
-            />
+            <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
             <span className="font-['Pretendard'] font-bold text-[20px] text-sydeblue">
               댓글 및 리뷰
             </span>
@@ -971,11 +961,11 @@ export function ShowcaseDetail({ showcase, user }: ShowcaseDetailProps) {
           )}
 
           {/* Main Content Areas */}
-          <div 
+          <div
             className="relative w-full h-full px-16 py-8 flex items-center justify-center"
             onClick={() => setIsViewerOpen(false)}
           >
-            <div 
+            <div
               className="relative w-full h-full max-w-[1200px]"
               onClick={(e) => e.stopPropagation()}
             >

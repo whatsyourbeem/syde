@@ -48,6 +48,7 @@ export async function fetchShowcasesAction({
     updated_at,
     user_id,
     views_count,
+    showcase_awards(date, type),
     profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
     showcase_comments(id),
     upvotes_count:showcase_upvotes(count),
@@ -120,6 +121,7 @@ export async function fetchShowcasesAction({
       ...m,
       profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
     })).sort((a: any, b: any) => a.display_order - b.display_order),
+    showcase_awards: showcase.showcase_awards || [],
   }));
 
   return {
@@ -128,6 +130,98 @@ export async function fetchShowcasesAction({
     mentionedProfiles,
     currentPage,
   };
+}
+
+/**
+ * Fetches the most recently awarded SYDE Pick showcase.
+ */
+export async function fetchLatestAwardedShowcase(currentUserId?: string | null): Promise<OptimizedShowcase | null> {
+  const supabase = await createClient();
+
+  // 1. Calculate the date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgoIso = thirtyDaysAgo.toISOString().split('T')[0];
+
+  // 2. Get the latest award entry for SYDE_PICK within the last 30 days
+  const { data: awardData, error: awardError } = await supabase
+    .from('showcase_awards')
+    .select('showcase_id, date, type')
+    .eq('type', 'SYDE_PICK')
+    .gte('date', thirtyDaysAgoIso)
+    .order('date', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (awardError || !awardData) {
+    return null;
+  }
+
+  const showcaseId = awardData.showcase_id;
+
+  // 2. Fetch the full optimized showcase data for this ID
+  const selectQuery = `
+    id,
+    name,
+    slug,
+    short_description,
+    description,
+    thumbnail_url,
+    created_at,
+    updated_at,
+    user_id,
+    views_count,
+    showcase_awards(date, type),
+    profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
+    showcase_comments(id),
+    upvotes_count:showcase_upvotes(count),
+    members:showcases_members(
+      id,
+      user_id,
+      display_order,
+      profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
+    )
+  `;
+
+  const { data: showcase, error: showcaseError } = await supabase
+    .from("showcases")
+    .select(selectQuery)
+    .eq("id", showcaseId)
+    .single();
+
+  if (showcaseError || !showcase) {
+    return null;
+  }
+
+  // 3. Check if current user has upvoted
+  let hasUpvoted = false;
+  if (currentUserId) {
+    const { data: upvote } = await supabase
+      .from('showcase_upvotes')
+      .select('id')
+      .eq('showcase_id', showcaseId)
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    hasUpvoted = !!upvote;
+  }
+
+  // 4. Transform to OptimizedShowcase format
+  const processed: OptimizedShowcase = {
+    ...showcase,
+    profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
+    upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
+    hasUpvoted,
+    views_count: showcase.views_count || 0,
+    showcase_upvotes: [],
+    showcase_comments: showcase.showcase_comments || [],
+    members: (showcase.members || []).map((m: any) => ({
+      ...m,
+      profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
+    })).sort((a: any, b: any) => a.display_order - b.display_order),
+    showcase_awards: showcase.showcase_awards || [],
+  } as any;
+
+  return processed;
 }
 
 // Helper functions adapted for Server Action usage (passing Supabase client)
