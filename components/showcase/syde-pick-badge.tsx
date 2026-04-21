@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy } from "lucide-react";
+import { Crown } from "lucide-react";
 import { formatSydePickDateKR, cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -39,7 +39,7 @@ function SydePickContent({ awards, isDialog = false }: { awards: Array<{ date: s
         "bg-sydeorange rounded-full flex items-center justify-center shrink-0",
         isDialog ? "w-11 h-11" : "w-8 h-8"
       )}>
-        <Trophy className="text-white" size={isDialog ? 20 : 14} strokeWidth={2.5} />
+        <Crown className="text-white" size={isDialog ? 20 : 14} strokeWidth={2.5} />
       </div>
       <div className="flex flex-col items-start gap-1">
         <span className={cn(
@@ -98,7 +98,7 @@ export function SydePickBadge({ awards, className, size = 30 }: SydePickBadgePro
                   gap: `${gap}px`
                 }}
               >
-                <Trophy
+                <Crown
                   className="text-white"
                   size={iconSize}
                   strokeWidth={2.5}

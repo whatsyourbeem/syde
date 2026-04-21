@@ -12,6 +12,7 @@ import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { SydePickBadge } from "./syde-pick-badge";
+import { SydePickInfoDialog } from "./syde-pick-info-dialog";
 import { cn } from "@/lib/utils";
 
 interface ShowcaseCardProps {
@@ -136,7 +137,8 @@ function ShowcaseCardBase({
               SYDE Pick - {awardDateLabel}
             </span>
           </div>
-          <div>
+          <div className="flex items-center gap-1.5">
+            <SydePickInfoDialog />
             <SydePickBadge awards={showcase.showcase_awards} size={24} />
           </div>
         </div>
