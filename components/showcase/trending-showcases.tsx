@@ -7,6 +7,7 @@ import { getTrendingShowcases, TrendingShowcase } from "@/app/showcase/trending-
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ShowcaseThumbnail } from "./showcase-thumbnail";
+import { SydePickInfoDialog } from "./syde-pick-info-dialog";
 
 // Assuming there's a generic Skeleton component or we can just use plain divs for skeleton
 function Skeleton({ className }: { className: string }) {
@@ -51,7 +52,13 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
   if (loading) {
     return (
       <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
-        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] text-gray-900 mb-2 lg:mb-3">지금 주목받는 프로젝트 🔥</h3>
+        <div className="flex items-center justify-between mb-2 lg:mb-3">
+          <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] text-gray-900 flex items-center gap-1">
+            지금 주목받는 프로젝트 🔥
+            <SydePickInfoDialog size={14} className="lg:hidden text-gray-300 pointer-events-none" />
+          </h3>
+          <SydePickInfoDialog size={14} className="hidden lg:block text-gray-300 pointer-events-none" />
+        </div>
         <div className="flex flex-col gap-2 lg:gap-3">
           {[...Array(isExpanded ? 5 : 1)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -78,25 +85,29 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
   return (
     <div className={`w-full ${allowCollapse ? 'pt-4 pb-2 px-4 border-b border-gray-200' : ''}`}>
       <div className="flex items-center justify-between mb-2 lg:mb-3">
-        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] tracking-[-0.02em] text-[#111111] flex items-center gap-2">
+        <h3 className="font-pretendard font-bold text-[12px] lg:text-[14px] leading-[14px] lg:leading-[17px] tracking-[-0.02em] text-[#111111] flex items-center gap-1">
           지금 주목받는 프로젝트 🔥
+          <SydePickInfoDialog size={14} className="lg:hidden text-gray-400 hover:text-gray-600 transition-colors" />
         </h3>
 
-        {allowCollapse && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 text-[#777777] hover:text-[#333333] transition-colors"
-          >
-            <span className="text-[12px] font-medium">
-              {isExpanded ? "접기" : "펼치기"}
-            </span>
-            {isExpanded ? (
-              <ChevronUp className="size-4" />
-            ) : (
-              <ChevronDown className="size-4" />
-            )}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <SydePickInfoDialog size={14} className="hidden lg:block text-gray-400 hover:text-gray-600 transition-colors" />
+          {allowCollapse && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-1 text-[#777777] hover:text-[#333333] transition-colors shadow-none outline-none"
+            >
+              <span className="text-[12px] font-medium">
+                {isExpanded ? "접기" : "펼치기"}
+              </span>
+              {isExpanded ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="relative overflow-hidden">
