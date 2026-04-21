@@ -32,8 +32,8 @@ export function SydePickInfoDialog({ className, size = 18 }: SydePickInfoDialogP
           <HelpCircle size={size} />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-[440px] p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-2xl">
-        <div className="bg-[#0F172A] px-6 py-8 relative overflow-hidden">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[440px] p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-2xl">
+        <div className="bg-[#0F172A] px-6 py-6 relative overflow-hidden">
           {/* Background Spotlight Image */}
           <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
             <Image
@@ -46,10 +46,10 @@ export function SydePickInfoDialog({ className, size = 18 }: SydePickInfoDialogP
           </div>
 
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-12 h-12 bg-sydeorange rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-sydeorange/20 rotate-3">
+            <div className="w-12 h-12 bg-sydeorange rounded-2xl flex items-center justify-center mb-2 shadow-lg shadow-sydeorange/20">
               <Crown className="text-white" size={24} />
             </div>
-            <DialogTitle className="text-2xl font-['Paperlogy'] font-extrabold text-white mb-2">
+            <DialogTitle className="text-2xl font-['Paperlogy'] font-extrabold text-white mb-1">
               SYDE Pick 안내
             </DialogTitle>
           </div>
@@ -97,14 +97,13 @@ export function SydePickInfoDialog({ className, size = 18 }: SydePickInfoDialogP
           </div>
 
           <div className="mt-2 pt-6 border-t border-gray-100 text-center">
-            <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="flex items-center justify-center gap-2 mb-1.5">
               <TrendingUp size={14} className="text-sydeorange" />
               <span className="text-[13px] font-bold text-gray-900">선정 확률을 높이는 팁!</span>
             </div>
             <p className="text-[12px] text-gray-500 leading-snug">
               업보트를 많이 받는 것이 가장 중요합니다.<br />
-              지인과 주변 커뮤니티에 널리 공유하여 업보트를 독려해보세요!<br />
-              당신의 멋진 프로젝트가 곧 최고의 자리에 오르길 응원합니다.
+              주변에 널리 공유하여 업보트를 독려해보세요!
             </p>
           </div>
         </div>
