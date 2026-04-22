@@ -2,18 +2,6 @@ import React from "react";
 import { createClient } from "@/lib/supabase/server";
 import { InsightFeed } from "@/components/insight/insight-feed";
 import { fetchInsightsAction } from "@/app/insight/insight-data-actions";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Insights - SYDE 인사이트",
-  description: "사이드프로젝트 기획·개발·수익화 노하우를 확인하세요.",
-  openGraph: {
-    title: "Insights - SYDE 인사이트",
-    description: "사이드프로젝트 기획·개발·수익화 노하우를 확인하세요.",
-    images: ["/we-are-syders.png"],
-  },
-};
-
 const ITEMS_PER_PAGE = 18;
 
 export default async function InsightPage() {
@@ -35,7 +23,7 @@ export default async function InsightPage() {
             <h1 className="text-2xl font-bold mb-2 text-foreground py-2">
               Insights
             </h1>
-            <h2>사이드프로젝트 기획·개발·수익화 노하우</h2>
+            <h2>1인개발자·솔로프리너들의 실전 노하우 아티클</h2>
           </div>
         </div>
       </div>

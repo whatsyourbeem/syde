@@ -1,18 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
 import { fetchLatestAwardedShowcase, fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Showcase - SYDE 쇼케이스",
-  description: "사이드프로젝트 메이커들의 결과물을 확인하고 영감을 얻으세요.",
-  openGraph: {
-    title: "Showcase - SYDE 쇼케이스",
-    description: "사이드프로젝트 메이커들의 결과물을 확인하고 영감을 얻으세요.",
-    images: ["/we-are-syders.png"],
-  },
-};
-
 export default async function ShowcasePage() {
   const supabase = await createClient();
   const {
