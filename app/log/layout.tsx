@@ -8,7 +8,7 @@ import { BANNER_POSITIONS } from "@/lib/constants";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "로그 | SYDE - 사이드프로젝트 커뮤니티 플랫폼",
+  title: "사이드프로젝트 실시간 피드 | SYDE",
   description: "1인개발자·솔로프리너 1,400+명의 사이드프로젝트 커뮤니티 SYDE. 쇼케이스, 인사이트, 정기모임이 한 곳에 있어요.",
   alternates: {
     canonical: "/log",
