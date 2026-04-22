@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "쇼케이스 | SYDE - 사이드프로젝트 커뮤니티 플랫폼",
-  description: "사이드프로젝트 쇼케이스: 다양한 IT 메이커들의 웹/앱 프로덕트를 확인하세요",
+  description: "1인개발자·인디 메이커들의 사이드프로젝트 쇼케이스. 내 프로젝트를 등록하고 업보트를 받아보세요. 매주 SYDE Pick에 선정될 수 있어요.",
   alternates: {
     canonical: "/showcase",
   },

@@ -9,7 +9,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "로그 | SYDE - 사이드프로젝트 커뮤니티 플랫폼",
-  description: "사이드프로젝트 실시간 트렌드 및 인사이트 - SYDE 커뮤니티에 실시간으로 업데이트되는 새로운 쇼케이스, 오프라인 모임 소식, 그리고 메이커들의 생생한 인사이트를 가장 먼저 확인해 보세요.",
+  description: "1인개발자·솔로프리너 1,400+명의 사이드프로젝트 커뮤니티 SYDE. 쇼케이스, 인사이트, 정기모임이 한 곳에 있어요.",
   alternates: {
     canonical: "/log",
   },
