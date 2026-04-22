@@ -37,6 +37,7 @@ interface ShowcaseCardProps {
   isDetailPage?: boolean;
   variant?: "default" | "featured";
   awardDateLabel?: string;
+  priority?: boolean;
 }
 
 function ShowcaseCardBase({
@@ -49,6 +50,7 @@ function ShowcaseCardBase({
   isDetailPage = false,
   variant = "default",
   awardDateLabel,
+  priority = false,
 }: ShowcaseCardProps) {
   const isFeatured = variant === "featured";
   const router = useRouter();
@@ -85,11 +87,11 @@ function ShowcaseCardBase({
     router.push(`/showcase/${showcase.slug || showcase.id}`);
   }, [isDetailPage, showcase.slug, showcase.id, router]);
 
-  if (!isDetailPage && !isVisible) {
+  if (!isDetailPage && !isVisible && !priority) {
     return (
       <div
         ref={cardRef}
-        className="py-6 px-3 flex flex-col gap-2 md:gap-0"
+        className="w-full h-auto py-6 px-4 flex flex-col gap-2 md:gap-0 box-border"
       >
         <div className="flex gap-3 md:gap-4">
           <div className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] bg-gray-100 rounded-[10px] shrink-0" />
@@ -111,7 +113,7 @@ function ShowcaseCardBase({
     <div
       ref={cardRef}
       className={cn(
-        "w-full h-auto py-6 px-4 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden transition-all duration-300",
+        "w-full h-auto py-6 px-4 flex flex-col items-start gap-2 md:gap-0 box-border overflow-hidden",
         isFeatured ? "bg-[#0F172A] rounded-none relative shadow-md" : "bg-transparent"
       )}
     >

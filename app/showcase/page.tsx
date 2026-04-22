@@ -1,8 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
-import { ShowcaseHeader } from "@/components/showcase/showcase-header";
-import { redirect } from "next/navigation";
-import { fetchLatestAwardedShowcase } from "@/app/showcase/showcase-data-actions";
+import { fetchLatestAwardedShowcase, fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Showcase - SYDE 쇼케이스",
+  description: "사이드프로젝트 메이커들의 결과물을 확인하고 영감을 얻으세요.",
+  openGraph: {
+    title: "Showcase - SYDE 쇼케이스",
+    description: "사이드프로젝트 메이커들의 결과물을 확인하고 영감을 얻으세요.",
+    images: ["/we-are-syders.png"],
+  },
+};
 
 export default async function ShowcasePage() {
   const supabase = await createClient();
@@ -19,14 +28,22 @@ export default async function ShowcasePage() {
       ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
       : null;
 
-  // Fetch latest awarded showcase
-  const latestAwardedShowcase = await fetchLatestAwardedShowcase(user?.id);
+  // Parallel fetch latest awarded showcase and initial showcases
+  const [latestAwardedShowcase, initialShowcases] = await Promise.all([
+    fetchLatestAwardedShowcase(user?.id),
+    fetchShowcasesAction({
+      currentUserId: user?.id || null,
+      currentPage: 1,
+      showcasesPerPage: 20,
+    }),
+  ]);
 
   return (
     <ShowcaseListWrapper 
       user={profile} 
       avatarUrl={avatarUrl} 
       latestAwardedShowcase={latestAwardedShowcase}
+      initialShowcases={initialShowcases}
     />
   );
 }

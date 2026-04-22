@@ -191,7 +191,7 @@ export function ShowcaseList({
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="w-full border-b border-gray-200 last:border-0 py-6 px-3"
+              className="w-full border-b border-gray-200 last:border-0 py-6 px-4"
             >
               <div className="flex gap-3 md:gap-4 animate-pulse">
                 <div className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] bg-gray-200 rounded-[10px] shrink-0" />
@@ -251,6 +251,7 @@ export function ShowcaseList({
                   initialViewsCount={showcase.views_count || 0}
                   mentionedProfiles={mentionedProfiles}
                   isDetailPage={false}
+                  priority={true}
                 />
               </div>
             ))}
