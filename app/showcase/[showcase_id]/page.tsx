@@ -2,6 +2,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { ShowcaseDetail } from "@/components/showcase/showcase-detail";
+import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 
 type ShowcaseDetailPageProps = {
   params: Promise<{
@@ -171,6 +172,8 @@ export default async function ShowcaseDetailPage({
     redirect(`/showcase/${showcase.slug}`);
   }
 
+  const initialHtml = getInitialHtmlFromTiptap(showcase.description);
+
   // JSON-LD for Search Engines
   const jsonLd = {
     "@context": "https://schema.org",
@@ -216,7 +219,7 @@ export default async function ShowcaseDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ShowcaseDetail showcase={processedShowcase as any} user={user} />
+      <ShowcaseDetail showcase={processedShowcase as any} user={user} initialHtml={initialHtml} />
     </>
   );
 }
