@@ -19,7 +19,7 @@ const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL ??
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "사이드프로젝트 커뮤니티 · 1인개발자·솔로프리너 | SYDE",
-  description: "주체적인 삶으로 가득한 세상을 꿈꾸는 사이드프로젝트 플랫폼 커뮤니티",
+  description: "1인개발자·솔로프리너를 위한 사이드프로젝트 커뮤니티 SYDE. 쇼케이스, 인사이트, 정기모임이 한 곳에 있어요.",
   keywords: [
     "사이드 프로젝트",
     "직장인 부업",
