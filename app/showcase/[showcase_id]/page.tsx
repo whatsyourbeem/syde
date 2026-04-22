@@ -182,18 +182,18 @@ export default async function ShowcaseDetailPage({
     "description": showcase.short_description || "SYDE showcase project",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web, iOS, Android",
-    "image": showcase.thumbnail_url || "/we-are-syders.png",
+    "image": showcase.thumbnail_url || `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/we-are-syders.png`,
     "author": {
       "@type": "Person",
       "name": showcase.profiles?.full_name || showcase.profiles?.username || "SYDER",
-      "url": showcase.profiles?.username ? `https://syde.kr/${showcase.profiles.username}` : "https://syde.kr"
+      "url": showcase.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${showcase.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
     },
     "publisher": {
       "@type": "Organization",
       "name": "SYDE (사이드프로젝트 커뮤니티)",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://syde.kr/icon.png"
+        "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/icon.png`
       }
     },
     "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/showcase/${showcase.slug || showcase.id}`,

@@ -215,11 +215,11 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         "@type": "BlogPosting",
         "headline": insight.title,
         "description": insight.summary || plainText.slice(0, 160) || "SYDE insight article",
-        "image": insight.image_url || "https://syde.community/we-are-syders.png",
+        "image": insight.image_url || `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/we-are-syders.png`,
         "author": {
             "@type": "Person",
             "name": insight.profiles?.full_name || insight.profiles?.username || "SYDER",
-            "url": insight.profiles?.username ? `https://syde.kr/${insight.profiles.username}` : "https://syde.kr",
+            "url": insight.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${insight.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"),
             "jobTitle": insight.profiles?.tagline || "메이커"
         },
         "publisher": {
@@ -227,10 +227,10 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
             "name": "SYDE (사이드프로젝트 커뮤니티)",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://syde.kr/icon.png"
+                "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/icon.png`
             }
         },
-        "url": `https://syde.community/insight/${insight.slug || insight.id}`,
+        "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/insight/${insight.slug || insight.id}`,
         "datePublished": insight.created_at,
         "dateModified": insight.updated_at || insight.created_at,
     };
