@@ -20,15 +20,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 1. Fetch all data in parallel
     const [
-        { data: profiles },
-        { data: logs },
         { data: meetups },
         { data: clubs },
         { data: insights },
         { data: showcases }
     ] = await Promise.all([
-        supabase.from("profiles").select("username, updated_at").not("username", "is", null),
-        supabase.from("logs").select("id, updated_at"),
         supabase.from("meetups").select("id, created_at"),
         supabase.from("clubs").select("id, updated_at"),
         supabase.from("insights").select("id, slug, updated_at"),
@@ -45,23 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
     );
 
-    // 3. Profiles
-    const profileRoutes = (profiles || []).map((profile) => ({
-        url: `${baseUrl}/${profile.username}`,
-        lastModified: (profile.updated_at || today).split("T")[0],
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-    }));
-
-    // 4. Logs
-    const logRoutes = (logs || []).map((log) => ({
-        url: `${baseUrl}/log/${log.id}`,
-        lastModified: (log.updated_at || today).split("T")[0],
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-    }));
-
-    // 5. Meetups
+    // 3. Meetups
     const meetupRoutes = (meetups || []).map((meetup) => ({
         url: `${baseUrl}/meetup/${meetup.id}`,
         lastModified: (meetup.created_at || today).split("T")[0],
@@ -95,8 +75,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
         ...staticRoutes,
-        ...profileRoutes,
-        ...logRoutes,
         ...meetupRoutes,
         ...clubRoutes,
         ...insightRoutes,
