@@ -75,7 +75,7 @@ export async function handleNotificationClick(notificationId: string, logId?: st
   await markAsRead(notificationId);
   
   if (logId) {
-    redirect(`/log/${logId}`);
+    redirect(`/feed/${logId}`);
   } else if (showcaseId) {
     redirect(`/showcase/${showcaseId}`);
   } else {

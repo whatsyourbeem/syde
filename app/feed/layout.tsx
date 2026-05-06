@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { LogSidebarServer, LogSidebarSkeleton } from "@/components/log/log-sidebar-server";
+import { FeedSidebarServer, FeedSidebarSkeleton } from "@/components/feed/feed-sidebar-server";
 import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,13 +15,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LogLayout({ children }: { children: React.ReactNode }) {
+export default function FeedLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
       <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-        <Suspense fallback={<LogSidebarSkeleton />}>
-          <LogSidebarServer />
+        <Suspense fallback={<FeedSidebarSkeleton />}>
+          <FeedSidebarServer />
         </Suspense>
       </div>
       <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">

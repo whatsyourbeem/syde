@@ -14,7 +14,7 @@ import { ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Database } from "@/types/database.types";
-import { createLog, updateLog } from "@/app/log/log-actions";
+import { createLog, updateLog } from "@/app/feed/feed-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { createClient } from "@/lib/supabase/client";
@@ -49,7 +49,7 @@ interface MentionSuggestion {
   avatar_url: string | null;
 }
 
-interface LogEditDialogProps {
+interface FeedEditDialogProps {
   userId: string | null;
   avatarUrl: string | null;
   username: string | null;
@@ -78,16 +78,16 @@ function SubmitButton({
         ? "업로드 중..."
         : pending
           ? initialLogData
-            ? "로그 수정 중..."
-            : "로그 기록 중..."
+            ? "피드 수정 중..."
+            : "피드 기록 중..."
           : initialLogData
-            ? "로그 수정하기"
-            : "로그 기록하기"}
+            ? "피드 수정하기"
+            : "피드 기록하기"}
     </Button>
   );
 }
 
-function LogForm({
+function FeedForm({
   formAction,
   initialLogData,
   avatarUrl,
@@ -112,7 +112,7 @@ function LogForm({
   suggestionPosition,
 }: {
   formAction: (formData: FormData) => void;
-  initialLogData?: LogEditDialogProps["initialLogData"];
+  initialLogData?: FeedEditDialogProps["initialLogData"];
   avatarUrl: string | null;
   content: string;
   handleContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -281,7 +281,7 @@ function LogForm({
   );
 }
 
-export function LogEditDialog({
+export function FeedEditDialog({
   userId,
   avatarUrl,
   username,
@@ -291,7 +291,7 @@ export function LogEditDialog({
   children,
   onSuccess,
   onCancel,
-}: LogEditDialogProps) {
+}: FeedEditDialogProps) {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -341,7 +341,7 @@ export function LogEditDialog({
     }
     if (state.id) {
       toast.success(
-        initialLogData ? "로그가 수정되었습니다." : "로그가 기록되었습니다."
+        initialLogData ? "피드가 수정되었습니다." : "피드가 기록되었습니다."
       );
       setOpen(false);
       if (onSuccess) onSuccess();
@@ -350,7 +350,7 @@ export function LogEditDialog({
       queryClient.invalidateQueries({ queryKey: ["logs"] });
 
       if (!initialLogData && state.id) {
-        router.push(`/log/${state.id}`);
+        router.push(`/feed/${state.id}`);
       } else {
         router.refresh();
       }
@@ -589,7 +589,7 @@ export function LogEditDialog({
     suggestionPosition,
   };
 
-  const dialogTitle = initialLogData ? "로그 수정" : "새 로그 작성";
+  const dialogTitle = initialLogData ? "피드 수정" : "새 피드 작성";
   const triggerContent = children || (
     <div className="flex flex-col items-center p-4">
       {avatarUrl && (
@@ -609,7 +609,7 @@ export function LogEditDialog({
       )}
       {username && <p className="text-sm text-gray-500">@{username}</p>}
       <Button variant="default" className="mt-4">
-        로그 작성하기
+        피드 작성하기
       </Button>
     </div>
   );
@@ -637,7 +637,7 @@ export function LogEditDialog({
               </Button>
             </DialogClose>
           </DialogHeader>
-          <LogForm {...formProps} />
+          <FeedForm {...formProps} />
         </DialogContent>
       </Dialog>
     );
@@ -650,7 +650,7 @@ export function LogEditDialog({
         <DrawerHeader className="text-left">
           <DrawerTitle>{dialogTitle}</DrawerTitle>
         </DrawerHeader>
-        <LogForm {...formProps} />
+        <FeedForm {...formProps} />
       </DrawerContent>
     </Drawer>
   );

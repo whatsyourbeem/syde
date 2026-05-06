@@ -3,8 +3,8 @@
 import { useEffect, useMemo } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { LogCard } from "@/components/log/log-card";
-import { ActivityCard } from "@/components/log/activity-card";
+import { FeedCard } from "@/components/feed/feed-card";
+import { ActivityCard } from "@/components/feed/activity-card";
 import { Button } from "@/components/ui/button";
 import { getUnifiedFeed, FeedQueryResult, FeedItem, LogFeedItem, ActivityFeedEntry } from "@/lib/queries/feed-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
@@ -13,7 +13,7 @@ import { InlineError } from "@/components/error/error-boundary";
 
 const ITEMS_PER_PAGE = 20;
 
-export function LogList({
+export function FeedList({
   currentUserId: propCurrentUserId,
   filterByUserId,
   filterByCommentedUserId,
@@ -173,7 +173,7 @@ export function LogList({
         ) : (
           <div className="px-4">
             <p className="text-center text-muted-foreground py-10">
-              {searchQuery ? "검색 결과가 없습니다." : "작성된 로그가 없습니다."}
+              {searchQuery ? "검색 결과가 없습니다." : "작성된 피드가 없습니다."}
             </p>
           </div>
         )
@@ -184,7 +184,7 @@ export function LogList({
               <div key={item.feed_type === "log" ? `log-${item.data.id}` : `activity-${item.data.id}`} className="w-full">
                 <div className="px-4">
                   {item.feed_type === "log" ? (
-                    <LogCard
+                    <FeedCard
                       log={item.data}
                       currentUserId={propCurrentUserId}
                       initialLikesCount={item.data.likesCount}

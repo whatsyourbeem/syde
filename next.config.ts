@@ -138,11 +138,25 @@ const nextConfig: NextConfig = {
   //   config.optimization.sideEffects = false;
 
   //   return config;
+  async redirects() {
+    return [
+      {
+        source: "/log/:id*",
+        destination: "/feed/:id*",
+        permanent: true,
+      },
+      {
+        source: "/log",
+        destination: "/feed",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
         source: "/",
-        destination: "/log",
+        destination: "/feed",
       },
     ];
   },

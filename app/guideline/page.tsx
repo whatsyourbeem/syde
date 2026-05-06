@@ -88,7 +88,7 @@ export default function GuidelinePage() {
           <li>불법적인 내용</li>
         </ul>
         <h3>📂 메뉴별 이용 가이드</h3>
-        <h4>📝 로그 (Log)</h4>
+        <h4>📝 피드 (Feed)</h4>
         <p>
           <strong>사이드프로젝트 과정과 인사이트 공유</strong>
         </p>

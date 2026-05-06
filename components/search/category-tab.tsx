@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 const categories = [
   { id: 'all', label: '전체' },
-  { id: 'logs', label: '로그' },
+  { id: 'logs', label: '피드' },
   { id: 'insights', label: '인사이트' },
   { id: 'showcase', label: '쇼케이스' },
   { id: 'users', label: 'SYDERs' },

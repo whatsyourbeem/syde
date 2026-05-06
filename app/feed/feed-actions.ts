@@ -23,7 +23,7 @@ export const createLog = withAuthForm(
       .single();
 
     if (createError) {
-      return { error: `로그 생성 실패: ${createError.message}` };
+      return { error: `피드 생성 실패: ${createError.message}` };
     }
 
     revalidatePath("/");
@@ -37,7 +37,7 @@ export const createLog = withAuthForm(
 
 export const updateLog = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
-    const logId = validateRequired(formData.get("logId") as string, "로그 ID");
+    const logId = validateRequired(formData.get("logId") as string, "피드 ID");
     const content = validateRequired(formData.get("content") as string, "내용");
     // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
     const newImageUrl = formData.get("imageUrl") as string | null;
@@ -71,14 +71,14 @@ export const updateLog = withAuthForm(
       .eq("id", logId);
 
     if (error) {
-      return { error: `로그 업데이트 실패: ${error.message}` };
+      return { error: `피드 업데이트 실패: ${error.message}` };
     }
 
     revalidatePath("/");
     if (user?.user_metadata?.username) {
       revalidatePath(`/${user.user_metadata.username}`);
     }
-    revalidatePath(`/log/${logId}`);
+    revalidatePath(`/feed/${logId}`);
 
     return { id: logId };
   }
@@ -87,7 +87,7 @@ export const updateLog = withAuthForm(
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const content = validateRequired(formData.get("content") as string, "댓글");
-    const logId = validateRequired(formData.get("log_id") as string, "로그 ID");
+    const logId = validateRequired(formData.get("log_id") as string, "피드 ID");
     const parentCommentId = formData.get("parent_comment_id") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
@@ -104,7 +104,7 @@ export const createComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/log/${logId}`);
+    revalidatePath(`/feed/${logId}`);
     return createSuccessResponse(null);
   }
 );
@@ -116,7 +116,7 @@ export const updateComment = withAuth(
       formData.get("comment_id") as string,
       "댓글 ID"
     );
-    const logId = validateRequired(formData.get("log_id") as string, "로그 ID");
+    const logId = validateRequired(formData.get("log_id") as string, "피드 ID");
 
     const processedContent = await processMentionsForSave(content, supabase);
 
@@ -131,7 +131,7 @@ export const updateComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/log/${logId}`);
+    revalidatePath(`/feed/${logId}`);
     return createSuccessResponse(null);
   }
 );
@@ -168,7 +168,7 @@ export const deleteLog = withAuth(async ({ supabase, user }, logId: string) => {
   // Note: revalidatePath is not needed here because window.location.href
   // on the client side will do a full page reload, fetching fresh data
 
-  return createSuccessResponse({ redirectTo: "/log" });
+  return createSuccessResponse({ redirectTo: "/feed" });
 });
 
 export const toggleLogBookmark = withAuth(
@@ -188,7 +188,7 @@ export const toggleLogBookmark = withAuth(
     }
 
     revalidatePath("/");
-    revalidatePath(`/log/${logId}`);
+    revalidatePath(`/feed/${logId}`);
     if (user?.user_metadata?.username) {
       revalidatePath(`/${user.user_metadata.username}`);
     }

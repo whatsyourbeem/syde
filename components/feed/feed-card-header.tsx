@@ -17,13 +17,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
-import { LogEditDialog } from "@/components/log/log-edit-dialog";
+import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { Database } from "@/types/database.types";
 import { formatRelativeTime } from "@/lib/utils";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { Edit, Trash2, MoreHorizontal } from "lucide-react";
 
-interface LogCardHeaderProps {
+interface FeedCardHeaderProps {
   log: Database['public']['Tables']['logs']['Row'] & {
     profiles: Database['public']['Tables']['profiles']['Row'] | null;
   };
@@ -32,7 +32,7 @@ interface LogCardHeaderProps {
   loading: boolean;
 }
 
-function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHeaderProps) {
+function FeedCardHeaderBase({ log, currentUserId, onDelete, loading }: FeedCardHeaderProps) {
   const router = useRouter();
 
   const avatarUrlWithCacheBuster = log.profiles?.avatar_url
@@ -89,7 +89,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <LogEditDialog
+              <FeedEditDialog
                 userId={currentUserId}
                 avatarUrl={log.profiles?.avatar_url || null}
                 username={log.profiles?.username || null}
@@ -101,7 +101,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
                   <Edit className="mr-2 h-4 w-4" />
                   <span>수정</span>
                 </DropdownMenuItem>
-              </LogEditDialog>
+              </FeedEditDialog>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-500 cursor-pointer">
@@ -113,7 +113,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
                   <AlertDialogHeader>
                     <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고 스토리지에서 관련 이미지도 함께 삭제합니다.
+                      이 작업은 되돌릴 수 없습니다. 이 피드를 영구적으로 삭제하고 스토리지에서 관련 이미지도 함께 삭제합니다.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -132,7 +132,7 @@ function LogCardHeaderBase({ log, currentUserId, onDelete, loading }: LogCardHea
   );
 }
 
-export const LogCardHeader = memo(LogCardHeaderBase, (prevProps, nextProps) => {
+export const FeedCardHeader = memo(FeedCardHeaderBase, (prevProps, nextProps) => {
   return (
     prevProps.log.id === nextProps.log.id &&
     prevProps.currentUserId === nextProps.currentUserId &&
@@ -141,4 +141,4 @@ export const LogCardHeader = memo(LogCardHeaderBase, (prevProps, nextProps) => {
   );
 });
 
-LogCardHeader.displayName = 'LogCardHeader';
+FeedCardHeader.displayName = 'FeedCardHeader';

@@ -3,7 +3,7 @@ import { SearchForm } from "@/components/search/search-form";
 import { CategoryTab } from "@/components/search/category-tab";
 import { RecentSearch } from "@/components/search/recent-search";
 import { EmptyState } from "@/components/search/empty-state";
-import { LogListWrapper } from "@/components/log/log-list-wrapper";
+import { FeedListWrapper } from "@/components/feed/feed-list-wrapper";
 import { UserList } from "@/components/user/user-list";
 import { ClubSearchList } from "@/components/club/club-search-list";
 import { MeetupSearchList } from "@/components/meetup/meetup-search-list";
@@ -62,7 +62,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       case "all":
         return <AllSearchResults searchQuery={q} />;
       case "logs":
-        return <LogListWrapper user={profile} avatarUrl={avatarUrl} />;
+        return <FeedListWrapper user={profile} avatarUrl={avatarUrl} />;
       case "users":
         return <UserList searchQuery={q} />;
       case "clubs":
@@ -74,7 +74,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       case "showcase":
         return <ShowcaseSearchList searchQuery={q} />;
       default:
-        return <LogListWrapper user={profile} avatarUrl={avatarUrl} />;
+        return <FeedListWrapper user={profile} avatarUrl={avatarUrl} />;
     }
   };
 

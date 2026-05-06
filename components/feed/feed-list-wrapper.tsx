@@ -1,13 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { LogList } from "@/components/log/log-list";
-import { LogCreateButton } from "@/components/log/log-create-button";
+import { FeedList } from "@/components/feed/feed-list";
+import { FeedCreateButton } from "@/components/feed/feed-create-button";
 import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import { Database } from "@/types/database.types";
 import { FeedQueryResult } from "@/lib/queries/feed-queries";
 
-interface LogListWrapperProps {
+interface FeedListWrapperProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
   avatarUrl: string | null;
   filterByUserId?: string;
@@ -17,14 +17,14 @@ interface LogListWrapperProps {
   initialFeed?: FeedQueryResult;
 }
 
-export function LogListWrapper({
+export function FeedListWrapper({
   user,
   avatarUrl,
   filterByUserId,
   filterByCommentedUserId,
   filterByLikedUserId,
   initialFeed,
-}: LogListWrapperProps) {
+}: FeedListWrapperProps) {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
@@ -39,10 +39,10 @@ export function LogListWrapper({
           <div className="lg:hidden">
             <TrendingShowcases allowCollapse={true} />
           </div>
-          <LogCreateButton user={user} avatarUrl={avatarUrl} />
+          <FeedCreateButton user={user} avatarUrl={avatarUrl} />
         </div>
       )}
-      <LogList
+      <FeedList
         currentUserId={user?.id || null}
         filterByUserId={filterByUserId}
         filterByCommentedUserId={filterByCommentedUserId}

@@ -11,8 +11,8 @@ const NotificationItem = ({ notification }: { notification: NotificationType }) 
       if (notification.log_id) {
         const logContent = notification.logs?.content
           ? notification.logs.content.substring(0, 25) + '...'
-          : '로그';
-        return <p><strong>{triggerUsername}</strong>님이 회원님의 로그에 댓글을 남겼습니다: &quot;{logContent}&quot;</p>;
+          : '피드';
+        return <p><strong>{triggerUsername}</strong>님이 회원님의 피드에 댓글을 남겼습니다: &quot;{logContent}&quot;</p>;
       } else if (notification.showcase_id) {
         const showcaseName = notification.showcases?.name ?? '쇼케이스';
         return <p><strong>{triggerUsername}</strong>님이 회원님의 쇼케이스 &apos;{showcaseName}&apos;에 댓글을 남겼습니다</p>;
@@ -22,8 +22,8 @@ const NotificationItem = ({ notification }: { notification: NotificationType }) 
     if (notification.type === 'like') {
       const logContent = notification.logs?.content
         ? notification.logs.content.substring(0, 25) + '...'
-        : '로그';
-      return <p><strong>{triggerUsername}</strong>님이 회원님의 로그를 좋아합니다: &quot;{logContent}&quot;</p>;
+        : '피드';
+      return <p><strong>{triggerUsername}</strong>님이 회원님의 피드를 좋아합니다: &quot;{logContent}&quot;</p>;
     }
 
     if (notification.type === 'upvote') {

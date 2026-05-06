@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { LogEditDialog } from "@/components/log/log-edit-dialog";
+import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
 
-export async function LogSidebarServer() {
+export async function FeedSidebarServer() {
     const supabase = await createClient();
     const {
         data: { user },
@@ -18,7 +18,7 @@ export async function LogSidebarServer() {
             .single();
 
         if (profileError && profileError.code !== "PGRST116") {
-            console.error("Error fetching profile for LogServerSidebar:", profileError);
+            console.error("Error fetching profile for FeedServerSidebar:", profileError);
         } else if (data) {
             profile = data;
             avatarUrl =
@@ -32,7 +32,7 @@ export async function LogSidebarServer() {
 
     if (user && profile) {
         return (
-            <LogEditDialog
+            <FeedEditDialog
                 userId={user.id}
                 avatarUrl={avatarUrl}
                 username={profile.username}
@@ -45,7 +45,7 @@ export async function LogSidebarServer() {
     return <LoginPromptCard />;
 }
 
-export function LogSidebarSkeleton() {
+export function FeedSidebarSkeleton() {
     return (
         <div className="w-full h-40 bg-gray-100 rounded-xl animate-pulse">
             <div className="flex flex-col items-center justify-center h-full gap-4">

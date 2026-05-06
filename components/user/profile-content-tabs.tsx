@@ -3,13 +3,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserActivityLogList } from "@/components/user/user-activity-log-list";
 import BioEditor from "@/components/user/bio-editor";
-import { LogList } from "@/components/log/log-list";
+import { FeedList } from "@/components/feed/feed-list";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
 import { InsightList } from "@/components/insight/insight-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { UserShowcaseList } from "@/components/user/user-showcase-list";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
-import { ProfileLogEmptyState } from "@/components/log/profile-log-empty-state";
+import { ProfileFeedEmptyState } from "@/components/feed/profile-feed-empty-state";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/app/auth/auth-actions";
 import { cn } from "@/lib/utils";
@@ -263,7 +263,7 @@ export function ProfileContentTabs({
         <TabsContent value="posts" className="mt-0 p-0 flex flex-col">
           {/* Sub-tab Navigation */}
           <div className="flex items-center justify-start w-full bg-white px-6 py-3 gap-[10px] border-b-[0.5px] border-[#B7B7B7] overflow-x-auto no-scrollbar">
-            <SubTabButton label="로그" isActive={activeSubTab === "log"} onClick={() => setActiveSubTab("log")} />
+            <SubTabButton label="피드" isActive={activeSubTab === "log"} onClick={() => setActiveSubTab("log")} />
             <SubTabButton label="쇼케이스" isActive={activeSubTab === "showcase"} onClick={() => setActiveSubTab("showcase")} />
             <SubTabButton label="인사이트" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
           </div>
@@ -271,10 +271,10 @@ export function ProfileContentTabs({
           {/* Sub-tab Content with vertical padding */}
           <div className="flex-1 py-4">
             {activeSubTab === "log" && (
-              <LogList 
+              <FeedList 
                 currentUserId={currentUserId} 
                 filterByUserId={profile.id} 
-                emptyState={<ProfileLogEmptyState isOwnProfile={isOwnProfile} profile={profile} />}
+                emptyState={<ProfileFeedEmptyState isOwnProfile={isOwnProfile} profile={profile} />}
               />
             )}
             {activeSubTab === "showcase" && (

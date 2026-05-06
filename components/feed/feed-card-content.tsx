@@ -7,7 +7,7 @@ import { linkifyMentions, ensureSecureImageUrl } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 
-interface LogCardContentProps {
+interface FeedCardContentProps {
   log: {
     id: string;
     content: string;
@@ -20,14 +20,14 @@ interface LogCardContentProps {
   priority?: boolean;
 }
 
-function LogCardContentBase({
+function FeedCardContentBase({
   log,
   mentionedProfiles,
   searchQuery,
   isDetailPage,
   onCardClick,
   priority = false,
-}: LogCardContentProps) {
+}: FeedCardContentProps) {
   const router = useRouter();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -80,7 +80,7 @@ function LogCardContentBase({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/log/${log.id}`);
+              router.push(`/feed/${log.id}`);
             }}
             className="text-gray-500 hover:text-gray-700 text-sm md:text-log-content absolute bottom-0 right-0 bg-card pl-4"
           >
@@ -100,7 +100,7 @@ function LogCardContentBase({
         >
           <Image
             src={ensureSecureImageUrl(log.image_url)!}
-            alt="Log image"
+            alt="Feed image"
             fill
             style={{ objectFit: "contain" }}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -125,8 +125,8 @@ function LogCardContentBase({
   );
 }
 
-export const LogCardContent = memo(
-  LogCardContentBase,
+export const FeedCardContent = memo(
+  FeedCardContentBase,
   (prevProps, nextProps) => {
     return (
       prevProps.log.id === nextProps.log.id &&
@@ -141,4 +141,4 @@ export const LogCardContent = memo(
   }
 );
 
-LogCardContent.displayName = "LogCardContent";
+FeedCardContent.displayName = "FeedCardContent";

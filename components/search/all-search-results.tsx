@@ -121,7 +121,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
   }
 
   const sections = [
-    { key: 'logs', label: '로그', tab: 'logs', items: data?.logs || [] },
+    { key: 'logs', label: '피드', tab: 'logs', items: data?.logs || [] },
     { key: 'users', label: 'SYDERs', tab: 'users', items: data?.users || [] },
     { key: 'clubs', label: '클럽', tab: 'clubs', items: data?.clubs || [] },
     { key: 'meetups', label: '모임', tab: 'meetups', items: data?.meetups || [] },
@@ -147,7 +147,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
               {(section.items as any[]).map((log) => (
                 <Link
                   key={log.id}
-                  href={`/log/${log.id}`}
+                  href={`/feed/${log.id}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <div className="relative w-8 h-8 shrink-0 rounded-full overflow-hidden bg-gray-200">

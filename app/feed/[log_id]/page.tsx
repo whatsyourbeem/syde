@@ -1,17 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { LogDetail } from "@/components/log/log-detail";
+import { FeedDetail } from "@/components/feed/feed-detail";
 
 import { Metadata, ResolvingMetadata } from "next";
 
-type LogDetailPageProps = {
+type FeedDetailPageProps = {
   params: Promise<{
     log_id: string;
   }>;
 };
 
 export async function generateMetadata(
-  { params }: LogDetailPageProps,
+  { params }: FeedDetailPageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { log_id } = await params;
@@ -31,7 +31,7 @@ export async function generateMetadata(
 
   const profile = Array.isArray(log.profiles) ? log.profiles[0] : log.profiles;
   const displayName = profile?.full_name || profile?.username || "Anonymous";
-  const title = `${displayName}님의 로그 - SYDE`;
+  const title = `${displayName}님의 피드 - SYDE`;
 
   let plainText = "";
   try {
@@ -53,21 +53,21 @@ export async function generateMetadata(
 
   return {
     title,
-    description: description || "SYDE 로그",
+    description: description || "SYDE 피드",
     alternates: {
-      canonical: `/log/${log_id}`,
+      canonical: `/feed/${log_id}`,
     },
     openGraph: {
       title,
-      description: description || "SYDE 로그",
+      description: description || "SYDE 피드",
       images,
       type: "article",
-      url: `/log/${log_id}`,
+      url: `/feed/${log_id}`,
     },
   };
 }
 
-export default async function LogDetailPage({ params }: LogDetailPageProps) {
+export default async function FeedDetailPage({ params }: FeedDetailPageProps) {
   const { log_id } = await params;
   const supabase = await createClient();
 
@@ -85,5 +85,5 @@ export default async function LogDetailPage({ params }: LogDetailPageProps) {
     notFound();
   }
 
-  return <LogDetail log={log} user={user} />;
+  return <FeedDetail log={log} user={user} />;
 }

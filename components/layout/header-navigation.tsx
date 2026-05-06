@@ -19,15 +19,15 @@ export function HeaderNavigation() {
         <NavigationMenuItem className="flex-shrink-0">
           <NavigationMenuLink asChild>
             <Link
-              href="/log"
+              href="/feed"
               className={cn(
                 "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
-                pathname === "/" || pathname.startsWith("/log")
+                pathname === "/" || pathname.startsWith("/feed")
                   ? "font-bold text-primary border-b-2 border-primary"
                   : "text-gray-400"
               )}
             >
-              로그
+              피드
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>

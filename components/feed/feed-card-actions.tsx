@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from '@/context/LoginDialogContext';
-import { toggleLogBookmark } from "@/app/log/log-actions";
+import { toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 
-interface LogCardActionsProps {
+interface FeedCardActionsProps {
   logId: string;
   currentUserId: string | null;
   likesCount: number;
@@ -20,7 +20,7 @@ interface LogCardActionsProps {
   onBookmarkStatusChange: (newBookmarksCount: number, newHasBookmarked: boolean) => void;
 }
 
-function LogCardActionsBase({
+function FeedCardActionsBase({
   logId,
   currentUserId,
   likesCount,
@@ -30,14 +30,14 @@ function LogCardActionsBase({
   commentsCount,
   onLikeStatusChange,
   onBookmarkStatusChange,
-}: LogCardActionsProps) {
+}: FeedCardActionsProps) {
   const router = useRouter();
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const { openLoginDialog } = useLoginDialog();
 
   const handleCommentClick = useCallback(() => {
-    router.push(`/log/${logId}#comments`);
+    router.push(`/feed/${logId}#comments`);
   }, [router, logId]);
 
   const handleLike = useCallback(async () => {
@@ -109,12 +109,12 @@ function LogCardActionsBase({
       onLikeToggle={handleLike}
       onBookmarkToggle={handleBookmark}
       onCommentClick={handleCommentClick}
-      shareUrl={`/log/${logId}`}
+      shareUrl={`/feed/${logId}`}
     />
   );
 }
 
-export const LogCardActions = memo(LogCardActionsBase, (prevProps, nextProps) => {
+export const FeedCardActions = memo(FeedCardActionsBase, (prevProps, nextProps) => {
   return (
     prevProps.logId === nextProps.logId &&
     prevProps.currentUserId === nextProps.currentUserId &&
@@ -126,4 +126,4 @@ export const LogCardActions = memo(LogCardActionsBase, (prevProps, nextProps) =>
   );
 });
 
-LogCardActions.displayName = 'LogCardActions';
+FeedCardActions.displayName = 'FeedCardActions';

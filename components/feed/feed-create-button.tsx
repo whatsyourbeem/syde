@@ -1,16 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { LogEditDialog } from "@/components/log/log-edit-dialog";
+import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { Database } from "@/types/database.types";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
-interface LogCreateButtonProps {
+interface FeedCreateButtonProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
   avatarUrl: string | null;
 }
 
-export function LogCreateButton({ user, avatarUrl }: LogCreateButtonProps) {
+export function FeedCreateButton({ user, avatarUrl }: FeedCreateButtonProps) {
   const { openLoginDialog } = useLoginDialog();
 
   const buttonContent = (
@@ -39,14 +39,14 @@ export function LogCreateButton({ user, avatarUrl }: LogCreateButtonProps) {
 
   return (
     <div className="px-4 py-3 border-b border-gray-200">
-      <LogEditDialog
+      <FeedEditDialog
         userId={user.id}
         avatarUrl={avatarUrl}
         username={user.username}
         full_name={user.full_name}
       >
         {buttonContent}
-      </LogEditDialog>
+      </FeedEditDialog>
     </div>
   );
 }

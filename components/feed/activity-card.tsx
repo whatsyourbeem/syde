@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteActivity } from "@/app/log/activity-actions";
+import { deleteActivity } from "@/app/feed/activity-actions";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import { InsightThumbnail } from "@/components/insight/insight-thumbnail";
 

@@ -40,7 +40,7 @@ import {
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LogEditDialog } from "@/components/log/log-edit-dialog";
+import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -48,23 +48,23 @@ import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
-import { deleteLog, toggleLogBookmark } from "@/app/log/log-actions";
+import { deleteLog, toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 
-type LogWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
+type FeedWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
   log_likes: Array<{ user_id: string }>;
   log_bookmarks: Array<{ user_id: string }>;
   log_comments: Array<{ id: string }>;
 };
 
-interface LogDetailProps {
-  log: LogWithRelations;
+interface FeedDetailProps {
+  log: FeedWithRelations;
   user: User | null;
 }
 
-export function LogDetail({ log, user }: LogDetailProps) {
+export function FeedDetail({ log, user }: FeedDetailProps) {
   const supabase = createClient();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -98,15 +98,15 @@ export function LogDetail({ log, user }: LogDetailProps) {
     onSuccess: (result) => {
       if (result.success) {
         // Use hard redirect to ensure clean navigation and fresh data
-        const redirectUrl = result.data?.redirectTo || "/log";
+        const redirectUrl = result.data?.redirectTo || "/feed";
         window.location.href = redirectUrl;
       } else {
-        toast.error(result.error?.message || "로그 삭제에 실패했습니다.");
+        toast.error(result.error?.message || "피드 삭제에 실패했습니다.");
       }
     },
     onError: (error) => {
       console.error("Delete error:", error);
-      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
+      toast.error("피드 삭제 중 예기치 않은 오류가 발생했습니다.");
     },
   });
 
@@ -298,7 +298,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center">
           <div className="bg-card p-6 rounded-lg shadow-lg flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-lg font-medium">로그 삭제 중...</p>
+            <p className="text-lg font-medium">피드 삭제 중...</p>
           </div>
         </div>
       )}
@@ -363,7 +363,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <LogEditDialog
+                  <FeedEditDialog
                     userId={user?.id || null}
                     avatarUrl={log.profiles?.avatar_url || null}
                     username={log.profiles?.username || null}
@@ -378,7 +378,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                       <Edit className="mr-2 h-4 w-4" />
                       <span>수정</span>
                     </DropdownMenuItem>
-                  </LogEditDialog>
+                  </FeedEditDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem
                       onSelect={(e) => e.preventDefault()}
@@ -394,7 +394,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고
+                    이 작업은 되돌릴 수 없습니다. 이 피드를 영구적으로 삭제하고
                     스토리지에서 관련 이미지도 함께 삭제합니다.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -421,7 +421,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
             >
               <Image
                 src={ensureSecureImageUrl(log.image_url)!}
-                alt="Log image"
+                alt="Feed image"
                 fill
                 style={{ objectFit: imageStyle.objectFit }}
                 sizes="(max-width: 768px) 100vw, 672px"
@@ -442,7 +442,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
             >
               <Image
                 src={ensureSecureImageUrl(log.image_url)!}
-                alt="Full size log image"
+                alt="Full size feed image"
                 width={0}
                 height={0}
                 sizes="100vw"
@@ -479,7 +479,7 @@ export function LogDetail({ log, user }: LogDetailProps) {
           onCommentClick={() => {
             document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" });
           }}
-          shareUrl={`/log/${log.id}`}
+          shareUrl={`/feed/${log.id}`}
           className="px-[52px] pt-2"
         />
         {/* Comments Section */}

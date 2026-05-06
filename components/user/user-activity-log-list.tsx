@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LogList } from "@/components/log/log-list";
+import { FeedList } from "@/components/feed/feed-list";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UserActivityLogListProps {
@@ -19,19 +19,19 @@ export function UserActivityLogList({ currentUserId, userId }: UserActivityLogLi
           <SelectValue placeholder="필터 선택" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="bookmarked">북마크한 로그</SelectItem>
-          <SelectItem value="liked">좋아요한 로그</SelectItem>
-          <SelectItem value="commented">댓글 단 로그</SelectItem>
+          <SelectItem value="bookmarked">북마크한 피드</SelectItem>
+          <SelectItem value="liked">좋아요한 피드</SelectItem>
+          <SelectItem value="commented">댓글 단 피드</SelectItem>
         </SelectContent>
       </Select>
       {filterType === "liked" && (
-        <LogList currentUserId={currentUserId} filterByLikedUserId={userId} />
+        <FeedList currentUserId={currentUserId} filterByLikedUserId={userId} />
       )}
       {filterType === "commented" && (
-        <LogList currentUserId={currentUserId} filterByCommentedUserId={userId} />
+        <FeedList currentUserId={currentUserId} filterByCommentedUserId={userId} />
       )}
       {filterType === "bookmarked" && (
-        <LogList currentUserId={currentUserId} filterByBookmarkedUserId={userId} />
+        <FeedList currentUserId={currentUserId} filterByBookmarkedUserId={userId} />
       )}
     </div>
   );

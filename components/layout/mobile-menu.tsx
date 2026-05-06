@@ -70,12 +70,12 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
             <Link
               href="/"
               className={`mt-2 p-2 hover:bg-secondary rounded-md transition-all ${
-                pathname === "/" || pathname.startsWith("/log")
+                pathname === "/" || pathname.startsWith("/feed")
                   ? "font-bold text-primary"
                   : ""
               }`}
             >
-              로그
+              피드
             </Link>
           </SheetClose>
           <SheetClose asChild>

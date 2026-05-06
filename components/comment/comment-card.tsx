@@ -476,7 +476,7 @@ export function CommentCard({
                     if (isDetailPage) {
                       setDisplayReplyCount((prevCount) => prevCount + 5);
                     } else {
-                      router.push(`/log/${logId}`);
+                      router.push(`/feed/${logId}`);
                     }
                   }}
                   className="text-xs text-muted-foreground"

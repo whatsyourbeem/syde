@@ -5,16 +5,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
-import { deleteLog } from "@/app/log/log-actions";
+import { deleteLog } from "@/app/feed/feed-actions";
 
-import { LogCardHeader } from "./log-card-header";
-import { LogCardContent } from "./log-card-content";
-import { LogCardActions } from "./log-card-actions";
+import { FeedCardHeader } from "./feed-card-header";
+import { FeedCardContent } from "./feed-card-content";
+import { FeedCardActions } from "./feed-card-actions";
 
 import { withErrorBoundary } from "@/components/error/with-error-boundary";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
-interface LogCardProps {
+interface FeedCardProps {
   log: Database["public"]["Tables"]["logs"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
     log_likes: Array<{ user_id: string }>;
@@ -33,7 +33,7 @@ interface LogCardProps {
   priority?: boolean;
 }
 
-function LogCardBase({
+function FeedCardBase({
   log,
   currentUserId,
   initialLikesCount,
@@ -45,7 +45,7 @@ function LogCardBase({
   searchQuery,
   isDetailPage = false,
   priority = false,
-}: LogCardProps) {
+}: FeedCardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [likesCount, setLikesCount] = useState(initialLikesCount);
@@ -98,7 +98,7 @@ function LogCardBase({
     try {
       const result = await deleteLog(log.id);
       if (result.success) {
-        toast.success("로그가 삭제되었습니다.");
+        toast.success("피드가 삭제되었습니다.");
         queryClient.invalidateQueries({ queryKey: ["logs"] });
 
         // Hard redirect if specified (used in detail pages)
@@ -106,11 +106,11 @@ function LogCardBase({
           window.location.href = result.data.redirectTo;
         }
       } else {
-        toast.error(result.error?.message || "로그 삭제에 실패했습니다.");
+        toast.error(result.error?.message || "피드 삭제에 실패했습니다.");
       }
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
+      toast.error("피드 삭제 중 예기치 않은 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -118,21 +118,21 @@ function LogCardBase({
 
   const handleCardClick = useCallback(() => {
     if (isDetailPage) return;
-    router.push(`/log/${log.id}`);
+    router.push(`/feed/${log.id}`);
   }, [isDetailPage, log.id, router]);
 
   return (
     <div ref={cardRef} className="rounded-lg bg-card flex flex-col py-4">
       {isDetailPage || isVisible ? (
         <>
-          <LogCardHeader
+          <FeedCardHeader
             log={log}
             currentUserId={currentUserId}
             onDelete={handleDelete}
             loading={loading}
           />
 
-          <LogCardContent
+          <FeedCardContent
             log={log}
             mentionedProfiles={mentionedProfiles}
             searchQuery={searchQuery}
@@ -141,7 +141,7 @@ function LogCardBase({
             priority={priority}
           />
 
-          <LogCardActions
+          <FeedCardActions
             logId={log.id}
             currentUserId={currentUserId}
             likesCount={likesCount}
@@ -163,7 +163,7 @@ function LogCardBase({
   );
 }
 
-const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
+const MemoizedFeedCardBase = memo(FeedCardBase, (prevProps, nextProps) => {
   // Custom comparison for better performance
   return (
     prevProps.log.id === nextProps.log.id &&
@@ -180,13 +180,13 @@ const MemoizedLogCardBase = memo(LogCardBase, (prevProps, nextProps) => {
   );
 });
 
-MemoizedLogCardBase.displayName = "MemoizedLogCardBase";
+MemoizedFeedCardBase.displayName = "MemoizedFeedCardBase";
 
-export const LogCard = withErrorBoundary(MemoizedLogCardBase, {
+export const FeedCard = withErrorBoundary(MemoizedFeedCardBase, {
   fallback: (
     <div className="rounded-lg bg-card p-6 border border-red-200">
       <p className="text-center text-red-600">
-        로그를 불러오는 중 오류가 발생했습니다.
+        피드를 불러오는 중 오류가 발생했습니다.
       </p>
     </div>
   ),

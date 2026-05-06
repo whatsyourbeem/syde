@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { LogListWrapper } from "@/components/log/log-list-wrapper";
+import { FeedListWrapper } from "@/components/feed/feed-list-wrapper";
 import { getUnifiedFeed } from "@/lib/queries/feed-queries";
 
-export default async function LogPage() {
+export default async function FeedPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,8 +26,8 @@ export default async function LogPage() {
 
   return (
     <>
-      <h1 className="sr-only">사이드프로젝트 실시간 피드 - SYDE 로그</h1>
-      <LogListWrapper user={profile} avatarUrl={avatarUrl} initialFeed={initialFeed} />
+      <h1 className="sr-only">사이드프로젝트 실시간 피드 - SYDE 피드</h1>
+      <FeedListWrapper user={profile} avatarUrl={avatarUrl} initialFeed={initialFeed} />
     </>
   );
 }

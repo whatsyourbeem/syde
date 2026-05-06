@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { HeartIcon, Trash2, Edit } from "lucide-react";
 import { Database } from "@/types/database.types";
-import { deleteLog } from "@/app/log/log-actions"; // Import the server action
+import { deleteLog } from "@/app/feed/feed-actions"; // Import the server action
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
-interface LogActionsProps {
+interface FeedActionsProps {
   log: Database["public"]["Tables"]["logs"]["Row"];
   currentUserId: string | null;
   likesCount: number;
@@ -29,14 +29,14 @@ interface LogActionsProps {
   onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
 }
 
-export function LogActions({
+export function FeedActions({
   log,
   currentUserId,
   likesCount,
   hasLiked,
   onEditClick,
   onLikeStatusChange,
-}: LogActionsProps) {
+}: FeedActionsProps) {
   const supabase = createClient();
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -93,13 +93,13 @@ export function LogActions({
     try {
       const result = await deleteLog(log.id);
       if (result.success) {
-        toast.success("로그가 삭제되었습니다.");
+        toast.success("피드가 삭제되었습니다.");
         queryClient.invalidateQueries({ queryKey: ["logs"] });
       } else {
-        toast.error(result.error.message || "로그 삭제에 실패했습니다.");
+        toast.error(result.error.message || "피드 삭제에 실패했습니다.");
       }
     } catch {
-      toast.error("로그 삭제 중 예기치 않은 오류가 발생했습니다.");
+      toast.error("피드 삭제 중 예기치 않은 오류가 발생했습니다.");
     } finally {
       setIsDeleting(false);
     }
@@ -126,7 +126,7 @@ export function LogActions({
             onClick={onEditClick}
             disabled={isDeleting}
             className="p-1 text-muted-foreground hover:text-blue-500 disabled:opacity-50"
-            aria-label="Edit log"
+            aria-label="Edit feed"
           >
             <Edit size={16} />
           </button>
@@ -135,7 +135,7 @@ export function LogActions({
               <button
                 disabled={isDeleting}
                 className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-50"
-                aria-label="Delete log"
+                aria-label="Delete feed"
               >
                 <Trash2 size={16} />
               </button>
@@ -144,7 +144,7 @@ export function LogActions({
               <AlertDialogHeader>
                 <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  이 작업은 되돌릴 수 없습니다. 이 로그를 영구적으로 삭제하고
+                  이 작업은 되돌릴 수 없습니다. 이 피드를 영구적으로 삭제하고
                   스토리지에서 관련 이미지도 함께 삭제합니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
