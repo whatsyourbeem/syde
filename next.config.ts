@@ -138,8 +138,14 @@ const nextConfig: NextConfig = {
   //   config.optimization.sideEffects = false;
 
   //   return config;
-  // },
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/log",
+      },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

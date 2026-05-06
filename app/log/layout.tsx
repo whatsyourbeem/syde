@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "사이드프로젝트 실시간 피드 | SYDE",
   description: "1인개발자·솔로프리너 1,400+명의 SYDE 커뮤니티 피드. 새 쇼케이스, 모임 소식, 메이커들의 인사이트를 실시간으로 확인하세요.",
   alternates: {
-    canonical: "/log",
+    canonical: "/",
   },
 };
 
