@@ -11,6 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Database } from "@/types/database.types";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
+import { getProfileById } from "@/lib/queries/profile-queries";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -36,18 +37,8 @@ export default function ProfileHoverCard({
     if (!profileData && userId) {
       const fetchProfile = async () => {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
-
-        if (error) {
-          console.error("Error fetching profile for hover card:", error);
-          setProfile(null);
-        } else {
-          setProfile(data);
-        }
+        const data = await getProfileById(supabase, userId);
+        setProfile(data);
         setIsLoading(false);
       };
       fetchProfile();

@@ -37,6 +37,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { deleteShowcaseUpvote, insertShowcaseUpvote } from "@/lib/queries/showcase-queries";
+
 interface ShowcaseCardActionsProps {
   showcaseId: string;
   currentUserId: string | null;
@@ -82,24 +84,15 @@ function ShowcaseCardActionsBase({
     onUpvoteStatusChange(newUpvotesCount, newHasUpvoted);
 
     const supabase = createClient();
-    if (hasUpvoted) {
-      const { error } = await supabase
-        .from("showcase_upvotes")
-        .delete()
-        .eq("showcase_id", showcaseId)
-        .eq("user_id", currentUserId);
-      if (error) {
-        toast.error("업보트 취소 실패");
-        onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
+    try {
+      if (hasUpvoted) {
+        await deleteShowcaseUpvote(supabase, showcaseId, currentUserId);
+      } else {
+        await insertShowcaseUpvote(supabase, showcaseId, currentUserId);
       }
-    } else {
-      const { error } = await supabase
-        .from("showcase_upvotes")
-        .insert({ showcase_id: showcaseId, user_id: currentUserId });
-      if (error) {
-        toast.error("업보트 실패");
-        onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
-      }
+    } catch (error) {
+      toast.error(hasUpvoted ? "업보트 취소 실패" : "업보트 실패");
+      onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
     }
     setUpvoteLoading(false);
   }, [

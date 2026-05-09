@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
+import { deleteShowcaseUpvote, insertShowcaseUpvote } from "@/lib/queries/showcase-queries";
+
 interface ShowcaseActionsProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"];
   currentUserId: string | null;
@@ -55,32 +57,20 @@ export function ShowcaseActions({
     let newUpvotesCount = upvotesCount;
     let newHasUpvoted = hasUpvoted;
 
-    if (hasUpvoted) {
-      // Remove Upvote
-      const { error } = await supabase
-        .from("showcase_upvotes")
-        .delete()
-        .eq("showcase_id", showcase.id)
-        .eq("user_id", currentUserId);
-
-      if (!error) {
+    try {
+      if (hasUpvoted) {
+        // Remove Upvote
+        await deleteShowcaseUpvote(supabase, showcase.id, currentUserId);
         newUpvotesCount = upvotesCount - 1;
         newHasUpvoted = false;
       } else {
-        console.error("Error removing upvote from showcase:", error);
-      }
-    } else {
-      // Upvote
-      const { error } = await supabase
-        .from("showcase_upvotes")
-        .insert({ showcase_id: showcase.id, user_id: currentUserId });
-
-      if (!error) {
+        // Upvote
+        await insertShowcaseUpvote(supabase, showcase.id, currentUserId);
         newUpvotesCount = upvotesCount + 1;
         newHasUpvoted = true;
-      } else {
-        console.error("Error upvoting showcase:", error);
       }
+    } catch (error) {
+      console.error("Error toggling upvote:", error);
     }
     setLoading(false);
     onUpvoteStatusChange(newUpvotesCount, newHasUpvoted); // Notify parent of change

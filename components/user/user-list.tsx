@@ -7,8 +7,8 @@ import { Database } from "@/types/database.types";
 import Image from "next/image";
 import Link from "next/link";
 import { highlightText } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
+import { getProfilesList } from "@/lib/queries/profile-queries";
 
 const USERS_PER_PAGE = 10;
 
@@ -25,32 +25,11 @@ export function UserList({ searchQuery }: UserListProps) {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: queryKey,
     queryFn: async () => {
-      const from = (currentPage - 1) * USERS_PER_PAGE;
-      const to = from + USERS_PER_PAGE - 1;
-
-      let query = supabase
-        .from("profiles")
-        .select("id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified, email", { count: "exact" });
-
-      if (searchQuery) {
-        const escaped = searchQuery.replace(/"/g, '\\"');
-        query = query.or(
-          `username.ilike."%${escaped}%",full_name.ilike."%${escaped}%",tagline.ilike."%${escaped}%"`
-        );
-      }
-
-      const { data: usersData, error: usersError, count } = await query
-        .order("username", { ascending: true })
-        .range(from, to);
-
-      if (usersError) {
-        throw usersError;
-      }
-
-      return {
-        users: usersData || [],
-        count: count || 0,
-      };
+      return getProfilesList(supabase, {
+        currentPage,
+        limit: USERS_PER_PAGE,
+        searchQuery,
+      });
     },
   });
 

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/types/database.types";
 import { Search, Calendar, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getUserJoinedMeetups } from "@/lib/queries/meetup-queries";
 
 type Meetup = Tables<"meetups">;
 
@@ -28,29 +29,7 @@ export function UserJoinedMeetupsList({ userId, variant = "scroll" }: UserJoined
     const fetchJoinedMeetups = async () => {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from("meetup_participants")
-          .select(`
-            meetup_id,
-            meetups (*)
-          `)
-          .eq("user_id", userId)
-          .returns<MeetupParticipantWithMeetup[]>();
-
-        if (error) {
-          console.error("Error fetching joined meetups:", error);
-          return;
-        }
-
-        const validMeetups = (data
-          ?.map((item) => item.meetups)
-          .filter(Boolean) as Meetup[])
-          .sort((a, b) => {
-            const dateA = a.start_datetime ? new Date(a.start_datetime).getTime() : 0;
-            const dateB = b.start_datetime ? new Date(b.start_datetime).getTime() : 0;
-            return dateB - dateA; // 최신순 (내림차순)
-          });
-
+        const validMeetups = await getUserJoinedMeetups(supabase, userId);
         setMeetups(validMeetups || []);
       } catch (err) {
         console.error("Unexpected error:", err);

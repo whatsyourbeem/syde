@@ -31,6 +31,13 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { InsightThumbnail } from "./insight-thumbnail";
+import {
+    deleteInsight,
+    deleteInsightLike,
+    insertInsightLike,
+    deleteInsightBookmark,
+    insertInsightBookmark,
+} from "@/lib/queries/insight-queries";
 
 interface InsightDetailClientProps {
     id: string;
@@ -101,12 +108,7 @@ export default function InsightDetailClient({
     const confirmDelete = async () => {
         setDeleting(true);
         try {
-            const { error } = await supabase
-                .from("insights")
-                .delete()
-                .eq("id", id);
-
-            if (error) throw error;
+            await deleteInsight(supabase, id);
 
             toast.success("인사이트가 삭제되었습니다.");
             router.push("/insight");
@@ -135,19 +137,11 @@ export default function InsightDetailClient({
             setLikeLoading(true);
 
             if (isLiked) {
-                const { error } = await supabase
-                    .from("insight_likes")
-                    .delete()
-                    .eq("insight_id", id)
-                    .eq("user_id", user.id);
-                if (error) throw error;
+                await deleteInsightLike(supabase, id, user.id);
                 setStats(prev => ({ ...prev, likes: Math.max(0, prev.likes - 1) }));
                 setIsLiked(false);
             } else {
-                const { error } = await supabase
-                    .from("insight_likes")
-                    .insert({ insight_id: id, user_id: user.id });
-                if (error) throw error;
+                await insertInsightLike(supabase, id, user.id);
                 setStats(prev => ({ ...prev, likes: prev.likes + 1 }));
                 setIsLiked(true);
             }
@@ -171,19 +165,11 @@ export default function InsightDetailClient({
             setBookmarkLoading(true);
 
             if (isBookmarked) {
-                const { error } = await supabase
-                    .from("insight_bookmarks")
-                    .delete()
-                    .eq("insight_id", id)
-                    .eq("user_id", user.id);
-                if (error) throw error;
+                await deleteInsightBookmark(supabase, id, user.id);
                 setStats(prev => ({ ...prev, bookmarks: Math.max(0, prev.bookmarks - 1) }));
                 setIsBookmarked(false);
             } else {
-                const { error } = await supabase
-                    .from("insight_bookmarks")
-                    .insert({ insight_id: id, user_id: user.id });
-                if (error) throw error;
+                await insertInsightBookmark(supabase, id, user.id);
                 setStats(prev => ({ ...prev, bookmarks: prev.bookmarks + 1 }));
                 setIsBookmarked(true);
             }

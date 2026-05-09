@@ -251,3 +251,35 @@ async function getMentionedProfiles(supabase: SupabaseClient<Database>, logs: Ar
 
   return data || [];
 }
+
+/**
+ * Add a like to a log
+ */
+export async function insertLogLike(
+  supabase: SupabaseClient<Database>,
+  logId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("log_likes")
+    .insert({ log_id: logId, user_id: userId });
+
+  if (error) throw error;
+}
+
+/**
+ * Remove a like from a log
+ */
+export async function deleteLogLike(
+  supabase: SupabaseClient<Database>,
+  logId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("log_likes")
+    .delete()
+    .eq("log_id", logId)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}

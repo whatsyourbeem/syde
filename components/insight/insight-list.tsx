@@ -7,6 +7,10 @@ import { InsightCard } from "./insight-card";
 import { Button } from "@/components/ui/button";
 import { CenteredLoading } from "@/components/ui/loading-states";
 
+import { getInsightsList } from "@/lib/queries/insight-queries";
+
+import { insightKeys } from "@/lib/queries/query-keys";
+
 const ITEMS_PER_PAGE = 12;
 
 interface InsightListProps {
@@ -20,25 +24,13 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["insights", "user", userId, currentPage],
+    queryKey: insightKeys.list({ userId, currentPage }),
     queryFn: async () => {
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
-
-      const { data: insightsData, error: insightsError, count } = await supabase
-        .from("insights")
-        .select(`
-          *,
-          author:profiles!user_id(*),
-          insight_comments(id),
-          insight_likes(id, user_id),
-          insight_bookmarks(insight_id, user_id)
-        `, { count: "exact" })
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .range(from, to);
-
-      if (insightsError) throw insightsError;
+      const { insights: insightsData, count } = await getInsightsList(supabase, {
+        currentPage,
+        itemsPerPage: ITEMS_PER_PAGE,
+        userId,
+      });
 
       const formattedInsights = (insightsData || []).map((item: any) => ({
         id: item.id,

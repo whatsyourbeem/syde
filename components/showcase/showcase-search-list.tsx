@@ -5,6 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { ShowcaseCard } from './showcase-card';
 import { Button } from '@/components/ui/button';
+import { getShowcasesSearchList } from '@/lib/queries/showcase-queries';
+
+import { showcaseKeys } from '@/lib/queries/query-keys';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,32 +20,15 @@ export function ShowcaseSearchList({ searchQuery }: ShowcaseSearchListProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['showcases', 'search', searchQuery, currentPage],
+    queryKey: showcaseKeys.list({ searchQuery, currentPage }),
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
-
-      let query = supabase
-        .from('showcases')
-        .select(`
-          *,
-          views_count,
-          profiles(*),
-          showcase_upvotes(user_id),
-          showcase_comments(id)
-        `, { count: 'exact' });
-
-      if (searchQuery) {
-        const escaped = searchQuery.replace(/"/g, '\\"');
-        query = query.or(`name.ilike."%${escaped}%",short_description.ilike."%${escaped}%"`);
-      }
-
-      const { data: showcaseData, error: showcaseError, count } = await query
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (showcaseError) throw showcaseError;
+      const { showcases: showcaseData, count } = await getShowcasesSearchList(
+        supabase,
+        searchQuery,
+        currentPage,
+        ITEMS_PER_PAGE
+      );
 
       const formattedShowcases = (showcaseData || []).map((item: any) => ({
         ...item,

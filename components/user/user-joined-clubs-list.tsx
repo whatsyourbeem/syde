@@ -6,23 +6,12 @@ import { Database } from "@/types/database.types";
 import Link from "next/link";
 import Image from "next/image";
 import ClubCard from "@/components/club/club-card";
+import { getUserJoinedClubs } from "@/lib/queries/club-queries";
 
 type Club = Database["public"]["Tables"]["clubs"]["Row"] & {
   owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
   member_count: number;
   members: Database["public"]["Tables"]["profiles"]["Row"][];
-};
-
-// Type for the data returned by the Supabase query
-type FetchedClubMember = {
-  clubs: (Database["public"]["Tables"]["clubs"]["Row"] & {
-    owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
-    member_count: { count: number }[];
-    club_members: {
-      user_id: string;
-      profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
-    }[];
-  }) | null;
 };
 
 interface UserJoinedClubsListProps {
@@ -42,44 +31,7 @@ export function UserJoinedClubsList({
     const fetchJoinedClubs = async () => {
       try {
         const supabase = createClient();
-        
-        const { data, error } = await supabase
-          .from("club_members")
-          .select(`
-            clubs (
-              *,
-              owner_profile:profiles!clubs_owner_id_fkey(*),
-              member_count:club_members(count),
-              club_members(user_id, profiles(*))
-            )
-          `)
-          .eq("user_id", userId)
-          .limit(10, { foreignTable: "clubs.club_members" })
-          .returns<FetchedClubMember[]>();
-
-        if (error) {
-          console.error("Error fetching joined clubs:", error);
-          setError("클럽 목록을 불러오는데 실패했습니다.");
-          return;
-        }
-
-        const clubsWithDetails = data
-          ?.map(item => {
-            if (!item.clubs) return null;
-            const clubData = item.clubs;
-            return {
-              ...clubData,
-              owner_profile: clubData.owner_profile,
-              member_count: Array.isArray(clubData.member_count)
-                ? clubData.member_count[0]?.count || 0
-                : 0,
-              members: clubData.club_members
-                .map((m: { profiles: Database["public"]["Tables"]["profiles"]["Row"] | null }) => m.profiles)
-                .filter(Boolean) as Database["public"]["Tables"]["profiles"]["Row"][],
-            };
-          })
-          .filter(Boolean) as Club[] || [];
-
+        const clubsWithDetails = await getUserJoinedClubs(supabase, userId);
         setClubs(clubsWithDetails);
       } catch (err) {
         console.error("Unexpected error:", err);

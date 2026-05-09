@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
+import { getProfileById } from "@/lib/queries/profile-queries";
 
 export async function FeedSidebarServer() {
     const supabase = await createClient();
@@ -11,16 +12,8 @@ export async function FeedSidebarServer() {
     let profile = null;
     let avatarUrl = null;
     if (user) {
-        const { data, error: profileError } = await supabase
-            .from("profiles")
-            .select("*, updated_at")
-            .eq("id", user.id)
-            .single();
-
-        if (profileError && profileError.code !== "PGRST116") {
-            console.error("Error fetching profile for FeedServerSidebar:", profileError);
-        } else if (data) {
-            profile = data;
+        profile = await getProfileById(supabase, user.id);
+        if (profile) {
             avatarUrl =
                 profile.avatar_url && profile.updated_at
                     ? `${profile.avatar_url}?t=${new Date(

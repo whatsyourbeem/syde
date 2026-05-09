@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
+import { deleteLogLike, insertLogLike } from "@/lib/queries/log-queries";
+
 interface FeedActionsProps {
   log: Database["public"]["Tables"]["logs"]["Row"];
   currentUserId: string | null;
@@ -55,32 +57,20 @@ export function FeedActions({
     let newLikesCount = likesCount;
     let newHasLiked = hasLiked;
 
-    if (hasLiked) {
-      // Unlike
-      const { error } = await supabase
-        .from("log_likes")
-        .delete()
-        .eq("log_id", log.id)
-        .eq("user_id", currentUserId);
-
-      if (!error) {
+    try {
+      if (hasLiked) {
+        // Unlike
+        await deleteLogLike(supabase, log.id, currentUserId);
         newLikesCount = likesCount - 1;
         newHasLiked = false;
       } else {
-        console.error("Error unliking log:", error);
-      }
-    } else {
-      // Like
-      const { error } = await supabase
-        .from("log_likes")
-        .insert({ log_id: log.id, user_id: currentUserId });
-
-      if (!error) {
+        // Like
+        await insertLogLike(supabase, log.id, currentUserId);
         newLikesCount = likesCount + 1;
         newHasLiked = true;
-      } else {
-        console.error("Error liking log:", error);
       }
+    } catch (error) {
+      console.error("Error toggling like:", error);
     }
     setLoading(false);
     onLikeStatusChange(newLikesCount, newHasLiked); // Notify parent of change

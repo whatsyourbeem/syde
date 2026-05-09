@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import MeetupCard from './meetup-card';
 import { Button } from '@/components/ui/button';
+import { getMeetupsList } from '@/lib/queries/meetup-queries';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -19,32 +20,11 @@ export function MeetupSearchList({ searchQuery }: MeetupSearchListProps) {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['meetups', 'search', searchQuery, currentPage],
     queryFn: async () => {
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
-
-      let query = supabase
-        .from('meetups')
-        .select(`
-          *,
-          organizer_profile:profiles!organizer_id(*),
-          clubs:clubs(*)
-        `, { count: 'exact' });
-
-      if (searchQuery) {
-        const escaped = searchQuery.replace(/"/g, '\\"');
-        query = query.or(`title.ilike."%${escaped}%",location.ilike."%${escaped}%",address.ilike."%${escaped}%"`);
-      }
-
-      const { data: meetupsData, error: meetupsError, count } = await query
-        .order('start_datetime', { ascending: false })
-        .range(from, to);
-
-      if (meetupsError) throw meetupsError;
-
-      return {
-        meetups: meetupsData || [],
-        count: count || 0,
-      };
+      return getMeetupsList(supabase, {
+        currentPage,
+        limit: ITEMS_PER_PAGE,
+        searchQuery,
+      });
     },
   });
 

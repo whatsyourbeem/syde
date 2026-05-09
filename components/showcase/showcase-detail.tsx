@@ -56,7 +56,7 @@ import { CommentList } from "@/components/comment/comment-list";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { deleteShowcase, incrementShowcaseView } from "@/app/showcase/showcase-actions";
 
-import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
+import { OptimizedShowcase, deleteShowcaseUpvote, insertShowcaseUpvote } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
@@ -207,24 +207,15 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
     setHasUpvoted(!previousUpvoted);
     setUpvotesCount(previousUpvoted ? previousCount - 1 : previousCount + 1);
 
-    if (previousUpvoted) {
-      const { error } = await supabase
-        .from("showcase_upvotes")
-        .delete()
-        .eq("showcase_id", showcase.id)
-        .eq("user_id", user.id);
-      if (error) {
-        setHasUpvoted(previousUpvoted);
-        setUpvotesCount(previousCount);
+    try {
+      if (previousUpvoted) {
+        await deleteShowcaseUpvote(supabase, showcase.id, user.id);
+      } else {
+        await insertShowcaseUpvote(supabase, showcase.id, user.id);
       }
-    } else {
-      const { error } = await supabase
-        .from("showcase_upvotes")
-        .insert({ showcase_id: showcase.id, user_id: user.id });
-      if (error) {
-        setHasUpvoted(previousUpvoted);
-        setUpvotesCount(previousCount);
-      }
+    } catch (error) {
+      setHasUpvoted(previousUpvoted);
+      setUpvotesCount(previousCount);
     }
   };
 

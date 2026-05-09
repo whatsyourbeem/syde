@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from '@/context/LoginDialogContext';
 import { toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
+import { deleteLogLike, insertLogLike } from "@/lib/queries/log-queries";
 
 interface FeedCardActionsProps {
   logId: string;
@@ -53,18 +54,15 @@ function FeedCardActionsBase({
     onLikeStatusChange(newLikesCount, newHasLiked);
 
     const supabase = createClient();
-    if (hasLiked) {
-      const { error } = await supabase.from("log_likes").delete().eq("log_id", logId).eq("user_id", currentUserId);
-      if (error) {
-        toast.error("좋아요 취소 실패");
-        onLikeStatusChange(likesCount, hasLiked); // Revert on error
+    try {
+      if (hasLiked) {
+        await deleteLogLike(supabase, logId, currentUserId);
+      } else {
+        await insertLogLike(supabase, logId, currentUserId);
       }
-    } else {
-      const { error } = await supabase.from("log_likes").insert({ log_id: logId, user_id: currentUserId });
-      if (error) {
-        toast.error("좋아요 실패");
-        onLikeStatusChange(likesCount, hasLiked); // Revert on error
-      }
+    } catch (error) {
+      toast.error(hasLiked ? "좋아요 취소 실패" : "좋아요 실패");
+      onLikeStatusChange(likesCount, hasLiked); // Revert on error
     }
     setLikeLoading(false);
   }, [currentUserId, logId, hasLiked, likesCount, likeLoading, openLoginDialog, onLikeStatusChange]);

@@ -7,6 +7,8 @@ import NotificationBell from "@/components/notification/notification-bell";
 import { AuthButton } from "@/components/auth/auth-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { createClient } from "@/lib/supabase/server";
+import { getProfileById } from "@/lib/queries/profile-queries";
+import { getUnreadNotificationsCount } from "@/lib/queries/notification-queries";
 
 // Using local fonts loaded from layout.tsx
 // Since we can't easily import the localFont instance instantiated in layout.tsx,
@@ -28,22 +30,10 @@ export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName:
     let unreadNotifCount = 0;
 
     if (user) {
-        const { count } = await supabase
-            .from("notifications")
-            .select("*", { count: "exact", head: true })
-            .eq("recipient_user_id", user.id)
-            .eq("is_read", false);
-        unreadNotifCount = count ?? 0;
+        unreadNotifCount = await getUnreadNotificationsCount(supabase, user.id);
+        const profile = await getProfileById(supabase, user.id);
 
-        const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("avatar_url, updated_at, username, full_name")
-            .eq("id", user.id)
-            .single();
-
-        if (profileError && profileError.code !== "PGRST116") {
-            console.error("Error fetching profile for layout:", profileError);
-        } else if (profile) {
+        if (profile) {
             avatarUrl = profile.avatar_url
                 ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ""
                 }`

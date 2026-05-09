@@ -42,6 +42,8 @@ export interface InsightCardProps {
     isCentered?: boolean;
 }
 
+import { deleteInsightLike, insertInsightLike, deleteInsightBookmark, insertInsightBookmark } from "@/lib/queries/insight-queries";
+
 export function InsightCard({
     id,
     slug,
@@ -78,11 +80,9 @@ export function InsightCard({
 
         try {
             if (isLiked) {
-                const { error } = await supabase.from("insight_likes").delete().eq("insight_id", id).eq("user_id", currentUserId);
-                if (error) throw error;
+                await deleteInsightLike(supabase, id, currentUserId);
             } else {
-                const { error } = await supabase.from("insight_likes").insert({ insight_id: id, user_id: currentUserId });
-                if (error) throw error;
+                await insertInsightLike(supabase, id, currentUserId);
             }
         } catch (error) {
             console.error("Error toggling like:", error);
@@ -109,11 +109,9 @@ export function InsightCard({
 
         try {
             if (isBookmarked) {
-                const { error } = await supabase.from("insight_bookmarks").delete().eq("insight_id", id).eq("user_id", currentUserId);
-                if (error) throw error;
+                await deleteInsightBookmark(supabase, id, currentUserId);
             } else {
-                const { error } = await supabase.from("insight_bookmarks").insert({ insight_id: id, user_id: currentUserId });
-                if (error) throw error;
+                await insertInsightBookmark(supabase, id, currentUserId);
             }
         } catch (error) {
             console.error("Error toggling bookmark:", error);

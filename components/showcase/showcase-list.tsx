@@ -14,6 +14,8 @@ import {
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
+import { showcaseKeys } from "@/lib/queries/query-keys";
+
 const SHOWCASES_PER_PAGE = 20; // Define showcases per page
 
 export function ShowcaseList({
@@ -54,16 +56,13 @@ export function ShowcaseList({
     }
   }, [supabase, propCurrentUserId]);
 
-  const queryKey = [
-    "showcases",
-    {
-      filterByUserId,
-      filterByParticipantUserId,
-      filterByCommentedUserId,
-      filterByUpvotedUserId,
-      searchQuery,
-    },
-  ];
+  const queryKey = showcaseKeys.list({
+    filterByUserId,
+    filterByParticipantUserId,
+    filterByCommentedUserId,
+    filterByUpvotedUserId,
+    searchQuery,
+  });
 
   const {
     data,
@@ -131,7 +130,7 @@ export function ShowcaseList({
         "postgres_changes",
         { event: "*", schema: "public", table: "showcases" },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["showcases"] });
+          queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
         },
       )
       .on(
@@ -151,7 +150,7 @@ export function ShowcaseList({
               payload.old as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
             ).showcase_id;
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: ["showcases"] });
+            queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
           }
         },
       )
@@ -173,7 +172,7 @@ export function ShowcaseList({
               payload.old as Database["public"]["Tables"]["showcase_comments"]["Row"]
             ).showcase_id;
           if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: ["showcases"] });
+            queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
           }
         },
       )

@@ -1,6 +1,5 @@
 import { Database } from "@/types/database.types";
-import { createClient } from "@/lib/supabase/client"; // Keep for types if implicitly needed, or remove if unused. Types don't use it.
-// Actually, types don't rely on the client import.
+import { SupabaseClient } from "@supabase/supabase-js";
 
 type ShowcaseRow = Database["public"]["Tables"]["showcases"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -51,5 +50,78 @@ export interface ShowcaseQueryResult {
   currentPage: number;
 }
 
-// Client-side implementation has been moved to Server Action: @/app/showcase/showcase-data-actions.ts
-// This file now serves as a Type Definition file for Showcase data structures.
+/**
+ * Add an upvote to a showcase
+ */
+export async function insertShowcaseUpvote(
+  supabase: SupabaseClient<Database>,
+  showcaseId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("showcase_upvotes")
+    .insert({ showcase_id: showcaseId, user_id: userId });
+
+  if (error) throw error;
+}
+
+/**
+ * Remove an upvote from a showcase
+ */
+export async function deleteShowcaseUpvote(
+  supabase: SupabaseClient<Database>,
+  showcaseId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("showcase_upvotes")
+    .delete()
+    .eq("showcase_id", showcaseId)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}
+
+export interface ShowcaseListResult {
+  showcases: any[];
+  count: number;
+}
+
+/**
+ * Fetch showcase search list with query and pagination
+ */
+export async function getShowcasesSearchList(
+  supabase: SupabaseClient<Database>,
+  searchQuery: string,
+  currentPage: number,
+  itemsPerPage: number
+): Promise<ShowcaseListResult> {
+  const from = (currentPage - 1) * itemsPerPage;
+  const to = from + itemsPerPage - 1;
+
+  let query = supabase
+    .from('showcases')
+    .select(`
+      *,
+      views_count,
+      profiles(*),
+      showcase_upvotes(user_id),
+      showcase_comments(id)
+    `, { count: 'exact' });
+
+  if (searchQuery) {
+    const escaped = searchQuery.replace(/"/g, '\\"');
+    query = query.or(`name.ilike."%${escaped}%",short_description.ilike."%${escaped}%"`);
+  }
+
+  const { data, error, count } = await query
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) throw error;
+
+  return {
+    showcases: data || [],
+    count: count || 0,
+  };
+}
