@@ -12,7 +12,7 @@ interface UseImageUploadResult {
     file: File,
     bucket: string,
     pathPrefix?: string,
-    compressionType?: "detail" | "thumbnail"
+    compressionType?: "detail" | "thumbnail" | "avatar"
   ) => Promise<string | null>;
 }
 
@@ -24,7 +24,7 @@ export function useImageUpload(): UseImageUploadResult {
     file: File,
     bucket: string,
     pathPrefix: string = "",
-    compressionType: "detail" | "thumbnail" = "detail"
+    compressionType: "detail" | "thumbnail" | "avatar" = "detail"
   ): Promise<string | null> => {
     if (!file) return null;
 

@@ -7,7 +7,7 @@ import NotificationBell from "@/components/notification/notification-bell";
 import { AuthButton } from "@/components/auth/auth-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { createClient } from "@/lib/supabase/server";
-import { getProfileById } from "@/lib/queries/profile-queries";
+import { getProfileByIdCached } from "@/lib/queries/profile-queries";
 import { getUnreadNotificationsCount } from "@/lib/queries/notification-queries";
 
 // Using local fonts loaded from layout.tsx
@@ -30,8 +30,11 @@ export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName:
     let unreadNotifCount = 0;
 
     if (user) {
-        unreadNotifCount = await getUnreadNotificationsCount(supabase, user.id);
-        const profile = await getProfileById(supabase, user.id);
+        const [unreadNotifCountResult, profile] = await Promise.all([
+            getUnreadNotificationsCount(supabase, user.id),
+            getProfileByIdCached(supabase, user.id),
+        ]);
+        unreadNotifCount = unreadNotifCountResult;
 
         if (profile) {
             avatarUrl = profile.avatar_url

@@ -102,3 +102,20 @@ export const getProfileByUsernameCached = (
     }
   )();
 };
+
+export const getProfileByIdCached = (
+  supabase: SupabaseClient<Database>,
+  userId: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getProfileById(supabase, userId);
+    },
+    ["profile-by-id", userId],
+    {
+      revalidate: 3600,
+      tags: ["profile-all", `profile-id-${userId}`],
+    }
+  )();
+};
+

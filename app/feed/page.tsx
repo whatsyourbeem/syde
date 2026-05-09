@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { FeedListWrapper } from "@/components/feed/feed-list-wrapper";
 import { getUnifiedFeed } from "@/lib/queries/feed-queries";
+import { getProfileByIdCached } from "@/lib/queries/profile-queries";
 
 export default async function FeedPage() {
   const supabase = await createClient();
@@ -8,21 +9,19 @@ export default async function FeedPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("*").eq("id", user.id).single()
-    : { data: null };
+  const [profile, initialFeed] = await Promise.all([
+    user ? getProfileByIdCached(supabase, user.id) : Promise.resolve(null),
+    getUnifiedFeed(supabase, {
+      currentUserId: user?.id || null,
+      currentPage: 1,
+      logsPerPage: 20,
+    }),
+  ]);
 
   const avatarUrl =
     profile?.avatar_url && profile.updated_at
       ? `${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`
       : null;
-
-  // LCP Optimization: Prefetch initial feed on the server side
-  const initialFeed = await getUnifiedFeed(supabase, {
-    currentUserId: user?.id || null,
-    currentPage: 1,
-    logsPerPage: 20,
-  });
 
   return (
     <>

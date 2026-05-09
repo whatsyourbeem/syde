@@ -324,3 +324,4 @@ export function formatSydePickDateKR(dateString: string): string {
   
   return `${year}년 ${month}월 ${weekString}`;
 }
+
