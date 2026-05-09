@@ -99,7 +99,7 @@ function FeedCardBase({
       const result = await deleteLog(log.id);
       if (result.success) {
         toast.success("피드가 삭제되었습니다.");
-        queryClient.invalidateQueries({ queryKey: ["logs"] });
+        queryClient.invalidateQueries({ queryKey: ["feed"] });
 
         // Hard redirect if specified (used in detail pages)
         if (result.data?.redirectTo) {

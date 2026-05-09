@@ -57,6 +57,7 @@ export function ShowcaseList({
   }, [supabase, propCurrentUserId]);
 
   const queryKey = showcaseKeys.list({
+    currentUserId,
     filterByUserId,
     filterByParticipantUserId,
     filterByCommentedUserId,
@@ -93,7 +94,7 @@ export function ShowcaseList({
       }
       return undefined;
     },
-    staleTime: 30000,
+    staleTime: 0,
     initialData:
       initialShowcases &&
       !filterByUserId &&

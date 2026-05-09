@@ -337,6 +337,28 @@ export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: st
   return createSuccessResponse(null);
 });
 
+export const toggleShowcaseUpvote = withAuth(
+  async ({ supabase, user }, showcaseId: string, currentlyUpvoted: boolean) => {
+    if (currentlyUpvoted) {
+      const { error } = await supabase
+        .from("showcase_upvotes")
+        .delete()
+        .eq("showcase_id", showcaseId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("showcase_upvotes")
+        .insert({ showcase_id: showcaseId, user_id: user.id });
+      if (error) throw new Error(error.message);
+    }
+
+    revalidateTagSafe("showcase-all");
+    revalidateTagSafe(`showcase-${showcaseId}`);
+    return { success: true };
+  }
+);
+
 // Increments view count via SECURITY DEFINER RPC (bypasses RLS)
 export async function incrementShowcaseView(showcaseId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Database } from "@/types/database.types";
 import { deleteShowcase } from "@/app/showcase/showcase-actions"; // Import the server action
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
-import { deleteShowcaseUpvote, insertShowcaseUpvote } from "@/lib/queries/showcase-queries";
+import { toggleShowcaseUpvote } from "@/app/showcase/showcase-actions";
 
 interface ShowcaseActionsProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"];
@@ -39,7 +38,6 @@ export function ShowcaseActions({
   onEditClick,
   onUpvoteStatusChange,
 }: ShowcaseActionsProps) {
-  const supabase = createClient();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,22 +56,14 @@ export function ShowcaseActions({
     let newHasUpvoted = hasUpvoted;
 
     try {
-      if (hasUpvoted) {
-        // Remove Upvote
-        await deleteShowcaseUpvote(supabase, showcase.id, currentUserId);
-        newUpvotesCount = upvotesCount - 1;
-        newHasUpvoted = false;
-      } else {
-        // Upvote
-        await insertShowcaseUpvote(supabase, showcase.id, currentUserId);
-        newUpvotesCount = upvotesCount + 1;
-        newHasUpvoted = true;
-      }
+      await toggleShowcaseUpvote(showcase.id, hasUpvoted);
+      newUpvotesCount = hasUpvoted ? upvotesCount - 1 : upvotesCount + 1;
+      newHasUpvoted = !hasUpvoted;
     } catch (error) {
       console.error("Error toggling upvote:", error);
     }
     setLoading(false);
-    onUpvoteStatusChange(newUpvotesCount, newHasUpvoted); // Notify parent of change
+    onUpvoteStatusChange(newUpvotesCount, newHasUpvoted);
   };
 
   const handleDelete = async () => {

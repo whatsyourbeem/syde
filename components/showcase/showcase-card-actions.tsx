@@ -11,7 +11,6 @@ import {
   Copy,
 } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { formatNumber, cn } from "@/lib/utils";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { LoadingSpinner } from "@/components/ui/loading-states";
@@ -37,7 +36,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { deleteShowcaseUpvote, insertShowcaseUpvote } from "@/lib/queries/showcase-queries";
+import { useQueryClient } from "@tanstack/react-query";
+import { showcaseKeys } from "@/lib/queries/query-keys";
+import { toggleShowcaseUpvote } from "@/app/showcase/showcase-actions";
 
 interface ShowcaseCardActionsProps {
   showcaseId: string;
@@ -62,6 +63,7 @@ function ShowcaseCardActionsBase({
 }: ShowcaseCardActionsProps) {
   const isFeatured = variant === "featured";
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [upvoteLoading, setUpvoteLoading] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
@@ -83,13 +85,9 @@ function ShowcaseCardActionsBase({
     const newHasUpvoted = !hasUpvoted;
     onUpvoteStatusChange(newUpvotesCount, newHasUpvoted);
 
-    const supabase = createClient();
     try {
-      if (hasUpvoted) {
-        await deleteShowcaseUpvote(supabase, showcaseId, currentUserId);
-      } else {
-        await insertShowcaseUpvote(supabase, showcaseId, currentUserId);
-      }
+      await toggleShowcaseUpvote(showcaseId, hasUpvoted);
+      queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
     } catch (error) {
       toast.error(hasUpvoted ? "업보트 취소 실패" : "업보트 실패");
       onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
@@ -103,6 +101,7 @@ function ShowcaseCardActionsBase({
     upvoteLoading,
     openLoginDialog,
     onUpvoteStatusChange,
+    queryClient,
   ]);
 
 

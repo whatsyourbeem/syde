@@ -29,6 +29,7 @@ import {
 import { toast } from "sonner";
 import { formatRelativeTime, linkifyMentions } from "@/lib/utils";
 import { Database } from "@/types/database.types";
+import { showcaseKeys } from "@/lib/queries/query-keys";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -54,9 +55,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { deleteShowcase, incrementShowcaseView } from "@/app/showcase/showcase-actions";
+import { deleteShowcase, incrementShowcaseView, toggleShowcaseUpvote } from "@/app/showcase/showcase-actions";
 
-import { OptimizedShowcase, deleteShowcaseUpvote, insertShowcaseUpvote } from "@/lib/queries/showcase-queries";
+import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
@@ -208,11 +209,8 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
     setUpvotesCount(previousUpvoted ? previousCount - 1 : previousCount + 1);
 
     try {
-      if (previousUpvoted) {
-        await deleteShowcaseUpvote(supabase, showcase.id, user.id);
-      } else {
-        await insertShowcaseUpvote(supabase, showcase.id, user.id);
-      }
+      await toggleShowcaseUpvote(showcase.id, previousUpvoted);
+      queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
     } catch (error) {
       setHasUpvoted(previousUpvoted);
       setUpvotesCount(previousCount);
@@ -256,13 +254,13 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
 
   const handleCommentAdded = () => {
     setCommentsCount((prev: number) => prev + 1);
-    queryClient.invalidateQueries({
-      queryKey: ["comments", { parentId: showcase.id }],
-    });
+    queryClient.invalidateQueries({ queryKey: ["comments", { parentId: showcase.id }] });
+    queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
   };
 
   const handleCommentDeleted = () => {
     setCommentsCount((prev) => Math.max(0, prev - 1));
+    queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
   };
 
   // --- Real Content for UI ---

@@ -79,7 +79,7 @@ export function FeedList({
       }
       return undefined;
     },
-    staleTime: 30000,
+    staleTime: 0,
     initialData: !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && initialFeed 
       ? {
           pages: [initialFeed],

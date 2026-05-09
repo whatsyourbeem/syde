@@ -10,6 +10,7 @@ import { useImageUpload } from "@/hooks/use-image-upload";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
 import { revalidateInsightAction } from "@/app/insight/insight-actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 const TiptapEditorWrapper = dynamic(
     () => import("@/components/common/tiptap-editor-wrapper"),
@@ -36,6 +37,7 @@ interface InsightEditFormProps {
 
 export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const supabase = createClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isEditMode = !!initialData;
@@ -95,10 +97,8 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
                 if (error) throw error;
                 await revalidateInsightAction(initialData.id);
+                queryClient.invalidateQueries({ queryKey: ["insights"] });
                 toast.success("인사이트가 수정되었습니다!");
-
-                // Optional: To refresh data since we edited it, calling router.refresh() 
-                router.refresh();
                 router.push(`/insight/${initialData.id}`);
             } else {
                 const { data, error } = await supabase
@@ -117,6 +117,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
                 if (error) throw error;
                 await revalidateInsightAction(data.id);
+                queryClient.invalidateQueries({ queryKey: ["insights"] });
 
                 toast.success("인사이트가 등록되었습니다!");
                 router.push(`/insight/${data.id}`);

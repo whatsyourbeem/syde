@@ -27,6 +27,7 @@ export const createLog = withAuthForm(
     }
 
     revalidatePath("/");
+    revalidatePath("/feed");
     if (user?.user_metadata?.username) {
       revalidatePath(`/${user.user_metadata.username}`);
     }

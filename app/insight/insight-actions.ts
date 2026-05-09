@@ -105,7 +105,52 @@ export const toggleCommentLike = withAuth(
   }
 );
 
+export const toggleInsightLike = withAuth(
+  async ({ supabase, user }, insightId: string, currentlyLiked: boolean) => {
+    if (currentlyLiked) {
+      const { error } = await supabase
+        .from("insight_likes")
+        .delete()
+        .eq("insight_id", insightId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("insight_likes")
+        .insert({ insight_id: insightId, user_id: user.id });
+      if (error) throw new Error(error.message);
+    }
+
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${insightId}`);
+    return { success: true };
+  }
+);
+
+export const toggleInsightBookmark = withAuth(
+  async ({ supabase, user }, insightId: string, currentlyBookmarked: boolean) => {
+    if (currentlyBookmarked) {
+      const { error } = await supabase
+        .from("insight_bookmarks")
+        .delete()
+        .eq("insight_id", insightId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("insight_bookmarks")
+        .insert({ insight_id: insightId, user_id: user.id });
+      if (error) throw new Error(error.message);
+    }
+
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${insightId}`);
+    return { success: true };
+  }
+);
+
 export async function revalidateInsightAction(insightId: string) {
+  revalidatePath("/insight");
   revalidateTagSafe("insight-all");
   revalidateTagSafe(`insight-${insightId}`);
 }

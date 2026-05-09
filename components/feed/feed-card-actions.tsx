@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useLoginDialog } from '@/context/LoginDialogContext';
+import { useQueryClient } from "@tanstack/react-query";
 import { toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { deleteLogLike, insertLogLike } from "@/lib/queries/log-queries";
@@ -33,6 +34,7 @@ function FeedCardActionsBase({
   onBookmarkStatusChange,
 }: FeedCardActionsProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [likeLoading, setLikeLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const { openLoginDialog } = useLoginDialog();
@@ -60,12 +62,13 @@ function FeedCardActionsBase({
       } else {
         await insertLogLike(supabase, logId, currentUserId);
       }
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     } catch (error) {
       toast.error(hasLiked ? "좋아요 취소 실패" : "좋아요 실패");
       onLikeStatusChange(likesCount, hasLiked); // Revert on error
     }
     setLikeLoading(false);
-  }, [currentUserId, logId, hasLiked, likesCount, likeLoading, openLoginDialog, onLikeStatusChange]);
+  }, [currentUserId, logId, hasLiked, likesCount, likeLoading, openLoginDialog, onLikeStatusChange, queryClient]);
 
   const handleBookmark = useCallback(async () => {
     if (!currentUserId) {
@@ -83,9 +86,11 @@ function FeedCardActionsBase({
     if ("error" in result && result.error) {
       toast.error(result.error.message);
       onBookmarkStatusChange(bookmarksCount, hasBookmarked); // Revert on error
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     }
     setBookmarkLoading(false);
-  }, [currentUserId, logId, hasBookmarked, bookmarksCount, bookmarkLoading, openLoginDialog, onBookmarkStatusChange]);
+  }, [currentUserId, logId, hasBookmarked, bookmarksCount, bookmarkLoading, openLoginDialog, onBookmarkStatusChange, queryClient]);
 
   return (
     <InteractionActions

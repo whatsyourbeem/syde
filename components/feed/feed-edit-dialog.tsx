@@ -347,8 +347,7 @@ export function FeedEditDialog({
       setOpen(false);
       if (onSuccess) onSuccess();
 
-      // Invalidate the logs query to ensure the list is fresh
-      queryClient.invalidateQueries({ queryKey: ["logs"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
 
       if (!initialLogData && state.id) {
         router.push(`/feed/${state.id}`);

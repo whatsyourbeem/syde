@@ -44,7 +44,7 @@ export function InsightFeed({ initialInsights, currentUserId }: InsightFeedProps
       pages: [initialInsights],
       pageParams: [1],
     },
-    staleTime: 60000,
+    staleTime: 0,
   });
 
   const allInsights = data?.pages.flatMap((page) => page.insights) || [];

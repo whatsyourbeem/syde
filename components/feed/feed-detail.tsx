@@ -212,6 +212,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
         if (!error) {
           setCurrentLikesCount((prev) => prev - 1);
           setCurrentHasLiked(false);
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
         } else {
           console.error("Error unliking log:", error);
           toast.error("좋아요 취소에 실패했습니다.");
@@ -224,6 +225,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
         if (!error) {
           setCurrentLikesCount((prev) => prev + 1);
           setCurrentHasLiked(true);
+          queryClient.invalidateQueries({ queryKey: ["feed"] });
         } else {
           console.error("Error liking log:", error);
           toast.error("좋아요에 실패했습니다.");
@@ -254,9 +256,10 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
 
     if ("error" in result && result.error) {
       toast.error(result.error.message);
-      // Revert state on error
       setCurrentHasBookmarked(!newHasBookmarked);
       setCurrentBookmarksCount(currentBookmarksCount);
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     }
     setBookmarkLoading(false);
   };
@@ -268,10 +271,13 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
 
   const handleCommentAdded = () => {
     setCommentsCount((prev) => prev + 1);
-    // Use the correct query key matching CommentList: ["comments", { parentId }]
-    queryClient.invalidateQueries({
-      queryKey: ["comments", { parentId: log.id }],
-    });
+    queryClient.invalidateQueries({ queryKey: ["comments", { parentId: log.id }] });
+    queryClient.invalidateQueries({ queryKey: ["feed"] });
+  };
+
+  const handleCommentDeleted = () => {
+    setCommentsCount((prev) => Math.max(0, prev - 1));
+    queryClient.invalidateQueries({ queryKey: ["feed"] });
     // Also trigger the reset logic in CommentList via newCommentId
     setNewCommentId(Math.random().toString());
     setNewParentCommentId(replyTo?.parentId);
@@ -493,6 +499,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
             setReplyTo={setReplyTo}
             newCommentId={newCommentId}
             newParentCommentId={newParentCommentId}
+            onCommentDeleted={handleCommentDeleted}
           />
           <CommentForm
             logId={log.id}

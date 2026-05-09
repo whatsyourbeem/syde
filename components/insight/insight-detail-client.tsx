@@ -31,13 +31,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { InsightThumbnail } from "./insight-thumbnail";
-import {
-    deleteInsight,
-    deleteInsightLike,
-    insertInsightLike,
-    deleteInsightBookmark,
-    insertInsightBookmark,
-} from "@/lib/queries/insight-queries";
+import { deleteInsight } from "@/lib/queries/insight-queries";
+import { toggleInsightLike, toggleInsightBookmark } from "@/app/insight/insight-actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface InsightDetailClientProps {
     id: string;
@@ -61,6 +57,7 @@ export default function InsightDetailClient({
     initialCurrentUserId
 }: InsightDetailClientProps) {
     const supabase = createClient();
+    const queryClient = useQueryClient();
 
     const [isMounted, setIsMounted] = useState(false);
     const [insight, setInsight] = useState<any>(initialInsight);
@@ -126,27 +123,25 @@ export default function InsightDetailClient({
     const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
     const toggleLike = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            openLoginDialog();
+            return;
+        }
+
+        if (likeLoading) return;
+        setLikeLoading(true);
+
+        const prevLiked = isLiked;
+        setIsLiked(!isLiked);
+        setStats(prev => ({ ...prev, likes: isLiked ? Math.max(0, prev.likes - 1) : prev.likes + 1 }));
+
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                openLoginDialog();
-                return;
-            }
-
-            if (likeLoading) return;
-            setLikeLoading(true);
-
-            if (isLiked) {
-                await deleteInsightLike(supabase, id, user.id);
-                setStats(prev => ({ ...prev, likes: Math.max(0, prev.likes - 1) }));
-                setIsLiked(false);
-            } else {
-                await insertInsightLike(supabase, id, user.id);
-                setStats(prev => ({ ...prev, likes: prev.likes + 1 }));
-                setIsLiked(true);
-            }
+            await toggleInsightLike(id, isLiked);
+            queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
-            console.error("Error toggling like:", error);
+            setIsLiked(prevLiked);
+            setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : Math.max(0, prev.likes - 1) }));
             toast.error("처리 중 오류가 발생했습니다.");
         } finally {
             setLikeLoading(false);
@@ -154,27 +149,25 @@ export default function InsightDetailClient({
     };
 
     const toggleBookmark = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            openLoginDialog();
+            return;
+        }
+
+        if (bookmarkLoading) return;
+        setBookmarkLoading(true);
+
+        const prevBookmarked = isBookmarked;
+        setIsBookmarked(!isBookmarked);
+        setStats(prev => ({ ...prev, bookmarks: isBookmarked ? Math.max(0, prev.bookmarks - 1) : prev.bookmarks + 1 }));
+
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                openLoginDialog();
-                return;
-            }
-
-            if (bookmarkLoading) return;
-            setBookmarkLoading(true);
-
-            if (isBookmarked) {
-                await deleteInsightBookmark(supabase, id, user.id);
-                setStats(prev => ({ ...prev, bookmarks: Math.max(0, prev.bookmarks - 1) }));
-                setIsBookmarked(false);
-            } else {
-                await insertInsightBookmark(supabase, id, user.id);
-                setStats(prev => ({ ...prev, bookmarks: prev.bookmarks + 1 }));
-                setIsBookmarked(true);
-            }
+            await toggleInsightBookmark(id, isBookmarked);
+            queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
-            console.error("Error toggling bookmark:", error);
+            setIsBookmarked(prevBookmarked);
+            setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : Math.max(0, prev.bookmarks - 1) }));
             toast.error("처리 중 오류가 발생했습니다.");
         } finally {
             setBookmarkLoading(false);
@@ -349,6 +342,7 @@ export default function InsightDetailClient({
                             newParentCommentId={newParentCommentId}
                             onCommentDeleted={() => {
                                 setStats(prev => ({ ...prev, comments: Math.max(0, prev.comments - 1) }));
+                                queryClient.invalidateQueries({ queryKey: ["insights"] });
                             }}
                         />
                     </div>
@@ -363,6 +357,7 @@ export default function InsightDetailClient({
                                 setReplyTo(null);
                                 setNewCommentId(Math.random().toString());
                                 setNewParentCommentId(replyTo?.parentId);
+                                queryClient.invalidateQueries({ queryKey: ["insights"] });
                             }}
                             onCancel={replyTo ? () => setReplyTo(null) : undefined}
                             replyTo={replyTo}

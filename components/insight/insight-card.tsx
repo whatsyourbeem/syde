@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createClient } from "@/lib/supabase/client";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { toast } from "sonner";
@@ -42,7 +41,8 @@ export interface InsightCardProps {
     isCentered?: boolean;
 }
 
-import { deleteInsightLike, insertInsightLike, deleteInsightBookmark, insertInsightBookmark } from "@/lib/queries/insight-queries";
+import { toggleInsightLike, toggleInsightBookmark } from "@/app/insight/insight-actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function InsightCard({
     id,
@@ -59,11 +59,16 @@ export function InsightCard({
     disableLink = false,
     isCentered = false
 }: InsightCardProps) {
-    const supabase = createClient();
     const { openLoginDialog } = useLoginDialog();
+    const queryClient = useQueryClient();
     const [stats, setStats] = useState(initialStats);
     const [status, setStatus] = useState(initialStatus || { hasLiked: false, hasBookmarked: false });
     const [loading, setLoading] = useState({ like: false, bookmark: false });
+
+    useEffect(() => {
+        setStats(initialStats);
+        setStatus(initialStatus || { hasLiked: false, hasBookmarked: false });
+    }, [initialStats, initialStatus]);
 
     const handleLikeToggle = async () => {
         if (!currentUserId) {
@@ -79,13 +84,9 @@ export function InsightCard({
         setStatus(prev => ({ ...prev, hasLiked: !isLiked }));
 
         try {
-            if (isLiked) {
-                await deleteInsightLike(supabase, id, currentUserId);
-            } else {
-                await insertInsightLike(supabase, id, currentUserId);
-            }
+            await toggleInsightLike(id, isLiked);
+            queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
-            console.error("Error toggling like:", error);
             toast.error("좋아요 처리 중 오류가 발생했습니다.");
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : prev.likes - 1 }));
             setStatus(prev => ({ ...prev, hasLiked: isLiked }));
@@ -108,13 +109,9 @@ export function InsightCard({
         setStatus(prev => ({ ...prev, hasBookmarked: !isBookmarked }));
 
         try {
-            if (isBookmarked) {
-                await deleteInsightBookmark(supabase, id, currentUserId);
-            } else {
-                await insertInsightBookmark(supabase, id, currentUserId);
-            }
+            await toggleInsightBookmark(id, isBookmarked);
+            queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
-            console.error("Error toggling bookmark:", error);
             toast.error("저장 처리 중 오류가 발생했습니다.");
             setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : prev.bookmarks - 1 }));
             setStatus(prev => ({ ...prev, hasBookmarked: isBookmarked }));
