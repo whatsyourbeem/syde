@@ -753,6 +753,51 @@ export type Database = {
           },
         ]
       }
+      meetup_reviews: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          meetup_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          meetup_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          meetup_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetup_reviews_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
+            referencedRelation: "meetups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetup_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetups: {
         Row: {
           address: string | null
@@ -909,6 +954,7 @@ export type Database = {
           avatar_url: string | null
           bio: Json | null
           certified: boolean | null
+          email: string | null
           full_name: string | null
           id: string
           link: string | null
@@ -920,6 +966,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: Json | null
           certified?: boolean | null
+          email?: string | null
           full_name?: string | null
           id: string
           link?: string | null
@@ -931,6 +978,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: Json | null
           certified?: boolean | null
+          email?: string | null
           full_name?: string | null
           id?: string
           link?: string | null
@@ -939,6 +987,38 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      showcase_awards: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          showcase_id: string
+          type: Database["public"]["Enums"]["showcase_award_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          showcase_id: string
+          type: Database["public"]["Enums"]["showcase_award_type"]
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          showcase_id?: string
+          type?: Database["public"]["Enums"]["showcase_award_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcase_awards_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       showcase_comment_likes: {
         Row: {
@@ -972,38 +1052,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      showcase_awards: {
-        Row: {
-          created_at: string | null
-          date: string
-          id: string
-          showcase_id: string
-          type: Database["public"]["Enums"]["showcase_award_type"]
-        }
-        Insert: {
-          created_at?: string | null
-          date: string
-          id?: string
-          showcase_id: string
-          type: Database["public"]["Enums"]["showcase_award_type"]
-        }
-        Update: {
-          created_at?: string | null
-          date?: string
-          id?: string
-          showcase_id?: string
-          type?: Database["public"]["Enums"]["showcase_award_type"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "showcase_awards_showcase_id_fkey"
-            columns: ["showcase_id"]
-            isOneToOne: false
-            referencedRelation: "showcases"
             referencedColumns: ["id"]
           },
         ]
@@ -1368,6 +1416,7 @@ export const Constants = {
         "ENDED",
       ],
       meetup_type_enum: ["INSYDE", "SPINOFF"],
+      showcase_award_type: ["SYDE_PICK"],
     },
   },
 } as const

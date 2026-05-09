@@ -100,9 +100,9 @@ export default async function MeetupDetailPage({ params }: PageProps) {
       .eq("id", meetup_id)
       .single(),
     supabase.auth.getUser(),
-    (supabase as any)
+    supabase
       .from("meetup_reviews")
-      .select("*, profiles:user_id(id, full_name, username, avatar_url, certified, tagline, updated_at)")
+      .select("*, profiles(id, full_name, username, avatar_url, certified, tagline, updated_at)")
       .eq("meetup_id", meetup_id)
       .order("created_at", { ascending: false }),
   ]);

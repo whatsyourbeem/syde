@@ -30,7 +30,7 @@ export function UserList({ searchQuery }: UserListProps) {
 
       let query = supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified", { count: "exact" });
+        .select("id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified, email", { count: "exact" });
 
       if (searchQuery) {
         const escaped = searchQuery.replace(/"/g, '\\"');

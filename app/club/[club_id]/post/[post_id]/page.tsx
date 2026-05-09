@@ -96,7 +96,7 @@ export default async function ClubPostDetailPage({
   const { data: post, error } = await supabase
     .from("club_forum_posts")
     .select(
-      "*, profiles(id, username, avatar_url, full_name, tagline, bio, link, updated_at, certified), club_forums(read_permission)"
+      "*, profiles(id, username, avatar_url, full_name, tagline, bio, link, updated_at, certified, email), club_forums(read_permission)"
     )
     .eq("id", post_id)
     .single();

@@ -347,7 +347,7 @@ export async function createMeetupReview(
     return { error: "모임 참가 완료(승인)된 회원만 후기를 작성할 수 있습니다." };
   }
 
-  const { error } = await (supabase as any).from("meetup_reviews").insert({
+  const { error } = await supabase.from("meetup_reviews").insert({
     meetup_id: meetupId,
     user_id: user.id,
     rating,
@@ -384,7 +384,7 @@ export async function updateMeetupReview(
     return { error: "후기 내용을 입력해주세요." };
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("meetup_reviews")
     .update({
       rating,
@@ -414,7 +414,7 @@ export async function deleteMeetupReview(
 
   if (!user) return { error: "로그인이 필요합니다." };
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("meetup_reviews")
     .delete()
     .eq("id", reviewId)
