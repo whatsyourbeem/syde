@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { ShowcaseDetail } from "@/components/showcase/showcase-detail";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
-import { getShowcaseDetailCached } from "@/lib/queries/showcase-queries";
+import { getShowcaseDetailCached, OptimizedShowcase } from "@/lib/queries/showcase-queries";
 
 type ShowcaseDetailPageProps = {
   params: Promise<{
@@ -152,10 +152,13 @@ export default async function ShowcaseDetailPage({
   };
 
   // Normalize showcase data for consistency
-  const processedShowcase = {
+  const processedShowcase: OptimizedShowcase = {
     ...showcase,
     profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
     upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
+    hasUpvoted: user
+      ? (showcase.showcase_upvotes ?? []).some((u) => u.user_id === user.id)
+      : false,
     showcase_awards: showcase.showcase_awards || [],
     showcase_upvotes: showcase.showcase_upvotes || [],
     showcase_comments: showcase.showcase_comments || [],
@@ -163,7 +166,7 @@ export default async function ShowcaseDetailPage({
       ...m,
       profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
     })).sort((a: any, b: any) => a.display_order - b.display_order),
-  };
+  } as unknown as OptimizedShowcase;
 
   return (
     <>
@@ -171,7 +174,7 @@ export default async function ShowcaseDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ShowcaseDetail showcase={processedShowcase as any} user={user} initialHtml={initialHtml} />
+      <ShowcaseDetail showcase={processedShowcase} user={user} initialHtml={initialHtml} />
     </>
   );
 }

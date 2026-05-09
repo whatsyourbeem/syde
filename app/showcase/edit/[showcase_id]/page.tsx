@@ -43,15 +43,15 @@ export default async function ShowcaseEditPage({
   }
 
   // Data Transformation to match OptimizedShowcase (similar to Detail Page)
-  const showcaseData = showcase as any;
+  const showcaseData = showcase as unknown as OptimizedShowcase;
 
   // Sort members and images
   const members = (showcaseData.members || [])
-    .map((m: any) => ({
+    .map((m) => ({
       ...m,
-      profile: m.profile, // Ensure profile is attached
+      profile: m.profile,
     }))
-    .sort((a: any, b: any) => a.display_order - b.display_order);
+    .sort((a, b) => a.display_order - b.display_order);
 
   const images = (showcaseData.images || []);
 

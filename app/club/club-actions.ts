@@ -7,6 +7,7 @@ import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
 import { revalidateTagSafe } from "@/lib/server-utils";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { extractStoragePath } from "@/lib/storage";
 import {
   CreateResponse,
   UpdateResponse,
@@ -22,7 +23,7 @@ export const createClub = withAuth(async ({ supabase, user }, formData: FormData
   const userId = user.id;
   const id = uuidv4();
 
-  const name = validateRequired(formData.get("name") as string, "클럽 이름");
+  const name = validateRequired(formData.get("name") as string | null, "클럽 이름");
   const tagline = formData.get("tagline") as string;
   const descriptionJSON = formData.get("description") as string;
   const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
@@ -61,7 +62,7 @@ export const createClub = withAuth(async ({ supabase, user }, formData: FormData
 
 export const updateClub = withAuth(async ({ supabase, user }, formData: FormData): Promise<UpdateResponse> => {
   const userId = user.id;
-  const clubId = validateRequired(formData.get("id") as string, "클럽 ID");
+  const clubId = validateRequired(formData.get("id") as string | null, "클럽 ID");
 
   const { data: existingClub, error: fetchError } = await supabase
     .from("clubs")
@@ -84,7 +85,7 @@ export const updateClub = withAuth(async ({ supabase, user }, formData: FormData
   // Delete old thumbnail if a new one was uploaded
   if (newThumbnailUrl !== existingClub.thumbnail_url && existingClub.thumbnail_url) {
     try {
-      const oldPath = existingClub.thumbnail_url.split("/clubs/")[1];
+      const oldPath = extractStoragePath(existingClub.thumbnail_url, "clubs");
       if (oldPath) await getAdminClient().storage.from("clubs").remove([oldPath]);
     } catch (e) {
       console.warn("Failed to delete old thumbnail:", e);
@@ -154,10 +155,10 @@ export const leaveClub = withAuth(async ({ supabase, user }, clubId: string) => 
 
 export const createClubPost = withAuth(async ({ supabase, user }, formData: FormData): Promise<{ error?: string; postId?: string }> => {
   try {
-    const title = validateRequired(formData.get("title") as string, "제목");
-    const contentJSON = validateRequired(formData.get("content") as string, "내용");
-    const forumId = validateRequired(formData.get("forumId") as string, "게시판");
-    const clubId = validateRequired(formData.get("clubId") as string, "클럽 ID");
+    const title = validateRequired(formData.get("title") as string | null, "제목");
+    const contentJSON = validateRequired(formData.get("content") as string | null, "내용");
+    const forumId = validateRequired(formData.get("forumId") as string | null, "게시판");
+    const clubId = validateRequired(formData.get("clubId") as string | null, "클럽 ID");
 
     const { data: newPost, error: insertError } = await supabase
       .from("club_forum_posts")
@@ -186,10 +187,10 @@ export const createClubPost = withAuth(async ({ supabase, user }, formData: Form
 
 export const updateClubPost = withAuth(async ({ supabase, user }, formData: FormData): Promise<{ error?: string; postId?: string }> => {
   try {
-    const postId = validateRequired(formData.get("postId") as string, "게시글 ID");
-    const title = validateRequired(formData.get("title") as string, "제목");
-    const contentJSON = validateRequired(formData.get("content") as string, "내용");
-    const clubId = validateRequired(formData.get("clubId") as string, "클럽 ID");
+    const postId = validateRequired(formData.get("postId") as string | null, "게시글 ID");
+    const title = validateRequired(formData.get("title") as string | null, "제목");
+    const contentJSON = validateRequired(formData.get("content") as string | null, "내용");
+    const clubId = validateRequired(formData.get("clubId") as string | null, "클럽 ID");
 
     const { data: existingPost, error: fetchError } = await supabase
       .from("club_forum_posts")

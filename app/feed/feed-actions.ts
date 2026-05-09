@@ -10,7 +10,7 @@ import { deleteFile, extractStoragePath } from "@/lib/storage";
 
 export const createLog = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "내용");
+    const content = validateRequired(formData.get("content") as string | null, "내용");
     // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
     const imageUrl = formData.get("imageUrl") as string | null;
 
@@ -37,8 +37,8 @@ export const createLog = withAuthForm(
 
 export const updateLog = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
-    const logId = validateRequired(formData.get("logId") as string, "피드 ID");
-    const content = validateRequired(formData.get("content") as string, "내용");
+    const logId = validateRequired(formData.get("logId") as string | null, "피드 ID");
+    const content = validateRequired(formData.get("content") as string | null, "내용");
     // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
     const newImageUrl = formData.get("imageUrl") as string | null;
 
@@ -82,8 +82,8 @@ export const updateLog = withAuthForm(
 
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "댓글");
-    const logId = validateRequired(formData.get("log_id") as string, "피드 ID");
+    const content = validateRequired(formData.get("content") as string | null, "댓글");
+    const logId = validateRequired(formData.get("log_id") as string | null, "피드 ID");
     const parentCommentId = formData.get("parent_comment_id") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
@@ -107,12 +107,12 @@ export const createComment = withAuth(
 
 export const updateComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "댓글");
+    const content = validateRequired(formData.get("content") as string | null, "댓글");
     const commentId = validateRequired(
       formData.get("comment_id") as string,
       "댓글 ID"
     );
-    const logId = validateRequired(formData.get("log_id") as string, "피드 ID");
+    const logId = validateRequired(formData.get("log_id") as string | null, "피드 ID");
 
     const processedContent = await processMentionsForSave(content, supabase);
 

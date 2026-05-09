@@ -16,13 +16,12 @@ export interface TrendingShowcase {
 export async function getTrendingShowcases(): Promise<TrendingShowcase[]> {
   const supabase = await createClient();
 
-  // Cast RPC name to any since database.types.ts might not be updated yet
-  const { data, error } = await supabase.rpc("get_trending_showcases" as any);
+  const { data, error } = await supabase.rpc("get_trending_showcases");
 
   if (error) {
     console.error("Error fetching trending showcases:", error);
     return [];
   }
 
-  return (data as unknown as TrendingShowcase[]) || [];
+  return (data as TrendingShowcase[]) || [];
 }

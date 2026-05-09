@@ -8,8 +8,8 @@ import { revalidateTagSafe } from "@/lib/server-utils";
 
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "댓글");
-    const insightId = validateRequired(formData.get("insight_id") as string, "인사이트 ID");
+    const content = validateRequired(formData.get("content") as string | null, "댓글");
+    const insightId = validateRequired(formData.get("insight_id") as string | null, "인사이트 ID");
     const parentCommentId = formData.get("parent_comment_id") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
@@ -35,12 +35,12 @@ export const createComment = withAuth(
 
 export const updateComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "댓글");
+    const content = validateRequired(formData.get("content") as string | null, "댓글");
     const commentId = validateRequired(
       formData.get("comment_id") as string,
       "댓글 ID"
     );
-    const insightId = validateRequired(formData.get("insight_id") as string, "인사이트 ID");
+    const insightId = validateRequired(formData.get("insight_id") as string | null, "인사이트 ID");
 
     const processedContent = await processMentionsForSave(content, supabase);
 

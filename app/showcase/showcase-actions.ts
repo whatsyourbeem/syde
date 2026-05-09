@@ -11,7 +11,7 @@ import { deleteFile, extractStoragePath } from "@/lib/storage";
 export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
     const name = formData.get("name") as string;
-    const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
+    const shortDescription = validateRequired(formData.get("shortDescription") as string | null, "한 줄 소개");
     const descriptionString = formData.get("description") as string;
     // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
     const thumbnailUrl = formData.get("thumbnailUrl") as string | null;
@@ -110,9 +110,9 @@ export const createShowcase = withAuthForm(
 
 export const updateShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
-    const showcaseId = validateRequired(formData.get("showcaseId") as string, "쇼케이스 ID");
+    const showcaseId = validateRequired(formData.get("showcaseId") as string | null, "쇼케이스 ID");
     const name = formData.get("name") as string;
-    const shortDescription = validateRequired(formData.get("shortDescription") as string, "한 줄 소개");
+    const shortDescription = validateRequired(formData.get("shortDescription") as string | null, "한 줄 소개");
     const descriptionString = formData.get("description") as string;
     // 이미지는 클라이언트에서 업로드 완료 후 URL로 전달됨
     const newThumbnailUrl = formData.get("thumbnailUrl") as string | null;
@@ -229,8 +229,8 @@ export const updateShowcase = withAuthForm(
 
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "댓글");
-    const showcaseId = validateRequired(formData.get("showcase_id") as string, "쇼케이스 ID");
+    const content = validateRequired(formData.get("content") as string | null, "댓글");
+    const showcaseId = validateRequired(formData.get("showcase_id") as string | null, "쇼케이스 ID");
     const parentCommentId = formData.get("parent_comment_id") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
@@ -256,12 +256,12 @@ export const createComment = withAuth(
 
 export const updateComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const content = validateRequired(formData.get("content") as string, "댓글");
+    const content = validateRequired(formData.get("content") as string | null, "댓글");
     const commentId = validateRequired(
       formData.get("comment_id") as string,
       "댓글 ID"
     );
-    const showcaseId = validateRequired(formData.get("showcase_id") as string, "쇼케이스 ID");
+    const showcaseId = validateRequired(formData.get("showcase_id") as string | null, "쇼케이스 ID");
 
     const processedContent = await processMentionsForSave(content, supabase);
 

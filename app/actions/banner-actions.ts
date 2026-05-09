@@ -5,13 +5,13 @@ import { BANNER_POSITIONS, type BannerPosition } from "@/lib/constants";
 
 export interface Banner {
   id: string;
-  created_at: string;
+  created_at: string | null;
   name: string;
   image_url: string;
   link_url: string;
-  is_active: boolean;
+  is_active: boolean | null;
   position: string;
-  display_order: number;
+  display_order: number | null;
   starts_at: string | null;
   ends_at: string | null;
 }
@@ -20,7 +20,7 @@ export async function getActiveBanners(position?: BannerPosition): Promise<Banne
   const supabase = await createClient();
 
   let query = supabase
-    .from("banners" as any)
+    .from("banners")
     .select("*")
     .eq("is_active", true)
     .order("display_order", { ascending: true });
@@ -29,14 +29,7 @@ export async function getActiveBanners(position?: BannerPosition): Promise<Banne
     query = query.eq("position", position);
   }
 
-  // Filter by scheduling if needed
-  const now = new Date().toISOString();
-  // We can't easily do complex OR/AND with starts_at/ends_at in simple select, 
-  // but we can filter after fetching or use raw query. 
-  // For now, let's keep it simple and filter after if needed, 
-  // or just rely on is_active for simplicity at first.
-
-  const { data, error } = await (query as any);
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching banners:", error);

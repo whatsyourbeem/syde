@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { withAuth, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe } from "@/lib/server-utils";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { extractStoragePath } from "@/lib/storage";
 
 type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
   meetup_participants: Database["public"]["Tables"]["meetup_participants"]["Row"][];
@@ -16,8 +17,8 @@ type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
 export const createMeetup = withAuth(
   async ({ supabase, user }, formData: FormData): Promise<{ error?: string; meetupId?: string }> => {
     const clubId = formData.get("clubId") as string | null;
-    const title = validateRequired(formData.get("title") as string, "모임 제목");
-    const descriptionJSON = validateRequired(formData.get("description") as string, "모임 설명");
+    const title = validateRequired(formData.get("title") as string | null, "모임 제목");
+    const descriptionJSON = validateRequired(formData.get("description") as string | null, "모임 설명");
     const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
 
     const descriptionContent = JSON.parse(descriptionJSON);
@@ -32,7 +33,7 @@ export const createMeetup = withAuth(
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
-      location: validateRequired(formData.get("location") as string, "장소명"),
+      location: validateRequired(formData.get("location") as string | null, "장소명"),
       address: formData.get("address") as string,
       max_participants:
         parseInt(formData.get("maxParticipants") as string, 10) || null,
@@ -68,7 +69,7 @@ export const createMeetup = withAuth(
 
 export const updateMeetup = withAuth(
   async ({ supabase, user }, formData: FormData): Promise<{ error?: string }> => {
-    const meetupId = validateRequired(formData.get("id") as string, "모임 ID");
+    const meetupId = validateRequired(formData.get("id") as string | null, "모임 ID");
 
     const { data: existingMeetup, error: fetchError } = await supabase
       .from("meetups")
@@ -89,7 +90,7 @@ export const updateMeetup = withAuth(
     // Delete old thumbnail if a new one was uploaded
     if (newThumbnailUrl !== existingMeetup.thumbnail_url && existingMeetup.thumbnail_url) {
       try {
-        const oldPath = existingMeetup.thumbnail_url.split("/meetups/")[1];
+        const oldPath = extractStoragePath(existingMeetup.thumbnail_url, "meetups");
         if (oldPath) await getAdminClient().storage.from("meetups").remove([oldPath]);
       } catch (e) {
         console.warn("Failed to delete old thumbnail:", e);

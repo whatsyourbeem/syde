@@ -95,7 +95,7 @@ export async function fetchShowcasesAction({
   }
 
   // Execute the main query
-  const { data: showcasesData, error: showcasesError, count } = await (query as any)
+  const { data: showcasesData, error: showcasesError, count } = await query
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -219,7 +219,7 @@ export async function fetchLatestAwardedShowcase(currentUserId?: string | null):
       profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
     })).sort((a: any, b: any) => a.display_order - b.display_order),
     showcase_awards: showcase.showcase_awards || [],
-  } as any;
+  } as unknown as OptimizedShowcase;
 
   return processed;
 }
