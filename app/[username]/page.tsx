@@ -6,6 +6,7 @@ import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { Settings } from "lucide-react";
+import { getProfileByUsernameCached } from "@/lib/queries/profile-queries";
 
 import { Metadata, ResolvingMetadata } from "next";
 
@@ -20,11 +21,7 @@ export async function generateMetadata(
   const { username } = await params;
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, username, tagline, avatar_url")
-    .eq("username", username)
-    .single();
+  const profile = await getProfileByUsernameCached(supabase, username);
 
   if (!profile) {
     return {
@@ -60,15 +57,9 @@ export default async function UserProfilePage({
   const supabase = await createClient();
 
   // Fetch the profile data for the given username
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select(
-      "id, username, full_name, avatar_url, bio, link, tagline, updated_at, certified, email"
-    )
-    .eq("username", username)
-    .single();
+  const profile = await getProfileByUsernameCached(supabase, username);
 
-  if (profileError || !profile) {
+  if (!profile) {
     redirect("/");
   }
 

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { ShowcaseDetail } from "@/components/showcase/showcase-detail";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+import { getShowcaseDetailCached } from "@/lib/queries/showcase-queries";
 
 type ShowcaseDetailPageProps = {
   params: Promise<{
@@ -20,18 +21,7 @@ export async function generateMetadata(
   const showcase_id = decodeURIComponent(resolvedParams.showcase_id);
   const supabase = await createClient();
 
-
-  let query = supabase
-    .from("showcases")
-    .select("id, name, slug, short_description, description, thumbnail_url, images") as any;
-
-  if (isUUID(showcase_id)) {
-    query = query.eq("id", showcase_id);
-  } else {
-    query = query.eq("slug", showcase_id);
-  }
-
-  const { data: showcase } = await query.maybeSingle();
+  const showcase = await getShowcaseDetailCached(supabase, showcase_id);
 
   if (!showcase) {
     return {
@@ -123,47 +113,9 @@ export default async function ShowcaseDetailPage({
   } = await supabase.auth.getUser();
 
 
-  let query = supabase
-    .from("showcases")
-    .select(
-      `
-      id,
-      name,
-      slug,
-      short_description,
-      description,
-      thumbnail_url,
-      images,
-      created_at,
-      updated_at,
-      user_id,
-      views_count,
-      web_url,
-      playstore_url,
-      appstore_url,
-      showcase_awards(date, type),
-      profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
-      showcase_comments(id),
-      upvotes_count:showcase_upvotes(count),
-      showcase_upvotes(user_id),
-      members:showcases_members(
-        id,
-        user_id,
-        display_order,
-        profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
-      )
-    `
-    ) as any;
+  const showcase = await getShowcaseDetailCached(supabase, showcase_id);
 
-  if (isUUID(showcase_id)) {
-    query = query.eq("id", showcase_id);
-  } else {
-    query = query.eq("slug", showcase_id);
-  }
-
-  const { data: showcase, error } = await query.maybeSingle();
-
-  if (error || !showcase) {
+  if (!showcase) {
     notFound();
   }
 

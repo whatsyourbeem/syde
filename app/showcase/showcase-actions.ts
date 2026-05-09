@@ -1,12 +1,24 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { deleteShowcaseStorage, deleteFile } from "@/lib/storage";
 import { generateSlug } from "@/lib/utils";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 
 export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
@@ -113,6 +125,9 @@ export const createShowcase = withAuthForm(
       revalidatePath(`/${user.user_metadata.username}`);
     }
     revalidatePath(`/showcase/${showcaseId}`);
+
+    revalidateTagSafe("showcase-all");
+    revalidateTagSafe(`showcase-${showcaseId}`);
 
     return { id: showcaseId };
   }
@@ -244,6 +259,12 @@ export const updateShowcase = withAuthForm(
     }
     revalidatePath(`/showcase/${showcaseId}`);
 
+    revalidateTagSafe("showcase-all");
+    revalidateTagSafe(`showcase-${showcaseId}`);
+    if (oldShowcaseData?.slug) {
+      revalidateTagSafe(`showcase-${oldShowcaseData.slug}`);
+    }
+
     return { id: showcaseId };
   }
 );
@@ -269,6 +290,8 @@ export const createComment = withAuth(
     }
 
     revalidatePath(`/showcase/${showcaseId}`);
+    revalidateTagSafe("showcase-all");
+    revalidateTagSafe(`showcase-${showcaseId}`);
     return createSuccessResponse(null);
   }
 );
@@ -296,6 +319,8 @@ export const updateComment = withAuth(
     }
 
     revalidatePath(`/showcase/${showcaseId}`);
+    revalidateTagSafe("showcase-all");
+    revalidateTagSafe(`showcase-${showcaseId}`);
     return createSuccessResponse(null);
   }
 );
@@ -331,6 +356,9 @@ export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: st
   if (user.user_metadata.username) {
     revalidatePath(`/${user.user_metadata.username}`);
   }
+
+  revalidateTagSafe("showcase-all");
+  revalidateTagSafe(`showcase-${showcaseId}`);
 
   return createSuccessResponse(null);
 });

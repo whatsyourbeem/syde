@@ -1,5 +1,6 @@
 import { Database } from "@/types/database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 
 type ShowcaseRow = Database["public"]["Tables"]["showcases"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -125,3 +126,103 @@ export async function getShowcasesSearchList(
     count: count || 0,
   };
 }
+
+const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+
+export async function getShowcaseDetail(
+  supabase: SupabaseClient<Database>,
+  showcaseIdOrSlug: string
+) {
+  let query = supabase
+    .from("showcases")
+    .select(`
+      id,
+      name,
+      slug,
+      short_description,
+      description,
+      thumbnail_url,
+      images,
+      created_at,
+      updated_at,
+      user_id,
+      views_count,
+      web_url,
+      playstore_url,
+      appstore_url,
+      showcase_awards(date, type),
+      profiles:user_id (id, username, full_name, avatar_url, updated_at, tagline, bio, link, certified),
+      showcase_comments(id),
+      upvotes_count:showcase_upvotes(count),
+      showcase_upvotes(user_id),
+      members:showcases_members(
+        id,
+        user_id,
+        display_order,
+        profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
+      )
+    `);
+
+  if (isUUID(showcaseIdOrSlug)) {
+    query = query.eq("id", showcaseIdOrSlug);
+  } else {
+    query = query.eq("slug", showcaseIdOrSlug);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function getShowcaseIdBySlug(
+  supabase: SupabaseClient<Database>,
+  slug: string
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("showcases")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data.id;
+}
+
+export const getShowcaseIdBySlugCached = (
+  supabase: SupabaseClient<Database>,
+  slug: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getShowcaseIdBySlug(supabase, slug);
+    },
+    ["showcase-id-by-slug", slug],
+    {
+      revalidate: 3600,
+      tags: ["showcase-all", `showcase-slug-${slug}`],
+    }
+  )();
+};
+
+export const getShowcaseDetailCached = async (
+  supabase: SupabaseClient<Database>,
+  showcaseIdOrSlug: string
+) => {
+  let actualId = showcaseIdOrSlug;
+  if (!isUUID(showcaseIdOrSlug)) {
+    const resolvedId = await getShowcaseIdBySlugCached(supabase, showcaseIdOrSlug);
+    if (!resolvedId) return null;
+    actualId = resolvedId;
+  }
+
+  return unstable_cache(
+    async () => {
+      return getShowcaseDetail(supabase, actualId);
+    },
+    ["showcase-detail-by-id", actualId],
+    {
+      revalidate: 3600,
+      tags: ["showcase-all", `showcase-${actualId}`, `showcase-${showcaseIdOrSlug}`],
+    }
+  )();
+};

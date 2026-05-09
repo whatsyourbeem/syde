@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
+import { unstable_cache } from "next/cache";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -68,3 +69,36 @@ export async function getProfilesList(
     count: count || 0,
   };
 }
+
+export async function getProfileByUsername(
+  supabase: SupabaseClient<Database>,
+  username: string
+): Promise<ProfileRow | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, full_name, avatar_url, bio, link, tagline, updated_at, certified, email")
+    .eq("username", username)
+    .single();
+
+  if (error) {
+    console.error("Error fetching profile by username:", error);
+    return null;
+  }
+  return data;
+}
+
+export const getProfileByUsernameCached = (
+  supabase: SupabaseClient<Database>,
+  username: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getProfileByUsername(supabase, username);
+    },
+    ["profile-detail", username],
+    {
+      revalidate: 3600,
+      tags: ["profile-all", `profile-${username}`],
+    }
+  )();
+};

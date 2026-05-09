@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
+import { revalidateInsightAction } from "@/app/insight/insight-actions";
 
 const TiptapEditorWrapper = dynamic(
     () => import("@/components/common/tiptap-editor-wrapper"),
@@ -93,6 +94,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     .eq("user_id", user.id);
 
                 if (error) throw error;
+                await revalidateInsightAction(initialData.id);
                 toast.success("인사이트가 수정되었습니다!");
 
                 // Optional: To refresh data since we edited it, calling router.refresh() 
@@ -114,6 +116,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     .single();
 
                 if (error) throw error;
+                await revalidateInsightAction(data.id);
 
                 toast.success("인사이트가 등록되었습니다!");
                 router.push(`/insight/${data.id}`);

@@ -1,9 +1,21 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, validateRequired } from "@/lib/error-handler";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
@@ -26,6 +38,8 @@ export const createComment = withAuth(
     }
 
     revalidatePath(`/insight/${insightId}`);
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
   }
 );
@@ -53,6 +67,8 @@ export const updateComment = withAuth(
     }
 
     revalidatePath(`/insight/${insightId}`);
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
   }
 );
@@ -71,6 +87,8 @@ export const deleteComment = withAuth(
     }
 
     revalidatePath(`/insight/${insightId}`);
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
   }
 );
@@ -92,6 +110,13 @@ export const toggleCommentLike = withAuth(
     }
 
     revalidatePath(`/insight/${insightId}`);
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
   }
 );
+
+export async function revalidateInsightAction(insightId: string) {
+  revalidateTagSafe("insight-all");
+  revalidateTagSafe(`insight-${insightId}`);
+}

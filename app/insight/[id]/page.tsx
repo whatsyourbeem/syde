@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import InsightDetailClient from "@/components/insight/insight-detail-client";
 import TiptapViewer from "@/components/common/tiptap-viewer";
+import { getInsightDetailCached } from "@/lib/queries/insight-queries";
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
@@ -20,17 +21,7 @@ export async function generateMetadata(
     const id = decodeURIComponent(rawParams.id);
     const supabase = await createClient();
 
-    let query = supabase
-        .from("insights")
-        .select("id, slug, title, summary, content, image_url") as any;
-        
-    if (isUUID(id)) {
-        query = query.eq("id", id);
-    } else {
-        query = query.eq("slug", id);
-    }
-
-    const { data: insight } = await query.maybeSingle();
+    const insight = await getInsightDetailCached(supabase, id);
 
     if (!insight) {
         return { title: "Insight Not Found - SYDE" };
@@ -101,27 +92,9 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
     const supabase = await createClient();
 
     // Fetch Insight
-    let query = supabase
-        .from("insights")
-        .select(`
-            *,
-            profiles:user_id (
-              username,
-              full_name,
-              avatar_url,
-              tagline
-            )
-          `) as any;
+    const insight = await getInsightDetailCached(supabase, id);
 
-    if (isUUID(id)) {
-        query = query.eq("id", id);
-    } else {
-        query = query.eq("slug", id);
-    }
-
-    const { data: insight, error: insightError } = await query.maybeSingle();
-
-    if (insightError || !insight) {
+    if (!insight) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
                 <p className="text-gray-500 font-medium text-lg">인사이트를 찾을 수 없습니다.</p>

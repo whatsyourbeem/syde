@@ -1,9 +1,21 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { Json } from "@/types/database.types";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 
 export async function checkUsername(
   username: string,
@@ -62,6 +74,8 @@ export async function updateProfile(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath(`/${username}`);
+  revalidateTagSafe("profile-all");
+  revalidateTagSafe(`profile-${username}`);
   redirect(`/${username}`);
 }
 
@@ -97,5 +111,7 @@ export async function updateBio(formData: FormData): Promise<{ error?: string; s
 
   revalidatePath("/");
   revalidatePath(`/${user.user_metadata.username}`);
+  revalidateTagSafe("profile-all");
+  revalidateTagSafe(`profile-${user.user_metadata.username}`);
   return { success: true };
 }
