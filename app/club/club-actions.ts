@@ -1,7 +1,19 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { Enums } from "@/types/database.types";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 import { SupabaseClient } from "@supabase/supabase-js";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
@@ -53,6 +65,7 @@ export const createClub = withAuth(async ({ supabase, user }, formData: FormData
     });
 
   revalidatePath("/club");
+  revalidateTagSafe("club-all");
 
   return createSuccessResponse({ id: newClub.id });
 });
@@ -112,6 +125,8 @@ export const updateClub = withAuth(async ({ supabase, user }, formData: FormData
   revalidatePath(`/club`);
   revalidatePath(`/club/${clubId}`);
   revalidatePath(`/club/${clubId}/edit`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-${clubId}`);
 
   return createSuccessResponse(undefined);
 });
@@ -129,6 +144,8 @@ export const joinClub = withAuth(async ({ supabase, user }, clubId: string) => {
   }
 
   revalidatePath(`/club/${clubId}`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-${clubId}`);
   return { success: true };
 });
 
@@ -145,6 +162,8 @@ export const leaveClub = withAuth(async ({ supabase, user }, clubId: string) => 
   }
 
   revalidatePath(`/club/${clubId}`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-${clubId}`);
   return { success: true };
 });
 
@@ -518,6 +537,8 @@ export const createForum = withAuth(async ({ supabase, user }, clubId: string, f
   }
 
   revalidatePath(`/club/${clubId}/manage`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-forums-${clubId}`);
   return { success: true };
 });
 
@@ -544,6 +565,8 @@ export const updateForumName = withAuth(async ({ supabase, user },
   }
 
   revalidatePath(`/club/${clubId}/manage`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-forums-${clubId}`);
   return { success: true };
 });
 
@@ -577,6 +600,8 @@ export const deleteForum = withAuth(async ({ supabase, user }, forumId: string, 
   }
 
   revalidatePath(`/club/${clubId}/manage`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-forums-${clubId}`);
   return { success: true };
 });
 
@@ -628,6 +653,8 @@ export const updateForumOrder = withAuth(async ({ supabase, user },
 
   revalidatePath(`/club/${clubId}/manage`);
   revalidatePath(`/club/${clubId}`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-forums-${clubId}`);
   return { success: true };
 });
 

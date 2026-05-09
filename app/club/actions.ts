@@ -1,7 +1,19 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 import { Database } from "@/types/database.types";
 
 export async function updateClubMemberRole(
@@ -57,6 +69,8 @@ export async function updateClubMemberRole(
   }
 
   revalidatePath(`/club/${clubId}`);
+  revalidateTagSafe("club-all");
+  revalidateTagSafe(`club-${clubId}`);
  
    return { success: true };
  }

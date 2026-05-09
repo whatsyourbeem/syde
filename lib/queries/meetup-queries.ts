@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
+import { unstable_cache } from "next/cache";
 
 type MeetupRow = Database["public"]["Tables"]["meetups"]["Row"];
 
@@ -82,3 +83,64 @@ export async function getUserJoinedMeetups(
 
   return meetups;
 }
+
+/**
+ * Fetch a single meetup detail by ID
+ */
+export async function getMeetupDetail(
+  supabase: SupabaseClient<Database>,
+  meetupId: string
+) {
+  const { data, error } = await supabase
+    .from("meetups")
+    .select(
+      "*, clubs(*), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, certified), meetup_participants(*, profiles(id, full_name, username, avatar_url, tagline, certified)), status, start_datetime, end_datetime, location, address, max_participants, fee"
+    )
+    .eq("id", meetupId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching meetup detail:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Cached version of getMeetupDetail
+ */
+export const getMeetupDetailCached = (
+  supabase: SupabaseClient<Database>,
+  meetupId: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getMeetupDetail(supabase, meetupId);
+    },
+    ["meetup-detail", meetupId],
+    {
+      revalidate: 3600,
+      tags: ["meetup-all", `meetup-${meetupId}`],
+    }
+  )();
+};
+
+/**
+ * Cached version of getMeetupsList
+ */
+export const getMeetupsListCached = (
+  supabase: SupabaseClient<Database>,
+  options: MeetupsListOptions
+) => {
+  const { currentPage, limit, searchQuery = "" } = options;
+  return unstable_cache(
+    async () => {
+      return getMeetupsList(supabase, options);
+    },
+    ["meetups-list", currentPage.toString(), limit.toString(), searchQuery],
+    {
+      revalidate: 3600,
+      tags: ["meetup-all", `meetup-list-p${currentPage}-l${limit}`],
+    }
+  )();
+};

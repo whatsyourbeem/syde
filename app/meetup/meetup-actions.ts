@@ -1,12 +1,24 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { Database, Enums } from "@/types/database.types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { withAuth, validateRequired } from "@/lib/error-handler";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 
 type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
   meetup_participants: Database["public"]["Tables"]["meetup_participants"]["Row"][];
@@ -57,6 +69,9 @@ export const createMeetup = withAuth(
 
     revalidatePath("/meetup");
     if (clubId) revalidatePath(`/club/${clubId}`);
+
+    revalidateTagSafe("meetup-all");
+    if (clubId) revalidateTagSafe("club-all");
 
     return { meetupId: newMeetup.id };
   }
@@ -128,6 +143,10 @@ export const updateMeetup = withAuth(
     const clubId = formData.get("clubId") as string | null;
     if (clubId) revalidatePath(`/club/${clubId}`);
 
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
+    if (clubId) revalidateTagSafe("club-all");
+
     redirect(`/meetup/${meetupId}`);
   }
 );
@@ -190,6 +209,8 @@ export const joinMeetup = withAuth(
     }
 
     revalidatePath(`/meetup/${meetupId}`);
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
     return { success: true };
   }
 );
@@ -225,6 +246,8 @@ export const approveMeetupParticipant = withAuth(
     }
 
     revalidatePath(`/meetup/${meetupId}`);
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
     return { success: true };
   }
 );
@@ -265,6 +288,8 @@ export const updateMeetupParticipantStatus = withAuth(
     }
 
     revalidatePath(`/meetup/${meetupId}`);
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
     return { success: true };
   }
 );
@@ -309,6 +334,8 @@ export const createMeetupReview = withAuth(
     }
 
     revalidatePath(`/meetup/${meetupId}`);
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
     return { success: true };
   }
 );
@@ -345,6 +372,8 @@ export const updateMeetupReview = withAuth(
     }
 
     revalidatePath(`/meetup/${meetupId}`);
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
     return { success: true };
   }
 );
@@ -367,6 +396,8 @@ export const deleteMeetupReview = withAuth(
     }
 
     revalidatePath(`/meetup/${meetupId}`);
+    revalidateTagSafe("meetup-all");
+    revalidateTagSafe(`meetup-${meetupId}`);
     return { success: true };
   }
 );

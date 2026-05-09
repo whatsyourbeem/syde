@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Database } from "@/types/database.types";
 import MeetupDetailClient from "@/components/meetup/meetup-detail-client";
+import { getMeetupDetailCached } from "@/lib/queries/meetup-queries";
 
 type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
@@ -26,11 +27,7 @@ export async function generateMetadata(
   const { meetup_id } = await params;
   const supabase = await createClient();
 
-  const { data: meetup } = await supabase
-    .from("meetups")
-    .select("title, description, thumbnail_url")
-    .eq("id", meetup_id)
-    .single();
+  const meetup = await getMeetupDetailCached(supabase, meetup_id);
 
   if (!meetup) {
     return {
@@ -91,14 +88,8 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   const { meetup_id } = await params;
 
   // 병렬 쿼리로 모임 상세 정보, 사용자 정보, 모임 후기 목록 조회 (워터폴 제거)
-  const [meetupResult, userResult, reviewsResult] = await Promise.all([
-    supabase
-      .from("meetups")
-      .select(
-        "*, clubs(*), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, certified), meetup_participants(*, profiles(id, full_name, username, avatar_url, tagline, certified)), status, start_datetime, end_datetime, location, address, max_participants, fee"
-      )
-      .eq("id", meetup_id)
-      .single(),
+  const [meetup, userResult, reviewsResult] = await Promise.all([
+    getMeetupDetailCached(supabase, meetup_id),
     supabase.auth.getUser(),
     supabase
       .from("meetup_reviews")
@@ -107,8 +98,7 @@ export default async function MeetupDetailPage({ params }: PageProps) {
       .order("created_at", { ascending: false }),
   ]);
 
-  const meetup = meetupResult.data;
-  const error = meetupResult.error;
+  const error = !meetup;
   const user = userResult.data.user;
   const reviews = reviewsResult.data || [];
 

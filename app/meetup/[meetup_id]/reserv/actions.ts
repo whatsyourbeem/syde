@@ -1,7 +1,19 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+const revalidateTagSafe = (tag: string) => {
+  try {
+    (revalidateTag as any)(tag);
+  } catch (e) {
+    try {
+      (revalidateTag as any)(tag, "default");
+    } catch {
+      console.error("Failed to revalidate tag:", tag, e);
+    }
+  }
+};
 
 type FormState = {
   error?: string;
@@ -51,6 +63,8 @@ export async function createMeetupParticipant(
   }
 
   revalidatePath(`/meetup/${meetup_id}`);
+  revalidateTagSafe("meetup-all");
+  revalidateTagSafe(`meetup-${meetup_id}`);
   // 성공 시 리디렉션은 page.tsx에서 useEffect를 사용하여 처리하는 것이 더 나은 사용자 경험을 제공할 수 있습니다.
   // 여기서는 상태만 반환하고, 리디렉션은 클라이언트에서 처리하도록 합니다.
   // redirect(`/meetup/${meetup_id}/reserv/success`);

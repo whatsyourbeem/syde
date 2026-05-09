@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
+import { unstable_cache } from "next/cache";
 
 type ClubRow = Database["public"]["Tables"]["clubs"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -64,4 +65,93 @@ export async function getUserJoinedClubs(
     .filter(Boolean) as ClubWithDetails[];
 
   return clubsWithDetails;
+}
+
+/**
+ * Fetch a single club detail by ID
+ */
+export async function getClubDetail(
+  supabase: SupabaseClient<Database>,
+  clubId: string
+) {
+  const { data, error } = await supabase
+    .from("clubs")
+    .select(`
+      *,
+      owner_profile:profiles!clubs_owner_id_fkey(*)
+    `)
+    .eq("id", clubId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching club detail:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Cached version of getClubDetail
+ */
+export const getClubDetailCached = (
+  supabase: SupabaseClient<Database>,
+  clubId: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getClubDetail(supabase, clubId);
+    },
+    ["club-detail", clubId],
+    {
+      revalidate: 3600,
+      tags: ["club-all", `club-${clubId}`],
+    }
+  )();
+};
+
+/**
+ * Fetch club forums by club ID
+ */
+export async function getClubForums(
+  supabase: SupabaseClient<Database>,
+  clubId: string
+) {
+  const { data, error } = await supabase
+    .from("club_forums")
+    .select(`
+      id,
+      name,
+      description,
+      club_id,
+      read_permission,
+      write_permission,
+      position
+    `)
+    .eq("club_id", clubId)
+    .order("position", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching club forums:", error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Cached version of getClubForums
+ */
+export const getClubForumsCached = (
+  supabase: SupabaseClient<Database>,
+  clubId: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getClubForums(supabase, clubId);
+    },
+    ["club-forums", clubId],
+    {
+      revalidate: 3600,
+      tags: ["club-all", `club-forums-${clubId}`],
+    }
+  )();
 }

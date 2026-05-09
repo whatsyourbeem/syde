@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ClubDetailClient from "@/components/club/club-detail-client";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { Metadata, ResolvingMetadata } from "next";
+import { getClubDetailCached, getClubForumsCached } from "@/lib/queries/club-queries";
 
 type ClubDetailPageProps = {
   params: Promise<{
@@ -17,11 +18,7 @@ export async function generateMetadata(
   const { club_id } = await params;
   const supabase = await createClient();
 
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("name, description, tagline, thumbnail_url")
-    .eq("id", club_id)
-    .single();
+  const club = await getClubDetailCached(supabase, club_id);
 
   if (!club) {
     return {
@@ -86,17 +83,13 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch club details along with owner's profile
-  const { data: club, error: clubError } = await supabase
-    .from("clubs")
-    .select(`
-      *,
-      owner_profile:profiles!clubs_owner_id_fkey(*)
-    `)
-    .eq("id", club_id)
-    .single();
+  // Fetch club details and forums cached (parallel and cached)
+  const [club, forums] = await Promise.all([
+    getClubDetailCached(supabase, club_id),
+    getClubForumsCached(supabase, club_id),
+  ]);
 
-  if (clubError || !club) {
+  if (!club) {
     notFound();
   }
 
@@ -106,26 +99,6 @@ export default async function ClubDetailPage({ params }: ClubDetailPageProps) {
     .select("*, clubs(*), organizer_profile:profiles!meetups_organizer_id_fkey(*)")
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });
-
-  // Fetch all forums with their posts in a single query using nested selection
-  const { data: forums, error: forumsError } = await supabase
-    .from("club_forums")
-    .select(`
-      id,
-      name,
-      description,
-      club_id,
-      read_permission,
-      write_permission,
-      position
-    `)
-    .eq("club_id", club_id)
-    .order("position", { ascending: true });
-
-  if (forumsError) {
-    console.error("Error fetching forums with posts:", forumsError);
-    notFound();
-  }
  
    if (meetupsError) {
      // Handle errors appropriately
