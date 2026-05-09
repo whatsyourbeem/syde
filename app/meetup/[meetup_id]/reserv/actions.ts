@@ -1,19 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath, revalidateTag } from "next/cache";
-
-const revalidateTagSafe = (tag: string) => {
-  try {
-    (revalidateTag as any)(tag);
-  } catch (e) {
-    try {
-      (revalidateTag as any)(tag, "default");
-    } catch {
-      console.error("Failed to revalidate tag:", tag, e);
-    }
-  }
-};
+import { revalidatePath } from "next/cache";
+import { revalidateTagSafe } from "@/lib/server-utils";
 
 type FormState = {
   error?: string;

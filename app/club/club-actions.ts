@@ -1,23 +1,12 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { Enums } from "@/types/database.types";
-
-const revalidateTagSafe = (tag: string) => {
-  try {
-    (revalidateTag as any)(tag);
-  } catch (e) {
-    try {
-      (revalidateTag as any)(tag, "default");
-    } catch {
-      console.error("Failed to revalidate tag:", tag, e);
-    }
-  }
-};
 import { SupabaseClient } from "@supabase/supabase-js";
 import { CLUB_MEMBER_ROLES, CLUB_PERMISSION_LEVELS } from "@/lib/constants";
 import { v4 as uuidv4 } from "uuid";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { revalidateTagSafe } from "@/lib/server-utils";
+import { getAdminClient } from "@/lib/supabase/admin";
 import {
   CreateResponse,
   UpdateResponse,
@@ -95,12 +84,8 @@ export const updateClub = withAuth(async ({ supabase, user }, formData: FormData
   // Delete old thumbnail if a new one was uploaded
   if (newThumbnailUrl !== existingClub.thumbnail_url && existingClub.thumbnail_url) {
     try {
-      const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
       const oldPath = existingClub.thumbnail_url.split("/clubs/")[1];
-      if (oldPath) await adminClient.storage.from("clubs").remove([oldPath]);
+      if (oldPath) await getAdminClient().storage.from("clubs").remove([oldPath]);
     } catch (e) {
       console.warn("Failed to delete old thumbnail:", e);
     }

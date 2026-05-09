@@ -1,24 +1,13 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { Database, Enums } from "@/types/database.types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { withAuth, validateRequired } from "@/lib/error-handler";
-
-const revalidateTagSafe = (tag: string) => {
-  try {
-    (revalidateTag as any)(tag);
-  } catch (e) {
-    try {
-      (revalidateTag as any)(tag, "default");
-    } catch {
-      console.error("Failed to revalidate tag:", tag, e);
-    }
-  }
-};
+import { revalidateTagSafe } from "@/lib/server-utils";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
   meetup_participants: Database["public"]["Tables"]["meetup_participants"]["Row"][];
@@ -81,11 +70,6 @@ export const updateMeetup = withAuth(
   async ({ supabase, user }, formData: FormData): Promise<{ error?: string }> => {
     const meetupId = validateRequired(formData.get("id") as string, "모임 ID");
 
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const { data: existingMeetup, error: fetchError } = await supabase
       .from("meetups")
       .select("organizer_id, thumbnail_url")
@@ -106,7 +90,7 @@ export const updateMeetup = withAuth(
     if (newThumbnailUrl !== existingMeetup.thumbnail_url && existingMeetup.thumbnail_url) {
       try {
         const oldPath = existingMeetup.thumbnail_url.split("/meetups/")[1];
-        if (oldPath) await adminClient.storage.from("meetups").remove([oldPath]);
+        if (oldPath) await getAdminClient().storage.from("meetups").remove([oldPath]);
       } catch (e) {
         console.warn("Failed to delete old thumbnail:", e);
       }

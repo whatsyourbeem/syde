@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { deleteLogStorage, deleteFile } from "@/lib/storage";
+import { getAdminClient } from "@/lib/supabase/admin";
+import { deleteFile, extractStoragePath } from "@/lib/storage";
 
 export const createLog = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
@@ -55,12 +55,8 @@ export const updateLog = withAuthForm(
     // 기존 이미지가 변경/제거된 경우 admin client로 storage에서 삭제
     const oldImageUrl = oldLogData?.image_url;
     if (oldImageUrl && oldImageUrl !== newImageUrl) {
-      const adminClient = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
-      const path = oldImageUrl.split("/storage/v1/object/public/logs/")[1];
-      if (path) await deleteFile(adminClient, "logs", path).catch(console.warn);
+      const path = extractStoragePath(oldImageUrl, "logs");
+      if (path) await deleteFile(getAdminClient(), "logs", path).catch(console.warn);
     }
 
     const processedContent = await processMentionsForSave(content, supabase);
@@ -139,7 +135,7 @@ export const updateComment = withAuth(
 export const deleteLog = withAuth(async ({ supabase, user }, logId: string) => {
   const { data: log, error: fetchError } = await supabase
     .from("logs")
-    .select("id, user_id")
+    .select("id, user_id, image_url")
     .eq("id", logId)
     .single();
 
@@ -160,10 +156,15 @@ export const deleteLog = withAuth(async ({ supabase, user }, logId: string) => {
     throw new Error(deleteLogError.message);
   }
 
-  // Delete storage in background (don't wait for completion)
-  deleteLogStorage(logId).catch(err =>
-    console.error("Storage deletion error:", err)
-  );
+  // Delete the specific image file in background (images are stored under user.id/, not logId/)
+  if (log.image_url) {
+    const path = extractStoragePath(log.image_url, "logs");
+    if (path) {
+      deleteFile(getAdminClient(), "logs", path).catch(err =>
+        console.error("Storage deletion error:", err)
+      );
+    }
+  }
 
   // Note: revalidatePath is not needed here because window.location.href
   // on the client side will do a full page reload, fetching fresh data

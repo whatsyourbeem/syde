@@ -19,6 +19,7 @@ import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { createClient } from "@/lib/supabase/client";
+import { extractStoragePath } from "@/lib/storage";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -508,7 +509,7 @@ export function FeedEditDialog({
     if (publicUrl) {
       // 이전에 이번 세션에서 업로드한 이미지가 있으면 storage에서 삭제
       if (newlyUploadedUrl.current) {
-        const oldPath = newlyUploadedUrl.current.split("/storage/v1/object/public/logs/")[1];
+        const oldPath = extractStoragePath(newlyUploadedUrl.current, "logs");
         if (oldPath) await supabase.storage.from("logs").remove([oldPath]);
       }
 
@@ -522,7 +523,7 @@ export function FeedEditDialog({
   const removeImage = async () => {
     // 이번 세션에 새로 업로드된 파일이면 storage에서 즉시 삭제
     if (newlyUploadedUrl.current) {
-      const path = newlyUploadedUrl.current.split("/storage/v1/object/public/logs/")[1];
+      const path = extractStoragePath(newlyUploadedUrl.current, "logs");
       if (path) await supabase.storage.from("logs").remove([path]);
       newlyUploadedUrl.current = null;
     }

@@ -1,21 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Json } from "@/types/database.types";
-
-const revalidateTagSafe = (tag: string) => {
-  try {
-    (revalidateTag as any)(tag);
-  } catch (e) {
-    try {
-      (revalidateTag as any)(tag, "default");
-    } catch {
-      console.error("Failed to revalidate tag:", tag, e);
-    }
-  }
-};
+import { revalidateTagSafe } from "@/lib/server-utils";
 
 export async function checkUsername(
   username: string,

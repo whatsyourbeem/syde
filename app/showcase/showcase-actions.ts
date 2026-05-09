@@ -1,24 +1,12 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { deleteShowcaseStorage, deleteFile } from "@/lib/storage";
-import { generateSlug } from "@/lib/utils";
-
-const revalidateTagSafe = (tag: string) => {
-  try {
-    (revalidateTag as any)(tag);
-  } catch (e) {
-    try {
-      (revalidateTag as any)(tag, "default");
-    } catch {
-      console.error("Failed to revalidate tag:", tag, e);
-    }
-  }
-};
+import { revalidateTagSafe, generateUniqueShowcaseSlug } from "@/lib/server-utils";
+import { getAdminClient } from "@/lib/supabase/admin";
+import { deleteFile, extractStoragePath } from "@/lib/storage";
 
 export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
@@ -42,20 +30,7 @@ export const createShowcase = withAuthForm(
       processedDescription = descriptionString ? await processMentionsForSave(descriptionString, supabase) : null;
     }
 
-    // Generate unique slug
-    let slug = generateSlug(name);
-    if (!slug) slug = "project";
-    
-    // Check for existing slug to ensure uniqueness
-    const { data: existingSlug } = await supabase
-      .from("showcases")
-      .select("id")
-      .eq("slug", slug)
-      .maybeSingle();
-
-    if (existingSlug) {
-      slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
-    }
+    const slug = await generateUniqueShowcaseSlug(supabase, name);
 
     const { data, error: insertError } = await supabase
       .from("showcases")
@@ -157,24 +132,19 @@ export const updateShowcase = withAuthForm(
       return { error: "수정할 권한이 없습니다." };
     }
 
-    // 제거된 이미지를 storage에서 삭제 (admin client 사용 - 구 경로 파일 호환)
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
-
+    // 제거된 이미지를 storage에서 삭제
     const oldThumbnailUrl = oldShowcaseData?.thumbnail_url;
     if (oldThumbnailUrl && oldThumbnailUrl !== newThumbnailUrl) {
-      const oldPath = oldThumbnailUrl.split("/storage/v1/object/public/showcases/")[1];
-      if (oldPath) await deleteFile(adminClient, "showcases", oldPath);
+      const oldPath = extractStoragePath(oldThumbnailUrl, "showcases");
+      if (oldPath) await deleteFile(getAdminClient(), "showcases", oldPath);
     }
 
     const oldImages = (oldShowcaseData?.images as string[] | null) ?? [];
     const removedImages = oldImages.filter((url) => !newDetailImageUrls.includes(url));
     await Promise.allSettled(
       removedImages.map(async (url) => {
-        const path = url.split("/storage/v1/object/public/showcases/")[1];
-        if (path) await deleteFile(adminClient, "showcases", path);
+        const path = extractStoragePath(url, "showcases");
+        if (path) await deleteFile(getAdminClient(), "showcases", path);
       }),
     );
 
@@ -207,19 +177,7 @@ export const updateShowcase = withAuthForm(
 
     // Only set slug if it doesn't exist yet (Immutable)
     if (!oldShowcaseData?.slug) {
-      let slug = generateSlug(name);
-      if (!slug) slug = "project";
-      
-      const { data: existingSlug } = await supabase
-        .from("showcases")
-        .select("id")
-        .eq("slug", slug)
-        .maybeSingle();
-
-      if (existingSlug) {
-        slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
-      }
-      updateData.slug = slug;
+      updateData.slug = await generateUniqueShowcaseSlug(supabase, name);
     }
     updateData.thumbnail_url = newThumbnailUrl || null;
     updateData.images = newDetailImageUrls;
@@ -328,7 +286,7 @@ export const updateComment = withAuth(
 export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: string) => {
   const { data: showcase, error: fetchError } = await supabase
     .from("showcases")
-    .select("id, user_id")
+    .select("id, user_id, thumbnail_url, images")
     .eq("id", showcaseId)
     .single();
 
@@ -349,7 +307,23 @@ export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: st
     throw new Error(deleteShowcaseError.message);
   }
 
-  await deleteShowcaseStorage(showcaseId);
+  // Delete all associated image files (stored under user.id/, not showcaseId/)
+  const imageUrls = [
+    showcase.thumbnail_url,
+    ...((showcase.images as string[] | null) ?? []),
+  ].filter(Boolean) as string[];
+
+  const deleteResults = await Promise.allSettled(
+    imageUrls.map((url) => {
+      const path = extractStoragePath(url, "showcases");
+      if (path) return deleteFile(getAdminClient(), "showcases", path);
+    })
+  );
+  deleteResults.forEach((result, i) => {
+    if (result.status === "rejected") {
+      console.error(`Failed to delete showcase image [${imageUrls[i]}]:`, result.reason);
+    }
+  });
 
   revalidatePath("/");
   revalidatePath("/showcase");

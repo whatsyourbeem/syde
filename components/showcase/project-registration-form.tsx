@@ -22,6 +22,7 @@ import {
 import { createShowcase } from "@/app/showcase/showcase-actions";
 // Removed Tiptap manual imports
 import { createClient } from "@/lib/supabase/client";
+import { extractStoragePath } from "@/lib/storage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
@@ -231,7 +232,7 @@ export function ProjectRegistrationForm({
     if (publicUrl) {
       // 이전에 이번 세션에서 업로드한 썸네일이 있으면 storage에서 삭제
       if (mainImageUrl && newlyUploadedUrls.current.has(mainImageUrl)) {
-        const oldPath = mainImageUrl.split("/storage/v1/object/public/showcases/")[1];
+        const oldPath = extractStoragePath(mainImageUrl, "showcases");
         if (oldPath) await supabase.storage.from("showcases").remove([oldPath]);
         newlyUploadedUrls.current.delete(mainImageUrl);
       }
@@ -246,7 +247,7 @@ export function ProjectRegistrationForm({
   const removeMainImage = async () => {
     // 이번 세션에 새로 업로드된 파일이면 storage에서 즉시 삭제
     if (mainImageUrl && newlyUploadedUrls.current.has(mainImageUrl)) {
-      const path = mainImageUrl.split("/storage/v1/object/public/showcases/")[1];
+      const path = extractStoragePath(mainImageUrl, "showcases");
       if (path) await supabase.storage.from("showcases").remove([path]);
       newlyUploadedUrls.current.delete(mainImageUrl);
     }
@@ -294,7 +295,7 @@ export function ProjectRegistrationForm({
     const urlToRemove = detailImageUrls[indexToRemove];
     // 이번 세션에 새로 업로드된 파일이면 storage에서 즉시 삭제
     if (urlToRemove && newlyUploadedUrls.current.has(urlToRemove)) {
-      const path = urlToRemove.split("/storage/v1/object/public/showcases/")[1];
+      const path = extractStoragePath(urlToRemove, "showcases");
       if (path) await supabase.storage.from("showcases").remove([path]);
       newlyUploadedUrls.current.delete(urlToRemove);
     }

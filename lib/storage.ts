@@ -1,7 +1,4 @@
-import {
-  SupabaseClient,
-  createClient as createAdminClient,
-} from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Upload a file to Supabase Storage and return the public URL
@@ -131,68 +128,13 @@ export const FILE_SIZE_LIMITS = {
   THUMBNAIL: 2 * 1024 * 1024, // 2MB
 } as const;
 
-
-export async function deleteLogStorage(logId: string): Promise<void> {
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  const { data: files, error: listError } = await adminClient.storage
-    .from("logs")
-    .list(logId);
-
-  if (listError) {
-    console.error(
-      `Error listing log files for deletion (logId: ${logId}):`,
-      listError
-    );
-    // Do not throw, allow log deletion to proceed
-    return;
-  }
-
-  if (files && files.length > 0) {
-    const filePaths = files.map((file) => `${logId}/${file.name}`);
-    const { error: removeError } = await adminClient.storage
-      .from("logs")
-      .remove(filePaths);
-
-    if (removeError) {
-      console.error(`Error removing log files (logId: ${logId}):`, removeError);
-      // Do not throw, allow log deletion to proceed
-    }
-  }
+export function extractStoragePath(url: string, bucket: string): string | null {
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  const path = url.slice(idx + marker.length);
+  const queryIdx = path.indexOf("?");
+  return queryIdx === -1 ? path : path.slice(0, queryIdx);
 }
 
-export async function deleteShowcaseStorage(showcaseId: string): Promise<void> {
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  const { data: files, error: listError } = await adminClient.storage
-    .from("showcases")
-    .list(showcaseId);
-
-  if (listError) {
-    console.error(
-      `Error listing showcase files for deletion (showcaseId: ${showcaseId}):`,
-      listError
-    );
-    // Do not throw, allow showcase deletion to proceed
-    return;
-  }
-
-  if (files && files.length > 0) {
-    const filePaths = files.map((file) => `${showcaseId}/${file.name}`);
-    const { error: removeError } = await adminClient.storage
-      .from("showcases")
-      .remove(filePaths);
-
-    if (removeError) {
-      console.error(`Error removing showcase files (showcaseId: ${showcaseId}):`, removeError);
-      // Do not throw, allow showcase deletion to proceed
-    }
-  }
-}
 

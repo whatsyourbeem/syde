@@ -1,11 +1,12 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuth, withErrorHandling } from "@/lib/error-handler";
 import { DeleteResponse, createSuccessResponse } from "@/lib/types/api";
+import { getAdminClient } from "@/lib/supabase/admin";
+import { extractStoragePath } from "@/lib/storage";
 
 export async function logout() {
   const supabase = await createClient();
@@ -21,28 +22,25 @@ export async function deleteAccount(): Promise<DeleteResponse> {
     const { data: { user } } = await supabase.auth.getUser();
     const userId = requireAuth(user?.id);
 
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const adminClient = getAdminClient();
 
     // Delete storage files (these won't be automatically deleted by CASCADE)
     // 1. Delete user's avatar
-    const { data: profileData } = await supabaseAdmin
+    const { data: profileData } = await adminClient
       .from("profiles")
       .select("avatar_url")
       .eq("id", userId)
       .single();
 
     if (profileData?.avatar_url) {
-      const avatarPath = profileData.avatar_url.split("/profiles/").pop();
+      const avatarPath = extractStoragePath(profileData.avatar_url, "profiles");
       if (avatarPath) {
-        await supabaseAdmin.storage.from("profiles").remove([avatarPath]);
+        await adminClient.storage.from("profiles").remove([avatarPath]);
       }
     }
 
     // 2. Delete user's log images
-    const { data: logsData } = await supabaseAdmin
+    const { data: logsData } = await adminClient
       .from("logs")
       .select("image_url")
       .eq("user_id", userId);
@@ -50,16 +48,16 @@ export async function deleteAccount(): Promise<DeleteResponse> {
     if (logsData) {
       for (const log of logsData) {
         if (log.image_url) {
-          const logPath = log.image_url.split("/logimages/").pop();
+          const logPath = extractStoragePath(log.image_url, "logimages");
           if (logPath) {
-            await supabaseAdmin.storage.from("logimages").remove([logPath]);
+            await adminClient.storage.from("logimages").remove([logPath]);
           }
         }
       }
     }
 
     // 3. Delete user's club thumbnails
-    const { data: clubsData } = await supabaseAdmin
+    const { data: clubsData } = await adminClient
       .from("clubs")
       .select("thumbnail_url")
       .eq("owner_id", userId);
@@ -67,16 +65,16 @@ export async function deleteAccount(): Promise<DeleteResponse> {
     if (clubsData) {
       for (const club of clubsData) {
         if (club.thumbnail_url) {
-          const clubPath = club.thumbnail_url.split("/clubs/").pop();
+          const clubPath = extractStoragePath(club.thumbnail_url, "clubs");
           if (clubPath) {
-            await supabaseAdmin.storage.from("clubs").remove([clubPath]);
+            await adminClient.storage.from("clubs").remove([clubPath]);
           }
         }
       }
     }
 
     // 4. Delete user's meetup thumbnails
-    const { data: meetupsData } = await supabaseAdmin
+    const { data: meetupsData } = await adminClient
       .from("meetups")
       .select("thumbnail_url")
       .eq("organizer_id", userId);
@@ -84,9 +82,9 @@ export async function deleteAccount(): Promise<DeleteResponse> {
     if (meetupsData) {
       for (const meetup of meetupsData) {
         if (meetup.thumbnail_url) {
-          const meetupPath = meetup.thumbnail_url.split("/meetup-images/").pop();
+          const meetupPath = extractStoragePath(meetup.thumbnail_url, "meetup-images");
           if (meetupPath) {
-            await supabaseAdmin.storage.from("meetup-images").remove([meetupPath]);
+            await adminClient.storage.from("meetup-images").remove([meetupPath]);
           }
         }
       }
@@ -94,7 +92,7 @@ export async function deleteAccount(): Promise<DeleteResponse> {
 
     // 5. Delete the user from Supabase Auth
     // This will cascade delete all related database records
-    const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId);
 
     if (deleteUserError) {
       throw new Error(`사용자 삭제 실패: ${deleteUserError.message}`);
