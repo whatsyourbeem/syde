@@ -6,10 +6,9 @@ import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
-import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 
 const TiptapEditorWrapper = dynamic(
     () => import("@/components/common/tiptap-editor-wrapper"),
@@ -54,7 +53,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     };
 
     const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
+    const { isUploading: uploading, uploadImage } = useImageUpload();
     const [title, setTitle] = useState(initialData?.title || "");
     const [summary, setSummary] = useState(initialData?.summary || "");
     const [content, setContent] = useState<JSONContent | string>(getInitialContent());
@@ -129,72 +128,19 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     };
 
     const handleTiptapImageUpload = async (file: File): Promise<string | null> => {
-        try {
-            if (file.size > FILE_SIZE_LIMIT) {
-                throw new Error(`이미지 용량은 20MB를 초과할 수 없습니다.`);
-            }
-
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("로그인이 필요합니다.");
-
-            const compressed = await compressImage(file, "detail");
-            const filePath = `${user.id}/editor/${uuidv4()}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('insight-images')
-                .upload(filePath, compressed);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('insight-images')
-                .getPublicUrl(filePath);
-
-            return publicUrl;
-        } catch (error) {
-            console.error("Error uploading tiptap image:", error);
-            throw error;
-        }
+        const publicUrl = await uploadImage(file, "insight-images", "editor", "detail");
+        if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
+        return publicUrl;
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > FILE_SIZE_LIMIT) {
-            toast.error(`이미지는 20MB를 초과할 수 없습니다.`);
-            return;
-        }
-
-        setUploading(true);
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                toast.error("로그인이 필요합니다.");
-                return;
-            }
-
-            const compressed = await compressImage(file, "detail");
-            const filePath = `${user.id}/${uuidv4()}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('insight-images')
-                .upload(filePath, compressed);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('insight-images')
-                .getPublicUrl(filePath);
-
+        const publicUrl = await uploadImage(file, "insight-images", "", "detail");
+        if (publicUrl) {
             setImageUrl(publicUrl);
             toast.success("이미지가 업로드되었습니다.");
-        } catch (error) {
-            console.error("Error uploading image:", error);
-            const errMsg = error instanceof Error ? error.message : "알 수 없는 오류";
-            toast.error(`이미지 업로드 실패: ${errMsg}`);
-        } finally {
-            setUploading(false);
         }
     };
 

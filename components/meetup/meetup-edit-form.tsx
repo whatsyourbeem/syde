@@ -5,9 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
-import { v4 as uuidv4 } from "uuid";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -64,8 +62,9 @@ export default function MeetupEditForm({
   clubId,
   thumbnailUrl: defaultThumbnailUrl,
 }: MeetupEditFormProps) {
+
+
   const router = useRouter();
-  const supabase = createClient();
   const formRef = React.useRef<HTMLFormElement>(null);
   const isEditMode = !!meetup;
 
@@ -92,11 +91,13 @@ export default function MeetupEditForm({
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
     meetup?.thumbnail_url || defaultThumbnailUrl || null
   );
-  const [isCompressing, setIsCompressing] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
+
+  const { isUploading: isImageUploading, uploadImage } = useImageUpload();
+  const isCompressing = isImageUploading;
 
   useEffect(() => {
     if (!startDatetime || !endDatetime) {
@@ -123,43 +124,15 @@ export default function MeetupEditForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > FILE_SIZE_LIMIT) {
-      toast.error("이미지는 20MB를 초과할 수 없습니다.");
-      return;
-    }
-
-    setIsCompressing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("로그인이 필요합니다."); return; }
-
-      const compressed = await compressImage(file, "detail");
-      const filePath = `${user.id}/${uuidv4()}`;
-      const { error: uploadError } = await supabase.storage.from("meetups").upload(filePath, compressed);
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage.from("meetups").getPublicUrl(filePath);
+    const publicUrl = await uploadImage(file, "meetups", "", "detail");
+    if (publicUrl) {
       setThumbnailUrl(publicUrl);
-    } catch (error) {
-      console.error("Error uploading thumbnail:", error);
-      toast.error("썸네일 업로드에 실패했습니다.");
-    } finally {
-      setIsCompressing(false);
     }
   };
 
   const handleEditorImageUpload = async (file: File): Promise<string> => {
-    if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지는 20MB를 초과할 수 없습니다.");
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("로그인이 필요합니다.");
-
-    const compressed = await compressImage(file, "detail");
-    const filePath = `${user.id}/editor/${uuidv4()}`;
-    const { error: uploadError } = await supabase.storage.from("meetups").upload(filePath, compressed);
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage.from("meetups").getPublicUrl(filePath);
+    const publicUrl = await uploadImage(file, "meetups", "editor", "detail");
+    if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
     return publicUrl;
   };
 

@@ -1,34 +1,26 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Database, Enums } from "@/types/database.types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { withAuth, validateRequired } from "@/lib/error-handler";
 
 type MeetupWithParticipants = Database["public"]["Tables"]["meetups"]["Row"] & {
   meetup_participants: Database["public"]["Tables"]["meetup_participants"]["Row"][];
 };
 
-export async function createMeetup(
-  formData: FormData
-): Promise<{ error?: string; meetupId?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "로그인이 필요합니다." };
+export const createMeetup = withAuth(
+  async ({ supabase, user }, formData: FormData): Promise<{ error?: string; meetupId?: string }> => {
+    const clubId = formData.get("clubId") as string | null;
+    const title = validateRequired(formData.get("title") as string, "모임 제목");
+    const descriptionJSON = validateRequired(formData.get("description") as string, "모임 설명");
+    const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
 
-  const clubId = formData.get("clubId") as string | null;
-  const title = formData.get("title") as string;
-  const descriptionJSON = formData.get("description") as string;
-  const thumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
+    const descriptionContent = JSON.parse(descriptionJSON);
 
-  const descriptionContent = JSON.parse(descriptionJSON);
-
-  try {
     // Insert meetup data into the database
     const meetupData = {
       organizer_id: user.id,
@@ -39,7 +31,7 @@ export async function createMeetup(
       status: formData.get("status") as Enums<"meetup_status_enum">,
       start_datetime: (formData.get("startDatetime") as string) || null,
       end_datetime: (formData.get("endDatetime") as string) || null,
-      location: formData.get("location") as string,
+      location: validateRequired(formData.get("location") as string, "장소명"),
       address: formData.get("address") as string,
       max_participants:
         parseInt(formData.get("maxParticipants") as string, 10) || null,
@@ -67,31 +59,18 @@ export async function createMeetup(
     if (clubId) revalidatePath(`/club/${clubId}`);
 
     return { meetupId: newMeetup.id };
-  } catch (e) {
-    console.error("Create meetup error:", (e as Error).message);
-    // TODO: Add cleanup logic for uploaded files if DB insert fails
-    return { error: (e as Error).message };
   }
-}
+);
 
-export async function updateMeetup(
-  formData: FormData
-): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "로그인이 필요합니다." };
+export const updateMeetup = withAuth(
+  async ({ supabase, user }, formData: FormData): Promise<{ error?: string }> => {
+    const meetupId = validateRequired(formData.get("id") as string, "모임 ID");
 
-  const meetupId = formData.get("id") as string;
-  if (!meetupId) return { error: "모임 ID가 필요합니다." };
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  try {
     const { data: existingMeetup, error: fetchError } = await supabase
       .from("meetups")
       .select("organizer_id, thumbnail_url")
@@ -99,11 +78,11 @@ export async function updateMeetup(
       .single();
 
     if (fetchError || !existingMeetup) {
-      return { error: "모임을 찾을 수 없거나 권한이 없습니다." };
+      throw new Error("모임을 찾을 수 없거나 권한이 없습니다.");
     }
 
     if (existingMeetup.organizer_id !== user.id) {
-      return { error: "모임을 수정할 권한이 없습니다." };
+      throw new Error("모임을 수정할 권한이 없습니다.");
     }
 
     const newThumbnailUrl = (formData.get("thumbnailUrl") as string) || null;
@@ -148,284 +127,247 @@ export async function updateMeetup(
     revalidatePath(`/meetup/${meetupId}`);
     const clubId = formData.get("clubId") as string | null;
     if (clubId) revalidatePath(`/club/${clubId}`);
-  } catch (e) {
-    console.error("Update meetup error:", (e as Error).message);
-    return { error: (e as Error).message };
+
+    redirect(`/meetup/${meetupId}`);
   }
+);
 
-  redirect(`/meetup/${meetupId}`);
-}
+export const joinMeetup = withAuth(
+  async ({ supabase, user }, meetupId: string) => {
+    console.log("Attempting to join meetup with ID:", meetupId);
 
-export async function joinMeetup(meetupId: string) {
-  console.log("Attempting to join meetup with ID:", meetupId);
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // 1. 모임 정보 가져오기
+    const { data: meetup, error: meetupError } = (await supabase
+      .from("meetups")
+      .select("organizer_id, max_participants, meetup_participants(*)")
+      .eq("id", meetupId)
+      .single()) as {
+      data: MeetupWithParticipants | null;
+      error: PostgrestError | null;
+    };
 
-  if (!user) {
-    return { error: "User not found" };
+    if (meetupError || !meetup) {
+      console.error("Error fetching meetup:", meetupError);
+      return { error: "모임 정보를 찾을 수 없습니다." };
+    }
+
+    // 2. 호스트인지 확인
+    if (meetup.organizer_id === user.id) {
+      return { error: "호스트은 자신의 모임에 참가할 수 없습니다." };
+    }
+
+    // 3. 이미 참가자인지 확인
+    const { data: existingParticipant } = await supabase
+      .from("meetup_participants")
+      .select("id")
+      .eq("meetup_id", meetupId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existingParticipant) {
+      return { error: "이미 모임에 참가하셨습니다." };
+    }
+
+    // 4. 정원 확인
+    const currentParticipants = meetup.meetup_participants?.length || 0;
+    if (
+      meetup.max_participants &&
+      currentParticipants >= meetup.max_participants
+    ) {
+      return { error: "모임 정원이 가득 찼습니다." };
+    }
+
+    // 5. 참가자 추가
+    const { error } = await supabase.from("meetup_participants").insert({
+      meetup_id: meetupId,
+      user_id: user.id,
+      status: MEETUP_PARTICIPANT_STATUSES.PENDING,
+    });
+
+    if (error) {
+      console.error("Error inserting participant:", error);
+      return { error: "모임 참가에 실패했습니다. 다시 시도해주세요." };
+    }
+
+    revalidatePath(`/meetup/${meetupId}`);
+    return { success: true };
   }
+);
 
-  // 1. 모임 정보 가져오기
-  const { data: meetup, error: meetupError } = (await supabase
-    .from("meetups")
-    .select("organizer_id, max_participants, meetup_participants(*)")
-    .eq("id", meetupId)
-    .single()) as {
-    data: MeetupWithParticipants | null;
-    error: PostgrestError | null;
-  };
+export const approveMeetupParticipant = withAuth(
+  async ({ supabase, user }, meetupId: string, userId: string) => {
+    // Verify that the current user is the organizer of the meetup
+    const { data: meetup, error: meetupError } = await supabase
+      .from("meetups")
+      .select("organizer_id")
+      .eq("id", meetupId)
+      .single();
 
-  if (meetupError || !meetup) {
-    console.error("Error fetching meetup:", meetupError);
-    return { error: "모임 정보를 찾을 수 없습니다." };
+    if (meetupError || !meetup) {
+      console.error("Error fetching meetup for approval:", meetupError);
+      return { error: "모임 정보를 찾을 수 없습니다." };
+    }
+
+    if (meetup.organizer_id !== user.id) {
+      return { error: "호스트만 참가자를 승인할 수 있습니다." };
+    }
+
+    // Update the participant's status to 'approved'
+    const { error } = await supabase
+      .from("meetup_participants")
+      .update({ status: MEETUP_PARTICIPANT_STATUSES.APPROVED })
+      .eq("meetup_id", meetupId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error approving participant:", error);
+      return { error: "참가자 승인에 실패했습니다. 다시 시도해주세요." };
+    }
+
+    revalidatePath(`/meetup/${meetupId}`);
+    return { success: true };
   }
+);
 
-  // 2. 호스트인지 확인
-  if (meetup.organizer_id === user.id) {
-    return { error: "호스트은 자신의 모임에 참가할 수 없습니다." };
+export const updateMeetupParticipantStatus = withAuth(
+  async (
+    { supabase, user },
+    meetupId: string,
+    userId: string,
+    newStatus: Enums<"meetup_participant_status_enum">
+  ) => {
+    // Verify that the current user is the organizer of the meetup
+    const { data: meetup, error: meetupError } = await supabase
+      .from("meetups")
+      .select("organizer_id")
+      .eq("id", meetupId)
+      .single();
+
+    if (meetupError || !meetup) {
+      console.error("Error fetching meetup for status update:", meetupError);
+      return { error: "모임 정보를 찾을 수 없습니다." };
+    }
+
+    if (meetup.organizer_id !== user.id) {
+      return { error: "호스트만 참가자 상태를 변경할 수 있습니다." };
+    }
+
+    // Update the participant's status
+    const { error } = await supabase
+      .from("meetup_participants")
+      .update({ status: newStatus })
+      .eq("meetup_id", meetupId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error updating participant status:", error);
+      return { error: "참가자 상태 변경에 실패했습니다. 다시 시도해주세요." };
+    }
+
+    revalidatePath(`/meetup/${meetupId}`);
+    return { success: true };
   }
+);
 
-  // 3. 이미 참가자인지 확인
-  const { data: existingParticipant } = await supabase
-    .from("meetup_participants")
-    .select("id")
-    .eq("meetup_id", meetupId)
-    .eq("user_id", user.id)
-    .single();
+export const createMeetupReview = withAuth(
+  async (
+    { supabase, user },
+    meetupId: string,
+    rating: number,
+    content: string
+  ): Promise<{ error?: string; success?: boolean }> => {
+    if (rating < 1 || rating > 5) {
+      return { error: "평점은 1점부터 5점 사이여야 합니다." };
+    }
 
-  if (existingParticipant) {
-    return { error: "이미 모임에 참가하셨습니다." };
-  }
+    if (!content.trim()) {
+      return { error: "후기 내용을 입력해주세요." };
+    }
 
-  // 4. 정원 확인
-  const currentParticipants = meetup.meetup_participants?.length || 0;
-  if (
-    meetup.max_participants &&
-    currentParticipants >= meetup.max_participants
-  ) {
-    return { error: "모임 정원이 가득 찼습니다." };
-  }
+    // Check if they are approved participants
+    const { data: participant, error: participantError } = await supabase
+      .from("meetup_participants")
+      .select("status")
+      .eq("meetup_id", meetupId)
+      .eq("user_id", user.id)
+      .single();
 
-  // 5. 참가자 추가
-  const { error } = await supabase.from("meetup_participants").insert({
-    meetup_id: meetupId,
-    user_id: user.id,
-    status: MEETUP_PARTICIPANT_STATUSES.PENDING,
-  });
+    if (participantError || !participant || participant.status !== MEETUP_PARTICIPANT_STATUSES.APPROVED) {
+      return { error: "모임 참가 완료(승인)된 회원만 후기를 작성할 수 있습니다." };
+    }
 
-  if (error) {
-    console.error("Error inserting participant:", error);
-    return { error: "모임 참가에 실패했습니다. 다시 시도해주세요." };
-  }
-
-  revalidatePath(`/meetup/${meetupId}`);
-  return { success: true };
-}
-
-export async function approveMeetupParticipant(
-  meetupId: string,
-  userId: string
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "User not found" };
-  }
-
-  // Verify that the current user is the organizer of the meetup
-  const { data: meetup, error: meetupError } = await supabase
-    .from("meetups")
-    .select("organizer_id")
-    .eq("id", meetupId)
-    .single();
-
-  if (meetupError || !meetup) {
-    console.error("Error fetching meetup for approval:", meetupError);
-    return { error: "모임 정보를 찾을 수 없습니다." };
-  }
-
-  if (meetup.organizer_id !== user.id) {
-    return { error: "호스트만 참가자를 승인할 수 있습니다." };
-  }
-
-  // Update the participant's status to 'approved'
-  const { error } = await supabase
-    .from("meetup_participants")
-    .update({ status: MEETUP_PARTICIPANT_STATUSES.APPROVED })
-    .eq("meetup_id", meetupId)
-    .eq("user_id", userId);
-
-  if (error) {
-    console.error("Error approving participant:", error);
-    return { error: "참가자 승인에 실패했습니다. 다시 시도해주세요." };
-  }
-
-  revalidatePath(`/meetup/${meetupId}`);
-  return { success: true };
-}
-
-export async function updateMeetupParticipantStatus(
-  meetupId: string,
-  userId: string,
-  newStatus: Enums<"meetup_participant_status_enum">
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "로그인이 필요합니다." };
-  }
-
-  // Verify that the current user is the organizer of the meetup
-  const { data: meetup, error: meetupError } = await supabase
-    .from("meetups")
-    .select("organizer_id")
-    .eq("id", meetupId)
-    .single();
-
-  if (meetupError || !meetup) {
-    console.error("Error fetching meetup for status update:", meetupError);
-    return { error: "모임 정보를 찾을 수 없습니다." };
-  }
-
-  if (meetup.organizer_id !== user.id) {
-    return { error: "호스트만 참가자 상태를 변경할 수 있습니다." };
-  }
-
-  // Update the participant\'s status
-  const { error } = await supabase
-    .from("meetup_participants")
-    .update({ status: newStatus })
-    .eq("meetup_id", meetupId)
-    .eq("user_id", userId);
-
-  if (error) {
-    console.error("Error updating participant status:", error);
-    return { error: "참가자 상태 변경에 실패했습니다. 다시 시도해주세요." };
-  }
-
-  revalidatePath(`/meetup/${meetupId}`);
-  return { success: true };
-}
-
-export async function createMeetupReview(
-  meetupId: string,
-  rating: number,
-  content: string
-): Promise<{ error?: string; success?: boolean }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "로그인이 필요합니다." };
-
-  if (rating < 1 || rating > 5) {
-    return { error: "평점은 1점부터 5점 사이여야 합니다." };
-  }
-
-  if (!content.trim()) {
-    return { error: "후기 내용을 입력해주세요." };
-  }
-
-  // Check if they are approved participants
-  const { data: participant, error: participantError } = await supabase
-    .from("meetup_participants")
-    .select("status")
-    .eq("meetup_id", meetupId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (participantError || !participant || participant.status !== MEETUP_PARTICIPANT_STATUSES.APPROVED) {
-    return { error: "모임 참가 완료(승인)된 회원만 후기를 작성할 수 있습니다." };
-  }
-
-  const { error } = await supabase.from("meetup_reviews").insert({
-    meetup_id: meetupId,
-    user_id: user.id,
-    rating,
-    content: content.trim(),
-  });
-
-  if (error) {
-    console.error("Create meetup review error:", error.message);
-    return { error: "후기 작성에 실패했습니다. 다시 시도해주세요." };
-  }
-
-  revalidatePath(`/meetup/${meetupId}`);
-  return { success: true };
-}
-
-export async function updateMeetupReview(
-  reviewId: string,
-  meetupId: string,
-  rating: number,
-  content: string
-): Promise<{ error?: string; success?: boolean }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "로그인이 필요합니다." };
-
-  if (rating < 1 || rating > 5) {
-    return { error: "평점은 1점부터 5점 사이여야 합니다." };
-  }
-
-  if (!content.trim()) {
-    return { error: "후기 내용을 입력해주세요." };
-  }
-
-  const { error } = await supabase
-    .from("meetup_reviews")
-    .update({
+    const { error } = await supabase.from("meetup_reviews").insert({
+      meetup_id: meetupId,
+      user_id: user.id,
       rating,
       content: content.trim(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", reviewId)
-    .eq("user_id", user.id);
+    });
 
-  if (error) {
-    console.error("Update meetup review error:", error.message);
-    return { error: "후기 수정에 실패했습니다. 다시 시도해주세요." };
+    if (error) {
+      console.error("Create meetup review error:", error.message);
+      return { error: "후기 작성에 실패했습니다. 다시 시도해주세요." };
+    }
+
+    revalidatePath(`/meetup/${meetupId}`);
+    return { success: true };
   }
+);
 
-  revalidatePath(`/meetup/${meetupId}`);
-  return { success: true };
-}
+export const updateMeetupReview = withAuth(
+  async (
+    { supabase, user },
+    reviewId: string,
+    meetupId: string,
+    rating: number,
+    content: string
+  ): Promise<{ error?: string; success?: boolean }> => {
+    if (rating < 1 || rating > 5) {
+      return { error: "평점은 1점부터 5점 사이여야 합니다." };
+    }
 
-export async function deleteMeetupReview(
-  reviewId: string,
-  meetupId: string
-): Promise<{ error?: string; success?: boolean }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    if (!content.trim()) {
+      return { error: "후기 내용을 입력해주세요." };
+    }
 
-  if (!user) return { error: "로그인이 필요합니다." };
+    const { error } = await supabase
+      .from("meetup_reviews")
+      .update({
+        rating,
+        content: content.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reviewId)
+      .eq("user_id", user.id);
 
-  const { error } = await supabase
-    .from("meetup_reviews")
-    .delete()
-    .eq("id", reviewId)
-    .eq("user_id", user.id);
+    if (error) {
+      console.error("Update meetup review error:", error.message);
+      return { error: "후기 수정에 실패했습니다. 다시 시도해주세요." };
+    }
 
-  if (error) {
-    console.error("Delete meetup review error:", error.message);
-    return { error: "후기 삭제에 실패했습니다. 다시 시도해주세요." };
+    revalidatePath(`/meetup/${meetupId}`);
+    return { success: true };
   }
+);
 
-  revalidatePath(`/meetup/${meetupId}`);
-  return { success: true };
-}
+export const deleteMeetupReview = withAuth(
+  async (
+    { supabase, user },
+    reviewId: string,
+    meetupId: string
+  ): Promise<{ error?: string; success?: boolean }> => {
+    const { error } = await supabase
+      .from("meetup_reviews")
+      .delete()
+      .eq("id", reviewId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Delete meetup review error:", error.message);
+      return { error: "후기 삭제에 실패했습니다. 다시 시도해주세요." };
+    }
+
+    revalidatePath(`/meetup/${meetupId}`);
+    return { success: true };
+  }
+);
 

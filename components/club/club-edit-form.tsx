@@ -9,9 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { createClient } from "@/lib/supabase/client";
-import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
-import { v4 as uuidv4 } from "uuid";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { Loader2 } from "lucide-react";
 
 const TiptapEditorWrapper = dynamic(
@@ -32,9 +30,10 @@ interface ClubFormProps {
   club?: Tables<"clubs">;
 }
 
+
+
 export default function ClubEditForm({ club }: ClubFormProps) {
   const router = useRouter();
-  const supabase = createClient();
   const formRef = useRef<HTMLFormElement>(null);
   const isEditMode = !!club;
 
@@ -59,7 +58,10 @@ export default function ClubEditForm({ club }: ClubFormProps) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(
     club?.thumbnail_url || null
   );
-  const [isCompressing, setIsCompressing] = useState(false);
+
+  const { isUploading: isImageUploading, uploadImage } = useImageUpload();
+  const isCompressing = isImageUploading;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,43 +69,15 @@ export default function ClubEditForm({ club }: ClubFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > FILE_SIZE_LIMIT) {
-      toast.error("이미지는 20MB를 초과할 수 없습니다.");
-      return;
-    }
-
-    setIsCompressing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("로그인이 필요합니다."); return; }
-
-      const compressed = await compressImage(file, "thumbnail");
-      const filePath = `${user.id}/${uuidv4()}`;
-      const { error: uploadError } = await supabase.storage.from("clubs").upload(filePath, compressed);
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage.from("clubs").getPublicUrl(filePath);
+    const publicUrl = await uploadImage(file, "clubs", "", "thumbnail");
+    if (publicUrl) {
       setThumbnailUrl(publicUrl);
-    } catch (error) {
-      console.error("Error uploading thumbnail:", error);
-      toast.error("썸네일 업로드에 실패했습니다.");
-    } finally {
-      setIsCompressing(false);
     }
   };
 
   const handleEditorImageUpload = async (file: File): Promise<string> => {
-    if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지는 20MB를 초과할 수 없습니다.");
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("로그인이 필요합니다.");
-
-    const compressed = await compressImage(file, "detail");
-    const filePath = `${user.id}/editor/${uuidv4()}`;
-    const { error: uploadError } = await supabase.storage.from("clubs").upload(filePath, compressed);
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage.from("clubs").getPublicUrl(filePath);
+    const publicUrl = await uploadImage(file, "clubs", "editor", "detail");
+    if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
     return publicUrl;
   };
 

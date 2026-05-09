@@ -3,9 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState, useCallback, useEffect } from "react";
 import { updateBio } from "@/app/[username]/actions";
-import { createClient } from "@/lib/supabase/client";
-import { compressImage } from "@/lib/image-compression";
-import { v4 as uuidv4 } from "uuid";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import TiptapViewer from "@/components/common/tiptap-viewer";
@@ -40,7 +38,7 @@ export default function BioEditor({
   isEditing,
   onEditingChange,
 }: BioEditorProps) {
-  const supabase = createClient();
+  const { uploadImage } = useImageUpload();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentBioContent, setCurrentBioContent] = useState<JSONContent | null>(initialBio as JSONContent | null);
@@ -96,13 +94,8 @@ export default function BioEditor({
               placeholder="당신의 SYDE를 자유롭게 표현해보세요."
               editable={true}
               onImageUpload={async (file) => {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) throw new Error("로그인이 필요합니다.");
-                const compressed = await compressImage(file, "detail");
-                const filePath = `${user.id}/bio/${uuidv4()}`;
-                const { error: uploadError } = await supabase.storage.from("profiles").upload(filePath, compressed);
-                if (uploadError) throw uploadError;
-                const { data: { publicUrl } } = supabase.storage.from("profiles").getPublicUrl(filePath);
+                const publicUrl = await uploadImage(file, "profiles", "bio", "detail");
+                if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
                 return publicUrl;
               }}
             />

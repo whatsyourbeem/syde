@@ -17,8 +17,8 @@ import { Database } from "@/types/database.types";
 import { createLog, updateLog } from "@/app/feed/feed-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useImageUpload } from "@/hooks/use-image-upload";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -306,7 +306,7 @@ export function FeedEditDialog({
   const [imageUrl, setImageUrl] = useState<string | null>(
     initialLogData?.image_url || null
   );
-  const [isCompressing, setIsCompressing] = useState(false);
+  const { isUploading: isCompressing, uploadImage } = useImageUpload();
   const newlyUploadedUrl = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -504,29 +504,8 @@ export function FeedEditDialog({
     if (!event.target.files || !event.target.files[0]) return;
     const file = event.target.files[0];
 
-    if (file.size > FILE_SIZE_LIMIT) {
-      toast.error("이미지는 20MB를 초과할 수 없습니다.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setIsCompressing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("로그인이 필요합니다.");
-
-      const compressed = await compressImage(file, "thumbnail");
-      const fileName = `${user.id}/${crypto.randomUUID()}`;
-
-      const { error } = await supabase.storage
-        .from("logs")
-        .upload(fileName, compressed);
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("logs")
-        .getPublicUrl(fileName);
-
+    const publicUrl = await uploadImage(file, "logs", "", "thumbnail");
+    if (publicUrl) {
       // 이전에 이번 세션에서 업로드한 이미지가 있으면 storage에서 삭제
       if (newlyUploadedUrl.current) {
         const oldPath = newlyUploadedUrl.current.split("/storage/v1/object/public/logs/")[1];
@@ -536,13 +515,8 @@ export function FeedEditDialog({
       newlyUploadedUrl.current = publicUrl;
       setImageUrl(publicUrl);
       setImagePreviewUrl(publicUrl);
-    } catch (err) {
-      console.error(err);
-      toast.error("이미지 업로드 중 오류가 발생했습니다.");
-    } finally {
-      setIsCompressing(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeImage = async () => {

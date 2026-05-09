@@ -28,8 +28,7 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { updateShowcase } from "@/app/showcase/showcase-actions";
 import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
-import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
-import { v4 as uuidv4 } from "uuid";
+import { useImageUpload } from "@/hooks/use-image-upload";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -54,7 +53,9 @@ export function ProjectRegistrationForm({
   const queryClient = useQueryClient();
   const supabase = createClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
+  const { isUploading: isImageUploading, uploadImage } = useImageUpload();
+  const [isDetailUploading, setIsDetailUploading] = useState(false);
+  const isCompressing = isImageUploading || isDetailUploading;
   const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -226,29 +227,8 @@ export function ProjectRegistrationForm({
     if (!event.target.files || !event.target.files[0]) return;
     const file = event.target.files[0];
 
-    if (file.size > FILE_SIZE_LIMIT) {
-      toast.error(`이미지는 20MB를 초과할 수 없습니다.`);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setIsCompressing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("로그인이 필요합니다.");
-
-      const compressed = await compressImage(file, "thumbnail");
-      const fileName = `${user.id}/${crypto.randomUUID()}`;
-
-      const { error } = await supabase.storage
-        .from("showcases")
-        .upload(fileName, compressed);
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("showcases")
-        .getPublicUrl(fileName);
-
+    const publicUrl = await uploadImage(file, "showcases", "", "thumbnail");
+    if (publicUrl) {
       // 이전에 이번 세션에서 업로드한 썸네일이 있으면 storage에서 삭제
       if (mainImageUrl && newlyUploadedUrls.current.has(mainImageUrl)) {
         const oldPath = mainImageUrl.split("/storage/v1/object/public/showcases/")[1];
@@ -259,13 +239,8 @@ export function ProjectRegistrationForm({
       newlyUploadedUrls.current.add(publicUrl);
       setMainImageUrl(publicUrl);
       setMainImagePreview(publicUrl);
-    } catch (err) {
-      console.error(err);
-      toast.error("이미지 업로드 중 오류가 발생했습니다.");
-    } finally {
-      setIsCompressing(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeMainImage = async () => {
@@ -286,13 +261,6 @@ export function ProjectRegistrationForm({
     if (!event.target.files || event.target.files.length === 0) return;
     const newFiles = Array.from(event.target.files);
 
-    const largeFiles = newFiles.filter((file) => file.size > FILE_SIZE_LIMIT);
-    if (largeFiles.length > 0) {
-      toast.error(`이미지 용량은 4MB를 초과할 수 없습니다: ${largeFiles.map((f) => f.name).join(", ")}`);
-      if (detailInputRef.current) detailInputRef.current.value = "";
-      return;
-    }
-
     const remaining = 5 - detailImagePreviews.length;
     const validFiles = newFiles.slice(0, remaining);
     if (validFiles.length < newFiles.length) {
@@ -302,22 +270,12 @@ export function ProjectRegistrationForm({
 
     if (detailInputRef.current) detailInputRef.current.value = "";
 
-    setIsCompressing(true);
+    setIsDetailUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("로그인이 필요합니다.");
-
       const uploadResults = await Promise.all(
         validFiles.map(async (file) => {
-          const compressed = await compressImage(file, "detail");
-          const fileName = `${user.id}/details/${crypto.randomUUID()}`;
-          const { error } = await supabase.storage
-            .from("showcases")
-            .upload(fileName, compressed);
-          if (error) throw error;
-          const { data: { publicUrl } } = supabase.storage
-            .from("showcases")
-            .getPublicUrl(fileName);
+          const publicUrl = await uploadImage(file, "showcases", "details", "detail");
+          if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
           newlyUploadedUrls.current.add(publicUrl);
           return publicUrl;
         }),
@@ -327,9 +285,8 @@ export function ProjectRegistrationForm({
       setDetailImagePreviews((prev) => [...prev, ...uploadResults]);
     } catch (err) {
       console.error(err);
-      toast.error("이미지 업로드 중 오류가 발생했습니다.");
     } finally {
-      setIsCompressing(false);
+      setIsDetailUploading(false);
     }
   };
 
@@ -617,14 +574,8 @@ export function ProjectRegistrationForm({
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
               onImageUpload={async (file: File) => {
-                if (file.size > FILE_SIZE_LIMIT) throw new Error("이미지 용량은 20MB를 초과할 수 없습니다.");
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) throw new Error("로그인이 필요합니다.");
-                const compressed = await compressImage(file, "detail");
-                const filePath = `${user.id}/editor/${uuidv4()}`;
-                const { error: uploadError } = await supabase.storage.from("showcases").upload(filePath, compressed);
-                if (uploadError) throw uploadError;
-                const { data: { publicUrl } } = supabase.storage.from("showcases").getPublicUrl(filePath);
+                const publicUrl = await uploadImage(file, "showcases", "editor", "detail");
+                if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
                 return publicUrl;
               }}
             />
