@@ -131,7 +131,7 @@ export default function ReservForm({
                       * 입금자명은 반드시 본인의 유저네임으로 해주세요.
                     </div>
                     <div className="mt-2 font-mono bg-gray-100 p-2 rounded">
-                      신한은행 110-320-955821 (안재현)
+                      토스뱅크 1002-5052-7409 안재현(빔(BEEM))
                     </div>
                   </div>
                 )}

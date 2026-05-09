@@ -90,13 +90,27 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   const supabase = await createClient();
   const { meetup_id } = await params;
 
-  const { data: meetup, error } = await supabase
-    .from("meetups")
-    .select(
-      "*, clubs(*), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, certified), meetup_participants(*, profiles(id, full_name, username, avatar_url, tagline, certified)), status, start_datetime, end_datetime, location, address, max_participants, fee"
-    )
-    .eq("id", meetup_id)
-    .single();
+  // 병렬 쿼리로 모임 상세 정보, 사용자 정보, 모임 후기 목록 조회 (워터폴 제거)
+  const [meetupResult, userResult, reviewsResult] = await Promise.all([
+    supabase
+      .from("meetups")
+      .select(
+        "*, clubs(*), organizer_profile:profiles!meetups_organizer_id_fkey(full_name, username, avatar_url, certified), meetup_participants(*, profiles(id, full_name, username, avatar_url, tagline, certified)), status, start_datetime, end_datetime, location, address, max_participants, fee"
+      )
+      .eq("id", meetup_id)
+      .single(),
+    supabase.auth.getUser(),
+    (supabase as any)
+      .from("meetup_reviews")
+      .select("*, profiles:user_id(id, full_name, username, avatar_url, certified, tagline, updated_at)")
+      .eq("meetup_id", meetup_id)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const meetup = meetupResult.data;
+  const error = meetupResult.error;
+  const user = userResult.data.user;
+  const reviews = reviewsResult.data || [];
 
   if (error || !meetup) {
     console.error("Error fetching meetup details:", error);
@@ -116,9 +130,6 @@ export default async function MeetupDetailPage({ params }: PageProps) {
   }
 
   // 사용자 정보 및 클럽 가입 여부 확인
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
   const isOrganizer = user?.id === meetup.organizer_id;
 
   let joinedClubIds: string[] = [];
@@ -169,6 +180,7 @@ export default async function MeetupDetailPage({ params }: PageProps) {
         isOrganizer={isOrganizer}
         user={user}
         joinedClubIds={joinedClubIds}
+        reviews={reviews || []}
       />
     </>
   );

@@ -41,6 +41,7 @@ import MemberCard from "@/components/user/MemberCard";
 import MemberCardHorizontal from "@/components/user/MemberCardHorizontal";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { useRouter } from "next/navigation";
+import MeetupReviews from "./meetup-reviews";
 
 // Helper Functions (copied from meetup-detail-client.tsx)
 function formatDate(dateString: string, includeYear: boolean = true) {
@@ -102,6 +103,7 @@ interface MeetupDetailClientProps {
   isOrganizer: boolean;
   user: User | null;
   joinedClubIds: string[];
+  reviews: any[];
 }
 
 export default function MeetupDetailClient({
@@ -110,6 +112,7 @@ export default function MeetupDetailClient({
   isOrganizer,
   user,
   joinedClubIds,
+  reviews,
 }: MeetupDetailClientProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [meetup, setMeetup] = useState(initialMeetup);
@@ -421,7 +424,7 @@ export default function MeetupDetailClient({
             <h2 className="text-2xl md:text-xl font-bold mb-4">
               💬<span className="font-extrabold pl-2">모임 설명</span>
             </h2>
-            <div className="min-h-[200px] w-full">
+            <div className="min-h-[200px] w-full border-b pb-8">
               {/* SEO fallback */}
               {initialHtml && !isMounted && (
                 <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
@@ -431,6 +434,16 @@ export default function MeetupDetailClient({
                 <TiptapViewer content={meetup.description} />
               </div>
             </div>
+          </div>
+
+          {/* 모임 후기 영역 */}
+          <div className="bg-white rounded-lg my-6 px-4">
+            <MeetupReviews
+              meetupId={meetup.id}
+              reviews={reviews}
+              isApprovedParticipant={isApprovedParticipant}
+              user={user}
+            />
           </div>
         </div>
 
@@ -552,7 +565,7 @@ export default function MeetupDetailClient({
                         * 입금자명은 반드시 본인의 유저네임으로 해주세요.
                       </div>
                       <div className="mt-2 font-mono bg-gray-100 p-2 rounded">
-                        신한은행 110-320-955821 (안재현)
+                        토스뱅크 1002-5052-7409 안재현(빔(BEEM))
                       </div>
                     </div>
                   )}

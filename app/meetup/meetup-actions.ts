@@ -314,3 +314,118 @@ export async function updateMeetupParticipantStatus(
   revalidatePath(`/meetup/${meetupId}`);
   return { success: true };
 }
+
+export async function createMeetupReview(
+  meetupId: string,
+  rating: number,
+  content: string
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  if (rating < 1 || rating > 5) {
+    return { error: "평점은 1점부터 5점 사이여야 합니다." };
+  }
+
+  if (!content.trim()) {
+    return { error: "후기 내용을 입력해주세요." };
+  }
+
+  // Check if they are approved participants
+  const { data: participant, error: participantError } = await supabase
+    .from("meetup_participants")
+    .select("status")
+    .eq("meetup_id", meetupId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (participantError || !participant || participant.status !== MEETUP_PARTICIPANT_STATUSES.APPROVED) {
+    return { error: "모임 참가 완료(승인)된 회원만 후기를 작성할 수 있습니다." };
+  }
+
+  const { error } = await (supabase as any).from("meetup_reviews").insert({
+    meetup_id: meetupId,
+    user_id: user.id,
+    rating,
+    content: content.trim(),
+  });
+
+  if (error) {
+    console.error("Create meetup review error:", error.message);
+    return { error: "후기 작성에 실패했습니다. 다시 시도해주세요." };
+  }
+
+  revalidatePath(`/meetup/${meetupId}`);
+  return { success: true };
+}
+
+export async function updateMeetupReview(
+  reviewId: string,
+  meetupId: string,
+  rating: number,
+  content: string
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  if (rating < 1 || rating > 5) {
+    return { error: "평점은 1점부터 5점 사이여야 합니다." };
+  }
+
+  if (!content.trim()) {
+    return { error: "후기 내용을 입력해주세요." };
+  }
+
+  const { error } = await (supabase as any)
+    .from("meetup_reviews")
+    .update({
+      rating,
+      content: content.trim(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", reviewId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Update meetup review error:", error.message);
+    return { error: "후기 수정에 실패했습니다. 다시 시도해주세요." };
+  }
+
+  revalidatePath(`/meetup/${meetupId}`);
+  return { success: true };
+}
+
+export async function deleteMeetupReview(
+  reviewId: string,
+  meetupId: string
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { error } = await (supabase as any)
+    .from("meetup_reviews")
+    .delete()
+    .eq("id", reviewId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Delete meetup review error:", error.message);
+    return { error: "후기 삭제에 실패했습니다. 다시 시도해주세요." };
+  }
+
+  revalidatePath(`/meetup/${meetupId}`);
+  return { success: true };
+}
+
