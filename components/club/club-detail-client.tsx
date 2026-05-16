@@ -37,7 +37,7 @@ import MeetupCard from "@/components/meetup/meetup-card";
 
 // Type Definitions
 type Profile = Tables<"profiles">;
-type Meetup = Omit<Tables<"meetups">, "type"> & {
+type Meetup = Tables<"meetups"> & {
   organizer_profile: Profile | null;
   clubs: Tables<"clubs"> | null;
 };

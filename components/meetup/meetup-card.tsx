@@ -8,10 +8,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Calendar, MapPin } from "lucide-react";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
-type MeetupWithOrganizerProfile = Omit<
-  Database["public"]["Tables"]["meetups"]["Row"],
-  "type"
-> & {
+type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
   organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
 };

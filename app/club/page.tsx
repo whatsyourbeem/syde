@@ -100,7 +100,7 @@ export default async function ClubPage() {
             <h1 className="text-2xl font-bold mb-2 text-foreground py-2">
               Clubs
             </h1>
-            <h2>관심사가 맞는 메이커들과의 스핀오프 모임</h2>
+            <h2>관심사가 맞는 메이커들과의 모임</h2>
           </div>
         </div>
       </div>
