@@ -105,7 +105,7 @@ export async function getShowcasesSearchList(
     .select(`
       *,
       views_count,
-      profiles(*),
+      profiles(id, username, full_name, avatar_url, tagline, updated_at, certified),
       showcase_upvotes(user_id),
       showcase_comments(id)
     `, { count: 'exact' });

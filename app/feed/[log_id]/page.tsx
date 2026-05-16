@@ -77,7 +77,7 @@ export default async function FeedDetailPage({ params }: FeedDetailPageProps) {
 
   const { data: log, error } = await supabase
     .from("logs")
-    .select("*, profiles(*), log_likes(user_id), log_bookmarks(user_id), log_comments(id)")
+    .select("*, profiles(id, username, full_name, avatar_url, tagline, updated_at, certified), log_likes(user_id), log_bookmarks(user_id), log_comments(id)")
     .eq("id", log_id)
     .single();
 

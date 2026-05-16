@@ -30,7 +30,7 @@ export default async function ClubMeetupListPage({
   const { data: meetups, error: meetupsError } = await supabase
     .from("meetups")
     .select(
-      "id, created_at, organizer_id, club_id, title, description, thumbnail_url, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(*), clubs(*)"
+      "id, created_at, organizer_id, club_id, title, description, thumbnail_url, status, start_datetime, end_datetime, location, address, max_participants, fee, organizer_profile:profiles!meetups_organizer_id_fkey(id, username, full_name, avatar_url, tagline, certified), clubs(*)"
     )
     .eq("club_id", club_id)
     .order("start_datetime", { ascending: false });

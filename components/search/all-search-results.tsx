@@ -83,7 +83,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
         // Meetups
         supabase
           .from('meetups')
-          .select('*, organizer_profile:profiles!organizer_id(*), clubs:clubs(*)')
+          .select('*, organizer_profile:profiles!organizer_id(id, username, full_name, avatar_url, tagline, certified), clubs:clubs(*)')
           .or(`title.ilike."${q}",location.ilike."${q}"`)
           .order('start_datetime', { ascending: false })
           .limit(PREVIEW_COUNT),

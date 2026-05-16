@@ -17,7 +17,7 @@ export async function getPaginatedClubPosts(
 
   const { data, count, error } = await supabase
     .from("club_forum_posts")
-    .select("*, author:profiles(*)", { count: "exact" })
+    .select("*, author:profiles(id, username, full_name, avatar_url, tagline, certified)", { count: "exact" })
     .eq("forum_id", forumId)
     .order("created_at", { ascending: false })
     .range(from, to);

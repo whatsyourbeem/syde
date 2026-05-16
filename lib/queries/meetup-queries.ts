@@ -29,7 +29,7 @@ export async function getMeetupsList(
     .from('meetups')
     .select(`
       *,
-      organizer_profile:profiles!organizer_id(*),
+      organizer_profile:profiles!organizer_id(id, username, full_name, avatar_url, tagline, certified),
       clubs:clubs(*)
     `, { count: 'exact' });
 

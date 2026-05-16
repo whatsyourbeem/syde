@@ -343,7 +343,7 @@ export async function fetchClubPostComments(
     .select(
       `
       *,
-      author:profiles!club_forum_post_comments_user_id_fkey(*),
+      author:profiles!club_forum_post_comments_user_id_fkey(id, username, full_name, avatar_url, tagline, certified),
       club_comment_likes(user_id)
     `
     )

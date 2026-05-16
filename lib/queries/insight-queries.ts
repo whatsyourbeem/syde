@@ -107,7 +107,7 @@ export async function getInsightsList(
     .from("insights")
     .select(`
       *,
-      author:profiles!user_id(*),
+      author:profiles!user_id(id, username, full_name, avatar_url, tagline, certified),
       insight_comments(id),
       insight_likes(id, user_id),
       insight_bookmarks(insight_id, user_id)

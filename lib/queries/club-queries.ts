@@ -34,9 +34,9 @@ export async function getUserJoinedClubs(
     .select(`
       clubs (
         *,
-        owner_profile:profiles!clubs_owner_id_fkey(*),
+        owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified),
         member_count:club_members(count),
-        club_members(user_id, profiles(*))
+        club_members(user_id, profiles(id, username, full_name, avatar_url, tagline, certified))
       )
     `)
     .eq("user_id", userId)
@@ -78,7 +78,7 @@ export async function getClubDetail(
     .from("clubs")
     .select(`
       *,
-      owner_profile:profiles!clubs_owner_id_fkey(*)
+      owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified)
     `)
     .eq("id", clubId)
     .single();

@@ -23,10 +23,10 @@ export default async function ShowcaseEditPage({
     .select(
       `
       *,
-      profiles:user_id (*),
+      profiles:user_id (id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified),
       showcase_upvotes(user_id),
       showcase_comments(id),
-      members:showcases_members(*, profile:profiles(*))
+      members:showcases_members(*, profile:profiles(id, username, full_name, avatar_url, tagline, certified))
     `,
     )
     .eq("id", showcase_id)

@@ -26,9 +26,9 @@ export function ClubSearchList({ searchQuery }: ClubSearchListProps) {
         .from('clubs')
         .select(`
           *,
-          owner_profile:profiles!owner_id(*),
+          owner_profile:profiles!owner_id(id, username, full_name, avatar_url, tagline, certified),
           member_count:club_members(count),
-          members:club_members(profiles(*))
+          members:club_members(profiles(id, username, full_name, avatar_url, tagline, certified))
         `, { count: 'exact' });
 
       if (searchQuery) {
