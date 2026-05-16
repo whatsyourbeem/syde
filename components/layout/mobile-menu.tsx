@@ -108,16 +108,7 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
               모임
             </Link>
           </SheetClose>
-          <SheetClose asChild>
-            <Link
-              href="/club"
-              className={`p-2 hover:bg-secondary rounded-md transition-all ${
-                pathname.startsWith("/club") ? "font-bold text-primary" : ""
-              }`}
-            >
-              클럽
-            </Link>
-          </SheetClose>
+
         </div>
         {user && (
           <div className="py-2 px-0 border-t">

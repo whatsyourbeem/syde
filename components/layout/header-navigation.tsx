@@ -76,21 +76,7 @@ export function HeaderNavigation() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem className="flex-shrink-0">
-          <NavigationMenuLink asChild>
-            <Link
-              href="/club"
-              className={cn(
-                "text-center py-2 px-4 hover:text-primary hover:font-bold md:flex-none md:text-left md:py-4 !rounded-none h-full flex items-center flex-shrink-0 whitespace-nowrap",
-                pathname.startsWith("/club")
-                  ? "font-bold text-primary border-b-2 border-primary"
-                  : "text-gray-400"
-              )}
-            >
-              클럽
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
+
       </NavigationMenuList>
     </NavigationMenu>
   );
