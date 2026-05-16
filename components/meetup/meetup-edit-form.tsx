@@ -164,18 +164,23 @@ export default function MeetupEditForm({
     }
     formData.append("thumbnailUrl", thumbnailUrl || "");
 
-    const result = isEditMode
-      ? await updateMeetup(formData)
-      : await createMeetup(formData);
-
-    if (result?.error) {
-      toast.error(`모임 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error}`);
+    if (isEditMode && meetup) {
+      // updateMeetup redirects on success; only returns here on error
+      const result = await updateMeetup(formData);
+      if (!result.success) {
+        toast.error(`모임 업데이트 실패: ${result.error.message}`);
+        setIsSubmitting(false);
+      }
     } else {
-      toast.success(`모임이 성공적으로 ${isEditMode ? "업데이트되었습니다" : "생성되었습니다"}.`);
-      const meetupId = isEditMode ? meetup.id : (result as { meetupId: string }).meetupId;
-      router.push(`/meetup/${meetupId}`);
+      const result = await createMeetup(formData);
+      if (!result.success) {
+        toast.error(`모임 생성 실패: ${result.error.message}`);
+      } else {
+        toast.success("모임이 성공적으로 생성되었습니다.");
+        router.push(`/meetup/${result.data.meetupId}`);
+      }
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   return (

@@ -164,8 +164,8 @@ export function ClubPostCommentCard({
     setLoading(true);
     try {
       const result = await deleteClubPostComment(comment.id);
-      if (result.error) {
-        throw new Error(result.error);
+      if (!result.success) {
+        throw new Error(result.error.message);
       }
       queryClient.invalidateQueries({
         queryKey: ["clubPostComments", { postId: comment.post_id }],

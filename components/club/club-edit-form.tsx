@@ -97,11 +97,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
       ? await updateClub(formData)
       : await createClub(formData);
 
-    if ("error" in result && result.error) {
-      toast.error(
-        `클럽 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error}`
-      );
-    } else if ("success" in result && !result.success) {
+    if (!result.success) {
       toast.error(
         `클럽 ${isEditMode ? "업데이트" : "생성"} 실패: ${result.error.message}`
       );
@@ -111,14 +107,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
           isEditMode ? "업데이트되었습니다" : "생성되었습니다"
         }.`
       );
-      const clubId = isEditMode
-        ? club!.id
-        : "data" in result &&
-          result.data &&
-          typeof result.data === "object" &&
-          "id" in result.data
-        ? (result.data as { id: string }).id
-        : (result as { clubId?: string }).clubId;
+      const clubId = isEditMode ? club!.id : result.data?.id;
       router.push(`/club/${clubId}`);
       router.refresh();
     }

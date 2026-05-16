@@ -289,8 +289,8 @@ export function ClubPostCommentForm({
       result = await createClubPostComment(postId, content, parentCommentId);
     }
 
-    if (result?.error) {
-      alert(`Error: ${result.error}`);
+    if (!result.success) {
+      alert(`Error: ${result.error.message}`);
     } else {
       if (initialCommentData) {
         if (onCommentUpdated) onCommentUpdated();

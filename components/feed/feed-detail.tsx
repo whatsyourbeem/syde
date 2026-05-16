@@ -254,7 +254,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
 
     const result = await toggleLogBookmark(log.id, currentHasBookmarked);
 
-    if ("error" in result && result.error) {
+    if (!result.success) {
       toast.error(result.error.message);
       setCurrentHasBookmarked(!newHasBookmarked);
       setCurrentBookmarksCount(currentBookmarksCount);

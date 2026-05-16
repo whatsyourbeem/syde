@@ -12,6 +12,7 @@ import {
   CreateResponse,
   UpdateResponse,
   createSuccessResponse,
+  createErrorResponse,
 } from "@/lib/types/api";
 import {
   validateRequired,
@@ -126,13 +127,13 @@ export const joinClub = withAuth(async ({ supabase, user }, clubId: string) => {
 
   if (error) {
     console.error("Error joining club:", error);
-    return { error: "클럽 가입 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽 가입 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}`);
   revalidateTagSafe("club-all");
   revalidateTagSafe(`club-${clubId}`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export const leaveClub = withAuth(async ({ supabase, user }, clubId: string) => {
@@ -144,16 +145,16 @@ export const leaveClub = withAuth(async ({ supabase, user }, clubId: string) => 
 
   if (error) {
     console.error("Error leaving club:", error);
-    return { error: "클럽 탈퇴 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽 탈퇴 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}`);
   revalidateTagSafe("club-all");
   revalidateTagSafe(`club-${clubId}`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
-export const createClubPost = withAuth(async ({ supabase, user }, formData: FormData): Promise<{ error?: string; postId?: string }> => {
+export const createClubPost = withAuth(async ({ supabase, user }, formData: FormData) => {
   try {
     const title = validateRequired(formData.get("title") as string | null, "제목");
     const contentJSON = validateRequired(formData.get("content") as string | null, "내용");
@@ -177,15 +178,15 @@ export const createClubPost = withAuth(async ({ supabase, user }, formData: Form
     revalidatePath(`/club/${clubId}`);
     revalidatePath(`/club/${clubId}/post/${postId}`);
 
-    return { postId };
+    return createSuccessResponse({ postId });
   } catch (e) {
     const error = e as Error;
     console.error("Create club post error:", error.message);
-    return { error: error.message };
+    return createErrorResponse("DATABASE_ERROR", error.message);
   }
 });
 
-export const updateClubPost = withAuth(async ({ supabase, user }, formData: FormData): Promise<{ error?: string; postId?: string }> => {
+export const updateClubPost = withAuth(async ({ supabase, user }, formData: FormData) => {
   try {
     const postId = validateRequired(formData.get("postId") as string | null, "게시글 ID");
     const title = validateRequired(formData.get("title") as string | null, "제목");
@@ -215,11 +216,11 @@ export const updateClubPost = withAuth(async ({ supabase, user }, formData: Form
     revalidatePath(`/club/${clubId}`);
     revalidatePath(`/club/${clubId}/post/${postId}`);
 
-    return { postId };
+    return createSuccessResponse({ postId });
   } catch (e) {
     const error = e as Error;
     console.error("Update club post error:", error.message);
-    return { error: error.message };
+    return createErrorResponse("DATABASE_ERROR", error.message);
   }
 });
 
@@ -229,7 +230,7 @@ export const createClubPostComment = withAuth(async ({ supabase, user },
   parentCommentId: string | null = null
 ) => {
   if (!content.trim()) {
-    return { error: "댓글 내용을 입력해주세요." };
+    return createErrorResponse("REQUIRED_FIELD_MISSING", "댓글 내용을 입력해주세요.");
   }
 
   const { data: comment, error } = await supabase
@@ -245,7 +246,7 @@ export const createClubPostComment = withAuth(async ({ supabase, user },
 
   if (error) {
     console.error("Error creating club post comment:", error);
-    return { error: "댓글 작성 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "댓글 작성 중 오류가 발생했습니다.");
   }
 
   const { data: postData, error: postError } = await supabase
@@ -270,7 +271,7 @@ export const createClubPostComment = withAuth(async ({ supabase, user },
     }
   }
 
-  return { success: true, commentId: comment.id };
+  return createSuccessResponse({ commentId: comment.id });
 });
 
 export const updateClubPostComment = withAuth(async ({ supabase, user },
@@ -278,7 +279,7 @@ export const updateClubPostComment = withAuth(async ({ supabase, user },
   content: string
 ) => {
   if (!content.trim()) {
-    return { error: "댓글 내용을 입력해주세요." };
+    return createErrorResponse("REQUIRED_FIELD_MISSING", "댓글 내용을 입력해주세요.");
   }
 
   const { error } = await supabase
@@ -289,7 +290,7 @@ export const updateClubPostComment = withAuth(async ({ supabase, user },
 
   if (error) {
     console.error("Error updating club post comment:", error);
-    return { error: "댓글 수정 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "댓글 수정 중 오류가 발생했습니다.");
   }
 
   const { data: commentData, error: commentError } = await supabase
@@ -326,7 +327,7 @@ export const updateClubPostComment = withAuth(async ({ supabase, user },
     }
   }
 
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export async function fetchClubPostComments(
@@ -403,7 +404,7 @@ export const deleteClubPostComment = withAuth(async ({ supabase, user }, comment
 
   if (commentFetchError || !commentData?.post_id) {
     console.error("Error fetching comment for deletion:", commentFetchError);
-    return { error: "댓글을 찾을 수 없습니다." };
+    return createErrorResponse("DATABASE_ERROR", "댓글을 찾을 수 없습니다.");
   }
 
   const { error } = await supabase
@@ -414,7 +415,7 @@ export const deleteClubPostComment = withAuth(async ({ supabase, user }, comment
 
   if (error) {
     console.error("Error deleting club post comment:", error);
-    return { error: "댓글 삭제 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "댓글 삭제 중 오류가 발생했습니다.");
   }
 
   const { data: postData, error: postError } = await supabase
@@ -439,7 +440,7 @@ export const deleteClubPostComment = withAuth(async ({ supabase, user }, comment
     }
   }
 
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export const updateForumPermissions = withAuth(async ({ supabase, user }, params: {
@@ -458,11 +459,11 @@ export const updateForumPermissions = withAuth(async ({ supabase, user }, params
 
   if (fetchError || !club) {
     console.error("Error fetching club for permission update:", fetchError);
-    return { error: "클럽 정보를 찾을 수 없습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽 정보를 찾을 수 없습니다.");
   }
 
   if (club.owner_id !== user.id) {
-    return { error: "클럽장만 권한을 수정할 수 있습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽장만 권한을 수정할 수 있습니다.");
   }
 
   const { error: updateError } = await supabase
@@ -475,12 +476,12 @@ export const updateForumPermissions = withAuth(async ({ supabase, user }, params
 
   if (updateError) {
     console.error("Error updating forum permissions:", updateError);
-    return { error: "게시판 권한 업데이트 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시판 권한 업데이트 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}`);
   revalidatePath(`/club/${clubId}/manage`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 async function isClubOwner(
@@ -503,7 +504,7 @@ async function isClubOwner(
 
 export const createForum = withAuth(async ({ supabase, user }, clubId: string, forumName: string) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
-    return { error: "클럽장만 게시판을 생성할 수 있습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽장만 게시판을 생성할 수 있습니다.");
   }
 
   const { error } = await supabase.from("club_forums").insert({
@@ -517,15 +518,15 @@ export const createForum = withAuth(async ({ supabase, user }, clubId: string, f
   if (error) {
     console.error("Error creating forum:", error);
     if (error.code === "23505") {
-      return { error: `'${forumName}' 게시판은 이미 존재합니다.` };
+      return createErrorResponse("DATABASE_ERROR", `'${forumName}' 게시판은 이미 존재합니다.`);
     }
-    return { error: "게시판 생성 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시판 생성 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}/manage`);
   revalidateTagSafe("club-all");
   revalidateTagSafe(`club-forums-${clubId}`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export const updateForumName = withAuth(async ({ supabase, user },
@@ -534,7 +535,7 @@ export const updateForumName = withAuth(async ({ supabase, user },
   clubId: string
 ) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
-    return { error: "클럽장만 게시판을 수정할 수 있습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽장만 게시판을 수정할 수 있습니다.");
   }
 
   const { error } = await supabase
@@ -545,20 +546,20 @@ export const updateForumName = withAuth(async ({ supabase, user },
   if (error) {
     console.error("Error updating forum name:", error);
     if (error.code === "23505") {
-      return { error: `'${newName}' 게시판은 이미 존재합니다.` };
+      return createErrorResponse("DATABASE_ERROR", `'${newName}' 게시판은 이미 존재합니다.`);
     }
-    return { error: "게시판 이름 변경 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시판 이름 변경 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}/manage`);
   revalidateTagSafe("club-all");
   revalidateTagSafe(`club-forums-${clubId}`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export const deleteForum = withAuth(async ({ supabase, user }, forumId: string, clubId: string) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
-    return { error: "클럽장만 게시판을 삭제할 수 있습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽장만 게시판을 삭제할 수 있습니다.");
   }
 
   const { count, error: postsError } = await supabase
@@ -568,11 +569,11 @@ export const deleteForum = withAuth(async ({ supabase, user }, forumId: string, 
 
   if (postsError) {
     console.error("Error checking for posts in forum:", postsError);
-    return { error: "게시글 확인 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시글 확인 중 오류가 발생했습니다.");
   }
 
   if (count && count > 0) {
-    return { error: "게시글이 있는 게시판은 삭제할 수 없습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시글이 있는 게시판은 삭제할 수 없습니다.");
   }
 
   const { error: deleteError } = await supabase
@@ -582,13 +583,13 @@ export const deleteForum = withAuth(async ({ supabase, user }, forumId: string, 
 
   if (deleteError) {
     console.error("Error deleting forum:", deleteError);
-    return { error: "게시판 삭제 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시판 삭제 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}/manage`);
   revalidateTagSafe("club-all");
   revalidateTagSafe(`club-forums-${clubId}`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export const updateForumOrder = withAuth(async ({ supabase, user },
@@ -596,7 +597,7 @@ export const updateForumOrder = withAuth(async ({ supabase, user },
   orderedForumIds: string[]
 ) => {
   if (!(await isClubOwner(supabase, clubId, user.id))) {
-    return { error: "클럽장만 게시판 순서를 변경할 수 있습니다." };
+    return createErrorResponse("DATABASE_ERROR", "클럽장만 게시판 순서를 변경할 수 있습니다.");
   }
 
   const { data: existingForums, error: fetchError } = await supabase
@@ -609,7 +610,7 @@ export const updateForumOrder = withAuth(async ({ supabase, user },
       "Error fetching existing forums for order update:",
       fetchError
     );
-    return { error: "게시판 정보를 가져오는 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시판 정보를 가져오는 중 오류가 발생했습니다.");
   }
 
   const updates = orderedForumIds.map((forumId, index) => {
@@ -634,14 +635,14 @@ export const updateForumOrder = withAuth(async ({ supabase, user },
 
   if (error) {
     console.error("Error updating forum order:", error);
-    return { error: "게시판 순서 변경 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시판 순서 변경 중 오류가 발생했습니다.");
   }
 
   revalidatePath(`/club/${clubId}/manage`);
   revalidatePath(`/club/${clubId}`);
   revalidateTagSafe("club-all");
   revalidateTagSafe(`club-forums-${clubId}`);
-  return { success: true };
+  return createSuccessResponse(null);
 });
 
 export const deleteClubPost = withAuth(async ({ supabase, user }, postId: string) => {
@@ -652,11 +653,11 @@ export const deleteClubPost = withAuth(async ({ supabase, user }, postId: string
     .single();
 
   if (fetchError || !post) {
-    return { error: "게시글을 찾을 수 없습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시글을 찾을 수 없습니다.");
   }
 
   if (post.user_id !== user.id) {
-    return { error: "작성자만 삭제할 수 있습니다." };
+    return createErrorResponse("DATABASE_ERROR", "작성자만 삭제할 수 있습니다.");
   }
 
   const { error: deleteError } = await supabase
@@ -666,7 +667,7 @@ export const deleteClubPost = withAuth(async ({ supabase, user }, postId: string
 
   if (deleteError) {
     console.error("Error deleting post:", deleteError);
-    return { error: "게시글 삭제 중 오류가 발생했습니다." };
+    return createErrorResponse("DATABASE_ERROR", "게시글 삭제 중 오류가 발생했습니다.");
   }
 
   const { data: forum } = await supabase
@@ -679,5 +680,5 @@ export const deleteClubPost = withAuth(async ({ supabase, user }, postId: string
     revalidatePath(`/club/${forum.club_id}`);
   }
 
-  return { success: true };
+  return createSuccessResponse(null);
 });

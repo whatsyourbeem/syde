@@ -140,8 +140,8 @@ export default function MeetupDetailClient({
         participantId,
         status
       );
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("참가자 상태가 변경되었습니다.");
       }

@@ -85,11 +85,11 @@ function ShowcaseCardActionsBase({
     const newHasUpvoted = !hasUpvoted;
     onUpvoteStatusChange(newUpvotesCount, newHasUpvoted);
 
-    try {
-      await toggleShowcaseUpvote(showcaseId, hasUpvoted);
+    const result = await toggleShowcaseUpvote(showcaseId, hasUpvoted);
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-    } catch (error) {
-      toast.error(hasUpvoted ? "업보트 취소 실패" : "업보트 실패");
+    } else {
+      toast.error(result.error.message || (hasUpvoted ? "업보트 취소 실패" : "업보트 실패"));
       onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
     }
     setUpvoteLoading(false);

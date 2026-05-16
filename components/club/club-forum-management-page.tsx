@@ -76,8 +76,8 @@ export default function ClubForumManagementPage({
 
     startTransition(async () => {
       const result = await createForum(club.id, newForumName.trim());
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success(`'${newForumName.trim()}' 게시판이 생성되었습니다.`);
         setNewForumName("");
@@ -98,8 +98,8 @@ export default function ClubForumManagementPage({
         readPermission: read,
         writePermission: write,
       });
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("권한이 업데이트되었습니다.");
       }
@@ -123,8 +123,8 @@ export default function ClubForumManagementPage({
     }
     startTransition(async () => {
       const result = await updateForumName(forumId, editingName, club.id);
-       if (result.error) {
-        toast.error(result.error);
+       if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("게시판 이름이 변경되었습니다.");
         setEditingForumId(null);
@@ -136,8 +136,8 @@ export default function ClubForumManagementPage({
   const handleDeleteForum = (forumId: string) => {
     startTransition(async () => {
       const result = await deleteForum(forumId, club.id);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("게시판이 삭제되었습니다.");
       }
@@ -162,8 +162,8 @@ export default function ClubForumManagementPage({
   const handleSaveOrder = () => {
     startTransition(async () => {
       const result = await updateForumOrder(club.id, orderedForums.map(f => f.id));
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("게시판 순서가 성공적으로 저장되었습니다.");
         setOrderChanged(false);

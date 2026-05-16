@@ -1,5 +1,5 @@
 import { PostgrestError, SupabaseClient, User } from "@supabase/supabase-js";
-import { createErrorResponse, ERROR_CODES } from "./types/api";
+import { ActionResponse, createErrorResponse, ERROR_CODES } from "./types/api";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -172,27 +172,66 @@ export async function withErrorHandling<T>(
   }
 }
 
+/**
+ * Detect Next.js redirect (NEXT_REDIRECT) — must be re-thrown, not swallowed
+ */
+function isNextRedirect(e: unknown): boolean {
+  return (
+    e instanceof Error &&
+    "digest" in e &&
+    typeof (e as any).digest === "string" &&
+    (e as any).digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
+/**
+ * Detect Supabase/PostgREST errors by duck-typing their shape
+ */
+export function isPostgrestError(e: unknown): e is PostgrestError {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    "message" in e &&
+    "details" in e &&
+    "hint" in e
+  );
+}
+
 type AuthenticatedAction<T extends unknown[], R> = (
   context: { supabase: SupabaseClient; user: User },
-
   ...args: T
-) => Promise<R>;
+) => Promise<ActionResponse<R>>;
 
+/**
+ * HOC for Server Actions that require authentication.
+ * - Returns ActionResponse<R> on both success and failure (never throws, except redirect).
+ * - PostgrestError → handleDatabaseError (Korean-mapped, no raw DB message leak).
+ * - Unknown Error → generic message ("내부 서버 오류") masks raw stack/message.
+ */
 export function withAuth<T extends unknown[], R>(
   action: AuthenticatedAction<T, R>
 ) {
-  return async (...args: T): Promise<R> => {
-    return withErrorHandling(async () => {
+  return async (...args: T): Promise<ActionResponse<R>> => {
+    try {
       const supabase = await createClient();
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      requireAuth(user?.id);
+      if (!user) return createErrorResponse("UNAUTHORIZED", "로그인이 필요합니다.");
 
-      return action({ supabase, user: user! }, ...args);
-    });
+      return await action({ supabase, user }, ...args);
+    } catch (e) {
+      if (isNextRedirect(e)) throw e;
+      if (e instanceof ActionError)
+        return createErrorResponse(e.code, e.message, e.details);
+      if (isPostgrestError(e))
+        return handleDatabaseError(e);
+      if (e instanceof Error)
+        return createErrorResponse("INTERNAL_ERROR", "내부 서버 오류가 발생했습니다.");
+      return createErrorResponse("UNKNOWN_ERROR");
+    }
   };
 }
 

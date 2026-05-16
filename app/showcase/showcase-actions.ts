@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { processMentionsForSave } from "@/lib/utils";
-import { createSuccessResponse } from "@/lib/types/api";
+import { createSuccessResponse, createErrorResponse } from "@/lib/types/api";
 import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe, generateUniqueShowcaseSlug } from "@/lib/server-utils";
 import { getAdminClient } from "@/lib/supabase/admin";
@@ -345,17 +345,17 @@ export const toggleShowcaseUpvote = withAuth(
         .delete()
         .eq("showcase_id", showcaseId)
         .eq("user_id", user.id);
-      if (error) throw new Error(error.message);
+      if (error) return createErrorResponse("DATABASE_ERROR", "업보트 취소 실패");
     } else {
       const { error } = await supabase
         .from("showcase_upvotes")
         .insert({ showcase_id: showcaseId, user_id: user.id });
-      if (error) throw new Error(error.message);
+      if (error) return createErrorResponse("DATABASE_ERROR", "업보트 실패");
     }
 
     revalidateTagSafe("showcase-all");
     revalidateTagSafe(`showcase-${showcaseId}`);
-    return { success: true };
+    return createSuccessResponse(null);
   }
 );
 

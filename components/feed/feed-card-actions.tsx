@@ -83,7 +83,7 @@ function FeedCardActionsBase({
     onBookmarkStatusChange(newBookmarksCount, newHasBookmarked);
 
     const result = await toggleLogBookmark(logId, hasBookmarked);
-    if ("error" in result && result.error) {
+    if (!result.success) {
       toast.error(result.error.message);
       onBookmarkStatusChange(bookmarksCount, hasBookmarked); // Revert on error
     } else {

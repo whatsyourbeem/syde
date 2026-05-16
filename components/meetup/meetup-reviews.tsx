@@ -72,8 +72,8 @@ export default function MeetupReviews({
 
     startTransition(async () => {
       const result = await createMeetupReview(meetupId, rating, content);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("후기가 성공적으로 등록되었습니다!");
         setContent("");
@@ -106,8 +106,8 @@ export default function MeetupReviews({
         editRating,
         editContent
       );
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("후기가 수정되었습니다!");
         setEditingReviewId(null);
@@ -120,8 +120,8 @@ export default function MeetupReviews({
 
     startTransition(async () => {
       const result = await deleteMeetupReview(reviewId, meetupId);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("후기가 삭제되었습니다.");
       }

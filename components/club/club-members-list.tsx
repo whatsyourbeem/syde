@@ -106,8 +106,8 @@ export default function ClubMembersList({
     setIsLoading(true);
     try {
       const result = await leaveClub(clubId);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("클럽에서 탈퇴했습니다.");
         window.location.reload();

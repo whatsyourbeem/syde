@@ -109,13 +109,13 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
         ? await updateClubPost(formData)
         : await createClubPost(formData);
 
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success(initialData?.postId ? '게시글이 성공적으로 수정되었습니다.' : '게시글이 성공적으로 등록되었습니다.');
         onSuccess();
         if (!initialData?.postId) {
-          router.push(`/club/${clubId}/post/${result.postId}`);
+          router.push(`/club/${clubId}/post/${result.data.postId}`);
         }
       }
     } catch (error) {

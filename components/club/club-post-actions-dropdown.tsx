@@ -37,8 +37,8 @@ export function ClubPostActionsDropdown({ post, clubId, onEditClick }: ClubPostA
     const result = await deleteClubPost(post.id);
     setIsDeleting(false);
 
-    if (result.error) {
-      toast.error(result.error);
+    if (!result.success) {
+      toast.error(result.error.message);
     } else {
       toast.success("게시글이 삭제되었습니다.");
       router.push(`/club/${clubId}`);

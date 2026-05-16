@@ -51,8 +51,8 @@ export default function ClubSidebarInfo({
     setIsLoading(true);
     try {
       const result = await joinClub(clubId);
-      if (result.error) {
-        toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error.message);
       } else {
         toast.success("클럽에 가입되었습니다.");
         window.location.reload();

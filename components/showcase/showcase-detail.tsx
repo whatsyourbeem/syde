@@ -208,10 +208,11 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
     setHasUpvoted(!previousUpvoted);
     setUpvotesCount(previousUpvoted ? previousCount - 1 : previousCount + 1);
 
-    try {
-      await toggleShowcaseUpvote(showcase.id, previousUpvoted);
+    const result = await toggleShowcaseUpvote(showcase.id, previousUpvoted);
+    if (result.success) {
       queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-    } catch (error) {
+    } else {
+      toast.error(result.error.message);
       setHasUpvoted(previousUpvoted);
       setUpvotesCount(previousCount);
     }
@@ -236,19 +237,14 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   const handleDelete = async () => {
     if (user?.id !== showcase.user_id) return;
     setIsDeleting(true);
-    try {
-      const result = await deleteShowcase(showcase.id);
-      if (result && "error" in result) {
-        toast.error("쇼케이스 삭제 실패");
-        setIsDeleting(false); // Only reset if failed
-      } else {
-        // Redirect immediately to prevent 404 on current page
-        router.push("/showcase?deleted=true");
-        router.refresh();
-      }
-    } catch {
-      toast.error("오류가 발생했습니다.");
+    const result = await deleteShowcase(showcase.id);
+    if (!result.success) {
+      toast.error(result.error.message || "쇼케이스 삭제 실패");
       setIsDeleting(false);
+    } else {
+      // Redirect immediately to prevent 404 on current page
+      router.push("/showcase?deleted=true");
+      router.refresh();
     }
   };
 

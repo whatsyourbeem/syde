@@ -354,16 +354,18 @@ export function CommentForm({
     const actionToCall = initialCommentData ? updateAction : createAction;
 
     try {
-      await actionToCall(formData);
-      if (initialCommentData) {
-        if (onCommentUpdated) onCommentUpdated();
+      const result = await actionToCall(formData);
+      if (!result.success) {
+        alert(`Error: ${result.error.message}`);
       } else {
-        formRef.current?.reset();
-        setContent("");
-        if (onCommentAdded) onCommentAdded();
+        if (initialCommentData) {
+          if (onCommentUpdated) onCommentUpdated();
+        } else {
+          formRef.current?.reset();
+          setContent("");
+          if (onCommentAdded) onCommentAdded();
+        }
       }
-    } catch (e) {
-      alert(`Error: ${(e as Error).message}`);
     } finally {
       setIsSubmitting(false);
     }
