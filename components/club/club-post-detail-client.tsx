@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tables, Enums } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { cn } from "@/lib/utils";
@@ -19,7 +20,7 @@ import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 
 // Define a more specific type for the author profile fetched in the post detail
-type PostAuthorProfile = Tables<"profiles">;
+type PostAuthorProfile = PublicProfile;
 type ClubForumPost = Tables<"club_forum_posts"> & {
   author: PostAuthorProfile | null;
   club_forums?: { read_permission: Enums<"club_permission_level_enum"> } | null; // Added back

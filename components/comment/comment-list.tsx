@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CommentCard } from "@/components/comment/comment-card";
 import { Button } from "@/components/ui/button";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 
 interface CommentListProps {
@@ -34,7 +35,7 @@ interface CommentListProps {
 }
 
 type CommentRow = Database["public"]["Tables"]["log_comments"]["Row"];
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileRow = PublicProfile;
 
 type CommentWithRelations = CommentRow & {
   profiles: ProfileRow | null;

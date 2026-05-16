@@ -48,12 +48,13 @@ import { toast } from "sonner";
 import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { deleteLog, toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 
 type FeedWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
-  profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  profiles: PublicProfile | null;
   log_likes: Array<{ user_id: string }>;
   log_bookmarks: Array<{ user_id: string }>;
   log_comments: Array<{ id: string }>;

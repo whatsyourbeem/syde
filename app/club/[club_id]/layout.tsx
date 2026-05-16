@@ -18,13 +18,13 @@ export default async function ClubDetailLayout({
 
   const { data: club, error: clubError } = await supabase
     .from("clubs")
-    .select("*, owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified)")
+    .select("*, owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at)")
     .eq("id", club_id)
     .single();
 
   const { data: members, error: membersError } = await supabase
     .from("club_members")
-    .select("*, profiles(id, username, full_name, avatar_url, tagline, certified)")
+    .select("*, profiles(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at)")
     .eq("club_id", club_id);
 
   if (clubError || membersError || !club) {

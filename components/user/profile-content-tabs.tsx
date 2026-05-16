@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { logout } from "@/app/auth/auth-actions";
 import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import {
@@ -30,7 +31,7 @@ import { useEffect, useState } from "react";
 
 interface ProfileContentTabsProps {
   isOwnProfile: boolean;
-  profile: Tables<"profiles">;
+  profile: PublicProfile;
   currentUserId: string | null;
   initialHtml?: string;
   className?: string;

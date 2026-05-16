@@ -1,6 +1,7 @@
 "use client";
 
 import { Tables } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -8,7 +9,7 @@ import { Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
-type Profile = Tables<"profiles">;
+type Profile = PublicProfile;
 
 interface MemberCardHorizontalProps {
   profile: Profile;

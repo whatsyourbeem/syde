@@ -9,11 +9,9 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Database } from "@/types/database.types";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { getProfileById } from "@/lib/queries/profile-queries";
-
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+import { PublicProfile as Profile } from "@/types/profile";
 
 interface ProfileHoverCardProps {
   userId: string;

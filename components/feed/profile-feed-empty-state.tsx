@@ -3,10 +3,11 @@
 import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 
 interface ProfileFeedEmptyStateProps {
   isOwnProfile: boolean;
-  profile: Tables<"profiles">;
+  profile: PublicProfile;
 }
 
 export function ProfileFeedEmptyState({

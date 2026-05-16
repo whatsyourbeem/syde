@@ -1,8 +1,9 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { unstable_cache } from "next/cache";
 
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileRow = PublicProfile;
 
 export interface ProfilesListResult {
   users: ProfileRow[];

@@ -2,8 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { Tables } from "@/types/database.types";
-
-type Profile = Tables<"profiles">;
+import { PublicProfile as Profile } from "@/types/profile";
 type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 
 export async function getPaginatedClubPosts(

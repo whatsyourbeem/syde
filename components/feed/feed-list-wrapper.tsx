@@ -5,10 +5,11 @@ import { FeedList } from "@/components/feed/feed-list";
 import { FeedCreateButton } from "@/components/feed/feed-create-button";
 import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { FeedQueryResult } from "@/lib/queries/feed-queries";
 
 interface FeedListWrapperProps {
-  user: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  user: PublicProfile | null;
   avatarUrl: string | null;
   filterByUserId?: string;
   filterByCommentedUserId?: string;

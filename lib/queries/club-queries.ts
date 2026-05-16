@@ -1,9 +1,10 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { unstable_cache } from "next/cache";
 
 type ClubRow = Database["public"]["Tables"]["clubs"]["Row"];
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileRow = PublicProfile;
 
 export type ClubWithDetails = ClubRow & {
   owner_profile: ProfileRow | null;
@@ -34,9 +35,9 @@ export async function getUserJoinedClubs(
     .select(`
       clubs (
         *,
-        owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified),
+        owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at),
         member_count:club_members(count),
-        club_members(user_id, profiles(id, username, full_name, avatar_url, tagline, certified))
+        club_members(user_id, profiles(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at))
       )
     `)
     .eq("user_id", userId)
@@ -78,7 +79,7 @@ export async function getClubDetail(
     .from("clubs")
     .select(`
       *,
-      owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified)
+      owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at)
     `)
     .eq("id", clubId)
     .single();

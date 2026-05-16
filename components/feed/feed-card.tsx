@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { deleteLog } from "@/app/feed/feed-actions";
 
 import { FeedCardHeader } from "./feed-card-header";
@@ -16,7 +17,7 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 interface FeedCardProps {
   log: Database["public"]["Tables"]["logs"]["Row"] & {
-    profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    profiles: PublicProfile | null;
     log_likes: Array<{ user_id: string }>;
     log_bookmarks: Array<{ user_id: string }>;
     log_comments: Array<{ id: string }>;

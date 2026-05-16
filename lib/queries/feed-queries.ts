@@ -1,9 +1,10 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { getOptimizedLogs, OptimizedLog, LogQueryOptions, LogQueryResult } from "./log-queries";
 import { getPlainTextFromTiptapJson } from "@/lib/utils";
 
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileRow = PublicProfile;
 type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 
 // ===== Activity Feed Types =====

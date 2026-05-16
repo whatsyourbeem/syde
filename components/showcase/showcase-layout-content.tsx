@@ -5,9 +5,7 @@ import { ShowcaseSidebarButton } from "@/components/showcase/showcase-sidebar-bu
 import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 import { ShowcaseRightSidebar } from "@/components/showcase/right-sidebar";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
-import { Database } from "@/types/database.types";
-
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+import { PublicProfile as Profile } from "@/types/profile";
 
 interface ShowcaseLayoutContentProps {
   user: any;

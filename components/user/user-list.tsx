@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import Image from "next/image";
 import Link from "next/link";
 import { highlightText } from "@/lib/utils";
@@ -33,7 +34,7 @@ export function UserList({ searchQuery }: UserListProps) {
     },
   });
 
-  const users: Database['public']['Tables']['profiles']['Row'][] = data?.users || [];
+  const users: PublicProfile[] = data?.users || [];
   const totalUsersCount = data?.count || 0;
 
   if (isLoading) {

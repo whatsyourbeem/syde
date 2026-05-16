@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Tables } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,7 @@ import { getClubMembers } from "@/app/club/actions"; // Import the fetch action
 import MeetupCard from "@/components/meetup/meetup-card";
 
 // Type Definitions
-type Profile = Tables<"profiles">;
+type Profile = PublicProfile;
 type Meetup = Tables<"meetups"> & {
   organizer_profile: Profile | null;
   clubs: Tables<"clubs"> | null;

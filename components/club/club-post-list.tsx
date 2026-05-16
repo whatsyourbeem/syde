@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Tables } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPlainTextFromTiptapJson } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
-type Profile = Tables<"profiles">;
+type Profile = PublicProfile;
 type ClubForumPost = Tables<"club_forum_posts"> & { author: Profile | null };
 
 interface ClubPostListProps {

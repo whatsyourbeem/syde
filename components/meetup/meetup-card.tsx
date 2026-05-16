@@ -3,13 +3,14 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { MEETUP_STATUSES, MEETUP_STATUS_DISPLAY_NAMES } from "@/lib/constants";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Calendar, MapPin } from "lucide-react";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type MeetupWithOrganizerProfile = Database["public"]["Tables"]["meetups"]["Row"] & {
-  organizer_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  organizer_profile: PublicProfile | null;
   clubs: Database["public"]["Tables"]["clubs"]["Row"] | null;
 };
 

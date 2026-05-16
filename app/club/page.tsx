@@ -12,7 +12,7 @@ export default async function ClubPage() {
   const { data: clubs, error: clubsError } = await supabase
     .from("clubs")
     .select(
-      "*, owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified), member_count:club_members(count), club_members(user_id, profiles(id, username, full_name, avatar_url, tagline, certified))"
+      "*, owner_profile:profiles!clubs_owner_id_fkey(id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified), member_count:club_members(count), club_members(user_id, profiles(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at))"
     )
     .limit(3, { foreignTable: "club_members" })
     .order("created_at", { ascending: false });
@@ -83,7 +83,7 @@ export default async function ClubPage() {
       member_count: Array.isArray(club.member_count)
         ? club.member_count[0]?.count || 0
         : 0,
-      members: club.club_members.map((m) => m.profiles),
+      members: club.club_members.map((m) => m.profiles).filter(Boolean) as NonNullable<typeof club.club_members[0]["profiles"]>[],
     })) || [];
 
   const pageContent = (

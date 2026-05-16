@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { deleteShowcase } from "@/app/showcase/showcase-actions";
 import { ShowcaseCardActions } from "./showcase-card-actions";
 import { ShowcaseThumbnail } from "./showcase-thumbnail";
@@ -17,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 interface ShowcaseCardProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"] & {
-    profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+    profiles: PublicProfile | null;
     showcase_upvotes: Array<{ user_id: string }>;
     showcase_comments: Array<{ id: string }>;
     name?: string | null;

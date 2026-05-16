@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Tables, Enums } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -38,7 +39,7 @@ import {
   CLUB_MEMBER_ROLE_DISPLAY_NAMES,
 } from "@/lib/constants";
 
-type Profile = Tables<"profiles">;
+type Profile = PublicProfile;
 type ClubMember = Tables<"club_members"> & { profiles: Profile | null };
 
 const ROLE_ORDER: Record<Enums<"club_member_role_enum">, number> = {

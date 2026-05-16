@@ -3,15 +3,16 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import Link from "next/link";
 import Image from "next/image";
 import ClubCard from "@/components/club/club-card";
 import { getUserJoinedClubs } from "@/lib/queries/club-queries";
 
 type Club = Database["public"]["Tables"]["clubs"]["Row"] & {
-  owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  owner_profile: PublicProfile | null;
   member_count: number;
-  members: Database["public"]["Tables"]["profiles"]["Row"][];
+  members: PublicProfile[];
 };
 
 interface UserJoinedClubsListProps {

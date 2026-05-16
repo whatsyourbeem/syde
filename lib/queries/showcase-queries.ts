@@ -1,9 +1,10 @@
 import { Database } from "@/types/database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
+import { PublicProfile } from "@/types/profile";
 
 type ShowcaseRow = Database["public"]["Tables"]["showcases"]["Row"];
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileRow = PublicProfile;
 
 export interface ShowcaseMember {
   id: string;

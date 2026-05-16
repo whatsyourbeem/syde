@@ -11,11 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import Image from "next/image";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { Database } from "@/types/database.types";
 import { CLUB_MEMBER_ROLE_DISPLAY_NAMES, ClubMemberRole } from "@/lib/constants";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
-
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+import { PublicProfile as Profile } from "@/types/profile";
 
 interface ClubSidebarInfoProps {
   clubName: string;

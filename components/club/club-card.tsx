@@ -7,12 +7,13 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type Club = Database["public"]["Tables"]["clubs"]["Row"] & {
-  owner_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  owner_profile: PublicProfile | null;
   member_count: number;
-  members: Database["public"]["Tables"]["profiles"]["Row"][]; // Add members array
+  members: PublicProfile[]; // Add members array
 };
 
 interface ClubCardProps {
@@ -21,9 +22,7 @@ interface ClubCardProps {
 
 function ClubCardBase({ club }: ClubCardProps) {
   const router = useRouter();
-  const [randomMembers, setRandomMembers] = useState<
-    Database["public"]["Tables"]["profiles"]["Row"][]
-  >([]);
+  const [randomMembers, setRandomMembers] = useState<PublicProfile[]>([]);
 
   useEffect(() => {
     const shuffled = [...club.members].sort(() => 0.5 - Math.random());

@@ -19,13 +19,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { formatRelativeTime } from "@/lib/utils";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { Edit, Trash2, MoreHorizontal } from "lucide-react";
 
 interface FeedCardHeaderProps {
   log: Database['public']['Tables']['logs']['Row'] & {
-    profiles: Database['public']['Tables']['profiles']['Row'] | null;
+    profiles: PublicProfile | null;
   };
   currentUserId: string | null;
   onDelete: () => void;

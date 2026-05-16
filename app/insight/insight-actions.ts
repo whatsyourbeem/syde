@@ -123,7 +123,7 @@ export const toggleInsightLike = withAuth(
 
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${insightId}`);
-    return { success: true };
+    return createSuccessResponse(null);
   }
 );
 
@@ -145,7 +145,7 @@ export const toggleInsightBookmark = withAuth(
 
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${insightId}`);
-    return { success: true };
+    return createSuccessResponse(null);
   }
 );
 

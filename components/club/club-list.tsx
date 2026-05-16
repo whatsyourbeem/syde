@@ -1,11 +1,12 @@
 
 import ClubCard from './club-card';
 import { Database } from '@/types/database.types';
+import { PublicProfile } from '@/types/profile';
 
 type Club = Database['public']['Tables']['clubs']['Row'] & {
-  owner_profile: Database['public']['Tables']['profiles']['Row'] | null;
+  owner_profile: PublicProfile | null;
   member_count: number;
-  members: Database['public']['Tables']['profiles']['Row'][]; // Add members array
+  members: PublicProfile[]; // Add members array
 };
 
 interface ClubListProps {

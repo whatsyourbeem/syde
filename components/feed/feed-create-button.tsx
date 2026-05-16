@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { FeedEditDialog } from "@/components/feed/feed-edit-dialog";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 
 interface FeedCreateButtonProps {
-  user: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  user: PublicProfile | null;
   avatarUrl: string | null;
 }
 

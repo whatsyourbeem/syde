@@ -2,8 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Tables } from "@/types/database.types";
 import MeetupCard from "@/components/meetup/meetup-card";
-
-type Profile = Tables<"profiles">;
+import { PublicProfile as Profile } from "@/types/profile";
 type Meetup = Tables<"meetups"> & {
   organizer_profile: Profile | null;
   clubs: Tables<"clubs"> | null;

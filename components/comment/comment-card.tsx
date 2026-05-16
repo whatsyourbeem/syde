@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 import { deleteComment as deleteInsightComment } from "@/app/insight/insight-actions";
 
 import {
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type ProcessedComment = Database["public"]["Tables"]["log_comments"]["Row"] & {
-  profiles: Database["public"]["Tables"]["profiles"]["Row"] | null;
+  profiles: PublicProfile | null;
   initialLikesCount: number;
   initialHasLiked: boolean;
   replies?: ProcessedComment[]; // Add replies property

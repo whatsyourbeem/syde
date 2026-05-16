@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { Database } from "@/types/database.types";
+import { PublicProfile } from "@/types/profile";
 
 // Types copied from log-queries.ts to make this a self-contained server-side module
 type LogRow = Database["public"]["Tables"]["logs"]["Row"];
-type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileRow = PublicProfile;
 
 export interface OptimizedLog extends LogRow {
   profiles: ProfileRow | null;
