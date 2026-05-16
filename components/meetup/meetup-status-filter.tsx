@@ -12,7 +12,7 @@ import {
 export default function MeetupStatusFilter({
   searchParams,
 }: {
-  searchParams: { status?: string; type?: string; page?: string };
+  searchParams: { status?: string; type?: string };
 }) {
   const router = useRouter();
   const currentStatus = searchParams.status || "전체";
