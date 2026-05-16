@@ -25,13 +25,15 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function generateUniqueShowcaseSlug(
+export async function generateUniqueSlug(
   supabase: SupabaseClient,
+  table: "showcases" | "insights",
   name: string
 ): Promise<string> {
-  let slug = slugify(name) || "project";
+  const fallback = table === "showcases" ? "project" : "post";
+  let slug = slugify(name) || fallback;
   const { data: existing } = await supabase
-    .from("showcases")
+    .from(table)
     .select("id")
     .eq("slug", slug)
     .maybeSingle();
@@ -39,4 +41,11 @@ export async function generateUniqueShowcaseSlug(
     slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
   }
   return slug;
+}
+
+export async function generateUniqueShowcaseSlug(
+  supabase: SupabaseClient,
+  name: string
+): Promise<string> {
+  return generateUniqueSlug(supabase, "showcases", name);
 }

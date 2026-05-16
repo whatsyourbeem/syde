@@ -4,12 +4,11 @@ import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
-import { revalidateInsightAction } from "@/app/insight/insight-actions";
+import { createInsight, updateInsight } from "@/app/insight/insight-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 const TiptapEditorWrapper = dynamic(
@@ -32,13 +31,13 @@ interface InsightEditFormProps {
         content: JSONContent | string;
         image_url: string | null;
         user_id: string;
+        slug: string | null;
     } | null;
 }
 
 export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
-    const supabase = createClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isEditMode = !!initialData;
 
@@ -71,61 +70,34 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         }
 
         setLoading(true);
+
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("summary", summary);
+        formData.append("content", contentString);
+        formData.append("imageUrl", imageUrl || "");
+
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                toast.error("로그인이 필요합니다.");
-                return;
-            }
-
             if (isEditMode && initialData) {
-                // Determine if we need to call a server action or update directly via supabase client.
-                // Looking at the app/meetup/[meetup_id]/edit/page.tsx, the meetup-edit-form uses a Server Action (`updateMeetup`). 
-                // BUT the previous `app/insight/write/page.tsx` was using direct supabase client calls. 
-                // To keep it simple and consistent with what worked, we will stick to the supabase client calls here for now.
-                const { error } = await supabase
-                    .from("insights")
-                    .update({
-                        title,
-                        summary,
-                        content: contentString,
-                        image_url: imageUrl || null
-                    })
-                    .eq("id", initialData.id)
-                    .eq("user_id", user.id);
-
-                if (error) throw error;
-                await revalidateInsightAction(initialData.id);
-                queryClient.invalidateQueries({ queryKey: ["insights"] });
-                toast.success("인사이트가 수정되었습니다!");
-                router.push(`/insight/${initialData.id}`);
+                formData.append("id", initialData.id);
+                const result = await updateInsight(formData);
+                if (!result.success) {
+                    toast.error(`수정 실패: ${result.error.message}`);
+                } else {
+                    queryClient.invalidateQueries({ queryKey: ["insights"] });
+                    toast.success("인사이트가 수정되었습니다!");
+                    router.push(`/insight/${initialData.slug || initialData.id}`);
+                }
             } else {
-                const { data, error } = await supabase
-                    .from("insights")
-                    .insert([
-                        {
-                            user_id: user.id,
-                            title,
-                            summary,
-                            content: contentString,
-                            image_url: imageUrl || null
-                        }
-                    ])
-                    .select()
-                    .single();
-
-                if (error) throw error;
-                await revalidateInsightAction(data.id);
-                queryClient.invalidateQueries({ queryKey: ["insights"] });
-
-                toast.success("인사이트가 등록되었습니다!");
-                router.push(`/insight/${data.id}`);
+                const result = await createInsight(formData);
+                if (!result.success) {
+                    toast.error(`등록 실패: ${result.error.message}`);
+                } else {
+                    queryClient.invalidateQueries({ queryKey: ["insights"] });
+                    toast.success("인사이트가 등록되었습니다!");
+                    router.push(`/insight/${result.data.slug || result.data.id}`);
+                }
             }
-        } catch (error) {
-            console.error("Error submitting insight:", error);
-            const errMsg = error instanceof Error ? error.message : "알 수 없는 오류";
-            toast.error(`${isEditMode ? '수정' : '등록'} 실패: ${errMsg}`);
         } finally {
             setLoading(false);
         }

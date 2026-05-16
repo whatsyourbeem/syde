@@ -6,6 +6,64 @@ import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe } from "@/lib/server-utils";
 
+export const createInsight = withAuth(
+  async ({ supabase, user }, formData: FormData) => {
+    const title = validateRequired(formData.get("title") as string | null, "제목");
+    const summary = formData.get("summary") as string | null;
+    const content = formData.get("content") as string | null;
+    const imageUrl = formData.get("imageUrl") as string | null;
+
+    // slug는 DB 트리거(trig_handle_insight_slug)가 title 기반으로 자동 생성
+    const { data, error } = await supabase
+      .from("insights")
+      .insert({
+        user_id: user.id,
+        title,
+        summary,
+        content: content ? JSON.parse(content) : null,
+        image_url: imageUrl || null,
+      })
+      .select("id, slug")
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/insight");
+    revalidateTagSafe("insight-all");
+    return createSuccessResponse({ id: data.id, slug: data.slug });
+  }
+);
+
+export const updateInsight = withAuth(
+  async ({ supabase, user }, formData: FormData) => {
+    const id = validateRequired(formData.get("id") as string | null, "인사이트 ID");
+    const title = validateRequired(formData.get("title") as string | null, "제목");
+    const summary = formData.get("summary") as string | null;
+    const content = formData.get("content") as string | null;
+    const imageUrl = formData.get("imageUrl") as string | null;
+
+    const { error } = await supabase
+      .from("insights")
+      .update({
+        title,
+        summary,
+        content: content ? JSON.parse(content) : null,
+        image_url: imageUrl || null,
+        // slug은 최초 생성 후 변경하지 않음 (외부 공유 URL 보호)
+      })
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/insight");
+    revalidatePath(`/insight/${id}`);
+    revalidateTagSafe("insight-all");
+    revalidateTagSafe(`insight-${id}`);
+    return createSuccessResponse({ id });
+  }
+);
+
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const content = validateRequired(formData.get("content") as string | null, "댓글");
