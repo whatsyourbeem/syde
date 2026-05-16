@@ -6,12 +6,24 @@ import {
   MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
 import MeetupCard from "@/components/meetup/meetup-card";
+import { MeetupCreateFab } from "@/components/meetup/meetup-create-fab";
 export default async function MeetupPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string; page?: string }>;
 }) {
   const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  let isCertified = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("certified")
+      .eq("id", user.id)
+      .single();
+    isCertified = profile?.certified === true;
+  }
 
   const awaitedSearchParams = await searchParams;
   const selectedStatus = awaitedSearchParams.status;
@@ -159,6 +171,7 @@ export default async function MeetupPage({
       <div className="max-w-6xl mx-auto">
         {pageContent}
       </div>
+      {isCertified && <MeetupCreateFab />}
     </div>
   );
 }
