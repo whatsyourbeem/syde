@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Database, Enums } from "@/types/database.types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { MEETUP_PARTICIPANT_STATUSES } from "@/lib/constants";
-import { redirect } from "next/navigation";
+
 import { withAuth, validateRequired } from "@/lib/error-handler";
 import { createSuccessResponse, createErrorResponse } from "@/lib/types/api";
 import { revalidateTagSafe } from "@/lib/server-utils";
@@ -133,7 +133,7 @@ export const updateMeetup = withAuth(
     revalidateTagSafe(`meetup-${meetupId}`);
     if (clubId) revalidateTagSafe("club-all");
 
-    redirect(`/meetup/${meetupId}`);
+    return createSuccessResponse({ meetupId });
   }
 );
 
