@@ -189,29 +189,9 @@ export function withAuth<T extends unknown[], R>(
         data: { user },
       } = await supabase.auth.getUser();
 
-      let currentUser = user;
+      requireAuth(user?.id);
 
-      // 로컬 개발 전용 mock 사용자 주입.
-      // 반드시 .env.local에서 명시적으로 opt-in 해야 활성화됨.
-      // NODE_ENV 기반 자동 주입은 Preview/스테이징 환경 혼용 위험으로 제거됨.
-      if (!currentUser && process.env.SYDE_DEV_MOCK_USER === "1") {
-        console.warn("[SYDE] Dev mock user active — 운영 환경에서는 절대 사용하지 마세요.");
-        currentUser = {
-          id: "11111111-1111-1111-1111-111111111111",
-          email: "test@example.com",
-          user_metadata: {
-            username: "testuser",
-            full_name: "Test User",
-          },
-          app_metadata: {},
-          aud: "authenticated",
-          created_at: new Date().toISOString(),
-        } as User;
-      }
-
-      requireAuth(currentUser?.id);
-
-      return action({ supabase, user: currentUser! }, ...args);
+      return action({ supabase, user: user! }, ...args);
     });
   };
 }
