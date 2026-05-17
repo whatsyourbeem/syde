@@ -79,12 +79,12 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   const queryClient = useQueryClient();
   const { openLoginDialog } = useLoginDialog();
 
-  // Increment view count once per 24h per browser via localStorage
+  // Increment view count once per 1h per browser via localStorage
   useEffect(() => {
     const key = `viewed_showcase_${showcase.id}`;
     const lastViewed = localStorage.getItem(key);
     const now = Date.now();
-    if (!lastViewed || now - parseInt(lastViewed) > 24 * 60 * 60 * 1000) {
+    if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
       incrementShowcaseView(showcase.id);
       localStorage.setItem(key, String(now));
       setViewsCount(prev => prev + 1);
