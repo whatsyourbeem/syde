@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -477,6 +497,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          views: number
         }
         Insert: {
           content: string
@@ -488,6 +509,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          views?: number
         }
         Update: {
           content?: string
@@ -499,6 +521,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          views?: number
         }
         Relationships: [
           {
@@ -794,7 +817,6 @@ export type Database = {
           status: Database["public"]["Enums"]["meetup_status_enum"]
           thumbnail_url: string | null
           title: string
-          type: Database["public"]["Enums"]["meetup_type_enum"] | null
         }
         Insert: {
           address?: string | null
@@ -811,7 +833,6 @@ export type Database = {
           status?: Database["public"]["Enums"]["meetup_status_enum"]
           thumbnail_url?: string | null
           title: string
-          type?: Database["public"]["Enums"]["meetup_type_enum"] | null
         }
         Update: {
           address?: string | null
@@ -828,7 +849,6 @@ export type Database = {
           status?: Database["public"]["Enums"]["meetup_status_enum"]
           thumbnail_url?: string | null
           title?: string
-          type?: Database["public"]["Enums"]["meetup_type_enum"] | null
         }
         Relationships: [
           {
@@ -1240,6 +1260,10 @@ export type Database = {
           views_count: number
         }[]
       }
+      increment_insight_views: {
+        Args: { insight_id: string }
+        Returns: undefined
+      }
       increment_showcase_view: {
         Args: { p_showcase_id: string }
         Returns: undefined
@@ -1254,7 +1278,6 @@ export type Database = {
         | "APPLY_AVAILABLE"
         | "APPLY_CLOSED"
         | "ENDED"
-      meetup_type_enum: "INSYDE" | "SPINOFF"
       showcase_award_type: "SYDE_PICK"
     }
     CompositeTypes: {
@@ -1381,6 +1404,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       club_member_role_enum: ["LEADER", "FULL_MEMBER", "GENERAL_MEMBER"],
@@ -1392,8 +1418,8 @@ export const Constants = {
         "APPLY_CLOSED",
         "ENDED",
       ],
-      meetup_type_enum: ["INSYDE", "SPINOFF"],
       showcase_award_type: ["SYDE_PICK"],
     },
   },
 } as const
+

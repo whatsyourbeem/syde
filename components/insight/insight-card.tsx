@@ -30,6 +30,7 @@ export interface InsightCardProps {
         likes: number;
         comments: number;
         bookmarks: number;
+        views?: number;
     };
     initialStatus?: {
         hasLiked: boolean;
@@ -202,6 +203,7 @@ export function InsightCard({
                         shareUrl={`/insight/${slug || id}`}
                         shareTitle={title}
                         className="px-3 pt-0 md:pt-1 pb-1"
+                        showShare={false}
                     />
                 </div>
             )}

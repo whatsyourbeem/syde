@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { InsightThumbnail } from "./insight-thumbnail";
 import { deleteInsight } from "@/lib/queries/insight-queries";
-import { toggleInsightLike, toggleInsightBookmark } from "@/app/insight/insight-actions";
+import { toggleInsightLike, toggleInsightBookmark, incrementInsightViews } from "@/app/insight/insight-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface InsightDetailClientProps {
@@ -40,7 +40,7 @@ interface InsightDetailClientProps {
     initialInsight: any;
     initialHtml?: string;
     initialComments: any[];
-    initialStats: { likes: number; comments: number; bookmarks: number };
+    initialStats: { likes: number; comments: number; bookmarks: number; views?: number };
     initialIsLiked: boolean;
     initialIsBookmarked: boolean;
     initialCurrentUserId: string | null;
@@ -62,6 +62,7 @@ export default function InsightDetailClient({
     const [isMounted, setIsMounted] = useState(false);
     const [insight, setInsight] = useState<any>(initialInsight);
     const [stats, setStats] = useState(initialStats);
+    const [viewsCount, setViewsCount] = useState(initialStats.views ?? 0);
     const [isLiked, setIsLiked] = useState(initialIsLiked);
     const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
     
@@ -86,6 +87,19 @@ export default function InsightDetailClient({
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    // Increment view count once per 1h per browser via localStorage
+    useEffect(() => {
+        const key = `viewed_insight_${id}`;
+        const lastViewed = localStorage.getItem(key);
+        const now = Date.now();
+        if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
+            incrementInsightViews(id);
+            localStorage.setItem(key, String(now));
+            setViewsCount(prev => prev + 1);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     useEffect(() => {
         if (currentUserId && insight?.user_id) {
@@ -309,7 +323,7 @@ export default function InsightDetailClient({
                     <InteractionActions
                         id={id}
                         type="insight"
-                        stats={stats}
+                        stats={{ ...stats, views: viewsCount }}
                         status={{
                             hasLiked: isLiked,
                             hasBookmarked: isBookmarked

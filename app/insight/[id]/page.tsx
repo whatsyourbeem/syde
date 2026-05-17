@@ -161,7 +161,8 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
     const stats = {
         likes: likesCount || 0,
         comments: comments?.length || 0,
-        bookmarks: bookmarksCount || 0
+        bookmarks: bookmarksCount || 0,
+        views: (insight as any).views || 0
     };
 
     let plainText = "";
