@@ -55,7 +55,9 @@ export function useImageUpload(): UseImageUploadResult {
       // 3. Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(filePath, compressed);
+        .upload(filePath, compressed, {
+          cacheControl: '31536000',
+        });
 
       if (uploadError) {
         throw uploadError;

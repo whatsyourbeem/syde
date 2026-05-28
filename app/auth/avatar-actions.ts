@@ -22,7 +22,7 @@ export async function uploadAvatarFromUrl(userId: string, imageUrl: string) {
     const { error: uploadError } = await supabase.storage
       .from('profiles') // Use the 'profiles' bucket
       .upload(filePath, imageBlob, {
-        cacheControl: '3600',
+        cacheControl: '31536000',
         upsert: true, // Overwrite if file exists (though UUID should prevent this)
       });
 
