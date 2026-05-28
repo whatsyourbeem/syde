@@ -337,6 +337,7 @@ export default function InsightDetailClient({
                         shareUrl={`/insight/${id}`}
                         shareTitle={insight.title}
                         className="w-full max-w-2xl h-16 px-6"
+                        showShare={false}
                     />
                 </div>
 
