@@ -88,35 +88,42 @@ export async function getProfileByUsername(
   return data;
 }
 
-export const getProfileByUsernameCached = (
+export const getProfileByUsernameCached = async (
   supabase: SupabaseClient<Database>,
   username: string
-) => {
-  return unstable_cache(
-    async () => {
-      return getProfileByUsername(supabase, username);
-    },
+): Promise<ProfileRow | null> => {
+  const cached = unstable_cache(
+    async () => getProfileByUsername(supabase, username),
     ["profile-detail", username],
     {
       revalidate: 3600,
       tags: ["profile-all", `profile-${username}`],
     }
-  )();
+  );
+  const result = await cached();
+  // null(프로필 없음)은 캐시 히트로 계속 서빙되지 않도록 재조회
+  if (result === null) {
+    return getProfileByUsername(supabase, username);
+  }
+  return result;
 };
 
-export const getProfileByIdCached = (
+export const getProfileByIdCached = async (
   supabase: SupabaseClient<Database>,
   userId: string
-) => {
-  return unstable_cache(
-    async () => {
-      return getProfileById(supabase, userId);
-    },
+): Promise<ProfileRow | null> => {
+  const cached = unstable_cache(
+    async () => getProfileById(supabase, userId),
     ["profile-by-id", userId],
     {
       revalidate: 3600,
       tags: ["profile-all", `profile-id-${userId}`],
     }
-  )();
+  );
+  const result = await cached();
+  if (result === null) {
+    return getProfileById(supabase, userId);
+  }
+  return result;
 };
 
