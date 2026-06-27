@@ -359,6 +359,28 @@ export const toggleShowcaseUpvote = withAuth(
   }
 );
 
+export const bumpShowcase = withAuth(async ({ supabase }, showcaseId: string) => {
+  const { data, error } = await supabase.rpc("bump_showcase", {
+    p_showcase_id: showcaseId,
+  });
+
+  if (error) {
+    console.error("Failed to bump showcase:", error);
+    return createErrorResponse("DATABASE_ERROR", "끌어올리기에 실패했어요.");
+  }
+
+  // RPC가 0개 row를 반환하면 소유자가 아니거나 아직 7일이 지나지 않은 경우
+  if (!data || data.length === 0) {
+    return createErrorResponse("FORBIDDEN", "아직 끌어올릴 수 없어요.");
+  }
+
+  revalidatePath("/showcase");
+  revalidateTagSafe("showcase-all");
+  revalidateTagSafe(`showcase-${showcaseId}`);
+
+  return createSuccessResponse(data[0]);
+});
+
 // Increments view count via SECURITY DEFINER RPC (bypasses RLS)
 export async function incrementShowcaseView(showcaseId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");

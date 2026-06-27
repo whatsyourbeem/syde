@@ -1140,6 +1140,8 @@ export type Database = {
       showcases: {
         Row: {
           appstore_url: string | null
+          bump_count: number
+          bumped_at: string
           created_at: string | null
           description: Json | null
           id: string
@@ -1156,6 +1158,8 @@ export type Database = {
         }
         Insert: {
           appstore_url?: string | null
+          bump_count?: number
+          bumped_at?: string
           created_at?: string | null
           description?: Json | null
           id?: string
@@ -1172,6 +1176,8 @@ export type Database = {
         }
         Update: {
           appstore_url?: string | null
+          bump_count?: number
+          bumped_at?: string
           created_at?: string | null
           description?: Json | null
           id?: string
@@ -1240,6 +1246,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bump_showcase: {
+        Args: { p_showcase_id: string }
+        Returns: {
+          bump_count: number
+          bumped_at: string
+          next_bump_at: string
+        }[]
+      }
       generate_insight_slug: { Args: { title_text: string }; Returns: string }
       generate_showcase_slug: { Args: { name_text: string }; Returns: string }
       get_club_member_role: {
