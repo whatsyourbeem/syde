@@ -64,6 +64,7 @@ import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { SydePickBadge } from "./syde-pick-badge";
+import { ShowcaseBumpBar } from "./showcase-bump-bar";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -546,6 +547,20 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
 
             </div>
           </div>
+
+          {/* Bump Bar (author only): 게시판 최상단으로 끌어올리기 */}
+          {isAuthor && (
+            <div className="w-full mt-4 flex justify-center">
+              <div className="w-full max-w-xs">
+                <ShowcaseBumpBar
+                  showcaseId={showcase.id}
+                  ownerId={showcase.user_id}
+                  currentUserId={user?.id ?? null}
+                  bumpedAt={showcase.bumped_at}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
