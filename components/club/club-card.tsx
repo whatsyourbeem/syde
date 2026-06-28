@@ -67,7 +67,7 @@ function ClubCardBase({ club }: ClubCardProps) {
                 profileData={club.owner_profile}
               >
                 <div className="flex items-center gap-2">
-                  <Link href={`/${club.owner_profile?.username}`}>
+                  <Link href={`/@${club.owner_profile?.username}`}>
                     <Avatar className="size-5 md:size-6">
                       <AvatarImage
                         src={club.owner_profile?.avatar_url || undefined}
@@ -78,7 +78,7 @@ function ClubCardBase({ club }: ClubCardProps) {
                     </Avatar>
                   </Link>
                   <p className="flex items-center gap-1">
-                    <Link href={`/${club.owner_profile?.username}`}>
+                    <Link href={`/@${club.owner_profile?.username}`}>
                       <span className="font-semibold text-black hover:underline">
                         {club.owner_profile?.full_name ||
                           club.owner_profile?.username ||

@@ -193,7 +193,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         "author": {
             "@type": "Person",
             "name": insight.profiles?.full_name || insight.profiles?.username || "SYDER",
-            "url": insight.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${insight.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"),
+            "url": insight.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${insight.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"),
             "jobTitle": insight.profiles?.tagline || "메이커"
         },
         "publisher": {

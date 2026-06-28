@@ -66,7 +66,7 @@ export function linkifyMentions(
       return (
         <Link
           key={`mention-${i}`} // Ensure unique key for Link
-          href={`/${username}`}
+          href={`/@${username}`}
           className="text-blue-500 hover:underline font-semibold"
           onClick={(e) => e.stopPropagation()}
         >

@@ -44,7 +44,7 @@ export default async function ProfilePage() {
         <div className="flex flex-col justify-center items-start p-5 gap-4 border-b-[0.5px] border-[#B7B7B7] w-full">
           <div className="flex flex-row items-center gap-4">
             <Link 
-              href={username ? `/${username}` : "/"}
+              href={username ? `/@${username}` : "/"}
               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
             >
               <ChevronLeft className="w-6 h-6 text-[#434343]" />

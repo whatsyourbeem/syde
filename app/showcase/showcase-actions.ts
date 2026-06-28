@@ -97,7 +97,7 @@ export const createShowcase = withAuthForm(
     revalidatePath("/");
     revalidatePath("/showcase");
     if (user?.user_metadata?.username) {
-      revalidatePath(`/${user.user_metadata.username}`);
+      revalidatePath(`/@${user.user_metadata.username}`);
     }
     revalidatePath(`/showcase/${showcaseId}`);
 
@@ -213,7 +213,7 @@ export const updateShowcase = withAuthForm(
 
     revalidatePath("/");
     if (user?.user_metadata?.username) {
-      revalidatePath(`/${user.user_metadata.username}`);
+      revalidatePath(`/@${user.user_metadata.username}`);
     }
     revalidatePath(`/showcase/${showcaseId}`);
 
@@ -328,7 +328,7 @@ export const deleteShowcase = withAuth(async ({ supabase, user }, showcaseId: st
   revalidatePath("/");
   revalidatePath("/showcase");
   if (user.user_metadata.username) {
-    revalidatePath(`/${user.user_metadata.username}`);
+    revalidatePath(`/@${user.user_metadata.username}`);
   }
 
   revalidateTagSafe("showcase-all");

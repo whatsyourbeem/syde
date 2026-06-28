@@ -172,7 +172,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
               {(section.items as any[]).map((user) => (
                 <Link
                   key={user.id}
-                  href={`/${user.username}`}
+                  href={`/@${user.username}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <div className="relative w-9 h-9 shrink-0 rounded-full overflow-hidden bg-gray-200">

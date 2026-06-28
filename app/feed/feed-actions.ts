@@ -29,7 +29,7 @@ export const createLog = withAuthForm(
     revalidatePath("/");
     revalidatePath("/feed");
     if (user?.user_metadata?.username) {
-      revalidatePath(`/${user.user_metadata.username}`);
+      revalidatePath(`/@${user.user_metadata.username}`);
     }
 
     return { id: log.id };
@@ -73,7 +73,7 @@ export const updateLog = withAuthForm(
 
     revalidatePath("/");
     if (user?.user_metadata?.username) {
-      revalidatePath(`/${user.user_metadata.username}`);
+      revalidatePath(`/@${user.user_metadata.username}`);
     }
     revalidatePath(`/feed/${logId}`);
 
@@ -192,7 +192,7 @@ export const toggleLogBookmark = withAuth(
     revalidatePath("/");
     revalidatePath(`/feed/${logId}`);
     if (user?.user_metadata?.username) {
-      revalidatePath(`/${user.user_metadata.username}`);
+      revalidatePath(`/@${user.user_metadata.username}`);
     }
 
     return createSuccessResponse(null);

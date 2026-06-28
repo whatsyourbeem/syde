@@ -39,7 +39,7 @@ export default function MemberCardHorizontal({
           isCurrentUser ? "bg-gray-50" : ""
         }`}
       >
-        <Link href={`/${profile.username}`} className="block w-full min-w-0">
+        <Link href={`/@${profile.username}`} className="block w-full min-w-0">
           <div className="relative w-12 mx-auto">
             <Avatar className="size-12">
               <AvatarImage src={profile.avatar_url || undefined} />

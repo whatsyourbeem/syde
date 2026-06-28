@@ -327,7 +327,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
             <div className="flex items-center">
               <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
                 <div className="flex items-center cursor-pointer">
-                  <Link href={`/${log.profiles?.username || log.user_id}`} className="shrink-0 mr-3">
+                  <Link href={`/@${log.profiles?.username || log.user_id}`} className="shrink-0 mr-3">
                     <Avatar className="size-8">
                       <AvatarImage
                         src={avatarUrlWithCacheBuster || undefined}
@@ -340,7 +340,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
                     </Avatar>
                   </Link>
                   <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
-                    <Link href={`/${log.profiles?.username || log.user_id}`}>
+                    <Link href={`/@${log.profiles?.username || log.user_id}`}>
                       <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
                         {log.profiles?.full_name ||
                           log.profiles?.username ||

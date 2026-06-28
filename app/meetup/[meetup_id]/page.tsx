@@ -154,7 +154,7 @@ export default async function MeetupDetailPage({ params }: PageProps) {
     "organizer": {
       "@type": "Person",
       "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER",
-      "url": meetup.organizer_profile?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${meetup.organizer_profile.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
+      "url": meetup.organizer_profile?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${meetup.organizer_profile.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
     }
   };
 

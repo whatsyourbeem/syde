@@ -235,7 +235,7 @@ export function CommentCard({
             userId={comment.user_id}
             profileData={comment.profiles}
           >
-            <Link href={`/${comment.profiles?.username || comment.user_id}`}>
+            <Link href={`/@${comment.profiles?.username || comment.user_id}`}>
               {avatarUrlWithCacheBuster && (
                 <div className="relative w-9 h-9 overflow-hidden shrink-0 rounded-full bg-[#D9D9D9]">
                   <Image
@@ -257,7 +257,7 @@ export function CommentCard({
             >
               <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0 cursor-pointer">
                 <Link
-                  href={`/${comment.profiles?.username || comment.user_id}`}
+                  href={`/@${comment.profiles?.username || comment.user_id}`}
                   className="min-w-0"
                 >
                   <div className="flex items-center gap-1">

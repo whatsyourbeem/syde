@@ -7,18 +7,12 @@ import { Separator } from "@/components/ui/separator";
 export function HeaderNavigationWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // 프로필 페이지 여부 판단 (/[username] 형태이며 정적 루트가 아닌 경우)
+  // 프로필 페이지 여부 판단 (/@username 형태)
   const segments = pathname.split("/").filter(Boolean);
-  const staticRoutes = [
-    "feed", "log", "insight", "meetup", "club", "search", 
-    "profile", "auth", "guideline", "term", 
-    "privacy", "about", "gathering", "showcase",
-    "password-protect"
-  ];
-  
-  const isProfilePage = 
-    segments.length === 1 && 
-    !staticRoutes.includes(segments[0]);
+
+  const isProfilePage =
+    segments.length === 1 &&
+    segments[0].startsWith("@");
 
   return (
     <div className={cn(

@@ -56,7 +56,7 @@ export function UserList({ searchQuery }: UserListProps) {
       ) : (
         users.map((userProfile) => (
           <div key={userProfile.id} className="border rounded-lg p-4 flex items-center space-x-4 bg-card shadow-sm">
-            <Link href={`/${userProfile.username || userProfile.id}`}>
+            <Link href={`/@${userProfile.username || userProfile.id}`}>
               {userProfile.avatar_url ? (
                 <Image
                   src={`${userProfile.avatar_url}?t=${userProfile.updated_at ? new Date(userProfile.updated_at).getTime() : ''}`}
@@ -76,7 +76,7 @@ export function UserList({ searchQuery }: UserListProps) {
               )}
             </Link>
             <div className="flex-grow">
-              <Link href={`/${userProfile.username || userProfile.id}`}>
+              <Link href={`/@${userProfile.username || userProfile.id}`}>
                 <p className="font-semibold text-lg hover:underline">
                   {highlightText(userProfile.full_name || userProfile.username || "Anonymous", searchQuery)}
                 </p>

@@ -138,7 +138,7 @@ export default async function ShowcaseDetailPage({
     "author": {
       "@type": "Person",
       "name": showcase.profiles?.full_name || showcase.profiles?.username || "SYDER",
-      "url": showcase.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${showcase.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
+      "url": showcase.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${showcase.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
     },
     "publisher": {
       "@type": "Organization",
