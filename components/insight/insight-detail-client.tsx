@@ -281,7 +281,7 @@ export default function InsightDetailClient({
                                 {/* Author Profile Area */}
                                 <div className="flex flex-col items-center mt-auto mx-auto gap-1">
                                     <ProfileHoverCard userId={insight.user_id}>
-                                        <Link href={`/${insight.user_id}`} className="flex items-center gap-[5px] w-fit justify-center">
+                                        <Link href={`/@${insight.user_id}`} className="flex items-center gap-[5px] w-fit justify-center">
                                             <Avatar className="w-5 h-5">
                                                 <AvatarImage src={insight.profiles?.avatar_url} />
                                                 <AvatarFallback className="bg-[#D9D9D9]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>

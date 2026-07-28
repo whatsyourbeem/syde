@@ -85,7 +85,7 @@ export default function ClubPostDetailClient({
       ) : (
         <>
           <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-          <Link href={`/${post.author?.username || post.author?.id}`} className="block">
+          <Link href={`/@${post.author?.username || post.author?.id}`} className="block">
             <div className="flex items-center gap-3 text-sm text-muted-foreground mb-6">
               <ProfileHoverCard userId={post.author?.id || ""} profileData={post.author} disableHover={true}>
                 <Avatar className="size-8">

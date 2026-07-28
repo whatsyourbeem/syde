@@ -56,7 +56,7 @@ export default function ProfileHoverCard({
             <p>로딩 중...</p>
           </div>
         ) : (
-          <Link href={`/${profile?.username || profile?.id}`}>
+          <Link href={`/@${profile?.username || profile?.id}`}>
             <div className="flex justify-start space-x-3">
               <Avatar className="size-16">
                 <AvatarImage src={profile?.avatar_url || undefined} />

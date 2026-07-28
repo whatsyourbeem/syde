@@ -362,7 +362,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                   >
                     <div>
                       <Link
-                        href={`/${showcase.profiles?.username || showcase.user_id}`}
+                        href={`/@${showcase.profiles?.username || showcase.user_id}`}
                         className="flex items-center gap-[5px] cursor-pointer"
                       >
                         <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
@@ -482,7 +482,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
                   <div>
                     <Link
-                      href={`/${showcase.profiles?.username || showcase.user_id}`}
+                      href={`/@${showcase.profiles?.username || showcase.user_id}`}
                       className="flex flex-row items-center gap-[5px] h-5 cursor-pointer"
                     >
                       <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
@@ -829,7 +829,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 profileData={member.profileData}
               >
                 <div>
-                  <Link href={`/${member.username || member.userId}`} className="block">
+                  <Link href={`/@${member.username || member.userId}`} className="block">
                     <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
                       {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
                       {member.role === "author" && (

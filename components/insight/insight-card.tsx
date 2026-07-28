@@ -168,7 +168,7 @@ export function InsightCard({
 
                 {/* Author Info Area - Separate Link to Profile */}
                 <ProfileHoverCard userId={author.id}>
-                    <Link href={`/${author.id}`} className={cn(
+                    <Link href={`/@${author.id}`} className={cn(
                         "flex items-center gap-[5px] mt-auto w-fit",
                         isCentered && "justify-center mx-auto"
                     )}>

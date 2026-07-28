@@ -238,7 +238,7 @@ export default function MeetupReviews({
                       <div className="flex items-start min-w-0">
                         <ProfileHoverCard userId={review.user_id} profileData={review.profiles as any}>
                           <div className="flex items-start cursor-pointer min-w-0">
-                            <Link href={`/${review.profiles?.username || review.user_id}`} className="shrink-0 mr-2">
+                            <Link href={`/@${review.profiles?.username || review.user_id}`} className="shrink-0 mr-2">
                               <Avatar className="size-9">
                                 <AvatarImage
                                   src={review.profiles?.avatar_url
@@ -255,7 +255,7 @@ export default function MeetupReviews({
                             </Link>
                             <div className="flex-grow min-w-0 overflow-hidden flex flex-col gap-0.5">
                               <div className="flex items-baseline gap-1 overflow-hidden">
-                                <Link href={`/${review.profiles?.username || review.user_id}`} className="flex-shrink-0">
+                                <Link href={`/@${review.profiles?.username || review.user_id}`} className="flex-shrink-0">
                                   <div className="flex items-center gap-1">
                                     <p className="font-semibold hover:underline text-sm md:text-log-content">
                                       {review.profiles?.full_name ||

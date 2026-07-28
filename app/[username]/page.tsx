@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { redirect, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ProfileContentTabs } from "@/components/user/profile-content-tabs";
@@ -14,11 +14,31 @@ interface UserProfilePageProps {
   params: Promise<{ username: string }>;
 }
 
+/**
+ * 라우트 파라미터를 정규화한다.
+ * Next.js는 URL 세그먼트의 '@'를 '%40'으로 인코딩해 전달하므로 먼저 디코딩한 뒤
+ * '@' 접두사 여부를 판별한다.
+ */
+function normalizeUsernameParam(rawParam: string): {
+  hasAt: boolean;
+  username: string;
+} {
+  let decoded = rawParam;
+  try {
+    decoded = decodeURIComponent(rawParam);
+  } catch {
+    // 잘못된 인코딩은 원본 그대로 사용 (어차피 조회 실패 → 리다이렉트)
+  }
+  const hasAt = decoded.startsWith("@");
+  return { hasAt, username: hasAt ? decoded.slice(1) : decoded };
+}
+
 export async function generateMetadata(
   { params }: UserProfilePageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const { username } = await params;
+  const { username: rawParam } = await params;
+  const { username } = normalizeUsernameParam(rawParam);
   const supabase = await createClient();
 
   const profile = await getProfileByUsernameCached(supabase, username);
@@ -38,14 +58,14 @@ export async function generateMetadata(
     title,
     description,
     alternates: {
-      canonical: `/${profile.username}`,
+      canonical: `/@${profile.username}`,
     },
     openGraph: {
       title,
       description,
       images,
       type: "profile",
-      url: `/${profile.username}`,
+      url: `/@${profile.username}`,
     },
   };
 }
@@ -53,8 +73,14 @@ export async function generateMetadata(
 export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
-  const { username } = await params;
+  const { username: rawParam } = await params;
+  const { hasAt, username } = normalizeUsernameParam(rawParam);
   const supabase = await createClient();
+
+  // 정규 경로(/@username)로 통일: @ 없는 기존 링크는 301 리다이렉트
+  if (!hasAt) {
+    permanentRedirect(`/@${username}`);
+  }
 
   // Fetch the profile data for the given username
   const profile = await getProfileByUsernameCached(supabase, username);
