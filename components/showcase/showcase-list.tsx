@@ -15,11 +15,13 @@ import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
 import { showcaseKeys } from "@/lib/queries/query-keys";
+import type { ShowcaseStatus } from "@/lib/constants";
 
 const SHOWCASES_PER_PAGE = 20; // Define showcases per page
 
 export function ShowcaseList({
   currentUserId: propCurrentUserId,
+  status,
   filterByUserId,
   filterByParticipantUserId,
   filterByCommentedUserId,
@@ -28,6 +30,7 @@ export function ShowcaseList({
   initialShowcases,
 }: {
   currentUserId: string | null;
+  status?: ShowcaseStatus;
   filterByUserId?: string;
   filterByParticipantUserId?: string;
   filterByCommentedUserId?: string;
@@ -58,6 +61,7 @@ export function ShowcaseList({
 
   const queryKey = showcaseKeys.list({
     currentUserId,
+    status,
     filterByUserId,
     filterByParticipantUserId,
     filterByCommentedUserId,
@@ -80,6 +84,7 @@ export function ShowcaseList({
         currentUserId,
         currentPage: pageParam,
         showcasesPerPage: SHOWCASES_PER_PAGE,
+        status,
         filterByUserId,
         filterByParticipantUserId,
         filterByCommentedUserId,
@@ -234,7 +239,9 @@ export function ShowcaseList({
       {showcases.length === 0 && !isLoading ? (
         <div className="px-4">
           <p className="text-center text-muted-foreground py-10">
-            아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
+            {status
+              ? "해당 상태의 프로젝트가 없습니다."
+              : "아직 기록된 글이 없습니다. 첫 글을 작성해보세요!"}
           </p>
         </div>
       ) : (

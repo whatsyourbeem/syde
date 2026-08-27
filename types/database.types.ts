@@ -1128,6 +1128,7 @@ export type Database = {
           playstore_url: string | null
           short_description: string
           slug: string | null
+          status: Database["public"]["Enums"]["showcase_status_enum"]
           thumbnail_url: string | null
           updated_at: string | null
           user_id: string
@@ -1144,6 +1145,7 @@ export type Database = {
           playstore_url?: string | null
           short_description?: string
           slug?: string | null
+          status?: Database["public"]["Enums"]["showcase_status_enum"]
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id: string
@@ -1160,6 +1162,7 @@ export type Database = {
           playstore_url?: string | null
           short_description?: string
           slug?: string | null
+          status?: Database["public"]["Enums"]["showcase_status_enum"]
           thumbnail_url?: string | null
           updated_at?: string | null
           user_id?: string
@@ -1256,6 +1259,7 @@ export type Database = {
         | "ENDED"
       meetup_type_enum: "INSYDE" | "SPINOFF"
       showcase_award_type: "SYDE_PICK"
+      showcase_status_enum: "DEVELOPING" | "IN_SERVICE" | "ENDED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1394,6 +1398,7 @@ export const Constants = {
       ],
       meetup_type_enum: ["INSYDE", "SPINOFF"],
       showcase_award_type: ["SYDE_PICK"],
+      showcase_status_enum: ["DEVELOPING", "IN_SERVICE", "ENDED"],
     },
   },
 } as const
