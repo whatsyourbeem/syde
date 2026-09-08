@@ -1238,7 +1238,6 @@ export type Database = {
           score: number
           short_description: string
           slug: string
-          status: Database["public"]["Enums"]["showcase_status_enum"]
           thumbnail_url: string
           upvotes_count: number
           views_count: number
