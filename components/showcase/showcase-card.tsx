@@ -14,7 +14,6 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { SydePickBadge } from "./syde-pick-badge";
 import { SydePickInfoDialog } from "./syde-pick-info-dialog";
-import { ShowcaseStatusBadge } from "./showcase-status-badge";
 import { cn } from "@/lib/utils";
 
 interface ShowcaseCardProps {
@@ -164,6 +163,8 @@ function ShowcaseCardBase({
             "w-[80px] h-[80px] md:w-[120px] md:h-[120px] shrink-0",
             isFeatured ? "rounded-[10px] border border-white/10 shadow-xl" : "rounded-[10px]"
           )}
+          status={showcase.status}
+          statusSize="sm"
         />
 
         {/* Content Area */}
@@ -178,7 +179,6 @@ function ShowcaseCardBase({
                 )}>
                   {showcase.name || "제목 없음"}
                 </h3>
-                <ShowcaseStatusBadge status={showcase.status} />
               </div>
               <div onClick={(e) => e.stopPropagation()} className={cn("shrink-0 flex items-center", isFeatured ? "hidden" : "flex")}>
                 <SydePickBadge awards={showcase.showcase_awards} size={24} />

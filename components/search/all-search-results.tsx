@@ -99,7 +99,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
         // Showcases
         supabase
           .from('showcases')
-          .select('id, name, short_description, thumbnail_url')
+          .select('id, name, short_description, thumbnail_url, status')
           .or(`name.ilike."${q}",short_description.ilike."${q}"`)
           .limit(PREVIEW_COUNT),
       ]);
@@ -300,6 +300,8 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                     src={showcase.thumbnail_url}
                     alt={showcase.name || "Showcase"}
                     containerClassName="w-14 h-14 shrink-0 rounded-lg"
+                    status={showcase.status}
+                    statusSize="xs"
                   />
                   <div className="flex flex-col min-w-0">
                     <span className="text-sm font-semibold text-sydeblue truncate">{showcase.name}</span>

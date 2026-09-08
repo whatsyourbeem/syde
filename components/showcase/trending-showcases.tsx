@@ -125,6 +125,8 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                       src={showcase.thumbnail_url}
                       alt={showcase.name || "Thumbnail"}
                       containerClassName="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] border border-[#EEEEEE]"
+                      status={showcase.status}
+                      statusSize="xs"
                     />
 
                     <div className="flex flex-row items-baseline lg:flex-col flex-1 min-w-0 lg:justify-center gap-1.5 lg:gap-0.5">
@@ -161,6 +163,8 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                     src={displayShowcases[currentIndex].thumbnail_url}
                     alt={displayShowcases[currentIndex].name || "Thumbnail"}
                     containerClassName="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] border border-[#EEEEEE]"
+                    status={displayShowcases[currentIndex].status}
+                    statusSize="xs"
                   />
 
                   <div className="flex flex-row items-baseline lg:flex-col flex-1 min-w-0 lg:justify-center gap-1.5 lg:gap-0.5">

@@ -102,6 +102,8 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
             src={showcase.thumbnail_url}
             alt="Showcase thumbnail"
             containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
+            status={showcase.status}
+            statusSize="sm"
           />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
