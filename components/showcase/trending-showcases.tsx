@@ -24,6 +24,10 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
   const [isExpanded, setIsExpanded] = useState(!allowCollapse);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // allowCollapse 는 모바일에서만 쓰는 옵션이다. 데스크톱 사이드바에는
+  // 진행 상태를 노출하지 않는다.
+  const showStatus = allowCollapse;
+
   useEffect(() => {
     async function load() {
       try {
@@ -125,7 +129,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                       src={showcase.thumbnail_url}
                       alt={showcase.name || "Thumbnail"}
                       containerClassName="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] border border-[#EEEEEE]"
-                      status={showcase.status}
+                      status={showStatus ? showcase.status : null}
                       statusSize="xs"
                     />
 
@@ -163,7 +167,7 @@ export function TrendingShowcases({ allowCollapse = false }: TrendingShowcasesPr
                     src={displayShowcases[currentIndex].thumbnail_url}
                     alt={displayShowcases[currentIndex].name || "Thumbnail"}
                     containerClassName="w-[32px] h-[32px] lg:w-[40px] lg:h-[40px] rounded-[8px] border border-[#EEEEEE]"
-                    status={displayShowcases[currentIndex].status}
+                    status={showStatus ? displayShowcases[currentIndex].status : null}
                     statusSize="xs"
                   />
 
