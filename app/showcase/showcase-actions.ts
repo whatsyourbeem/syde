@@ -11,13 +11,13 @@ import { SHOWCASE_STATUSES, type ShowcaseStatus } from "@/lib/constants";
 
 /**
  * FormData 의 status 값을 showcase_status_enum 으로 좁힌다.
- * 값이 없거나 알 수 없는 값이면 기본값(개발 중)으로 처리한다.
+ * 값이 없거나 알 수 없는 값이면 기본값(서비스 중)으로 처리한다.
  */
 function parseShowcaseStatus(value: FormDataEntryValue | null): ShowcaseStatus {
   const status = value as ShowcaseStatus | null;
   return status && status in SHOWCASE_STATUSES
     ? status
-    : SHOWCASE_STATUSES.DEVELOPING;
+    : SHOWCASE_STATUSES.IN_SERVICE;
 }
 
 export const createShowcase = withAuthForm(

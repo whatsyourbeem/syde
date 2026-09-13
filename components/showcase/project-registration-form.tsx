@@ -88,7 +88,7 @@ export function ProjectRegistrationForm({
   const [title, setTitle] = useState("");
   const [tagline, setTagline] = useState("");
   const [status, setStatus] = useState<ShowcaseStatus>(
-    SHOWCASE_STATUSES.DEVELOPING,
+    SHOWCASE_STATUSES.IN_SERVICE,
   );
   const [description, setDescription] = useState("");
   const [googlePlayLink, setGooglePlayLink] = useState("");
