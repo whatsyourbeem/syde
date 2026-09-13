@@ -12,6 +12,7 @@ export async function fetchShowcasesAction({
   currentUserId,
   currentPage,
   showcasesPerPage,
+  status,
   filterByUserId,
   filterByParticipantUserId,
   filterByCommentedUserId,
@@ -43,6 +44,7 @@ export async function fetchShowcasesAction({
     slug,
     short_description,
     description,
+    status,
     thumbnail_url,
     created_at,
     updated_at,
@@ -73,6 +75,11 @@ export async function fetchShowcasesAction({
     } else {
       return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
     }
+  }
+
+  // Apply status filter (진행 상태)
+  if (status) {
+    query = query.eq("status", status);
   }
 
   // Apply filters
@@ -168,6 +175,7 @@ export async function fetchLatestAwardedShowcase(currentUserId?: string | null):
     slug,
     short_description,
     description,
+    status,
     thumbnail_url,
     created_at,
     updated_at,

@@ -163,6 +163,8 @@ function ShowcaseCardBase({
             "w-[80px] h-[80px] md:w-[120px] md:h-[120px] shrink-0",
             isFeatured ? "rounded-[10px] border border-white/10 shadow-xl" : "rounded-[10px]"
           )}
+          status={showcase.status}
+          statusSize="sm"
         />
 
         {/* Content Area */}
@@ -170,12 +172,14 @@ function ShowcaseCardBase({
           <div className="flex flex-col gap-1 md:gap-2 w-full">
             <div className="flex flex-row items-center justify-between gap-4 w-full">
               {/* Title (Mobile: 16px / Desktop: 20px Bold) */}
-              <h3 className={cn(
-                "text-[16px] md:text-[20px] font-bold line-clamp-1 leading-[150%] md:leading-[27px] flex-1 min-w-0",
-                isFeatured ? "text-white" : "text-black"
-              )}>
-                {showcase.name || "제목 없음"}
-              </h3>
+              <div className="flex flex-row items-center gap-2 flex-1 min-w-0">
+                <h3 className={cn(
+                  "text-[16px] md:text-[20px] font-bold line-clamp-1 leading-[150%] md:leading-[27px] min-w-0",
+                  isFeatured ? "text-white" : "text-black"
+                )}>
+                  {showcase.name || "제목 없음"}
+                </h3>
+              </div>
               <div onClick={(e) => e.stopPropagation()} className={cn("shrink-0 flex items-center", isFeatured ? "hidden" : "flex")}>
                 <SydePickBadge awards={showcase.showcase_awards} size={24} />
               </div>
@@ -264,6 +268,7 @@ function ShowcaseCardBase({
 export const ShowcaseCard = memo(ShowcaseCardBase, (prev, next) => {
   return (
     prev.showcase.id === next.showcase.id &&
+    prev.showcase.status === next.showcase.status &&
     prev.currentUserId === next.currentUserId &&
     prev.initialUpvotesCount === next.initialUpvotesCount &&
     prev.initialHasUpvoted === next.initialHasUpvoted &&

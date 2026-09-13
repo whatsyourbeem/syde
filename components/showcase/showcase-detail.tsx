@@ -337,9 +337,11 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
               {/* Content Area */}
               <div className="flex flex-col items-start p-[8px_12px] gap-4 w-full flex-grow">
                 <div className="flex flex-row items-center justify-between gap-4 w-full">
-                  <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2 flex-1">
-                    {showcase.name || "제목 없음"}
-                  </h1>
+                  <div className="flex flex-row items-center gap-2 flex-1 min-w-0">
+                    <h1 className="font-['Pretendard'] text-[28px] font-bold text-black leading-[150%] line-clamp-2 min-w-0">
+                      {showcase.name || "제목 없음"}
+                    </h1>
+                  </div>
                   {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
                     <div className="shrink-0">
                       <SydePickBadge awards={showcase.showcase_awards} size={30} />
@@ -468,9 +470,11 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 {showcase.showcase_awards && showcase.showcase_awards.length > 0 && (
                   <SydePickBadge awards={showcase.showcase_awards} size={24} />
                 )}
-                <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
-                  {showcase.name || "제목 없음"}
-                </h1>
+                <div className="flex flex-row items-center justify-center gap-2">
+                  <h1 className="font-['Pretendard'] text-[20px] font-bold text-black leading-tight line-clamp-2">
+                    {showcase.name || "제목 없음"}
+                  </h1>
+                </div>
                 {showcase.short_description && (
                   <p className="font-['Pretendard'] font-normal text-[14px] leading-[150%] text-black line-clamp-2">
                     {showcase.short_description}
