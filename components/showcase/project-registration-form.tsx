@@ -19,6 +19,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  SHOWCASE_STATUSES,
+  SHOWCASE_STATUS_DISPLAY_NAMES,
+  type ShowcaseStatus,
+} from "@/lib/constants";
 import { createShowcase } from "@/app/showcase/showcase-actions";
 // Removed Tiptap manual imports
 import { createClient } from "@/lib/supabase/client";
@@ -75,6 +87,9 @@ export function ProjectRegistrationForm({
   // Form States
   const [title, setTitle] = useState("");
   const [tagline, setTagline] = useState("");
+  const [status, setStatus] = useState<ShowcaseStatus>(
+    SHOWCASE_STATUSES.IN_SERVICE,
+  );
   const [description, setDescription] = useState("");
   const [googlePlayLink, setGooglePlayLink] = useState("");
   const [appStoreLink, setAppStoreLink] = useState("");
@@ -180,7 +195,8 @@ export function ProjectRegistrationForm({
     if (initialData) {
       setTitle(initialData.name || "");
       setTagline(initialData.short_description || "");
-      
+      if (initialData.status) setStatus(initialData.status);
+
       const desc = initialData.description;
       if (desc && typeof desc === "object") {
         setDescription(JSON.stringify(desc));
@@ -364,6 +380,7 @@ export function ProjectRegistrationForm({
       const formData = new FormData();
       formData.append("name", title);
       formData.append("shortDescription", tagline);
+      formData.append("status", status);
       formData.append("description", description);
 
       // 이미지 URL 전달 (클라이언트에서 이미 업로드 완료)
@@ -481,6 +498,31 @@ export function ProjectRegistrationForm({
             className="h-[36px] bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm placeholder:text-[#777777]"
             required
           />
+        </div>
+
+        {/* Status */}
+        <div className="space-y-2">
+          <Label htmlFor="status" className="text-sm font-medium text-sydeblue">
+            진행 상태 <span className="text-red-500">*</span>
+          </Label>
+          <Select
+            value={status}
+            onValueChange={(value: ShowcaseStatus) => setStatus(value)}
+          >
+            <SelectTrigger
+              id="status"
+              className="h-[36px] bg-white border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm"
+            >
+              <SelectValue placeholder="진행 상태를 선택해주세요." />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SHOWCASE_STATUSES).map(([key, value]) => (
+                <SelectItem key={key} value={value}>
+                  {SHOWCASE_STATUS_DISPLAY_NAMES[value]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Main Image */}

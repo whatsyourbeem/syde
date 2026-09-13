@@ -142,6 +142,7 @@ export async function getShowcaseDetail(
       slug,
       short_description,
       description,
+      status,
       thumbnail_url,
       images,
       created_at,

@@ -7,6 +7,8 @@ export type ClubPermissionLevel =
 export type MeetupParticipantStatus =
   Database["public"]["Enums"]["meetup_participant_status_enum"];
 export type MeetupStatus = Database["public"]["Enums"]["meetup_status_enum"];
+export type ShowcaseStatus =
+  Database["public"]["Enums"]["showcase_status_enum"];
 
 export const CLUB_MEMBER_ROLES = {
   LEADER: "LEADER",
@@ -31,6 +33,12 @@ export const MEETUP_STATUSES = {
   UPCOMING: "UPCOMING",
   APPLY_AVAILABLE: "APPLY_AVAILABLE",
   APPLY_CLOSED: "APPLY_CLOSED",
+  ENDED: "ENDED",
+} as const;
+
+export const SHOWCASE_STATUSES = {
+  DEVELOPING: "DEVELOPING",
+  IN_SERVICE: "IN_SERVICE",
   ENDED: "ENDED",
 } as const;
 
@@ -63,6 +71,19 @@ export const MEETUP_STATUS_DISPLAY_NAMES: Record<MeetupStatus, string> = {
   UPCOMING: "오픈예정",
   APPLY_AVAILABLE: "신청가능",
   APPLY_CLOSED: "신청마감",
+  ENDED: "종료",
+};
+
+export const SHOWCASE_STATUS_DISPLAY_NAMES: Record<ShowcaseStatus, string> = {
+  DEVELOPING: "제작 중",
+  IN_SERVICE: "서비스 중",
+  ENDED: "서비스 종료",
+};
+
+/** 썸네일 상태 칩 전용 라벨. 좁은 칩 안에 넣을 것이라 띄어쓰기를 뺀다. */
+export const SHOWCASE_STATUS_CHIP_LABELS: Record<ShowcaseStatus, string> = {
+  DEVELOPING: "제작중",
+  IN_SERVICE: "서비스중",
   ENDED: "종료",
 };
 

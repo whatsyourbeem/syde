@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
 import { fetchLatestAwardedShowcase, fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
+
 export default async function ShowcasePage() {
   const supabase = await createClient();
   const {
@@ -27,9 +28,9 @@ export default async function ShowcasePage() {
   ]);
 
   return (
-    <ShowcaseListWrapper 
-      user={profile} 
-      avatarUrl={avatarUrl} 
+    <ShowcaseListWrapper
+      user={profile}
+      avatarUrl={avatarUrl}
       latestAwardedShowcase={latestAwardedShowcase}
       initialShowcases={initialShowcases}
     />

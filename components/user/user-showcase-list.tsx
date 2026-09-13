@@ -91,6 +91,8 @@ export function UserShowcaseList({
               alt={showcase.name || ""}
               containerClassName="w-20 h-20 rounded-xl"
               className="group-hover:scale-110 transition-transform duration-300"
+              status={showcase.status}
+              statusSize="sm"
             />
             <span className="text-[11px] font-semibold text-black text-center line-clamp-1 w-20">
               {showcase.name}

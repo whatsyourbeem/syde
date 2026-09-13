@@ -7,6 +7,18 @@ import { withAuth, withAuthForm, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe, generateUniqueShowcaseSlug } from "@/lib/server-utils";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { deleteFile, extractStoragePath } from "@/lib/storage";
+import { SHOWCASE_STATUSES, type ShowcaseStatus } from "@/lib/constants";
+
+/**
+ * FormData 의 status 값을 showcase_status_enum 으로 좁힌다.
+ * 값이 없거나 알 수 없는 값이면 기본값(서비스 중)으로 처리한다.
+ */
+function parseShowcaseStatus(value: FormDataEntryValue | null): ShowcaseStatus {
+  const status = value as ShowcaseStatus | null;
+  return status && status in SHOWCASE_STATUSES
+    ? status
+    : SHOWCASE_STATUSES.IN_SERVICE;
+}
 
 export const createShowcase = withAuthForm(
   async ({ supabase, user }, formData: FormData) => {
@@ -19,9 +31,10 @@ export const createShowcase = withAuthForm(
     const websiteLinks = formData.getAll("links_website") as string[];
     const googlePlayLink = formData.get("links_google_play") as string | null;
     const appStoreLink = formData.get("links_app_store") as string | null;
+    const status = parseShowcaseStatus(formData.get("status"));
 
     let processedDescription: any = descriptionString;
-    
+
     try {
       // If it's valid JSON, we parse it to an object for jsonb column
       processedDescription = JSON.parse(descriptionString);
@@ -39,6 +52,7 @@ export const createShowcase = withAuthForm(
         slug,
         short_description: shortDescription,
         description: processedDescription,
+        status,
         user_id: user.id,
         web_url: websiteLinks[0] || null, // Assuming first link is taken if multiple are mistakenly passed
         playstore_url: googlePlayLink || null,
@@ -121,6 +135,7 @@ export const updateShowcase = withAuthForm(
     const websiteLinks = formData.getAll("links_website") as string[];
     const googlePlayLink = formData.get("links_google_play") as string | null;
     const appStoreLink = formData.get("links_app_store") as string | null;
+    const status = parseShowcaseStatus(formData.get("status"));
 
     const { data: oldShowcaseData } = await supabase
       .from("showcases")
@@ -156,10 +171,11 @@ export const updateShowcase = withAuthForm(
       processedDescription = descriptionString ? await processMentionsForSave(descriptionString, supabase) : null;
     }
 
-    const updateData: { 
-      name: string; 
-      short_description: string; 
-      description: string | null; 
+    const updateData: {
+      name: string;
+      short_description: string;
+      description: string | null;
+      status: ShowcaseStatus;
       thumbnail_url?: string | null;
       web_url?: string | null;
       playstore_url?: string | null;
@@ -170,6 +186,7 @@ export const updateShowcase = withAuthForm(
       name,
       short_description: shortDescription,
       description: processedDescription,
+      status,
       web_url: websiteLinks[0] || null,
       playstore_url: googlePlayLink || null,
       appstore_url: appStoreLink || null,

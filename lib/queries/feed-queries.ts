@@ -3,6 +3,7 @@ import { Database } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
 import { getOptimizedLogs, OptimizedLog, LogQueryOptions, LogQueryResult } from "./log-queries";
 import { getPlainTextFromTiptapJson } from "@/lib/utils";
+import type { ShowcaseStatus } from "@/lib/constants";
 
 type ProfileRow = PublicProfile;
 type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
@@ -27,6 +28,7 @@ export interface ActivityFeedItem {
       short_description: string | null;
       thumbnail_url: string | null;
       views_count?: number | null;
+      status?: ShowcaseStatus | null;
     };
     insight?: {
       title: string | null;
@@ -374,7 +376,7 @@ async function fetchActivityDetails(
 
   const [showcases, insights, meetups] = await Promise.all([
     showcaseIds.length > 0
-      ? supabase.from("showcases").select("id, name, short_description, thumbnail_url, views_count").in("id", showcaseIds)
+      ? supabase.from("showcases").select("id, name, short_description, thumbnail_url, views_count, status").in("id", showcaseIds)
       : Promise.resolve({ data: [] }),
     insightIds.length > 0
       ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", insightIds)
@@ -405,6 +407,7 @@ async function fetchActivityDetails(
             short_description: detail.short_description,
             thumbnail_url: detail.thumbnail_url,
             views_count: detail.views_count,
+            status: detail.status,
           }
         };
       }
