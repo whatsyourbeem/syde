@@ -35,6 +35,7 @@ export async function fetchInsightsAction({
         summary,
         image_url,
         created_at,
+        views,
         profiles:user_id (
             username,
             full_name,
@@ -69,7 +70,8 @@ export async function fetchInsightsAction({
     stats: {
       likes: item.insight_likes?.length || 0,
       comments: item.insight_comments?.length || 0,
-      bookmarks: item.insight_bookmarks?.length || 0
+      bookmarks: item.insight_bookmarks?.length || 0,
+      views: item.views || 0
     },
     initialStatus: {
       hasLiked: currentUserId ? item.insight_likes?.some((l: any) => l.user_id === currentUserId) : false,

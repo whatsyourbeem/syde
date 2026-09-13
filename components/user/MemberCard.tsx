@@ -45,7 +45,7 @@ export default function MemberCard({
           isCurrentUser ? "bg-gray-50" : "bg-white"
         }`}
       >
-        <Link href={`/${profile.username}`} className="block">
+        <Link href={`/@${profile.username}`} className="block">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-x-2 overflow-hidden">
               <div className="relative flex-shrink-0">

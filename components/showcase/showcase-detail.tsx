@@ -64,6 +64,7 @@ import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import TiptapViewer from "@/components/common/tiptap-viewer";
 import { SydePickBadge } from "./syde-pick-badge";
+import { ShowcaseBumpBar } from "./showcase-bump-bar";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
@@ -79,12 +80,12 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   const queryClient = useQueryClient();
   const { openLoginDialog } = useLoginDialog();
 
-  // Increment view count once per 24h per browser via localStorage
+  // Increment view count once per 1h per browser via localStorage
   useEffect(() => {
     const key = `viewed_showcase_${showcase.id}`;
     const lastViewed = localStorage.getItem(key);
     const now = Date.now();
-    if (!lastViewed || now - parseInt(lastViewed) > 24 * 60 * 60 * 1000) {
+    if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
       incrementShowcaseView(showcase.id);
       localStorage.setItem(key, String(now));
       setViewsCount(prev => prev + 1);
@@ -363,7 +364,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                   >
                     <div>
                       <Link
-                        href={`/${showcase.profiles?.username || showcase.user_id}`}
+                        href={`/@${showcase.profiles?.username || showcase.user_id}`}
                         className="flex items-center gap-[5px] cursor-pointer"
                       >
                         <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
@@ -485,7 +486,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 <ProfileHoverCard userId={showcase.user_id} profileData={showcase.profiles}>
                   <div>
                     <Link
-                      href={`/${showcase.profiles?.username || showcase.user_id}`}
+                      href={`/@${showcase.profiles?.username || showcase.user_id}`}
                       className="flex flex-row items-center gap-[5px] h-5 cursor-pointer"
                     >
                       <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
@@ -550,6 +551,20 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
 
             </div>
           </div>
+
+          {/* Bump Bar (author only): 게시판 최상단으로 끌어올리기 */}
+          {isAuthor && (
+            <div className="w-full mt-4 flex justify-center">
+              <div className="w-full max-w-xs">
+                <ShowcaseBumpBar
+                  showcaseId={showcase.id}
+                  ownerId={showcase.user_id}
+                  currentUserId={user?.id ?? null}
+                  bumpedAt={showcase.bumped_at}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -818,7 +833,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 profileData={member.profileData}
               >
                 <div>
-                  <Link href={`/${member.username || member.userId}`} className="block">
+                  <Link href={`/@${member.username || member.userId}`} className="block">
                     <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
                       {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
                       {member.role === "author" && (

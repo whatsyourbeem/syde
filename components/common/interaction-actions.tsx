@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import { HeartIcon, MessageCircle, Bookmark } from "lucide-react";
+import { HeartIcon, MessageCircle, Bookmark, Eye } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 import { ShareButton } from "@/components/common/share-button";
@@ -14,6 +14,7 @@ interface InteractionActionsProps {
         likes: number;
         comments: number;
         bookmarks: number;
+        views?: number;
     };
     status: {
         hasLiked: boolean;
@@ -29,6 +30,7 @@ interface InteractionActionsProps {
     shareUrl: string;
     shareTitle?: string;
     className?: string; // Additional classes for container (e.g., padding)
+    showShare?: boolean;
 }
 
 function InteractionActionsBase({
@@ -43,6 +45,7 @@ function InteractionActionsBase({
     shareUrl,
     shareTitle,
     className = "px-[44px] pt-2",
+    showShare = true,
 }: InteractionActionsProps) {
     return (
         <div className={cn(
@@ -50,6 +53,14 @@ function InteractionActionsBase({
             className
         )}>
             <TooltipProvider>
+                {/* Views Counter (if present) */}
+                {stats.views !== undefined && (
+                    <div className="flex items-center gap-0.5 p-2 -m-2 select-none shrink-0 cursor-default">
+                        <Eye size={18} className="text-muted-foreground" />
+                        <span className="min-w-[12px] text-left leading-none text-muted-foreground">{stats.views}</span>
+                    </div>
+                )}
+
                 {/* Like Button */}
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -103,11 +114,13 @@ function InteractionActionsBase({
                 </Tooltip>
 
                 {/* Share Button */}
-                <ShareButton
-                    url={shareUrl}
-                    title={shareTitle || (type === "log" ? "SYDE Log" : "SYDE Insight")}
-                    iconSize={18}
-                />
+                {showShare && (
+                    <ShareButton
+                        url={shareUrl}
+                        title={shareTitle || (type === "log" ? "SYDE Log" : "SYDE Insight")}
+                        iconSize={18}
+                    />
+                )}
 
                 {/* Bookmark Button */}
                 <Tooltip>

@@ -225,7 +225,7 @@ export default function ProfileForm({
       const { error: uploadError } = await supabase.storage
         .from("profiles")
         .upload(filePath, resizedFile, {
-          cacheControl: "3600",
+          cacheControl: "31536000",
           upsert: false,
         });
 

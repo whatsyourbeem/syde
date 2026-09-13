@@ -48,6 +48,8 @@ export async function fetchShowcasesAction({
     thumbnail_url,
     created_at,
     updated_at,
+    bumped_at,
+    bump_count,
     user_id,
     views_count,
     showcase_awards(date, type),
@@ -103,7 +105,7 @@ export async function fetchShowcasesAction({
 
   // Execute the main query
   const { data: showcasesData, error: showcasesError, count } = await query
-    .order("created_at", { ascending: false })
+    .order("bumped_at", { ascending: false })
     .range(from, to);
 
   if (showcasesError) {

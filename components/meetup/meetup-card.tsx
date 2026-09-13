@@ -129,7 +129,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
               profileData={meetup.organizer_profile}
             >
               <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2">
-                <Link href={`/${meetup.organizer_profile?.username}`}>
+                <Link href={`/@${meetup.organizer_profile?.username}`}>
                   <Avatar className="size-5">
                     <AvatarImage
                       src={meetup.organizer_profile?.avatar_url || undefined}
@@ -141,7 +141,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
                 </Link>
                 <p className="flex items-center">
                   <Link
-                    href={`/${meetup.organizer_profile?.username}`}
+                    href={`/@${meetup.organizer_profile?.username}`}
                     className="inline-flex items-center gap-1"
                   >
                     <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">

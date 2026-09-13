@@ -86,13 +86,13 @@ export default function ClubSidebarInfo({
         {ownerProfile && (
           <ProfileHoverCard userId={ownerProfile.id} profileData={ownerProfile}>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href={`/${ownerProfile?.username}`}>
+              <Link href={`/@${ownerProfile?.username}`}>
                 <Avatar className="size-6">
                   <AvatarImage src={ownerProfile?.avatar_url || undefined} />
                   <AvatarFallback>{ownerProfile?.username?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
               </Link>
-              <Link href={`/${ownerProfile?.username}`} className="hover:underline flex items-center gap-1">
+              <Link href={`/@${ownerProfile?.username}`} className="hover:underline flex items-center gap-1">
                 <span className="font-semibold text-primary">{ownerProfile?.full_name || ownerProfile?.username}</span>
                 {ownerProfile?.certified && <CertifiedBadge size="sm" />}
                 <span className="ml-1">클럽장</span>

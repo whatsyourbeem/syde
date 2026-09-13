@@ -24,7 +24,7 @@ export function ClientAuthButton({
   sheetHeader,
 }: ClientAuthButtonProps) {
   const { openLoginDialog } = useLoginDialog();
-  const profileLink = username ? `/${username}` : "/profile";
+  const profileLink = username ? `/@${username}` : "/profile";
 
   return (
     <>

@@ -7,9 +7,9 @@ import { Providers } from "@/components/layout/providers";
 import { LoginDialogProvider } from "@/context/LoginDialogContext";
 import { LoginDialog } from "@/components/auth/login-dialog";
 
-import { Toaster } from "sonner"; // Import Toaster from sonner
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
+
 
 const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.NEXT_PUBLIC_VERCEL_URL
@@ -110,7 +110,6 @@ export default function RootLayout({
             </div>
           </LoginDialogProvider>
         </Providers>
-        <SpeedInsights />
         <Analytics />
       </body>
     </html>

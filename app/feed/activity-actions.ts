@@ -41,7 +41,7 @@ export const deleteActivity = withAuth(async ({ supabase, user }, activityId: st
   // 3. Revalidate paths
   revalidatePath("/");
   if (user?.user_metadata?.username) {
-    revalidatePath(`/${user.user_metadata.username}`);
+    revalidatePath(`/@${user.user_metadata.username}`);
   }
 
   return createSuccessResponse(null);

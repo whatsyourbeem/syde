@@ -161,7 +161,8 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
     const stats = {
         likes: likesCount || 0,
         comments: comments?.length || 0,
-        bookmarks: bookmarksCount || 0
+        bookmarks: bookmarksCount || 0,
+        views: (insight as any).views || 0
     };
 
     let plainText = "";
@@ -192,7 +193,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         "author": {
             "@type": "Person",
             "name": insight.profiles?.full_name || insight.profiles?.username || "SYDER",
-            "url": insight.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${insight.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"),
+            "url": insight.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${insight.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"),
             "jobTitle": insight.profiles?.tagline || "메이커"
         },
         "publisher": {

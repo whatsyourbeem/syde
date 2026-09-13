@@ -62,10 +62,10 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath("/");
-  revalidatePath(`/${username}`);
+  revalidatePath(`/@${username}`);
   revalidateTagSafe("profile-all");
   revalidateTagSafe(`profile-${username}`);
-  redirect(`/${username}`);
+  redirect(`/@${username}`);
 }
 
 export async function updateBio(formData: FormData): Promise<{ error?: string; success?: boolean }> {
@@ -99,7 +99,7 @@ export async function updateBio(formData: FormData): Promise<{ error?: string; s
   }
 
   revalidatePath("/");
-  revalidatePath(`/${user.user_metadata.username}`);
+  revalidatePath(`/@${user.user_metadata.username}`);
   revalidateTagSafe("profile-all");
   revalidateTagSafe(`profile-${user.user_metadata.username}`);
   return { success: true };

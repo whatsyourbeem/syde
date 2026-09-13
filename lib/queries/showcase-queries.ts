@@ -119,7 +119,7 @@ export async function getShowcasesSearchList(
   }
 
   const { data, error, count } = await query
-    .order('created_at', { ascending: false })
+    .order('bumped_at', { ascending: false })
     .range(from, to);
 
   if (error) throw error;
@@ -149,6 +149,8 @@ export async function getShowcaseDetail(
       images,
       created_at,
       updated_at,
+      bumped_at,
+      bump_count,
       user_id,
       views_count,
       web_url,
@@ -223,7 +225,8 @@ export const getShowcaseDetailCached = async (
     async () => {
       return getShowcaseDetail(supabase, actualId);
     },
-    ["showcase-detail-by-id", actualId],
+    // v2: select에 bumped_at/bump_count 추가됨. 키 버전을 올려 옛 캐시(컬럼 누락) 무효화
+    ["showcase-detail-by-id-v2", actualId],
     {
       revalidate: 3600,
       tags: ["showcase-all", `showcase-${actualId}`, `showcase-${showcaseIdOrSlug}`],

@@ -30,6 +30,7 @@ export interface InsightCardProps {
         likes: number;
         comments: number;
         bookmarks: number;
+        views?: number;
     };
     initialStatus?: {
         hasLiked: boolean;
@@ -167,7 +168,7 @@ export function InsightCard({
 
                 {/* Author Info Area - Separate Link to Profile */}
                 <ProfileHoverCard userId={author.id}>
-                    <Link href={`/${author.id}`} className={cn(
+                    <Link href={`/@${author.id}`} className={cn(
                         "flex items-center gap-[5px] mt-auto w-fit",
                         isCentered && "justify-center mx-auto"
                     )}>
@@ -202,6 +203,7 @@ export function InsightCard({
                         shareUrl={`/insight/${slug || id}`}
                         shareTitle={title}
                         className="px-3 pt-0 md:pt-1 pb-1"
+                        showShare={false}
                     />
                 </div>
             )}

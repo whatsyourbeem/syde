@@ -212,3 +212,12 @@ export async function revalidateInsightAction(insightId: string) {
   revalidateTagSafe("insight-all");
   revalidateTagSafe(`insight-${insightId}`);
 }
+
+export async function incrementInsightViews(insightId: string): Promise<void> {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("increment_insight_views", { insight_id: insightId });
+  if (error) {
+    console.error("Error incrementing insight views:", error);
+  }
+}

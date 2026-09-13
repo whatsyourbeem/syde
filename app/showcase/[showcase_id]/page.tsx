@@ -59,12 +59,13 @@ export async function generateMetadata(
     }
   }
 
-  const images = [];
-  if (showcase.thumbnail_url) images.push(showcase.thumbnail_url);
-  if (showcase.images && Array.isArray(showcase.images)) {
-    images.push(...showcase.images);
-  }
-  if (images.length === 0) images.push("/we-are-syders.png");
+  // Supabase Cached Egress 절약을 위해 OG 이미지는 썸네일 1장만 노출한다.
+  // 상세 이미지(images)까지 넣으면 크롤러/링크 미리보기 봇이 쇼케이스당 최대 5장(장당 최대 1MB)을 내려받는다.
+  const ogImage =
+    showcase.thumbnail_url ||
+    (Array.isArray(showcase.images) ? showcase.images[0] : null) ||
+    "/we-are-syders.png";
+  const images = [ogImage];
 
   // Dynamic Keywords
   const keywords = ["SYDE", "사이드프로젝트", "쇼케이스", "IT 커뮤니티"];
@@ -138,7 +139,7 @@ export default async function ShowcaseDetailPage({
     "author": {
       "@type": "Person",
       "name": showcase.profiles?.full_name || showcase.profiles?.username || "SYDER",
-      "url": showcase.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/${showcase.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
+      "url": showcase.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${showcase.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
     },
     "publisher": {
       "@type": "Organization",
