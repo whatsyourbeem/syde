@@ -1,8 +1,6 @@
-import type { CSSProperties } from "react";
-
 import { cn } from "@/lib/utils";
 import {
-  SHOWCASE_STATUSES,
+  SHOWCASE_STATUS_CHIP_LABELS,
   SHOWCASE_STATUS_DISPLAY_NAMES,
   type ShowcaseStatus,
 } from "@/lib/constants";
@@ -16,86 +14,65 @@ interface ShowcaseStatusOverlayProps {
   className?: string;
 }
 
-/** 상태별 점 색. 제작 중은 서비스 포인트 컬러(sydeorange)를 그대로 쓴다. */
+/** 상태별 점 색. */
 const DOT_COLORS: Record<ShowcaseStatus, string> = {
-  [SHOWCASE_STATUSES.DEVELOPING]: "#ED6D34",
-  [SHOWCASE_STATUSES.IN_SERVICE]: "#2FBF71",
-  [SHOWCASE_STATUSES.ENDED]: "#9AA1AA",
-};
-
-/** 점 지름 / 모서리에서 띄우는 간격 (px) */
-const DOT_METRICS: Record<
-  ShowcaseStatusOverlaySize,
-  { size: number; offset: number }
-> = {
-  xs: { size: 3, offset: 3 },
-  sm: { size: 4, offset: 5 },
-};
-
-/** 라벨을 띄울 공간이 없는 xs 는 호버 라벨을 생략한다. */
-const LABEL_STYLES: Record<ShowcaseStatusOverlaySize, string | null> = {
-  xs: null,
-  sm: "text-[9px] px-1.5 pb-[5px] pt-3",
+  DEVELOPING: "#FBBF24",
+  IN_SERVICE: "#2FBF71",
+  ENDED: "#EF4444",
 };
 
 /**
- * 우상단 상태 점.
- * 테두리 없이 색만 찍고, 밝은 이미지 위에서 형태만 잡아주는 옅은 그림자를 둔다.
- */
-function dotStyle(
-  status: ShowcaseStatus,
-  size: ShowcaseStatusOverlaySize,
-): CSSProperties {
-  const { size: dot, offset } = DOT_METRICS[size];
-
-  return {
-    width: dot,
-    height: dot,
-    top: offset,
-    right: offset,
-    backgroundColor: DOT_COLORS[status],
-    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.2)",
-  };
-}
-
-/**
- * 진행 상태 표시. 평소에는 우상단 점만 찍고,
- * 호버했을 때만 상태 이름이 떠오른다.
+ * 진행 상태 표시. 썸네일 좌하단에 반투명 검은 배경의 "글래스 칩"으로
+ * 점 + 상태 이름을 함께 보여준다. 공간이 부족한 xs 는 칩 없이 점만 찍는다.
+ * 서비스중은 기본/무난한 상태라 칩을 아예 숨기고, 예외 상태(제작중/서비스종료)만 노출한다.
  */
 export function ShowcaseStatusOverlay({
   status,
   size = "sm",
   className,
 }: ShowcaseStatusOverlayProps) {
-  if (!status) return null;
+  if (!status || status === "IN_SERVICE") return null;
 
-  const labelStyle = LABEL_STYLES[size];
-  const label = SHOWCASE_STATUS_DISPLAY_NAMES[status];
+  const dotColor = DOT_COLORS[status];
+  const chipLabel = SHOWCASE_STATUS_CHIP_LABELS[status];
+  const fullLabel = SHOWCASE_STATUS_DISPLAY_NAMES[status];
+
+  if (size === "xs") {
+    return (
+      <>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1 bottom-1 z-20 rounded-full"
+          style={{
+            width: 5,
+            height: 5,
+            backgroundColor: dotColor,
+            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+          }}
+        />
+        <span className="sr-only">진행 상태: {fullLabel}</span>
+      </>
+    );
+  }
 
   return (
     <>
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute z-20 rounded-full"
-        style={dotStyle(status, size)}
-      />
-
-      {labelStyle && (
+        className={cn(
+          "pointer-events-none absolute left-1.5 bottom-1.5 z-20 flex items-center gap-1 rounded-full bg-black/55 px-2 py-[3px]",
+          className,
+        )}
+      >
         <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end",
-            "bg-gradient-to-t from-black/80 to-transparent font-medium text-white",
-            "opacity-0 transition-opacity duration-200 group-hover/thumb:opacity-100",
-            labelStyle,
-            className,
-          )}
-        >
-          <span className="truncate leading-none">{label}</span>
+          className="shrink-0 rounded-full"
+          style={{ width: 5, height: 5, backgroundColor: dotColor }}
+        />
+        <span className="whitespace-nowrap text-[10px] font-medium leading-none text-white">
+          {chipLabel}
         </span>
-      )}
-
-      <span className="sr-only">진행 상태: {label}</span>
+      </span>
+      <span className="sr-only">진행 상태: {fullLabel}</span>
     </>
   );
 }

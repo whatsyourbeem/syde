@@ -80,6 +80,13 @@ export const SHOWCASE_STATUS_DISPLAY_NAMES: Record<ShowcaseStatus, string> = {
   ENDED: "서비스 종료",
 };
 
+/** 썸네일 상태 칩 전용 라벨. 좁은 칩 안에 넣을 것이라 띄어쓰기를 뺀다. */
+export const SHOWCASE_STATUS_CHIP_LABELS: Record<ShowcaseStatus, string> = {
+  DEVELOPING: "제작중",
+  IN_SERVICE: "서비스중",
+  ENDED: "종료",
+};
+
 
 export const BANNER_POSITIONS = {
   LOG_SIDEBAR: "log_sidebar",

@@ -42,8 +42,6 @@ export function ShowcaseThumbnail({
     <div
       className={cn(
         "relative overflow-hidden bg-[#f0f0f0]",
-        // 호버 시 상태 이름을 띄우기 위한 이름 있는 그룹
-        status && "group/thumb",
         containerClassName,
       )}
     >

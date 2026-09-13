@@ -332,6 +332,8 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 alt={`${projectTitle} 썸네일`}
                 containerClassName="flex-none w-[160px] h-[160px] bg-sydeblue rounded-[10px] border border-gray-100"
                 className="object-contain"
+                status={showcase.status}
+                statusSize="sm"
               />
 
               {/* Content Area */}
@@ -434,6 +436,8 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 alt={`${projectTitle} 썸네일`}
                 containerClassName="w-[120px] h-[120px] bg-white rounded-[10px] border border-gray-100"
                 className="object-contain"
+                status={showcase.status}
+                statusSize="sm"
               />
 
               <div className="w-11 h-11 flex items-center justify-center">
