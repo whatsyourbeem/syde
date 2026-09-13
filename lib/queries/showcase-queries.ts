@@ -2,7 +2,6 @@ import { Database } from "@/types/database.types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { PublicProfile } from "@/types/profile";
-import type { ShowcaseStatus } from "@/lib/constants";
 
 type ShowcaseRow = Database["public"]["Tables"]["showcases"]["Row"];
 type ProfileRow = PublicProfile;
@@ -39,7 +38,6 @@ export interface ShowcaseQueryOptions {
   currentUserId: string | null;
   currentPage: number;
   showcasesPerPage: number;
-  status?: ShowcaseStatus;
   filterByUserId?: string;
   filterByParticipantUserId?: string;
   filterByCommentedUserId?: string;
