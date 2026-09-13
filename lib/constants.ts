@@ -75,7 +75,7 @@ export const MEETUP_STATUS_DISPLAY_NAMES: Record<MeetupStatus, string> = {
 };
 
 export const SHOWCASE_STATUS_DISPLAY_NAMES: Record<ShowcaseStatus, string> = {
-  DEVELOPING: "개발 중",
+  DEVELOPING: "제작 중",
   IN_SERVICE: "서비스 중",
   ENDED: "서비스 종료",
 };

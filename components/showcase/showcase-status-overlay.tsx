@@ -16,7 +16,7 @@ interface ShowcaseStatusOverlayProps {
   className?: string;
 }
 
-/** 상태별 점 색. 개발 중은 서비스 포인트 컬러(sydeorange)를 그대로 쓴다. */
+/** 상태별 점 색. 제작 중은 서비스 포인트 컬러(sydeorange)를 그대로 쓴다. */
 const DOT_COLORS: Record<ShowcaseStatus, string> = {
   [SHOWCASE_STATUSES.DEVELOPING]: "#ED6D34",
   [SHOWCASE_STATUSES.IN_SERVICE]: "#2FBF71",
