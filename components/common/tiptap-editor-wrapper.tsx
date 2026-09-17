@@ -1,9 +1,15 @@
 "use client";
 
 import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
+import type { EditorView } from "@tiptap/pm/view";
+import { TextSelection } from "@tiptap/pm/state";
+import { Fragment, Slice } from "@tiptap/pm/model";
+import { undo } from "@tiptap/pm/history";
+import { looksLikeMarkdown, pasteMarkdown, pastePlainText } from "./tiptap-markdown-paste";
 import { commonTiptapExtensions } from "./tiptap-extensions";
 import TiptapToolbar from "./tiptap-toolbar";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ImageBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
 import { toast } from "sonner";
 import { upgradeToHttps } from "@/lib/utils";
 
@@ -15,6 +21,46 @@ interface TiptapEditorWrapperProps {
   onImageUpload?: (file: File) => Promise<string | null>;
 }
 
+// Same shape the resize extension writes when a user centers an image; blog images read better centered.
+const CENTERED_IMAGE_STYLE = "position: relative; margin: 0px auto;";
+
+function toHttpUrl(text: string): string | null {
+  if (/\s/.test(text)) return null;
+  try {
+    const url = new URL(text);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return upgradeToHttps(text) || text;
+  } catch {
+    return null;
+  }
+}
+
+function getImageFiles(files: FileList | undefined | null): File[] {
+  return Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
+}
+
+function pasteUrl(view: EditorView, url: string) {
+  const { state } = view;
+  const { selection, schema } = state;
+  const linkMark = schema.marks.link.create({ href: url });
+
+  if (!selection.empty) {
+    view.dispatch(state.tr.addMark(selection.from, selection.to, linkMark));
+    return;
+  }
+
+  const parent = selection.$from.parent;
+  const isEmptyParagraph = parent.type.name === "paragraph" && parent.content.size === 0;
+  if (isEmptyParagraph) {
+    view.dispatch(
+      state.tr.replaceSelectionWith(schema.nodes.linkPreview.create({ src: url })),
+    );
+    return;
+  }
+
+  view.dispatch(state.tr.replaceSelectionWith(schema.text(url, [linkMark]), false));
+}
+
 export default function TiptapEditorWrapper({
   initialContent,
   onContentChange,
@@ -22,11 +68,61 @@ export default function TiptapEditorWrapper({
   editable = true,
   onImageUpload,
 }: TiptapEditorWrapperProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const onImageUploadRef = useRef(onImageUpload);
+  onImageUploadRef.current = onImageUpload;
+  // Tracks the last JSON emitted so parent echoes of our own updates skip the resync effect.
+  const lastEmittedRef = useRef<JSONContent | null>(null);
+
+  const insertImageFilesRef = useRef<(view: EditorView, files: File[]) => void>(() => {});
+  insertImageFilesRef.current = (view, files) => {
+    const upload = onImageUploadRef.current;
+    if (!upload || files.length === 0) return;
+
+    const uploads = Promise.allSettled(files.map((file) => upload(file))).then((results) => {
+      const urls = results
+        .map((result) => (result.status === "fulfilled" ? result.value : null))
+        .filter((url): url is string => !!url)
+        .map((url) => upgradeToHttps(url) || url);
+
+      if (urls.length > 0 && !view.isDestroyed) {
+        const { state } = view;
+        const nodes = urls.map((src) =>
+          state.schema.nodes.imageResize.create({ src, containerStyle: CENTERED_IMAGE_STYLE }),
+        );
+        // Inserting one by one would leave each image node-selected and the next insert would overwrite it.
+        view.dispatch(state.tr.replaceSelection(new Slice(Fragment.from(nodes), 0, 0)).scrollIntoView());
+      }
+
+      const failed = results.length - urls.length;
+      if (urls.length === 0) {
+        const reason = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
+        throw new Error(reason?.reason?.message || "이미지 업로드에 실패했습니다.");
+      }
+      return failed > 0
+        ? `${urls.length}장 삽입, ${failed}장 실패했습니다.`
+        : files.length > 1
+          ? `이미지 ${urls.length}장이 삽입되었습니다.`
+          : "이미지가 성공적으로 삽입되었습니다.";
+    });
+
+    toast.promise(uploads, {
+      loading: files.length > 1 ? `이미지 ${files.length}장을 업로드하는 중입니다...` : "이미지를 업로드하는 중입니다...",
+      success: (message) => message,
+      error: (err) => `${err.message}`,
+    });
+  };
+
+  const [linkOpen, setLinkOpen] = useState(false);
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: commonTiptapExtensions.map((extension) => {
       if (extension.name === "placeholder") {
-        return extension.configure({ placeholder });
+        return extension.configure({
+          placeholder: ({ node }: { node: { type: { name: string } } }) =>
+            node.type.name === "imageCaption" ? "이미지 설명을 입력하세요 (선택)" : placeholder,
+        });
       }
       return extension;
     }),
@@ -34,70 +130,88 @@ export default function TiptapEditorWrapper({
       attributes: {
         class: "prose max-w-none focus:outline-none p-4 min-h-full",
       },
+      handleKeyDown: (_view, event) => {
+        if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          setLinkOpen(true);
+          return true;
+        }
+        return false;
+      },
       handlePaste: (view, event) => {
-        // If there are files, don't try to handle it as a URL
-        const file = event.clipboardData?.files?.[0];
-        if (file && file.type.startsWith("image/")) {
-          insertImageFile(file);
+        const images = getImageFiles(event.clipboardData?.files);
+        if (images.length > 0) {
+          insertImageFilesRef.current(view, images);
           return true;
         }
 
-        const text = event.clipboardData?.getData("text/plain");
-        if (text) {
-          try {
-            const url = new URL(text);
-            if (url.protocol === "http:" || url.protocol === "https:") {
-              // Upgrade HTTP to HTTPS for security
-              const secureUrl = upgradeToHttps(text) || text;
-              view.dispatch(
-                view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.linkPreview.create({
-                    src: secureUrl,
-                  }),
-                ),
-              );
-              return true; // Mark as handled
-            }
-          } catch {
-            // Not a valid URL, fall back to default paste behavior
-          }
+        const rawText = event.clipboardData?.getData("text/plain") ?? "";
+        const text = rawText.trim();
+        const url = text ? toHttpUrl(text) : null;
+        if (url) {
+          pasteUrl(view, url);
+          return true;
         }
-        return false; // Use default paste behavior
-      },
-      handleDrop: (view, event, slice, moved) => {
-        if (
-          !moved &&
-          event.dataTransfer &&
-          event.dataTransfer.files &&
-          event.dataTransfer.files[0]
-        ) {
-          const file = event.dataTransfer.files[0];
-          if (file.type.startsWith("image/")) {
-            insertImageFile(file);
-            return true;
-          }
+
+        if (text && looksLikeMarkdown(rawText, event.clipboardData?.getData("text/html"))) {
+          pasteMarkdown(view, rawText);
+          const docAfterPaste = view.state.doc;
+          toast("마크다운 서식을 적용했어요", {
+            action: {
+              label: "원문 그대로",
+              onClick: () => {
+                if (view.isDestroyed || view.state.doc !== docAfterPaste) {
+                  toast.info("이미 편집을 이어가서 되돌릴 수 없어요. 실행 취소를 이용해주세요.");
+                  return;
+                }
+                undo(view.state, view.dispatch);
+                pastePlainText(view, rawText);
+              },
+            },
+          });
+          return true;
         }
         return false;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        if (moved) return false;
+        const images = getImageFiles(event.dataTransfer?.files);
+        if (images.length === 0) return false;
+
+        event.preventDefault();
+        const dropPos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+        if (dropPos) {
+          const { state } = view;
+          view.dispatch(state.tr.setSelection(TextSelection.near(state.doc.resolve(dropPos.pos))));
+        }
+        insertImageFilesRef.current(view, images);
+        return true;
       },
     },
     content: initialContent || { type: "doc", content: [] },
     editable,
     onUpdate: ({ editor }) => {
-      onContentChange(editor.getJSON());
+      const json = editor.getJSON();
+      lastEmittedRef.current = json;
+      onContentChange(json);
     },
   });
 
   useEffect(() => {
     if (!editor) return;
+    if (initialContent && initialContent === lastEmittedRef.current) return;
 
-    const currentContent = editor.getJSON();
     const isContentSame =
-      JSON.stringify(initialContent) === JSON.stringify(currentContent);
+      JSON.stringify(initialContent) === JSON.stringify(editor.getJSON());
 
     if (!isContentSame) {
-      editor.commands.setContent(
-        initialContent || { type: "doc", content: [] },
-      );
+      // The parent already holds this value; echoing it back would mark untouched forms as edited.
+      // Kept out of undo history so undo can't wipe externally loaded content (e.g. a restored draft).
+      editor
+        .chain()
+        .setMeta("addToHistory", false)
+        .setContent(initialContent || { type: "doc", content: [] }, { emitUpdate: false })
+        .run();
     }
   }, [editor, initialContent]);
 
@@ -107,45 +221,17 @@ export default function TiptapEditorWrapper({
     }
   }, [editor, editable]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const insertImageFile = useCallback(
-    async (file: File) => {
-      if (!file || !onImageUpload || !editor) return;
-
-      const promise = onImageUpload(file);
-
-      toast.promise(promise, {
-        loading: "이미지를 업로드하는 중입니다...",
-        success: (publicUrl) => {
-          if (publicUrl && editor) {
-            // Ensure HTTPS for security
-            const secureUrl = upgradeToHttps(publicUrl) || publicUrl;
-            editor.chain().focus().setImage({ src: secureUrl }).run();
-            return "이미지가 성공적으로 삽입되었습니다.";
-          }
-          return "업로드되었으나 URL이 유효하지 않습니다.";
-        },
-        error: (err) => {
-          // If it's the size error we threw, we can show it directly
-          return `${err.message}`;
-        },
-      });
-    },
-    [editor, onImageUpload],
-  );
-
   const handleImageUpload = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        insertImageFile(file);
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const images = getImageFiles(event.target.files);
+      if (editor && images.length > 0) {
+        insertImageFilesRef.current(editor.view, images);
       }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     },
-    [insertImageFile],
+    [editor],
   );
 
   if (!editor) {
@@ -156,17 +242,22 @@ export default function TiptapEditorWrapper({
     <div className="flex flex-col min-h-[inherit] h-full">
       <TiptapToolbar
         editor={editor}
-        onImageUploadClick={() => fileInputRef.current?.click()}
+        onImageUploadClick={onImageUpload ? () => fileInputRef.current?.click() : undefined}
+        linkOpen={linkOpen}
+        onLinkOpenChange={setLinkOpen}
       />
+      <TextBubbleMenu editor={editor} onLinkClick={() => setLinkOpen(true)} />
+      <ImageBubbleMenu editor={editor} />
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleImageUpload}
         className="hidden"
         accept="image/jpeg,image/png,image/gif,image/webp"
+        multiple
       />
-      <div 
-        className="flex-1 max-h-[60vh] overflow-y-auto cursor-text min-h-[inherit] h-full"
+      <div
+        className="flex-1 cursor-text min-h-[inherit] h-full"
         onClick={() => editor.commands.focus()}
       >
         <EditorContent editor={editor} />

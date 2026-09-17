@@ -97,6 +97,70 @@
   display: none;
 }
 
+/* Tiptap Placeholder only sets data-placeholder; showing it is up to CSS. */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: #a3a3a3;
+  pointer-events: none;
+}
+
+/* Image captions (imageCaption node): editor and reader share this look. */
+.prose .image-caption {
+  position: relative;
+  margin-top: -1.25em;
+  margin-bottom: 1.75em;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #777777;
+}
+.ProseMirror .image-caption.is-empty::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  inset-inline: 0;
+  color: #a3a3a3;
+  pointer-events: none;
+}
+
+/* Code block syntax highlighting (lowlight / highlight.js tokens, GitHub Dark palette on prose's dark <pre>) */
+.prose pre code .hljs-comment,
+.prose pre code .hljs-quote { color: #8b949e; font-style: italic; }
+.prose pre code .hljs-keyword,
+.prose pre code .hljs-selector-tag,
+.prose pre code .hljs-type,
+.prose pre code .hljs-doctag,
+.prose pre code .hljs-template-tag,
+.prose pre code .hljs-template-variable,
+.prose pre code .hljs-variable.language_ { color: #ff7b72; }
+.prose pre code .hljs-title,
+.prose pre code .hljs-title.class_,
+.prose pre code .hljs-title.function_ { color: #d2a8ff; }
+.prose pre code .hljs-attr,
+.prose pre code .hljs-attribute,
+.prose pre code .hljs-literal,
+.prose pre code .hljs-meta,
+.prose pre code .hljs-number,
+.prose pre code .hljs-operator,
+.prose pre code .hljs-variable,
+.prose pre code .hljs-selector-attr,
+.prose pre code .hljs-selector-class,
+.prose pre code .hljs-selector-id { color: #79c0ff; }
+.prose pre code .hljs-regexp,
+.prose pre code .hljs-string,
+.prose pre code .hljs-meta .hljs-string { color: #a5d6ff; }
+.prose pre code .hljs-built_in,
+.prose pre code .hljs-symbol { color: #ffa657; }
+.prose pre code .hljs-name,
+.prose pre code .hljs-selector-pseudo,
+.prose pre code .hljs-tag { color: #7ee787; }
+.prose pre code .hljs-section { color: #79c0ff; font-weight: 700; }
+.prose pre code .hljs-bullet { color: #f2cc60; }
+.prose pre code .hljs-emphasis { font-style: italic; }
+.prose pre code .hljs-strong { font-weight: 700; }
+.prose pre code .hljs-addition { color: #aff5b4; background-color: #033a16; }
+.prose pre code .hljs-deletion { color: #ffdcd7; background-color: #67060c; }
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
     height: 8px; /* height of horizontal scrollbar */
