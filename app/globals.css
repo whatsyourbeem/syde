@@ -106,6 +106,32 @@
   pointer-events: none;
 }
 
+/* Inline "uploading" marker shown where an image upload started (UploadPlaceholder decoration). */
+.ProseMirror .upload-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem auto;
+  min-height: 7rem;
+  max-width: 28rem;
+  border: 1px dashed #d4d4d4;
+  border-radius: 0.75rem;
+  background: #fafafa;
+  color: #777777;
+  font-size: 0.875rem;
+  user-select: none;
+}
+.ProseMirror .upload-placeholder::before {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #d4d4d4;
+  border-top-color: #002040;
+  border-radius: 9999px;
+  animation: spin 0.8s linear infinite;
+}
+
 /* Image captions (imageCaption node): editor and reader share this look. */
 .prose .image-caption {
   position: relative;

@@ -7,6 +7,12 @@ import { Fragment, Slice } from "@tiptap/pm/model";
 import { undo } from "@tiptap/pm/history";
 import { looksLikeMarkdown, pasteMarkdown, pastePlainText } from "./tiptap-markdown-paste";
 import { commonTiptapExtensions } from "./tiptap-extensions";
+import {
+  UploadPlaceholder,
+  addUploadPlaceholder,
+  findUploadPlaceholder,
+  removeUploadPlaceholder,
+} from "./tiptap-upload-placeholder";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImageBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
@@ -79,37 +85,42 @@ export default function TiptapEditorWrapper({
     const upload = onImageUploadRef.current;
     if (!upload || files.length === 0) return;
 
-    const uploads = Promise.allSettled(files.map((file) => upload(file))).then((results) => {
+    const placeholderId = crypto.randomUUID();
+    view.dispatch(addUploadPlaceholder(view.state.tr, placeholderId, view.state.selection.from, files.length));
+
+    Promise.allSettled(files.map((file) => upload(file))).then((results) => {
+      if (view.isDestroyed) return;
       const urls = results
         .map((result) => (result.status === "fulfilled" ? result.value : null))
         .filter((url): url is string => !!url)
         .map((url) => upgradeToHttps(url) || url);
 
-      if (urls.length > 0 && !view.isDestroyed) {
-        const { state } = view;
+      const { state } = view;
+      // If the writer deleted the text around the placeholder, fall back to the caret rather than dropping the upload.
+      const pos = findUploadPlaceholder(state, placeholderId) ?? state.selection.from;
+      let tr = removeUploadPlaceholder(state.tr, placeholderId);
+      if (urls.length > 0) {
         const nodes = urls.map((src) =>
           state.schema.nodes.imageResize.create({ src, containerStyle: CENTERED_IMAGE_STYLE }),
         );
-        // Inserting one by one would leave each image node-selected and the next insert would overwrite it.
-        view.dispatch(state.tr.replaceSelection(new Slice(Fragment.from(nodes), 0, 0)).scrollIntoView());
+        // A single slice keeps the images in order; replaceRange splits a paragraph if the upload started mid-text.
+        // An empty line is consumed entirely so no stray blank paragraph is left behind.
+        const $pos = tr.doc.resolve(pos);
+        const onEmptyLine = $pos.parent.type.name === "paragraph" && $pos.parent.content.size === 0 && $pos.depth > 0;
+        tr = onEmptyLine
+          ? tr.replaceWith($pos.before(), $pos.after(), Fragment.from(nodes))
+          : tr.replaceRange(pos, pos, new Slice(Fragment.from(nodes), 0, 0));
       }
+      view.dispatch(tr);
 
       const failed = results.length - urls.length;
-      if (urls.length === 0) {
-        const reason = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
-        throw new Error(reason?.reason?.message || "이미지 업로드에 실패했습니다.");
-      }
-      return failed > 0
-        ? `${urls.length}장 삽입, ${failed}장 실패했습니다.`
-        : files.length > 1
-          ? `이미지 ${urls.length}장이 삽입되었습니다.`
-          : "이미지가 성공적으로 삽입되었습니다.";
-    });
-
-    toast.promise(uploads, {
-      loading: files.length > 1 ? `이미지 ${files.length}장을 업로드하는 중입니다...` : "이미지를 업로드하는 중입니다...",
-      success: (message) => message,
-      error: (err) => `${err.message}`,
+      if (failed === 0) return;
+      const reason = results.find((r): r is PromiseRejectedResult => r.status === "rejected")?.reason?.message;
+      toast.error(
+        urls.length === 0
+          ? reason || "이미지 업로드에 실패했습니다."
+          : `${urls.length}장 삽입, ${failed}장 실패했습니다.${reason ? ` (${reason})` : ""}`,
+      );
     });
   };
 
@@ -117,15 +128,18 @@ export default function TiptapEditorWrapper({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: commonTiptapExtensions.map((extension) => {
-      if (extension.name === "placeholder") {
-        return extension.configure({
-          placeholder: ({ node }: { node: { type: { name: string } } }) =>
-            node.type.name === "imageCaption" ? "이미지 설명을 입력하세요 (선택)" : placeholder,
-        });
-      }
-      return extension;
-    }),
+    extensions: [
+      ...commonTiptapExtensions.map((extension) => {
+        if (extension.name === "placeholder") {
+          return extension.configure({
+            placeholder: ({ node }: { node: { type: { name: string } } }) =>
+              node.type.name === "imageCaption" ? "이미지 설명을 입력하세요 (선택)" : placeholder,
+          });
+        }
+        return extension;
+      }),
+      UploadPlaceholder,
+    ],
     editorProps: {
       attributes: {
         class: "prose max-w-none focus:outline-none p-4 min-h-full",
