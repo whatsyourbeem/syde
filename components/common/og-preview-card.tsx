@@ -107,6 +107,8 @@ export function OgPreviewCard({ url, interactive = true }: OgPreviewCardProps) {
             <img
               src={ogData.image}
               alt={ogData.title || "OG Image"}
+              loading="lazy"
+              decoding="async"
               className="h-full object-cover"
               onError={() => setHasImageError(true)}
             />

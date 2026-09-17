@@ -56,7 +56,8 @@ const ServerImage = ResizeImage.extend({
         // The stored margin ("0px auto") is for horizontal alignment; restore prose's vertical rhythm after it,
         // otherwise images touch the text around them and captions overlap.
         const style = ["display: block", "max-width: 100%", "height: auto", ...declarations, "margin-top: 2em", "margin-bottom: 2em"].join("; ");
-        const attrs: Record<string, string> = { src, style };
+        // Lazy: storage egress is billed per byte served, and most readers never scroll to every image in a post.
+        const attrs: Record<string, string> = { src, style, loading: "lazy", decoding: "async" };
         if (alt) attrs.alt = alt;
         if (title) attrs.title = title;
         return ['img', attrs];
