@@ -15,7 +15,7 @@ import {
 } from "./tiptap-upload-placeholder";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImageBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
+import { ImageBubbleMenu, LinkPreviewBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
 import { toast } from "sonner";
 import { upgradeToHttps } from "@/lib/utils";
 
@@ -262,6 +262,7 @@ export default function TiptapEditorWrapper({
       />
       <TextBubbleMenu editor={editor} onLinkClick={() => setLinkOpen(true)} />
       <ImageBubbleMenu editor={editor} />
+      <LinkPreviewBubbleMenu editor={editor} />
       <input
         type="file"
         ref={fileInputRef}

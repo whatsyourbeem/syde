@@ -4,9 +4,11 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { NodeSelection } from "@tiptap/pm/state";
-import { Code, Link2, Captions } from "lucide-react";
+import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
+const BUBBLE_CLASS = "z-40 flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg";
 const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 function BubbleButton({
@@ -70,7 +72,7 @@ export function TextBubbleMenu({ editor, onLinkClick }: { editor: Editor; onLink
       }
       // On touch devices the OS selection callout sits above the text, so open below it.
       options={{ placement: isTouch ? "bottom" : "top", offset: 8 }}
-      className="z-40 flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg"
+      className={BUBBLE_CLASS}
     >
       <BubbleButton label="굵게" active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()} className="font-bold">
         B
@@ -95,10 +97,28 @@ export function TextBubbleMenu({ editor, onLinkClick }: { editor: Editor; onLink
   );
 }
 
+
+function selectedNode(editor: Editor, typeName: string) {
+  const { selection } = editor.state;
+  return selection instanceof NodeSelection && selection.node.type.name === typeName ? selection : null;
+}
+
 export function ImageBubbleMenu({ editor }: { editor: Editor }) {
+  const [editingAlt, setEditingAlt] = useState(false);
+  const [altValue, setAltValue] = useState("");
+  const selectedPos = useEditorState({
+    editor,
+    selector: ({ editor }) => selectedNode(editor, "imageResize")?.from ?? null,
+  });
+
+  // Selecting a different image (or none) leaves alt-text editing.
+  useEffect(() => {
+    setEditingAlt(false);
+  }, [selectedPos]);
+
   const addOrFocusCaption = () => {
-    const { selection } = editor.state;
-    if (!(selection instanceof NodeSelection)) return;
+    const selection = selectedNode(editor, "imageResize");
+    if (!selection) return;
     const after = selection.to;
     const next = editor.state.doc.nodeAt(after);
     if (next?.type.name === "imageCaption") {
@@ -113,21 +133,140 @@ export function ImageBubbleMenu({ editor }: { editor: Editor }) {
       .run();
   };
 
+  const startAlt = () => {
+    const selection = selectedNode(editor, "imageResize");
+    setAltValue((selection?.node.attrs.alt as string | null) ?? "");
+    setEditingAlt(true);
+  };
+
+  const saveAlt = () => {
+    const pos = selectedPos;
+    if (pos === null) return;
+    editor
+      .chain()
+      .command(({ tr }) => {
+        tr.setNodeAttribute(pos, "alt", altValue.trim() || null);
+        return true;
+      })
+      .setNodeSelection(pos)
+      .focus()
+      .run();
+    setEditingAlt(false);
+  };
+
+  const remove = () => {
+    // The caption belongs to the image; delete it along with it.
+    const selection = selectedNode(editor, "imageResize");
+    if (!selection) return;
+    const next = editor.state.doc.nodeAt(selection.to);
+    const to = next?.type.name === "imageCaption" ? selection.to + next.nodeSize : selection.to;
+    editor.chain().focus().deleteRange({ from: selection.from, to }).run();
+  };
+
   return (
     <BubbleMenu
       editor={editor}
       pluginKey="imageBubbleMenu"
-      shouldShow={({ editor, view, state }) =>
+      shouldShow={({ editor, view, state, element }) =>
         editor.isEditable &&
-        view.hasFocus() &&
+        // Keep showing while the alt-text input inside the menu has focus.
+        (view.hasFocus() || element.contains(document.activeElement)) &&
         state.selection instanceof NodeSelection &&
         state.selection.node.type.name === "imageResize"
       }
       options={{ placement: "bottom", offset: 8 }}
-      className="z-40 flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg"
+      className={BUBBLE_CLASS}
     >
-      <BubbleButton label="이미지 설명(캡션) 추가" onClick={addOrFocusCaption} className="gap-1.5 px-3">
-        <Captions size={15} /> 캡션
+      {editingAlt ? (
+        <form
+          className="flex items-center gap-1 p-0.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveAlt();
+          }}
+        >
+          <input
+            autoFocus
+            value={altValue}
+            onChange={(e) => setAltValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                saveAlt();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                setEditingAlt(false);
+                editor.commands.focus();
+              }
+            }}
+            placeholder="이미지를 설명하는 짧은 문장"
+            aria-label="대체 텍스트"
+            className="h-8 w-56 rounded-md bg-white/10 px-2 text-[16px] md:text-sm text-white placeholder:text-white/40 outline-none"
+          />
+          <button type="submit" className="h-8 rounded-md bg-white px-3 text-sm font-medium text-neutral-900">
+            저장
+          </button>
+        </form>
+      ) : (
+        <>
+          <BubbleButton label="이미지 설명(캡션) 추가" onClick={addOrFocusCaption} className="gap-1.5 px-3">
+            <Captions size={15} /> 캡션
+          </BubbleButton>
+          <BubbleButton label="대체 텍스트 (화면 낭독기·검색용 이미지 설명)" onClick={startAlt} className="gap-1.5 px-3">
+            <TextCursorInput size={15} /> 대체 텍스트
+          </BubbleButton>
+          <div className="mx-0.5 h-5 border-l border-white/20" />
+          <BubbleButton label="이미지 삭제" onClick={remove} className="text-red-300 hover:text-red-200">
+            <Trash2 size={15} />
+          </BubbleButton>
+        </>
+      )}
+    </BubbleMenu>
+  );
+}
+
+export function LinkPreviewBubbleMenu({ editor }: { editor: Editor }) {
+  const toLink = () => {
+    const selection = selectedNode(editor, "linkPreview");
+    if (!selection) return;
+    const url = selection.node.attrs.src as string;
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(
+        { from: selection.from, to: selection.to },
+        { type: "paragraph", content: [{ type: "text", text: url, marks: [{ type: "link", attrs: { href: url } }] }] },
+      )
+      .run();
+  };
+
+  const open = () => {
+    const url = selectedNode(editor, "linkPreview")?.node.attrs.src as string | undefined;
+    if (url && /^https?:\/\//i.test(url)) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey="linkPreviewBubbleMenu"
+      shouldShow={({ editor, view, state }) =>
+        editor.isEditable &&
+        view.hasFocus() &&
+        state.selection instanceof NodeSelection &&
+        state.selection.node.type.name === "linkPreview"
+      }
+      options={{ placement: "bottom", offset: 8 }}
+      className={BUBBLE_CLASS}
+    >
+      <BubbleButton label="새 탭에서 열기" onClick={open} className="gap-1.5 px-3">
+        <ExternalLink size={15} /> 열기
+      </BubbleButton>
+      <BubbleButton label="카드를 일반 링크로 바꾸기" onClick={toLink} className="gap-1.5 px-3">
+        <Link2 size={15} /> 링크로 바꾸기
+      </BubbleButton>
+      <div className="mx-0.5 h-5 border-l border-white/20" />
+      <BubbleButton label="카드 삭제" onClick={() => editor.chain().focus().deleteSelection().run()} className="text-red-300 hover:text-red-200">
+        <Trash2 size={15} />
       </BubbleButton>
     </BubbleMenu>
   );

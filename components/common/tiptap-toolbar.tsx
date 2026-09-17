@@ -359,18 +359,6 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
     <div className="sticky top-[calc(var(--sticky-nav-height,0px)+var(--editor-bar-height,0px))] z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 mb-2">
       <div className="relative">
         <div ref={scrollRef} className="flex gap-0.5 items-center overflow-x-auto no-scrollbar px-1 py-1">
-          {/* Undo/redo lead on mobile (no keyboard shortcuts there) and trail on desktop. */}
-          <div className="flex items-center shrink-0 md:order-last md:ml-auto">
-            <ToolbarButton label="실행 취소" shortcut={`${MOD}Z`} disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()}>
-              <Undo2 size={16} />
-            </ToolbarButton>
-            <ToolbarButton label="다시 실행" shortcut={`${MOD}${SHIFT}Z`} disabled={!state.canRedo} onClick={() => editor.chain().focus().redo().run()}>
-              <Redo2 size={16} />
-            </ToolbarButton>
-            <div className="md:hidden"><Divider /></div>
-            <div className="hidden md:block"><ShortcutHelp /></div>
-          </div>
-
           <BlockTypeMenu editor={editor} current={state.blockType} />
           <Divider />
           <ToolbarButton label="굵게" shortcut={`${MOD}B`} active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()} className="font-bold text-base">
@@ -386,6 +374,20 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
             </ToolbarButton>
           )}
           <Divider />
+
+          {/* On mobile undo/redo come right after the essentials still inside the first screen (no shortcuts there);
+              on desktop order-last pushes them to the far right. */}
+          <div className="flex items-center shrink-0 md:order-last md:ml-auto">
+            <ToolbarButton label="실행 취소" shortcut={`${MOD}Z`} disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()}>
+              <Undo2 size={16} />
+            </ToolbarButton>
+            <ToolbarButton label="다시 실행" shortcut={`${MOD}${SHIFT}Z`} disabled={!state.canRedo} onClick={() => editor.chain().focus().redo().run()}>
+              <Redo2 size={16} />
+            </ToolbarButton>
+            <div className="md:hidden"><Divider /></div>
+            <div className="hidden md:block"><ShortcutHelp /></div>
+          </div>
+
           <ToolbarButton label="글머리 기호 목록" shortcut={`${MOD}${SHIFT}8`} active={state.bulletList} onClick={() => editor.chain().focus().toggleBulletList().run()}>
             <List size={16} />
           </ToolbarButton>
