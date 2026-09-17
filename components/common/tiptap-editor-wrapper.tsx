@@ -13,6 +13,7 @@ import {
   findUploadPlaceholder,
   removeUploadPlaceholder,
 } from "./tiptap-upload-placeholder";
+import { isExpiringImageUrl, pastedImageSrcs } from "./tiptap-external-images";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImageBubbleMenu, LinkPreviewBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
@@ -26,6 +27,10 @@ interface TiptapEditorWrapperProps {
   editable?: boolean;
   onImageUpload?: (file: File) => Promise<string | null>;
 }
+
+const OWN_STORAGE_PREFIX = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/`
+  : null;
 
 // Same shape the resize extension writes when a user centers an image; blog images read better centered.
 const CENTERED_IMAGE_STYLE = "position: relative; margin: 0px auto;";
@@ -124,6 +129,66 @@ export default function TiptapEditorWrapper({
     });
   };
 
+  // Pasted Notion/Google Docs/signed image URLs expire after a while; copy them into our storage and swap the src.
+  const rehostingRef = useRef(new Set<string>());
+  const rehostImagesRef = useRef<(view: EditorView, srcs: string[]) => void>(() => {});
+  rehostImagesRef.current = (view, srcs) => {
+    const upload = onImageUploadRef.current;
+    const pending = srcs.filter((src) => !rehostingRef.current.has(src));
+    if (!upload || pending.length === 0) return;
+    pending.forEach((src) => rehostingRef.current.add(src));
+
+    const toastId = toast.loading(
+      pending.length > 1 ? `외부 이미지 ${pending.length}장을 옮기는 중…` : "외부 이미지를 옮기는 중…",
+      { description: "원본 주소가 만료되면 이미지가 깨지기 때문에 SYDE에 저장하고 있어요." },
+    );
+
+    Promise.allSettled(
+      pending.map(async (src) => {
+        try {
+          const response = await fetch(`/api/fetch-image?url=${encodeURIComponent(src)}`);
+          if (!response.ok) throw new Error(`fetch-image ${response.status}`);
+          const blob = await response.blob();
+          const file = new File([blob], "pasted-image", { type: blob.type });
+          const uploaded = await upload(file);
+          if (!uploaded) throw new Error("upload failed");
+          return { src, uploaded: upgradeToHttps(uploaded) || uploaded };
+        } finally {
+          rehostingRef.current.delete(src);
+        }
+      }),
+    ).then((results) => {
+      if (!view.isDestroyed) {
+        const replacements = new Map(
+          results.flatMap((r) => (r.status === "fulfilled" ? [[r.value.src, r.value.uploaded] as const] : [])),
+        );
+        if (replacements.size > 0) {
+          const tr = view.state.tr;
+          view.state.doc.descendants((node, pos) => {
+            const next = node.type.name === "imageResize" ? replacements.get(node.attrs.src) : undefined;
+            if (next) tr.setNodeAttribute(pos, "src", next);
+          });
+          // Swapping the URL isn't a user edit; keep it out of undo so undo doesn't bring back the expiring link.
+          view.dispatch(tr.setMeta("addToHistory", false));
+        }
+      }
+
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed === 0) {
+        toast.success("외부 이미지를 SYDE에 저장했어요.", { id: toastId, description: undefined });
+      } else {
+        toast.warning(
+          failed === results.length ? "외부 이미지를 옮기지 못했어요." : `외부 이미지 ${failed}장을 옮기지 못했어요.`,
+          {
+            id: toastId,
+            description: "원본 주소가 만료되면 깨질 수 있어요. 이미지를 저장한 뒤 직접 올려주세요.",
+            duration: 8000,
+          },
+        );
+      }
+    });
+  };
+
   const [linkOpen, setLinkOpen] = useState(false);
 
   const editor = useEditor({
@@ -204,10 +269,13 @@ export default function TiptapEditorWrapper({
     },
     content: initialContent || { type: "doc", content: [] },
     editable,
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor, transaction }) => {
       const json = editor.getJSON();
       lastEmittedRef.current = json;
       onContentChange(json);
+
+      const expiring = pastedImageSrcs(transaction).filter((src) => isExpiringImageUrl(src, OWN_STORAGE_PREFIX));
+      if (expiring.length > 0) rehostImagesRef.current(editor.view, expiring);
     },
   });
 
