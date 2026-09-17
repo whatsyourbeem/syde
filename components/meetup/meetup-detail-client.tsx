@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
 import { JSONContent } from "@tiptap/react";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import RichContent from "@/components/common/rich-content";
 import { createClient } from "@/lib/supabase/client";
 
 import {
@@ -114,7 +114,6 @@ export default function MeetupDetailClient({
   joinedClubIds,
   reviews,
 }: MeetupDetailClientProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [meetup, setMeetup] = useState(initialMeetup);
   const [isJoinClubDialogOpen, setIsJoinClubDialogOpen] = useState(false);
   const [isJoinConfirmDialogOpen, setIsJoinConfirmDialogOpen] = useState(false);
@@ -125,10 +124,6 @@ export default function MeetupDetailClient({
   } | null>(null);
   const [isPending, startTransition] = useTransition();
   const supabase = createClient();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleStatusUpdate = (
     participantId: string,
@@ -425,14 +420,7 @@ export default function MeetupDetailClient({
               💬<span className="font-extrabold pl-2">모임 설명</span>
             </h2>
             <div className="min-h-[200px] w-full border-b pb-8">
-              {/* SEO fallback */}
-              {initialHtml && !isMounted && (
-                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
-              )}
-              {/* 클라이언트 사이드 Tiptap 에디터 로드 후 교체 */}
-              <div className={initialHtml && !isMounted ? "hidden" : "block"}>
-                <TiptapViewer content={meetup.description} />
-              </div>
+              <RichContent html={initialHtml ?? ""} />
             </div>
           </div>
 

@@ -31,7 +31,6 @@ import { formatRelativeTime, linkifyMentions } from "@/lib/utils";
 import { Database } from "@/types/database.types";
 import { showcaseKeys } from "@/lib/queries/query-keys";
 import { motion, AnimatePresence } from "motion/react";
-import { cn } from "@/lib/utils";
 
 import {
   DropdownMenu,
@@ -62,7 +61,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { DeleteDialog } from "@/components/showcase/delete-dialog";
 import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import RichContent from "@/components/common/rich-content";
 import { SydePickBadge } from "./syde-pick-badge";
 import { ShowcaseBumpBar } from "./showcase-bump-bar";
 
@@ -100,12 +99,6 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
 
   // existing state code...
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [copyUrl, setCopyUrl] = useState("");
   const [replyTo, setReplyTo] = useState<{
@@ -708,29 +701,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
           </div>
 
           <div className="w-full relative">
-            {initialHtml && (
-              <div 
-                className={cn("prose max-w-none", isMounted && "absolute opacity-0 pointer-events-none -z-10 w-0 h-0 overflow-hidden")} 
-                dangerouslySetInnerHTML={{ __html: initialHtml }} 
-              />
-            )}
-            <div className={cn(!isMounted ? "hidden" : "block")}>
-              <TiptapViewer
-                content={(() => {
-                  if (!showcase.description) return null;
-                  // If the description is already an object, return it (new jsonb format)
-                  if (typeof showcase.description === "object") return showcase.description;
-
-                  try {
-                    // If it's a string, try parsing as JSON
-                    return JSON.parse(showcase.description);
-                  } catch (e) {
-                    // Legacy HTML or fallback
-                    return showcase.description;
-                  }
-                })()}
-              />
-            </div>
+            <RichContent html={initialHtml ?? ""} />
           </div>
         </div>
 

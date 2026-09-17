@@ -18,8 +18,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
 import { InteractionActions } from "@/components/common/interaction-actions";
-import TiptapViewer from "@/components/common/tiptap-viewer";
-import { cn } from "@/lib/utils";
+import RichContent from "@/components/common/rich-content";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { formatDistanceToNow } from "date-fns";
@@ -59,7 +58,6 @@ export default function InsightDetailClient({
     const supabase = createClient();
     const queryClient = useQueryClient();
 
-    const [isMounted, setIsMounted] = useState(false);
     const [insight, setInsight] = useState<any>(initialInsight);
     const [stats, setStats] = useState(initialStats);
     const [viewsCount, setViewsCount] = useState(initialStats.views ?? 0);
@@ -83,10 +81,6 @@ export default function InsightDetailClient({
     const [currentUserId, setCurrentUserId] = useState<string | null>(initialCurrentUserId);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const router = useRouter();
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
 
     // Increment view count once per 1h per browser via localStorage
     useEffect(() => {
@@ -185,21 +179,6 @@ export default function InsightDetailClient({
             toast.error("처리 중 오류가 발생했습니다.");
         } finally {
             setBookmarkLoading(false);
-        }
-    };
-
-    const parseContent = (content: any) => {
-        if (!content) return null;
-        try {
-            // Attempt to parse as JSON (for Tiptap content)
-            const parsed = JSON.parse(content);
-            if (typeof parsed === 'object' && parsed !== null) {
-                return parsed;
-            }
-            return content;
-        } catch (e) {
-            // If parsing fails, it's likely plain text
-            return content;
         }
     };
 
@@ -304,18 +283,9 @@ export default function InsightDetailClient({
                 </section>
 
                 <section className="w-full py-8 md:py-16 border-b-[0.5px] border-[#B7B7B7]">
-                    <div className="px-1 text-black md:text-lg w-full">
-                        {/* SEO fallback: 봇이나 브라우저 초기 렌더링 시 서버에서 미리 만든 HTML을 표시 */}
-                        {initialHtml && (
-                            <div 
-                                className={cn("prose max-w-none", isMounted && "absolute opacity-0 pointer-events-none -z-10 w-0 h-0 overflow-hidden")} 
-                                dangerouslySetInnerHTML={{ __html: initialHtml }} 
-                            />
-                        )}
-                        {/* 클라이언트 사이드 Tiptap 에디터 로드 후 표시 */}
-                        <div className={cn(!isMounted ? "hidden" : "block")}>
-                            <TiptapViewer content={parseContent(insight.content)} />
-                        </div>
+                    {/* Same 768px column as the writing form, so posts read the way they were written. */}
+                    <div className="px-1 text-black w-full max-w-3xl mx-auto">
+                        <RichContent html={initialHtml ?? ""} />
                     </div>
                 </section>
 

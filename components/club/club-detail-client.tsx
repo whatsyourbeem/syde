@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { Tables } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import RichContent from "@/components/common/rich-content";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Drawer,
   DrawerTrigger,
@@ -79,7 +78,6 @@ export default function ClubDetailClient({
   const [paginatedPosts, setPaginatedPosts] = useState<ClubForumPost[]>([]);
   const [totalPostsCount, setTotalPostsCount] = useState(0);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Client-side member state
   const [clientMembers, setClientMembers] = useState<ClubMember[]>(members || []);
@@ -88,8 +86,6 @@ export default function ClubDetailClient({
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
 
   useEffect(() => {
-    setIsMounted(true);
-
     const fetchMembers = async () => {
       setIsLoadingMembers(true);
       const { members: fetchedMembers, error } = await getClubMembers(club.id);
@@ -251,14 +247,7 @@ export default function ClubDetailClient({
           <AccordionContent className="prose prose-sm dark:prose-invert max-w-none px-6 pt-0 pb-6 w-full min-h-[150px]">
             {club.description ? (
               <div className="w-full">
-                {/* SEO fallback */}
-                {initialHtml && !isMounted && (
-                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
-                )}
-                {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
-                <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
-                  <TiptapViewer content={club.description} />
-                </div>
+                <RichContent html={initialHtml ?? ""} />
               </div>
             ) : (
               <p className="text-muted-foreground">
