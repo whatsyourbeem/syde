@@ -197,17 +197,19 @@ function LinkButton({
 
 const BLOCK_TYPES = [
   { key: "paragraph", label: "본문", previewClass: "text-sm" },
-  { key: "h2", label: "제목", previewClass: "text-lg font-bold" },
-  { key: "h3", label: "소제목", previewClass: "text-base font-bold" },
+  { key: "h1", label: "제목 1", previewClass: "text-xl font-extrabold" },
+  { key: "h2", label: "제목 2", previewClass: "text-lg font-bold" },
+  { key: "h3", label: "제목 3", previewClass: "text-base font-bold" },
 ] as const;
 
+const HEADING_LEVEL = { h1: 1, h2: 2, h3: 3 } as const;
+
 function BlockTypeMenu({ editor, current }: { editor: Editor; current: string }) {
-  // Body H1 competes with the post title; it isn't offered, but existing H1s still get a readable label.
-  const label = current === "h1" ? "큰 제목" : BLOCK_TYPES.find((t) => t.key === current)?.label ?? "본문";
+  const label = BLOCK_TYPES.find((t) => t.key === current)?.label ?? "본문";
   const apply = (key: (typeof BLOCK_TYPES)[number]["key"]) => {
     const chain = editor.chain().focus();
     if (key === "paragraph") chain.setParagraph().run();
-    else chain.setHeading({ level: key === "h2" ? 2 : 3 }).run();
+    else chain.setHeading({ level: HEADING_LEVEL[key] }).run();
   };
 
   return (
@@ -218,14 +220,14 @@ function BlockTypeMenu({ editor, current }: { editor: Editor; current: string })
           variant="ghost"
           size="sm"
           aria-label={`문단 형식: ${label}`}
-          title={`문단 형식 (${MOD}${isMac ? "⌥" : "Alt+"}2 · 3)`}
+          title={`문단 형식 (${MOD}${isMac ? "⌥" : "Alt+"}1 · 2 · 3)`}
           className="shrink-0 h-10 px-2 md:h-8 gap-1 min-w-[72px] justify-between font-medium"
         >
           {label}
           <ChevronDown size={14} className="opacity-60" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-40">
+      <DropdownMenuContent align="start" className="w-44">
         {BLOCK_TYPES.map((type) => (
           <DropdownMenuItem
             key={type.key}
@@ -242,8 +244,9 @@ function BlockTypeMenu({ editor, current }: { editor: Editor; current: string })
 
 function ShortcutHelp() {
   const markdown: [string, string][] = [
-    ["## ", "제목"],
-    ["### ", "소제목"],
+    ["# ", "제목 1"],
+    ["## ", "제목 2"],
+    ["### ", "제목 3"],
     ["- ", "글머리 기호 목록"],
     ["1. ", "번호 목록"],
     ["> ", "인용구"],

@@ -91,20 +91,22 @@ export default {
               textDecorationColor: "rgb(37 99 235 / 0.4)",
             },
             "a:hover": { textDecorationColor: "currentColor" },
+            // Plain strings: theme("fontSize.*") returns [size, { lineHeight }], which typography silently drops.
+            // Body headings stay below the post title (40px desktop / 30px mobile), like velog. Mobile sizes: globals.css.
             h1: {
-              fontSize: theme("fontSize.3xl"),
+              fontSize: "2rem",
               fontWeight: theme("fontWeight.bold"),
             },
             h2: {
-              fontSize: theme("fontSize.2xl"),
+              fontSize: "1.625rem",
               fontWeight: theme("fontWeight.bold"),
             },
             h3: {
-              fontSize: theme("fontSize.xl"),
+              fontSize: "1.3125rem",
               fontWeight: theme("fontWeight.bold"),
             },
             h4: {
-              fontSize: theme("fontSize.lg"),
+              fontSize: "1.125rem",
               fontWeight: theme("fontWeight.bold"),
             },
             // Typography's defaults add curly quotes to blockquotes and backticks around inline code;

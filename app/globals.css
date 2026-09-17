@@ -106,6 +106,14 @@
   pointer-events: none;
 }
 
+/* Mobile body heading scale (desktop sizes live in tailwind.config.ts typography). */
+@media (max-width: 767px) {
+  .prose:not(.prose-sm) h1 { font-size: 1.75rem; }
+  .prose:not(.prose-sm) h2 { font-size: 1.5rem; }
+  .prose:not(.prose-sm) h3 { font-size: 1.25rem; }
+  .prose:not(.prose-sm) h4 { font-size: 1.0625rem; }
+}
+
 /* Inline "uploading" marker shown where an image upload started (UploadPlaceholder decoration). */
 .ProseMirror .upload-placeholder {
   display: flex;

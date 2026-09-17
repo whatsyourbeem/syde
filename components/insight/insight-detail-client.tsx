@@ -249,7 +249,7 @@ export default function InsightDetailClient({
                             <div className="p-3 flex flex-col gap-[5px] items-center text-center">
                                 {/* Title & Summary */}
                                 <div className="flex flex-col gap-[5px]">
-                                    <h3 className="text-[28px] leading-[150%] font-bold text-black h-auto line-clamp-none">
+                                    <h3 className="text-[30px] md:text-[40px] leading-[1.3] font-bold text-black h-auto line-clamp-none">
                                         {insight.title}
                                     </h3>
                                     <p className="text-[16px] leading-[150%] text-[#777777] line-clamp-none">

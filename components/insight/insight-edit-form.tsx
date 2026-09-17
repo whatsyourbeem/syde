@@ -284,7 +284,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                         aria-required
                         placeholder="제목을 입력하세요"
                         className={cn(
-                            "w-full resize-none overflow-hidden bg-transparent border-b-2 border-transparent pb-2 text-[26px] md:text-[32px] font-bold leading-tight text-foreground outline-none placeholder:text-[#C4C4C4] transition-colors focus:border-[#E5E5E5]",
+                            "w-full resize-none overflow-hidden bg-transparent border-b-2 border-transparent pb-2 text-[30px] md:text-[40px] font-bold leading-tight text-foreground outline-none placeholder:text-[#C4C4C4] transition-colors focus:border-[#E5E5E5]",
                             errors.title && "border-red-500 focus:border-red-500",
                         )}
                     />
