@@ -1,0 +1,93 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { ChevronLeft, Check, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+
+interface InsightWriteBarProps {
+  pageLabel: string;
+  lastSavedAt: number | null;
+  onExit: () => void;
+  onPublish: () => void;
+  publishLabel: string;
+  busyLabel: string | null;
+}
+
+/**
+ * Sticky bar for the writing page: keeps save status and the publish action in reach
+ * while the writer is deep in a long post.
+ */
+export function InsightWriteBar({ pageLabel, lastSavedAt, onExit, onPublish, publishLabel, busyLabel }: InsightWriteBarProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // The editor toolbar sticks right below this bar; publish our height so it doesn't slide underneath.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const update = () => root.style.setProperty("--editor-bar-height", `${el.offsetHeight}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--editor-bar-height");
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="sticky top-[var(--sticky-nav-height,0px)] z-40 -mx-4 md:-mx-6 border-b bg-background"
+    >
+      <div className="flex h-12 md:h-14 items-center gap-2 px-2 md:px-4">
+        <Button type="button" variant="ghost" size="sm" onClick={onExit} className="h-9 md:h-10 gap-0.5 px-2 text-[#555]">
+          <ChevronLeft size={18} />
+          <span className="text-[14px]">나가기</span>
+        </Button>
+        <h1 className="truncate text-[14px] font-semibold text-sydeblue">{pageLabel}</h1>
+
+        <div className="ml-auto flex items-center gap-3">
+          <span className="hidden sm:flex items-center gap-1 text-[12px] text-[#888]" aria-live="polite">
+            {lastSavedAt ? (
+              <>
+                <Check size={13} className="text-emerald-600" />
+                임시저장됨 {format(lastSavedAt, "HH:mm")}
+              </>
+            ) : (
+              "작성 내용은 자동 저장돼요"
+            )}
+          </span>
+          {/* Narrow screens: icon-only save state so the publish button keeps its room. */}
+          <span
+            className="sm:hidden flex items-center text-[12px] text-[#888]"
+            aria-label={lastSavedAt ? `임시저장됨 ${format(lastSavedAt, "HH:mm")}` : "자동 저장"}
+          >
+            {lastSavedAt && (
+              <>
+                <Check size={13} className="text-emerald-600 mr-0.5" />
+                {format(lastSavedAt, "HH:mm")}
+              </>
+            )}
+          </span>
+          <Button
+            type="button"
+            onClick={onPublish}
+            disabled={!!busyLabel}
+            className="h-9 md:h-10 rounded-[10px] bg-sydeblue px-4 text-[14px] font-medium text-white hover:bg-sydeblue/90"
+          >
+            {busyLabel ? (
+              <>
+                <Loader2 size={15} className="mr-1 animate-spin" />
+                {busyLabel}
+              </>
+            ) : (
+              publishLabel
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

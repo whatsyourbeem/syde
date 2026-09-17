@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Plus, Loader2, FileClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { cn } from "@/lib/utils";
+import { InsightWriteBar } from "@/components/insight/insight-write-bar";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
 import { createInsight, updateInsight } from "@/app/insight/insight-actions";
@@ -155,6 +156,12 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         setImageUrl(draft.imageUrl);
     };
 
+    // Writers often arrive from a shared link (e.g. a DM); "back" would leave the site, so fall back to the list.
+    const handleExit = () => {
+        if (window.history.length > 1) router.back();
+        else router.push("/insight");
+    };
+
     const handleSubmit = async () => {
         const contentString = typeof content === 'string' ? content : JSON.stringify(content);
 
@@ -229,12 +236,15 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
     return (
         <div className="flex flex-col bg-white w-full max-w-3xl mx-auto font-[Pretendard] px-4 md:px-6">
-            {/* Page Title Section */}
-            <section className="w-full flex flex-col items-center py-5 gap-4">
-                <h1 className="text-[24px] font-bold leading-[29px] text-sydeblue text-center w-full md:text-left md:py-4">
-                    SYDE 인사이트 {isEditMode ? '수정하기' : '등록하기'}
-                </h1>
-            </section>
+            <InsightWriteBar
+                pageLabel={isEditMode ? "인사이트 수정" : "인사이트 등록"}
+                lastSavedAt={lastSavedAt}
+                onExit={handleExit}
+                onPublish={handleSubmit}
+                publishLabel={isEditMode ? "수정하기" : "등록하기"}
+                busyLabel={uploading ? "업로드 중" : loading ? "처리 중" : null}
+            />
+            <div className="h-6 md:h-8" />
 
             {pendingDraft && (
                 <div className="mb-5 flex flex-col gap-3 rounded-[10px] border border-sydeblue/20 bg-sydeblue/5 p-4 md:flex-row md:items-center md:justify-between">
@@ -397,15 +407,10 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
                 {/* Buttons Section */}
                 <div className="flex flex-row justify-end items-center gap-2.5 w-full mt-2">
-                    {lastSavedAt && (
-                        <span className="mr-auto text-[12px] text-[#777777]">
-                            임시저장됨 {format(lastSavedAt, "HH:mm")}
-                        </span>
-                    )}
                     <Button
                         variant="outline"
                         className="w-24 h-10 border-sydeblue text-sydeblue rounded-[12px] text-[14px] hover:bg-gray-50"
-                        onClick={() => router.back()}
+                        onClick={handleExit}
                     >
                         취소
                     </Button>

@@ -16,6 +16,9 @@ export function HeaderNavigationWrapper({ children }: { children: React.ReactNod
     segments.length === 1 &&
     segments[0].startsWith("@");
 
+  // Writing pages get their own sticky bar (publish, save state); a second sticky nav would eat the editing area.
+  const isWritePage = pathname === "/insight/write" || /^\/insight\/[^/]+\/edit$/.test(pathname);
+
   // Publishes the sticky nav height so sticky elements below it (e.g. editor toolbar) don't slide underneath.
   useEffect(() => {
     const el = ref.current;
@@ -31,7 +34,7 @@ export function HeaderNavigationWrapper({ children }: { children: React.ReactNod
   return (
     <div ref={ref} className={cn(
       "w-full bg-background sticky top-0 z-40",
-      isProfilePage ? "hidden md:block" : "block"
+      isWritePage ? "hidden" : isProfilePage ? "hidden md:block" : "block"
     )}>
       <nav className="md:h-auto w-full max-w-6xl mx-auto flex justify-center items-center px-5">
         {children}

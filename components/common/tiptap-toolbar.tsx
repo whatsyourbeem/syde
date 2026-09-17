@@ -356,7 +356,7 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
   const AlignIcon = state.align === "center" ? AlignCenter : state.align === "right" ? AlignRight : AlignLeft;
 
   return (
-    <div className="sticky top-[var(--sticky-nav-height,0px)] z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 mb-2">
+    <div className="sticky top-[calc(var(--sticky-nav-height,0px)+var(--editor-bar-height,0px))] z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 mb-2">
       <div className="relative">
         <div ref={scrollRef} className="flex gap-0.5 items-center overflow-x-auto no-scrollbar px-1 py-1">
           {/* Undo/redo lead on mobile (no keyboard shortcuts there) and trail on desktop. */}
