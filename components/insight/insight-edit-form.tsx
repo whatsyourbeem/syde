@@ -28,6 +28,12 @@ const TiptapEditorWrapper = dynamic(
     }
 );
 
+// Pulls in the server HTML renderer (syntax highlighting, etc.); only worth loading once the writer asks to preview.
+const InsightPreviewDialog = dynamic(
+    () => import("@/components/insight/insight-preview-dialog").then((mod) => mod.InsightPreviewDialog),
+    { ssr: false },
+);
+
 interface DraftData {
     title: string;
     summary: string;
@@ -116,6 +122,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const [content, setContent] = useState<JSONContent | string>(getInitialContent());
     const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
     const [errors, setErrors] = useState<FieldErrors>({});
+    const [previewOpen, setPreviewOpen] = useState(false);
     const titleRef = useRef<HTMLTextAreaElement>(null);
     const bodyRef = useRef<HTMLDivElement>(null);
     const summaryRef = useRef<HTMLInputElement>(null);
@@ -240,10 +247,21 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 pageLabel={isEditMode ? "인사이트 수정" : "인사이트 등록"}
                 lastSavedAt={lastSavedAt}
                 onExit={handleExit}
+                onPreview={() => setPreviewOpen(true)}
                 onPublish={handleSubmit}
                 publishLabel={isEditMode ? "수정하기" : "등록하기"}
                 busyLabel={uploading ? "업로드 중" : loading ? "처리 중" : null}
             />
+            {previewOpen && (
+                <InsightPreviewDialog
+                    open={previewOpen}
+                    onOpenChange={setPreviewOpen}
+                    title={title}
+                    summary={summary}
+                    imageUrl={imageUrl}
+                    content={content}
+                />
+            )}
             <div className="h-6 md:h-8" />
 
             {pendingDraft && (

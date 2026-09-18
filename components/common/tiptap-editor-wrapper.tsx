@@ -14,9 +14,16 @@ import {
   removeUploadPlaceholder,
 } from "./tiptap-upload-placeholder";
 import { isExpiringImageUrl, pastedImageSrcs } from "./tiptap-external-images";
+import { extractYoutubeId } from "./tiptap-youtube";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImageBubbleMenu, LinkPreviewBubbleMenu, TableBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
+import {
+  ImageBubbleMenu,
+  LinkPreviewBubbleMenu,
+  TableBubbleMenu,
+  TextBubbleMenu,
+  YoutubeBubbleMenu,
+} from "./tiptap-bubble-menus";
 import { toast } from "sonner";
 import { upgradeToHttps } from "@/lib/utils";
 
@@ -63,9 +70,11 @@ function pasteUrl(view: EditorView, url: string) {
   const parent = selection.$from.parent;
   const isEmptyParagraph = parent.type.name === "paragraph" && parent.content.size === 0;
   if (isEmptyParagraph) {
-    view.dispatch(
-      state.tr.replaceSelectionWith(schema.nodes.linkPreview.create({ src: url })),
-    );
+    const youtubeId = extractYoutubeId(url);
+    const node = youtubeId
+      ? schema.nodes.youtube.create({ src: `https://www.youtube.com/watch?v=${youtubeId}` })
+      : schema.nodes.linkPreview.create({ src: url });
+    view.dispatch(state.tr.replaceSelectionWith(node));
     return;
   }
 
@@ -338,6 +347,7 @@ export default function TiptapEditorWrapper({
       <ImageBubbleMenu editor={editor} />
       <LinkPreviewBubbleMenu editor={editor} />
       <TableBubbleMenu editor={editor} />
+      <YoutubeBubbleMenu editor={editor} />
       <input
         type="file"
         ref={fileInputRef}

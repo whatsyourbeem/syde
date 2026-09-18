@@ -31,6 +31,7 @@ import {
   MoreHorizontal,
   CircleHelp,
   Table2,
+  ListChecks,
 } from "lucide-react";
 
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -250,6 +251,7 @@ function ShortcutHelp() {
     ["### ", "제목 3"],
     ["- ", "글머리 기호 목록"],
     ["1. ", "번호 목록"],
+    ["[ ] ", "체크리스트"],
     ["> ", "인용구"],
     ["```", "코드 블록"],
     ["---", "구분선"],
@@ -303,6 +305,7 @@ function ShortcutHelp() {
         <ul className="list-disc pl-4 text-muted-foreground space-y-0.5">
           <li>글자를 선택하고 주소를 붙여넣으면 링크가 걸려요.</li>
           <li>빈 줄에 주소를 붙여넣으면 미리보기 카드가 돼요.</li>
+          <li>빈 줄에 유튜브 링크를 붙여넣으면 영상으로 삽입돼요.</li>
           <li>마크다운 글은 서식이 적용돼서 들어가요.</li>
           <li>이미지는 여러 장을 한 번에 붙여넣거나 끌어올 수 있어요.</li>
         </ul>
@@ -324,6 +327,7 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
       codeBlock: editor.isActive("codeBlock"),
       blockquote: editor.isActive("blockquote"),
       bulletList: editor.isActive("bulletList"),
+      taskList: editor.isActive("taskList"),
       orderedList: editor.isActive("orderedList"),
       blockType: editor.isActive("heading", { level: 1 })
         ? "h1"
@@ -394,6 +398,9 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
           </ToolbarButton>
           <ToolbarButton label="번호 목록" shortcut={`${MOD}${SHIFT}7`} active={state.orderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
             <ListOrdered size={16} />
+          </ToolbarButton>
+          <ToolbarButton label="체크리스트" shortcut={`${MOD}${SHIFT}9`} active={state.taskList} onClick={() => editor.chain().focus().toggleTaskList().run()}>
+            <ListChecks size={16} />
           </ToolbarButton>
           <ToolbarButton label="인용구" shortcut={`${MOD}${SHIFT}B`} active={state.blockquote} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
             <Quote size={14} />

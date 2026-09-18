@@ -272,6 +272,36 @@ export function LinkPreviewBubbleMenu({ editor }: { editor: Editor }) {
   );
 }
 
+export function YoutubeBubbleMenu({ editor }: { editor: Editor }) {
+  const open = () => {
+    const url = selectedNode(editor, "youtube")?.node.attrs.src as string | undefined;
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey="youtubeBubbleMenu"
+      shouldShow={({ editor, view, state }) =>
+        editor.isEditable &&
+        view.hasFocus() &&
+        state.selection instanceof NodeSelection &&
+        state.selection.node.type.name === "youtube"
+      }
+      options={{ placement: "bottom", offset: 8 }}
+      className={BUBBLE_CLASS}
+    >
+      <BubbleButton label="새 탭에서 열기" onClick={open} className="gap-1.5 px-3">
+        <ExternalLink size={15} /> 열기
+      </BubbleButton>
+      <div className="mx-0.5 h-5 border-l border-white/20" />
+      <BubbleButton label="영상 삭제" onClick={() => editor.chain().focus().deleteSelection().run()} className="text-red-300 hover:text-red-200">
+        <Trash2 size={15} />
+      </BubbleButton>
+    </BubbleMenu>
+  );
+}
+
 export function TableBubbleMenu({ editor }: { editor: Editor }) {
   return (
     <BubbleMenu

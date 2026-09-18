@@ -11,6 +11,8 @@ const STRONG_SIGNALS = [
   /(^\s*\d+\.\s+\S.*\n){1,}^\s*\d+\.\s+\S/m,
   // GFM table header-separator row, e.g. "|---|---|" or "| :-- | --: |" — appears in nothing but a table.
   /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/m,
+  // GFM checklist, e.g. "- [ ] todo" or "- [x] done".
+  /^\s*[-*+]\s+\[[ xX]\]\s/m,
 ];
 
 const WEAK_SIGNALS = [
@@ -53,6 +55,25 @@ export function pasteMarkdown(view: EditorView, markdown: string): void {
       (child) => (child as Element).tagName === "IMG" || (child.nodeType === Node.TEXT_NODE && !child.textContent?.trim()),
     );
     if (onlyImages && p.querySelector("img")) p.replaceWith(...Array.from(p.querySelectorAll("img")));
+  });
+  // GFM checklists ("- [ ] item") come back as a plain <li><input type=checkbox> item</li>, not the
+  // taskList/taskItem markup our schema expects; rewrite them into it before parsing.
+  body.querySelectorAll("li").forEach((li) => {
+    const checkbox = li.querySelector(':scope > input[type="checkbox"]');
+    if (!checkbox) return;
+    const checked = checkbox.hasAttribute("checked");
+    checkbox.remove();
+    li.closest("ul")?.setAttribute("data-type", "taskList");
+    li.setAttribute("data-type", "taskItem");
+    li.setAttribute("data-checked", String(checked));
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    if (checked) input.checked = true;
+    label.append(input, document.createElement("span"));
+    const contentDiv = document.createElement("div");
+    contentDiv.append(...Array.from(li.childNodes));
+    li.replaceChildren(label, contentDiv);
   });
   const slice = PMDOMParser.fromSchema(view.state.schema).parseSlice(body);
   view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView().setMeta("paste", true).setMeta("uiEvent", "paste"));

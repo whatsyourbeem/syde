@@ -1,6 +1,9 @@
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { TableKit } from "@tiptap/extension-table";
+import { TaskList } from "@tiptap/extension-task-list";
+import { TaskItem } from "@tiptap/extension-task-item";
+import Youtube from "@tiptap/extension-youtube";
 import { LinkPreview } from "./tiptap-link-preview";
 import { CodeBlock } from "./tiptap-code-block";
 import { ImageCaption } from "./tiptap-image-caption";
@@ -35,6 +38,17 @@ export const commonTiptapExtensions = [
   ImageCaption,
   TableKit.configure({
     table: { resizable: true },
+  }),
+  TaskList,
+  TaskItem.configure({
+    nested: true,
+  }),
+  Youtube.configure({
+    // Our own paste handler (tiptap-editor-wrapper.tsx) already detects YouTube URLs and normalizes
+    // them before inserting; the extension's own paste-rule regex mis-parses /shorts/ URLs.
+    addPasteHandler: false,
+    width: 640,
+    height: 360,
   }),
   SlashCommand,
 ];

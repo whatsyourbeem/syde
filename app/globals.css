@@ -202,6 +202,54 @@
   cursor: col-resize;
 }
 
+/* Checklists (@tiptap/extension-task-list / task-item): <ul data-type="taskList"><li data-type="taskItem">. */
+.prose ul[data-type="taskList"] {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+.prose li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.prose li[data-type="taskItem"] > label {
+  margin-top: 0.35em;
+  user-select: none;
+}
+.prose li[data-type="taskItem"] > label > input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #002040;
+}
+.prose li[data-type="taskItem"] > div {
+  flex: 1;
+  min-width: 0;
+}
+.prose li[data-type="taskItem"][data-checked="true"] > div {
+  color: #999999;
+  text-decoration: line-through;
+}
+.prose li[data-type="taskItem"] p {
+  margin: 0;
+}
+
+/* YouTube embeds (@tiptap/extension-youtube): keep the fixed-size iframe responsive at a 16:9 ratio. */
+.prose div[data-youtube-video] {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+  margin: 1.5em auto;
+}
+.prose div[data-youtube-video] iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+}
+
 /* Code block syntax highlighting (lowlight / highlight.js tokens, GitHub Dark palette on prose's dark <pre>) */
 .prose pre code .hljs-comment,
 .prose pre code .hljs-quote { color: #8b949e; font-style: italic; }

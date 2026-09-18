@@ -4,7 +4,10 @@ import ResizeImage from "tiptap-extension-resize-image";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import { TableKit } from "@tiptap/extension-table";
-import { Node } from '@tiptap/core';
+import { TaskList } from "@tiptap/extension-task-list";
+import { TaskItem } from "@tiptap/extension-task-item";
+import Youtube from "@tiptap/extension-youtube";
+import { Node, mergeAttributes } from '@tiptap/core';
 import type { DOMOutputSpec } from "@tiptap/pm/model";
 import type { Element as HastElement, Root as HastRoot, RootContent as HastContent } from "hast";
 import { generateHTML, generateJSON } from "@tiptap/html";
@@ -107,6 +110,19 @@ const ServerParagraph = Paragraph.extend({
     },
 });
 
+// The editor's node view lets a reader-side checkbox click silently toggle state that goes nowhere;
+// disable it so a published checklist reads as the static record it is.
+const ServerTaskItem = TaskItem.extend({
+    renderHTML({ node, HTMLAttributes }) {
+        return [
+            "li",
+            mergeAttributes(HTMLAttributes, { "data-type": "taskItem", "data-checked": node.attrs.checked }),
+            ["label", ["input", { type: "checkbox", checked: node.attrs.checked ? "checked" : null, disabled: "disabled" }], ["span"]],
+            ["div", 0],
+        ] as DOMOutputSpec;
+    },
+});
+
 export const serverTiptapExtensions = [
     StarterKit.configure({
         codeBlock: false,
@@ -130,6 +146,9 @@ export const serverTiptapExtensions = [
     ImageCaption,
     // The editor gets its scroll wrapper for free from the resizable table's node view; static HTML needs it explicitly.
     TableKit.configure({ table: { renderWrapper: true } }),
+    TaskList,
+    ServerTaskItem,
+    Youtube.configure({ width: 640, height: 360 }),
 ];
 
 /**

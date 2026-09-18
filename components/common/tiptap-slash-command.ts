@@ -8,6 +8,7 @@ import {
   Heading3,
   List,
   ListOrdered,
+  ListChecks,
   Quote,
   SquareCode,
   Minus,
@@ -76,6 +77,13 @@ function buildItems(options: SlashCommandOptions): SlashCommandItem[] {
       icon: ListOrdered,
       keywords: ["ordered", "number", "ol", "번호", "숫자"],
       run: (editor, range) => editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
+    },
+    {
+      title: "체크리스트",
+      description: "할 일 목록을 만듭니다",
+      icon: ListChecks,
+      keywords: ["task", "todo", "checklist", "체크리스트", "할일", "체크박스"],
+      run: (editor, range) => editor.chain().focus().deleteRange(range).toggleTaskList().run(),
     },
     {
       title: "인용구",

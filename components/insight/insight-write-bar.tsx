@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ChevronLeft, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, Check, Loader2, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ interface InsightWriteBarProps {
   pageLabel: string;
   lastSavedAt: number | null;
   onExit: () => void;
+  onPreview: () => void;
   onPublish: () => void;
   publishLabel: string;
   busyLabel: string | null;
@@ -18,7 +19,7 @@ interface InsightWriteBarProps {
  * Sticky bar for the writing page: keeps save status and the publish action in reach
  * while the writer is deep in a long post.
  */
-export function InsightWriteBar({ pageLabel, lastSavedAt, onExit, onPublish, publishLabel, busyLabel }: InsightWriteBarProps) {
+export function InsightWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPublish, publishLabel, busyLabel }: InsightWriteBarProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // The editor toolbar sticks right below this bar; publish our height so it doesn't slide underneath.
@@ -71,6 +72,10 @@ export function InsightWriteBar({ pageLabel, lastSavedAt, onExit, onPublish, pub
               </>
             )}
           </span>
+          <Button type="button" variant="outline" size="sm" onClick={onPreview} className="h-9 md:h-10 gap-1 rounded-[10px] px-3 text-[14px]">
+            <Eye size={15} />
+            <span className="hidden sm:inline">미리보기</span>
+          </Button>
           <Button
             type="button"
             onClick={onPublish}
