@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { cn } from "@/lib/utils";
-import { InsightWriteBar } from "@/components/insight/insight-write-bar";
+import { EditorWriteBar } from "@/components/common/editor-write-bar";
 import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
 import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 import dynamic from "next/dynamic";
@@ -29,8 +29,8 @@ const TiptapEditorWrapper = dynamic(
 );
 
 // Pulls in the server HTML renderer (syntax highlighting, etc.); only worth loading once the writer asks to preview.
-const InsightPreviewDialog = dynamic(
-    () => import("@/components/insight/insight-preview-dialog").then((mod) => mod.InsightPreviewDialog),
+const EditorPreviewDialog = dynamic(
+    () => import("@/components/common/editor-preview-dialog").then((mod) => mod.EditorPreviewDialog),
     { ssr: false },
 );
 
@@ -221,7 +221,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
     return (
         <div className="flex flex-col bg-white w-full max-w-3xl mx-auto font-[Pretendard] px-4 md:px-6">
-            <InsightWriteBar
+            <EditorWriteBar
                 pageLabel={isEditMode ? "인사이트 수정" : "인사이트 등록"}
                 lastSavedAt={lastSavedAt}
                 onExit={handleExit}
@@ -229,13 +229,14 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 onPublish={handleSubmit}
                 publishLabel={isEditMode ? "수정하기" : "등록하기"}
                 busyLabel={uploading ? "업로드 중" : loading ? "처리 중" : null}
+                bleedClassName="-mx-4 md:-mx-6"
             />
             {previewOpen && (
-                <InsightPreviewDialog
+                <EditorPreviewDialog
                     open={previewOpen}
                     onOpenChange={setPreviewOpen}
                     title={title}
-                    summary={summary}
+                    subtitle={summary}
                     imageUrl={imageUrl}
                     content={content}
                 />

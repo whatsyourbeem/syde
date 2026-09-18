@@ -7,7 +7,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { generateHTML, generateJSON } from "@tiptap/html";
 import { commonTiptapExtensions } from "@/components/common/tiptap-extensions";
-import { ImagePlus, X, ChevronLeft, Plus, Globe } from "lucide-react";
+import { ImagePlus, X, Plus, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ import { CancelDialog } from "@/components/showcase/cancel-dialog";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
+import { EditorWriteBar } from "@/components/common/editor-write-bar";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -55,6 +56,12 @@ const TiptapEditorWrapper = dynamic(
     ),
     ssr: false,
   },
+);
+
+// Pulls in the server HTML renderer (syntax highlighting, etc.); only worth loading once the writer asks to preview.
+const EditorPreviewDialog = dynamic(
+  () => import("@/components/common/editor-preview-dialog").then((mod) => mod.EditorPreviewDialog),
+  { ssr: false },
 );
 
 interface ShowcaseTeamMember {
@@ -110,6 +117,8 @@ export function ProjectRegistrationForm({
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   // Set once the initialData-hydration effect below has run, so an edit page's loaded content
   // isn't itself mistaken for an unsaved draft the moment the page opens.
   const initialSnapshotRef = useRef<string | null>(null);
@@ -320,6 +329,7 @@ export function ProjectRegistrationForm({
     restore: restoreDraft,
     discard: discardDraft,
     clear: clearDraft,
+    lastSavedAt,
   } = useLocalDraft({
     key: `syde:showcase-draft:${initialData?.id ?? "new"}`,
     data: draftData,
@@ -449,8 +459,10 @@ export function ProjectRegistrationForm({
     setWebsiteLinks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Called both from the form's native onSubmit and directly from the top write bar's button,
+  // which sits outside the <form> element.
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     if (!title.trim()) {
       toast.error("프로덕트 이름을 입력해주세요.");
@@ -558,22 +570,29 @@ export function ProjectRegistrationForm({
 
   return (
     <div className="w-full md:w-[850px] mx-auto pb-20 bg-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center gap-6 h-[57px] md:h-[76px] px-5 py-[16px]">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="h-11 w-6 p-0 hover:bg-transparent"
-        >
-          <ChevronLeft className="h-6 w-6 text-[#434343]" />
-        </Button>
-        <h1 className="text-[18px] md:text-[32px] font-bold text-sydeblue leading-[21px] md:leading-[38px]">
-          {initialData ? "프로젝트 수정하기" : "프로젝트 등록하기"}
-        </h1>
-      </div>
+      <EditorWriteBar
+        pageLabel={initialData ? "프로젝트 수정하기" : "프로젝트 등록하기"}
+        lastSavedAt={lastSavedAt}
+        onExit={() => setShowCancelDialog(true)}
+        onPreview={() => setPreviewOpen(true)}
+        onPublish={() => handleSubmit()}
+        publishLabel={initialData ? "수정하기" : "등록하기"}
+        busyLabel={isCompressing ? "업로드 중" : isSubmitting ? "처리 중" : null}
+      />
+      {previewOpen && (
+        <EditorPreviewDialog
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          title={title}
+          subtitle={tagline}
+          imageUrl={mainImagePreview}
+          content={description}
+          contentLabel="소개"
+        />
+      )}
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         noValidate
         className="flex flex-col gap-5 px-5 md:px-[68px] py-5"

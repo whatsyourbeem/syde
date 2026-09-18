@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 import { ChevronLeft, Check, Loader2, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-interface InsightWriteBarProps {
+interface EditorWriteBarProps {
   pageLabel: string;
   lastSavedAt: number | null;
   onExit: () => void;
@@ -13,13 +14,18 @@ interface InsightWriteBarProps {
   onPublish: () => void;
   publishLabel: string;
   busyLabel: string | null;
+  /**
+   * Negative margin to bleed edge-to-edge past the page's own side padding, e.g. "-mx-4 md:-mx-6"
+   * for a page padded with "px-4 md:px-6". Omit when the page container has no side padding to cancel.
+   */
+  bleedClassName?: string;
 }
 
 /**
- * Sticky bar for the writing page: keeps save status and the publish action in reach
- * while the writer is deep in a long post.
+ * Sticky bar for a writing page (insight, showcase, ...): keeps exit, save status, preview and the
+ * publish action in reach while the writer is deep in a long form, and looks the same everywhere.
  */
-export function InsightWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPublish, publishLabel, busyLabel }: InsightWriteBarProps) {
+export function EditorWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPublish, publishLabel, busyLabel, bleedClassName }: EditorWriteBarProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // The editor toolbar sticks right below this bar; publish our height so it doesn't slide underneath.
@@ -40,7 +46,7 @@ export function InsightWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onP
   return (
     <div
       ref={ref}
-      className="sticky top-[var(--sticky-nav-height,0px)] z-40 -mx-4 md:-mx-6 border-b bg-background"
+      className={cn("sticky top-[var(--sticky-nav-height,0px)] z-40 border-b bg-background", bleedClassName)}
     >
       <div className="flex h-12 md:h-14 items-center gap-2 px-2 md:px-4">
         <Button type="button" variant="ghost" size="sm" onClick={onExit} className="h-9 md:h-10 gap-0.5 px-2 text-[#555]">
