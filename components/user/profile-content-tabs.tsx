@@ -194,6 +194,7 @@ export function ProfileContentTabs({
                 /* 스토리 Editor (Edit Mode) */
                 <div className="px-5 py-8 md:px-8">
                   <BioEditor
+                    profileId={profile.id}
                     initialBio={profile.bio}
                     isOwnProfile={isOwnProfile}
                     initialHtml={initialHtml}
@@ -219,6 +220,7 @@ export function ProfileContentTabs({
                     </SectionHeader>
                     <div className="rounded-xl relative bg-[#FAFAFA] p-5">
                       <BioEditor
+                        profileId={profile.id}
                         initialBio={profile.bio}
                         isOwnProfile={isOwnProfile}
                         initialHtml={initialHtml}

@@ -2,15 +2,15 @@
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, FileClock } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { useLocalDraft } from "@/hooks/use-local-draft";
 import { cn } from "@/lib/utils";
 import { InsightWriteBar } from "@/components/insight/insight-write-bar";
+import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
+import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
 import { createInsight, updateInsight } from "@/app/insight/insight-actions";
@@ -41,30 +41,8 @@ interface DraftData {
     imageUrl: string;
 }
 
-// The editor normalizes documents on load (adds null attrs, a trailing empty paragraph),
-// so compare drafts on a form that ignores those no-op differences.
-function normalizeNode(node: JSONContent): JSONContent {
-    const attrs = node.attrs
-        ? Object.fromEntries(Object.entries(node.attrs).filter(([, value]) => value !== null && value !== undefined))
-        : undefined;
-    return {
-        ...node,
-        attrs: attrs && Object.keys(attrs).length > 0 ? attrs : undefined,
-        content: node.content?.map(normalizeNode),
-    };
-}
-
 function draftSignature({ title, summary, content, imageUrl }: DraftData): string {
-    let body: JSONContent[] | string;
-    if (typeof content === "string") {
-        body = content.trim() || [];
-    } else {
-        body = normalizeNode(content).content ?? [];
-        while (body.length > 0 && body[body.length - 1].type === "paragraph" && !body[body.length - 1].content?.length) {
-            body = body.slice(0, -1);
-        }
-    }
-    return JSON.stringify([title.trim(), summary.trim(), imageUrl, body]);
+    return JSON.stringify([title.trim(), summary.trim(), imageUrl, normalizeTiptapContent(content)]);
 }
 
 const EMPTY_DRAFT_SIGNATURE = draftSignature({ title: "", summary: "", content: "", imageUrl: "" });
@@ -265,26 +243,12 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
             <div className="h-6 md:h-8" />
 
             {pendingDraft && (
-                <div className="mb-5 flex flex-col gap-3 rounded-[10px] border border-sydeblue/20 bg-sydeblue/5 p-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-start gap-2 text-[14px] text-sydeblue">
-                        <FileClock className="mt-0.5 h-4 w-4 shrink-0" />
-                        <p>
-                            작성 중이던 글이 있어요
-                            <span className="text-[#777777]">
-                                {" "}· {formatDistanceToNow(pendingDraft.savedAt, { addSuffix: true, locale: ko })} 저장
-                                {pendingDraft.data.title && ` · "${pendingDraft.data.title}"`}
-                            </span>
-                        </p>
-                    </div>
-                    <div className="flex shrink-0 gap-2 self-end md:self-auto">
-                        <Button variant="ghost" size="sm" className="text-[#777777]" onClick={discardDraft}>
-                            버리기
-                        </Button>
-                        <Button size="sm" className="bg-sydeblue hover:bg-sydeblue/90 text-white" onClick={handleRestoreDraft}>
-                            이어서 쓰기
-                        </Button>
-                    </div>
-                </div>
+                <DraftRestoreBanner
+                    savedAt={pendingDraft.savedAt}
+                    preview={pendingDraft.data.title}
+                    onDiscard={discardDraft}
+                    onRestore={handleRestoreDraft}
+                />
             )}
 
             {/* Main Inputs Area */}

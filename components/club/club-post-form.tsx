@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { createClubPost, updateClubPost } from '@/app/club/club-actions';
@@ -8,6 +8,9 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useImageUpload } from '@/hooks/use-image-upload';
+import { useLocalDraft } from '@/hooks/use-local-draft';
+import { DraftRestoreBanner } from '@/components/common/draft-restore-banner';
+import { normalizeTiptapContent } from '@/lib/tiptap-content-signature';
 
 const TiptapEditorWrapper = dynamic(
   () => import('@/components/common/tiptap-editor-wrapper'),
@@ -28,6 +31,16 @@ type Forum = Tables<'club_forums'>;
 function isJsonContentEmpty(content: JSONContent | null): boolean {
   if (!content || !content.content) return true;
   return content.content.every(node => node.type === 'paragraph' && !node.content);
+}
+
+interface ClubPostDraftData {
+  title: string;
+  content: JSONContent | null;
+  forumId: string;
+}
+
+function clubPostDraftSignature(data: ClubPostDraftData): string {
+  return JSON.stringify([data.title.trim(), data.content ? normalizeTiptapContent(data.content) : [], data.forumId]);
 }
 
 interface ClubPostFormProps {
@@ -75,6 +88,30 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
     return firstWritableForum?.id || '';
   });
 
+  const draftData = useMemo<ClubPostDraftData>(
+    () => ({ title, content, forumId: selectedForumId }),
+    [title, content, selectedForumId],
+  );
+  const [initialSnapshot] = useState(() => clubPostDraftSignature(draftData));
+  const {
+    pendingDraft,
+    restore: restoreDraft,
+    discard: discardDraft,
+    clear: clearDraft,
+  } = useLocalDraft({
+    key: `syde:club-post-draft:${clubId}:${initialData?.postId ?? 'new'}`,
+    data: draftData,
+    isPristine: (data) => clubPostDraftSignature(data) === initialSnapshot,
+  });
+
+  const handleRestoreDraft = () => {
+    const draft = restoreDraft();
+    if (!draft) return;
+    setTitle(draft.title);
+    setContent(draft.content);
+    if (!initialData?.postId) setSelectedForumId(draft.forumId);
+  };
+
   const hasWritableForums = forums?.some(canWriteForum);
 
   const clientAction = async (formData: FormData) => {
@@ -113,6 +150,7 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
         toast.error(result.error.message);
       } else {
         toast.success(initialData?.postId ? '게시글이 성공적으로 수정되었습니다.' : '게시글이 성공적으로 등록되었습니다.');
+        clearDraft();
         onSuccess();
         if (!initialData?.postId) {
           router.push(`/club/${clubId}/post/${result.data.postId}`);
@@ -128,6 +166,14 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
 
   return (
     <form ref={formRef} action={clientAction} className="flex flex-col gap-4">
+      {pendingDraft && (
+        <DraftRestoreBanner
+          savedAt={pendingDraft.savedAt}
+          preview={pendingDraft.data.title}
+          onDiscard={discardDraft}
+          onRestore={handleRestoreDraft}
+        />
+      )}
       {!initialData?.postId && (
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="forum">게시판</Label>

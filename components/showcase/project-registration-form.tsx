@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
@@ -42,6 +42,8 @@ import { updateShowcase } from "@/app/showcase/showcase-actions";
 import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
 import { useImageUpload } from "@/hooks/use-image-upload";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -54,6 +56,34 @@ const TiptapEditorWrapper = dynamic(
     ssr: false,
   },
 );
+
+interface ShowcaseTeamMember {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+interface ShowcaseDraftData {
+  title: string;
+  tagline: string;
+  status: ShowcaseStatus;
+  description: string;
+  mainImageUrl: string | null;
+  detailImageUrls: string[];
+  websiteLinks: string[];
+  googlePlayLink: string;
+  appStoreLink: string;
+  teamMembers: ShowcaseTeamMember[];
+}
+
+function showcaseDraftSignature(data: ShowcaseDraftData): string {
+  // Order-independent + ignores blank link slots, so an untouched "" website field doesn't count as a change.
+  return JSON.stringify({
+    ...data,
+    websiteLinks: data.websiteLinks.filter((link) => link.trim()),
+  });
+}
 
 interface ProjectRegistrationFormProps {
   initialData?: OptimizedShowcase;
@@ -80,6 +110,9 @@ export function ProjectRegistrationForm({
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  // Set once the initialData-hydration effect below has run, so an edit page's loaded content
+  // isn't itself mistaken for an unsaved draft the moment the page opens.
+  const initialSnapshotRef = useRef<string | null>(null);
 
   // Website Links State
   const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
@@ -192,17 +225,29 @@ export function ProjectRegistrationForm({
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Defaults matching the useState() initializers above, used for the snapshot when there's no initialData.
+    let snapshot: ShowcaseDraftData = {
+      title: "",
+      tagline: "",
+      status: SHOWCASE_STATUSES.IN_SERVICE,
+      description: "",
+      mainImageUrl: null,
+      detailImageUrls: [],
+      websiteLinks: [""],
+      googlePlayLink: "",
+      appStoreLink: "",
+      teamMembers: [],
+    };
+
     if (initialData) {
       setTitle(initialData.name || "");
       setTagline(initialData.short_description || "");
       if (initialData.status) setStatus(initialData.status);
 
       const desc = initialData.description;
-      if (desc && typeof desc === "object") {
-        setDescription(JSON.stringify(desc));
-      } else {
-        setDescription(desc || "");
-      }
+      const descriptionString = desc && typeof desc === "object" ? JSON.stringify(desc) : desc || "";
+      setDescription(descriptionString);
 
       if (initialData.thumbnail_url) {
         setMainImagePreview(initialData.thumbnail_url);
@@ -220,14 +265,15 @@ export function ProjectRegistrationForm({
       if (initialData.web_url) {
         websites.push(initialData.web_url);
       }
-      
+
       if (websites.length > 0) setWebsiteLinks(websites);
       if (initialData.playstore_url) setGooglePlayLink(initialData.playstore_url);
       if (initialData.appstore_url) setAppStoreLink(initialData.appstore_url);
 
       // Initialize Members
+      let members: ShowcaseTeamMember[] = [];
       if (initialData.members) {
-        const members = initialData.members.map((m: any) => ({
+        members = initialData.members.map((m: any) => ({
           id: m.user_id,
           username: m.profile?.username || "unknown",
           avatar_url: m.profile?.avatar_url || null,
@@ -235,8 +281,72 @@ export function ProjectRegistrationForm({
         }));
         setSelectedTeamMembers(members);
       }
+
+      snapshot = {
+        title: initialData.name || "",
+        tagline: initialData.short_description || "",
+        status: initialData.status || SHOWCASE_STATUSES.IN_SERVICE,
+        description: descriptionString,
+        mainImageUrl: initialData.thumbnail_url || null,
+        detailImageUrls: initialData.images || [],
+        websiteLinks: websites.length > 0 ? websites : [""],
+        googlePlayLink: initialData.playstore_url || "",
+        appStoreLink: initialData.appstore_url || "",
+        teamMembers: members,
+      };
     }
+
+    initialSnapshotRef.current = showcaseDraftSignature(snapshot);
   }, [initialData]);
+
+  const draftData = useMemo<ShowcaseDraftData>(
+    () => ({
+      title,
+      tagline,
+      status,
+      description,
+      mainImageUrl,
+      detailImageUrls,
+      websiteLinks,
+      googlePlayLink,
+      appStoreLink,
+      teamMembers: selectedTeamMembers,
+    }),
+    [title, tagline, status, description, mainImageUrl, detailImageUrls, websiteLinks, googlePlayLink, appStoreLink, selectedTeamMembers],
+  );
+
+  const {
+    pendingDraft,
+    restore: restoreDraft,
+    discard: discardDraft,
+    clear: clearDraft,
+  } = useLocalDraft({
+    key: `syde:showcase-draft:${initialData?.id ?? "new"}`,
+    data: draftData,
+    isPristine: (data) => {
+      // Not hydrated yet: treat as pristine so the autosave effect doesn't fire on stale defaults.
+      if (initialSnapshotRef.current === null) return true;
+      const signature = showcaseDraftSignature(data);
+      return signature === initialSnapshotRef.current;
+    },
+  });
+
+  const handleRestoreDraft = () => {
+    const draft = restoreDraft();
+    if (!draft) return;
+    setTitle(draft.title);
+    setTagline(draft.tagline);
+    setStatus(draft.status);
+    setDescription(draft.description);
+    setMainImageUrl(draft.mainImageUrl);
+    setMainImagePreview(draft.mainImageUrl);
+    setDetailImageUrls(draft.detailImageUrls);
+    setDetailImagePreviews(draft.detailImageUrls);
+    setWebsiteLinks(draft.websiteLinks.length > 0 ? draft.websiteLinks : [""]);
+    setGooglePlayLink(draft.googlePlayLink);
+    setAppStoreLink(draft.appStoreLink);
+    setSelectedTeamMembers(draft.teamMembers);
+  };
 
   const handleMainImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -427,6 +537,7 @@ export function ProjectRegistrationForm({
         });
       }
 
+      clearDraft();
       setShowSuccessDialog(true);
       setTimeout(() => {
         if (initialData) {
@@ -467,6 +578,15 @@ export function ProjectRegistrationForm({
         noValidate
         className="flex flex-col gap-5 px-5 md:px-[68px] py-5"
       >
+        {pendingDraft && (
+          <DraftRestoreBanner
+            savedAt={pendingDraft.savedAt}
+            preview={pendingDraft.data.title}
+            onDiscard={discardDraft}
+            onRestore={handleRestoreDraft}
+          />
+        )}
+
         {/* Project Name */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-medium text-sydeblue">

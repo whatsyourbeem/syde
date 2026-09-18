@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import { Tables } from "@/types/database.types";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useImageUpload } from "@/hooks/use-image-upload";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
+import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 import { Loader2 } from "lucide-react";
 
 const TiptapEditorWrapper = dynamic(
@@ -28,6 +31,22 @@ import { createClub, updateClub } from "@/app/club/club-actions";
 
 interface ClubFormProps {
   club?: Tables<"clubs">;
+}
+
+interface ClubDraftData {
+  name: string;
+  tagline: string;
+  description: JSONContent | null;
+  thumbnailUrl: string | null;
+}
+
+function clubDraftSignature(data: ClubDraftData): string {
+  return JSON.stringify([
+    data.name.trim(),
+    data.tagline.trim(),
+    data.description ? normalizeTiptapContent(data.description) : [],
+    data.thumbnailUrl,
+  ]);
 }
 
 
@@ -64,6 +83,31 @@ export default function ClubEditForm({ club }: ClubFormProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const draftData = useMemo<ClubDraftData>(
+    () => ({ name, tagline, description, thumbnailUrl }),
+    [name, tagline, description, thumbnailUrl],
+  );
+  const [initialSnapshot] = useState(() => clubDraftSignature(draftData));
+  const {
+    pendingDraft,
+    restore: restoreDraft,
+    discard: discardDraft,
+    clear: clearDraft,
+  } = useLocalDraft({
+    key: `syde:club-draft:${club?.id ?? "new"}`,
+    data: draftData,
+    isPristine: (data) => clubDraftSignature(data) === initialSnapshot,
+  });
+
+  const handleRestoreDraft = () => {
+    const draft = restoreDraft();
+    if (!draft) return;
+    setName(draft.name);
+    setTagline(draft.tagline);
+    setDescription(draft.description);
+    setThumbnailUrl(draft.thumbnailUrl);
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -107,6 +151,7 @@ export default function ClubEditForm({ club }: ClubFormProps) {
           isEditMode ? "업데이트되었습니다" : "생성되었습니다"
         }.`
       );
+      clearDraft();
       const clubId = isEditMode ? club!.id : result.data?.id;
       router.push(`/club/${clubId}`);
       router.refresh();
@@ -120,6 +165,14 @@ export default function ClubEditForm({ club }: ClubFormProps) {
       ref={formRef}
       className="w-full max-w-2xl space-y-6 p-4 bg-white rounded-lg"
     >
+      {pendingDraft && (
+        <DraftRestoreBanner
+          savedAt={pendingDraft.savedAt}
+          preview={pendingDraft.data.name}
+          onDiscard={discardDraft}
+          onRestore={handleRestoreDraft}
+        />
+      )}
       <div>
         <Label htmlFor="name">클럽 이름</Label>
         <Input
