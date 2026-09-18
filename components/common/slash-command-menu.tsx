@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, Fragment, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SlashCommandItem } from "./tiptap-slash-command";
 
@@ -25,10 +25,14 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
     // The list changes on every keystroke as the query narrows; keep the highlight in range.
     useEffect(() => setSelected(0), [items]);
 
-    // The list is taller than the popup; keep the keyboard-highlighted item in view.
+    // The list is taller than the popup; keep the keyboard-highlighted item in view, together with its
+    // group heading when it's the first item of a group (e.g. after wrapping back to the top).
     useEffect(() => {
-      itemRefs.current[selected]?.scrollIntoView({ block: "nearest" });
-    }, [selected]);
+      const el = itemRefs.current[selected];
+      if (!el) return;
+      if (items[selected]?.group !== items[selected - 1]?.group) el.previousElementSibling?.scrollIntoView({ block: "nearest" });
+      el.scrollIntoView({ block: "nearest" });
+    }, [selected, items]);
 
     useImperativeHandle(ref, () => ({
       onKeyDown(event) {
@@ -62,29 +66,36 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
     return (
       <div className="max-h-80 w-64 overflow-y-auto rounded-lg border bg-popover p-1 shadow-md">
         {items.map((item, index) => (
-          <button
-            key={item.title}
-            ref={(el) => {
-              itemRefs.current[index] = el;
-            }}
-            type="button"
-            // Keep the editor selection alive; a normal mousedown would blur the editor before the click fires.
-            onMouseDown={(event) => event.preventDefault()}
-            onMouseEnter={() => setSelected(index)}
-            onClick={() => command(item)}
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm",
-              index === selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+          <Fragment key={item.title}>
+            {/* Headings are just labels; arrow keys still move through the items as one flat list. */}
+            {item.group !== items[index - 1]?.group && (
+              <div className={cn("px-2 pb-1 text-[11px] font-medium text-muted-foreground", index === 0 ? "pt-1" : "pt-2.5")}>
+                {item.group}
+              </div>
             )}
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
-              <item.icon size={16} />
-            </span>
-            <span className="flex flex-col overflow-hidden">
-              <span className="truncate font-medium">{item.title}</span>
-              <span className="truncate text-xs text-muted-foreground">{item.description}</span>
-            </span>
-          </button>
+            <button
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
+              type="button"
+              // Keep the editor selection alive; a normal mousedown would blur the editor before the click fires.
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setSelected(index)}
+              onClick={() => command(item)}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm",
+                index === selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+              )}
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
+                <item.icon size={16} />
+              </span>
+              <span className="flex flex-col overflow-hidden">
+                <span className="truncate font-medium">{item.title}</span>
+                <span className="truncate text-xs text-muted-foreground">{item.description}</span>
+              </span>
+            </button>
+          </Fragment>
         ))}
       </div>
     );

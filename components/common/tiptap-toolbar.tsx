@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { HIGHLIGHT_COLORS, TEXT_COLORS } from "./tiptap-colors";
 import { CALLOUT_VARIANTS, CALLOUT_META } from "./tiptap-callout";
+import type { EmbedKind } from "./tiptap-slash-command";
 import {
   List,
   ListOrdered,
@@ -38,6 +39,8 @@ import {
   Baseline,
   MessageSquareText,
   Ban,
+  Youtube,
+  PanelTop,
 } from "lucide-react";
 
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -49,6 +52,8 @@ interface TiptapToolbarProps {
   onImageUploadClick?: () => void;
   linkOpen: boolean;
   onLinkOpenChange: (open: boolean) => void;
+  /** Opens the URL prompt for a YouTube video or link card. */
+  onEmbedClick: (kind: EmbedKind) => void;
 }
 
 function normalizeUrl(input: string): string | null {
@@ -345,6 +350,7 @@ function TextColorButton({ editor, color }: { editor: Editor; color: string | nu
 
 function ShortcutHelp() {
   const markdown: [string, string][] = [
+    ["/", "블록 메뉴 (이미지·유튜브·표·콜아웃 등)"],
     ["# ", "제목 1"],
     ["## ", "제목 2"],
     ["### ", "제목 3"],
@@ -415,7 +421,7 @@ function ShortcutHelp() {
   );
 }
 
-export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, onLinkOpenChange }: TiptapToolbarProps) {
+export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, onLinkOpenChange, onEmbedClick }: TiptapToolbarProps) {
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -527,7 +533,7 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
           <Divider />
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" aria-label="더보기" title="정렬 · 구분선" className="shrink-0 h-10 min-w-10 px-2 md:h-8 md:min-w-8">
+              <Button type="button" variant="ghost" size="sm" aria-label="더보기" title="정렬 · 삽입" className="shrink-0 h-10 min-w-10 px-2 md:h-8 md:min-w-8">
                 <MoreHorizontal size={16} />
               </Button>
             </DropdownMenuTrigger>
@@ -547,6 +553,12 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
                 <Table2 size={16} /> 표
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onEmbedClick("youtube")}>
+                <Youtube size={16} /> 유튜브 영상
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onEmbedClick("bookmark")}>
+                <PanelTop size={16} /> 링크 카드
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {CALLOUT_VARIANTS.map((variant) => (

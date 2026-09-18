@@ -106,6 +106,16 @@
   pointer-events: none;
 }
 
+/* Hint on the empty line under the caret ("'/'를 입력해 블록 추가", "제목 1" …): only while writing, and fainter
+   than the empty-editor placeholder so it reads as a tip rather than content. */
+.ProseMirror.ProseMirror-focused > :is(p, h1, h2, h3).is-empty:not(.is-editor-empty)::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: #c4c4c4;
+  pointer-events: none;
+}
+
 /* Mobile body heading scale (desktop sizes live in tailwind.config.ts typography). */
 @media (max-width: 767px) {
   .prose:not(.prose-sm) h1 { font-size: 1.75rem; }

@@ -114,21 +114,22 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 ### E1. 빈 줄 `/` 안내, 슬래시 메뉴 확장
 
 1. **빈 줄 안내**
-   - `tiptap-extensions.ts`의 Placeholder를 함수형으로 바꾼다. 문서 전체가 비면 폼별 문구를, 커서가 있는 **최상위** 빈 문단에는 "'/'를 입력해 블록 추가"를 보여준다. 목록·표 칸·콜아웃 안에서는 띄우지 않는다.
-   - `tiptap-editor-wrapper.tsx`의 placeholder 설정(`imageCaption` 분기)과 합친다.
-   - `globals.css`의 `.is-editor-empty:first-child` 규칙을 `.is-empty`(현재 줄)까지 넓히고, 줄 안내는 더 옅은 색으로 한다.
-   - 터치 기기(`pointer: coarse`)에서는 줄 안내를 끈다.
+   - `tiptap-editor-wrapper.tsx`의 Placeholder 설정을 함수형으로 둔다: 이미지 캡션은 캡션 안내, 빈 제목 줄은 "제목 1/2/3", 문서 전체가 비면 폼별 문구, 그 밖의 빈 줄은 "'/'를 입력해 블록 추가".
+   - Placeholder는 커서가 있는 **최상위** 빈 텍스트 블록에만 붙으므로 목록·표 칸·콜아웃 안에서는 자동으로 뜨지 않는다.
+   - `globals.css`: 줄 안내는 `.ProseMirror.ProseMirror-focused > :is(p, h1, h2, h3).is-empty:not(.is-editor-empty)`에서만 보여 준다(쓰는 중일 때만, 빈 문서 안내보다 옅은 색).
+   - 터치 기기(`pointer: coarse`)에서는 "/" 줄 안내를 빈 문자열로 둔다.
+   - 툴바 작성 도움말 맨 위에 "/ 블록 메뉴" 항목을 추가한다.
 2. **메뉴 그룹**
-   - `SlashCommandItem`에 `group`을 추가한다: 기본 / 목록 / 미디어 / 강조.
-   - `SlashCommandMenu`는 그룹 제목을 그리되, 키보드 선택은 평평한 순서로 한다.
+   - `SlashCommandItem`에 `group`을 추가한다: 기본 / 목록 / 미디어 / 강조. 항목은 메뉴 순서대로 선언하고, 그룹이 바뀌는 곳에 제목을 그린다.
+   - 키보드 선택은 평평한 순서로 한다. 그룹의 첫 항목으로 이동하면 그룹 제목까지 보이게 스크롤한다.
 3. **새 항목**
-   - `유튜브`, `링크 카드`, `콜아웃 · 팁`, `콜아웃 · 주의`를 추가한다.
-   - 검색어를 보강한다: 영상·video·동영상·bookmark·북마크 등.
+   - `유튜브`, `링크 카드`, `콜아웃 · 정보/팁/주의`(콜아웃을 종류별로 분리). 콜아웃 아이콘·이름은 `CALLOUT_META`에서 가져온다.
+   - 검색어를 보강한다: 영상·video·동영상·쇼츠·bookmark·북마크·카드 등.
 4. **URL 입력**
-   - 래퍼에 `embedPrompt: "youtube" | "bookmark" | null` 상태를 둔다.
-   - 링크 입력창과 같은 모양의 입력창을 띄우고, 입력값을 검사한 뒤 `youtube` 또는 `linkPreview` 노드로 삽입한다. 유튜브 주소는 `extractYoutubeId`로 판별한다.
-   - 툴바 "더보기"에도 같은 두 항목을 추가한다.
-5. **위치 보정**: 메뉴가 떠 있는 채로 스크롤하면 위치가 어긋난다. Tiptap 3.27+ Suggestion의 `props.mount(element)`(커서 고정·스크롤/리사이즈 자동 재배치, 바깥 클릭 시 닫기)로 직접 만든 `positionMenu`를 대체하는 방식을 먼저 검토하고, 맞지 않으면 `scroll` 이벤트(capture)에서 `clientRect()`로 위치를 다시 잡는다.
+   - 래퍼에 `embedPrompt: EmbedKind | null` 상태를 두고, 슬래시 메뉴(`onEmbedClick`)와 툴바 "더보기"(유튜브 영상·링크 카드)가 연다.
+   - `tiptap-embed-prompt.tsx`: 커서 위치에 붙는 팝오버(`PopoverAnchor`). 링크 입력창과 같은 모양이고, `https://` 없이 넣어도 받는다. 유튜브가 아닌 주소는 오류로 알린다.
+   - `tiptap-embed.ts`: URL 판별(`toHttpUrl`)과 `youtube`·`linkPreview` 노드 생성을 붙여넣기와 공유한다. 삽입은 붙여넣기처럼 `replaceSelectionWith`로 빈 줄을 대체한다.
+5. **위치 보정**: Suggestion의 `props.mount(element)`로 팝업을 띄운다. 커서에 고정되고 스크롤·리사이즈 때 자동으로 다시 배치되며, 바깥을 클릭하면 닫힌다. 옵션은 `placement: "bottom-start"`, `offset: 6`, `strategy: "fixed"`, `shift({ padding: 8 })`(`@floating-ui/dom` 직접 의존성)이고, 아래 공간이 부족하면 위로 뒤집힌다.
 
 **완료 조건**
 - 빈 줄에 커서를 두면 안내가 보인다. 목록 안에서는 보이지 않는다.

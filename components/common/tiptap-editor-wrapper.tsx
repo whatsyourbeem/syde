@@ -3,7 +3,7 @@
 import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
 import type { EditorView } from "@tiptap/pm/view";
 import { TextSelection } from "@tiptap/pm/state";
-import { Fragment, Slice } from "@tiptap/pm/model";
+import { Fragment, Slice, type Node as PMNode } from "@tiptap/pm/model";
 import { undo } from "@tiptap/pm/history";
 import { looksLikeMarkdown, pasteMarkdown, pastePlainText } from "./tiptap-markdown-paste";
 import { commonTiptapExtensions } from "./tiptap-extensions";
@@ -14,7 +14,9 @@ import {
   removeUploadPlaceholder,
 } from "./tiptap-upload-placeholder";
 import { isExpiringImageUrl, pastedImageSrcs } from "./tiptap-external-images";
-import { extractYoutubeId } from "./tiptap-youtube";
+import { linkPreviewNode, toHttpUrl, youtubeNode } from "./tiptap-embed";
+import type { EmbedKind } from "./tiptap-slash-command";
+import { EmbedPrompt } from "./tiptap-embed-prompt";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -43,16 +45,8 @@ const OWN_STORAGE_PREFIX = process.env.NEXT_PUBLIC_SUPABASE_URL
 // Same shape the resize extension writes when a user centers an image; blog images read better centered.
 const CENTERED_IMAGE_STYLE = "position: relative; margin: 0px auto;";
 
-function toHttpUrl(text: string): string | null {
-  if (/\s/.test(text)) return null;
-  try {
-    const url = new URL(text);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    return upgradeToHttps(text) || text;
-  } catch {
-    return null;
-  }
-}
+// Touch keyboards make "/" awkward to reach, so the per-line "/" hint is desktop-only.
+const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 function getImageFiles(files: FileList | undefined | null): File[] {
   return Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
@@ -71,11 +65,7 @@ function pasteUrl(view: EditorView, url: string) {
   const parent = selection.$from.parent;
   const isEmptyParagraph = parent.type.name === "paragraph" && parent.content.size === 0;
   if (isEmptyParagraph) {
-    const youtubeId = extractYoutubeId(url);
-    const node = youtubeId
-      ? schema.nodes.youtube.create({ src: `https://www.youtube.com/watch?v=${youtubeId}` })
-      : schema.nodes.linkPreview.create({ src: url });
-    view.dispatch(state.tr.replaceSelectionWith(node));
+    view.dispatch(state.tr.replaceSelectionWith(youtubeNode(schema, url) ?? linkPreviewNode(schema, url)));
     return;
   }
 
@@ -202,6 +192,7 @@ export default function TiptapEditorWrapper({
   };
 
   const [linkOpen, setLinkOpen] = useState(false);
+  const [embedPrompt, setEmbedPrompt] = useState<EmbedKind | null>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -209,14 +200,21 @@ export default function TiptapEditorWrapper({
       ...commonTiptapExtensions.map((extension) => {
         if (extension.name === "placeholder") {
           return extension.configure({
-            placeholder: ({ node }: { node: { type: { name: string } } }) =>
-              node.type.name === "imageCaption" ? "이미지 설명을 입력하세요 (선택)" : placeholder,
+            // Placeholder only decorates the empty top-level textblock under the caret, so lists,
+            // table cells and callouts never get a hint.
+            placeholder: ({ editor, node }: { editor: { isEmpty: boolean }; node: PMNode }) => {
+              if (node.type.name === "imageCaption") return "이미지 설명을 입력하세요 (선택)";
+              if (node.type.name === "heading") return `제목 ${node.attrs.level}`;
+              if (editor.isEmpty) return placeholder;
+              return isTouch ? "" : "'/'를 입력해 블록 추가";
+            },
           });
         }
         if (extension.name === "slashCommand") {
           return extension.configure({
             onImageUploadClick: onImageUpload ? () => fileInputRef.current?.click() : undefined,
             onLinkClick: () => setLinkOpen(true),
+            onEmbedClick: setEmbedPrompt,
           });
         }
         return extension;
@@ -345,7 +343,9 @@ export default function TiptapEditorWrapper({
         onImageUploadClick={onImageUpload ? () => fileInputRef.current?.click() : undefined}
         linkOpen={linkOpen}
         onLinkOpenChange={setLinkOpen}
+        onEmbedClick={setEmbedPrompt}
       />
+      <EmbedPrompt editor={editor} kind={embedPrompt} onClose={() => setEmbedPrompt(null)} />
       <TextBubbleMenu editor={editor} onLinkClick={() => setLinkOpen(true)} />
       <ImageBubbleMenu editor={editor} />
       <LinkPreviewBubbleMenu editor={editor} />
