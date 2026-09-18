@@ -1,6 +1,5 @@
 import { Extension, type Editor, type Range } from "@tiptap/core";
 import { Suggestion, type SuggestionOptions } from "@tiptap/suggestion";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReactRenderer } from "@tiptap/react";
 import {
   Pilcrow,
@@ -180,28 +179,6 @@ function positionMenu(el: HTMLElement, rect: DOMRect) {
   el.style.left = `${Math.min(rect.left, window.innerWidth - MENU_WIDTH - 8)}px`;
 }
 
-/**
- * Position of the "/" the writer dismissed with Escape, mapped through later edits and cleared once
- * that "/" is deleted. Suggestion has no memory of a dismissal and re-opens on the very next
- * transaction (e.g. the Enter that follows Escape); like Notion, a dismissed "/" stays plain text
- * until a new "/" is typed.
- */
-const dismissedSlashKey = new PluginKey<number | null>("slashCommandDismissed");
-
-const dismissedSlashPlugin = new Plugin<number | null>({
-  key: dismissedSlashKey,
-  state: {
-    init: () => null,
-    apply(tr, value) {
-      const meta = tr.getMeta(dismissedSlashKey) as number | undefined;
-      if (meta !== undefined) return meta;
-      if (value === null) return null;
-      const mapped = tr.mapping.mapResult(value);
-      return mapped.deleted ? null : mapped.pos;
-    },
-  },
-});
-
 function suggestionRender(): NonNullable<SuggestionOptions<SlashCommandItem, SlashCommandItem>["render"]> {
   return () => {
     let component: ReactRenderer<SlashCommandMenuHandle, { items: SlashCommandItem[]; command: (item: SlashCommandItem) => void }> | undefined;
@@ -236,15 +213,10 @@ function suggestionRender(): NonNullable<SuggestionOptions<SlashCommandItem, Sla
         const rect = props.clientRect?.();
         if (rect) positionMenu(popup, rect);
       },
-      onKeyDown: (props) => {
-        if (props.event.key === "Escape") {
-          // Remember the dismissed "/", then let Suggestion itself exit (returning false) so its state is
-          // cleared too; hiding only the popup would leave the next Enter running a command no one can see.
-          props.view.dispatch(props.view.state.tr.setMeta(dismissedSlashKey, props.range.from));
-          return false;
-        }
-        return component?.ref?.onKeyDown(props.event) ?? false;
-      },
+      // Escape is left to Suggestion (return false): it exits and remembers the dismissal, so the menu
+      // stays closed while the writer keeps typing. Handling it here would only hide the popup while
+      // the suggestion stayed active, and the next Enter would run a command no one can see.
+      onKeyDown: (props) => (props.event.key === "Escape" ? false : (component?.ref?.onKeyDown(props.event) ?? false)),
       onExit: close,
     };
   };
@@ -263,14 +235,11 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
   addProseMirrorPlugins() {
     const options = this.options;
     return [
-      // Must come before Suggestion: its allow() reads this plugin's state on the state being built.
-      dismissedSlashPlugin,
       Suggestion<SlashCommandItem, SlashCommandItem>({
         editor: this.editor,
         char: "/",
         startOfLine: true,
-        allow: ({ editor, state, range }) =>
-          !editor.isActive("codeBlock") && dismissedSlashKey.getState(state) !== range.from,
+        allow: ({ editor }) => !editor.isActive("codeBlock"),
         items: ({ query }) => filterItems(buildItems(options), query),
         command: ({ editor, range, props }) => props.run(editor, range),
         render: suggestionRender(),

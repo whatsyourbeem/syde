@@ -95,7 +95,7 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 
 | # | 증상 | 수정 | 파일 |
 |---|---|---|---|
-| a | 슬래시 메뉴에서 Esc를 누르면 메뉴만 사라지고 명령 입력 상태가 남는다. 이어서 Enter를 누르면 보이지 않는 명령이 실행된다(`/코` → Esc → Enter = 코드 블록) | Esc는 Suggestion이 직접 종료하게 둔다(`false` 반환). Suggestion은 닫은 것을 기억하지 못해 다음 입력에서 바로 다시 열리므로, Esc로 닫은 `/` 위치를 작은 플러그인 상태로 기억하고(이후 편집에 맞춰 위치 이동, `/`가 지워지면 해제) `allow`에서 제외한다. 노션처럼 닫힌 `/`는 새 `/`를 칠 때까지 열리지 않는다. 비동기 시작이 종료보다 늦게 끝나도 팝업이 남지 않게 `onStart`에서 기존 팝업을 먼저 정리한다 | `tiptap-slash-command.ts` |
+| a | 슬래시 메뉴에서 Esc를 누르면 메뉴만 사라지고 명령 입력 상태가 남는다. 이어서 Enter를 누르면 보이지 않는 명령이 실행된다(`/코` → Esc → Enter = 코드 블록) | Esc는 Suggestion이 직접 종료하게 둔다(`false` 반환). Tiptap 3.22부터 Suggestion이 Esc로 닫은 것을 기억해, 같은 자리에서 이어 치거나 띄어 써도 다시 열리지 않는다(커서가 다른 곳에 갔다 돌아오면 다시 열림). 비동기 시작이 종료보다 늦게 끝나도 팝업이 남지 않게 `onStart`에서 기존 팝업을 먼저 정리한다 | `tiptap-slash-command.ts` |
 | b | 일치하는 명령이 없어도 Enter가 막힌다(`/usr/local` + Enter). 방향키를 누르면 `% 0`으로 선택 번호가 NaN이 된다 | `items.length === 0`이면 모든 키에 `false`를 돌려준다 | `slash-command-menu.tsx` |
 | c | 방향키로 선택해도 목록이 스크롤되지 않는다(14개 × 약 44px > `max-h-80`) | 항목 버튼 ref 배열을 두고, `selected`가 바뀌면 `scrollIntoView({ block: "nearest" })` | `slash-command-menu.tsx` |
 | d | 여러 장 업로드 중 한 장만 끝나도 발행 버튼이 켜진다. 그때 발행하면 나머지 이미지가 빠진다 | `isUploading`을 진행 중 개수(ref 카운터)로 계산 | `hooks/use-image-upload.ts` |
@@ -128,7 +128,7 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
    - 래퍼에 `embedPrompt: "youtube" | "bookmark" | null` 상태를 둔다.
    - 링크 입력창과 같은 모양의 입력창을 띄우고, 입력값을 검사한 뒤 `youtube` 또는 `linkPreview` 노드로 삽입한다. 유튜브 주소는 `extractYoutubeId`로 판별한다.
    - 툴바 "더보기"에도 같은 두 항목을 추가한다.
-5. **위치 보정**: 메뉴가 떠 있는 동안 `scroll` 이벤트(capture)에서 `clientRect()`로 위치를 다시 잡는다.
+5. **위치 보정**: 메뉴가 떠 있는 채로 스크롤하면 위치가 어긋난다. Tiptap 3.27+ Suggestion의 `props.mount(element)`(커서 고정·스크롤/리사이즈 자동 재배치, 바깥 클릭 시 닫기)로 직접 만든 `positionMenu`를 대체하는 방식을 먼저 검토하고, 맞지 않으면 `scroll` 이벤트(capture)에서 `clientRect()`로 위치를 다시 잡는다.
 
 **완료 조건**
 - 빈 줄에 커서를 두면 안내가 보인다. 목록 안에서는 보이지 않는다.
@@ -287,7 +287,7 @@ create index insights_category_created_idx on public.insights (category, created
 
 | # | 작업 | 구현 | 규모 |
 |---|---|---|---|
-| E6-1 | 문단 드래그 + "+" 버튼 | `@tiptap/extension-drag-handle-react`를 **3.20.1로 고정**해 설치한다. 핸들 옆 "+"는 아래에 빈 문단을 만들고 `/`를 입력해 메뉴를 연다. `pointer: fine`에서만 보인다 | 1일 |
+| E6-1 | 문단 드래그 + "+" 버튼 | `@tiptap/extension-drag-handle-react`를 다른 `@tiptap/*`와 같은 버전으로 **고정**해 설치한다. 핸들 옆 "+"는 아래에 빈 문단을 만들고 `/`를 입력해 메뉴를 연다. `pointer: fine`에서만 보인다 | 1일 |
 | E6-2 | 이미지 크기 버튼·교체 | `ImageBubbleMenu`에 작게(50%)·보통(75%)·꽉 차게(100%)를 추가해 `containerStyle` 너비를 바꾸고 가운데 정렬은 유지한다. `교체`는 파일 선택 → 업로드 → `src`만 바꿔 alt와 캡션을 유지한다 | 0.5일 |
 | E6-3 | 이미지 나란히 놓기 | 새 노드 `imageGallery`: `attrs.images: { src, alt }[]`(2~3장), 뒤에 `imageCaption`을 둘 수 있다. 에디터는 격자 NodeView, `tiptap-server-extensions.ts`에는 서버 렌더링과 CSS를 둔다. 여러 장 업로드 후 알림에 "나란히 놓기" 버튼, `/갤러리` 명령 | 1.5일 |
 | E6-4 | 표 메뉴 보강 | `TableBubbleMenu`에 드롭다운 하나를 두고 위에 행 추가(`addRowBefore`), 왼쪽에 열 추가(`addColumnBefore`), 머리글 행 켜기/끄기(`toggleHeaderRow`)를 넣는다 | 0.3일 |
@@ -373,7 +373,8 @@ create index insights_category_created_idx on public.insights (category, created
 
 - **새 노드는 두 곳에 등록한다.** 에디터 확장(`tiptap-extensions.ts`)과 서버 확장(`tiptap-server-extensions.ts`) 양쪽에 등록하지 않으면 독자 화면에서 내용이 사라진다. 같은 모양이어야 하는 스타일은 `globals.css`의 `.prose` 아래에 둔다.
 - **공용 에디터를 바꾸면 6곳을 모두 확인한다.** 인사이트, 쇼케이스, 클럽 글, 클럽 수정, 모임, 프로필 소개. 블로그 전용 동작은 prop으로 켜고 기본값은 기존 동작으로 둔다.
-- **Tiptap 패키지는 버전을 맞춘다.** 새 `@tiptap/*` 패키지는 기존과 같은 `3.20.1`로 고정한다.
+- **Tiptap 패키지는 버전을 맞춘다.** 모든 `@tiptap/*`는 같은 버전(현재 `3.31.3`)을 정확히 고정하고(`^` 없이), 새 패키지도 같은 버전으로 추가한다. 올릴 때는 전부 한 번에 올리고, 실제 글 전체를 옛/새 버전으로 서버 렌더링해 결과 구조가 같은지 비교한다.
+- **`@tiptap/html`은 서버에서 서버용 빌드로 불러야 한다.** Next는 자동으로 서버용(`import` + `node` 조건)을 고르지만, Node 스크립트에서 `require("@tiptap/html")`을 쓰면 브라우저 전용 빌드가 잡혀 오류가 난다. 스크립트에서는 `@tiptap/html/server`를 쓴다.
 - **모바일 기준**: 입력 글자 16px 이상(iOS 확대 방지), 터치 영역 40px 이상, 메뉴의 버튼은 `onMouseDown` preventDefault로 에디터 선택을 유지한다.
 - **한글 입력**: Enter 처리 코드는 `isComposing`을 확인한다.
 - **검증**
