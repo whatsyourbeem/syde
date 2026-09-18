@@ -1,5 +1,6 @@
 import { Extension, type Editor, type Range } from "@tiptap/core";
 import { Suggestion, type SuggestionOptions } from "@tiptap/suggestion";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReactRenderer } from "@tiptap/react";
 import {
   Pilcrow,
@@ -179,13 +180,44 @@ function positionMenu(el: HTMLElement, rect: DOMRect) {
   el.style.left = `${Math.min(rect.left, window.innerWidth - MENU_WIDTH - 8)}px`;
 }
 
+/**
+ * Position of the "/" the writer dismissed with Escape, mapped through later edits and cleared once
+ * that "/" is deleted. Suggestion has no memory of a dismissal and re-opens on the very next
+ * transaction (e.g. the Enter that follows Escape); like Notion, a dismissed "/" stays plain text
+ * until a new "/" is typed.
+ */
+const dismissedSlashKey = new PluginKey<number | null>("slashCommandDismissed");
+
+const dismissedSlashPlugin = new Plugin<number | null>({
+  key: dismissedSlashKey,
+  state: {
+    init: () => null,
+    apply(tr, value) {
+      const meta = tr.getMeta(dismissedSlashKey) as number | undefined;
+      if (meta !== undefined) return meta;
+      if (value === null) return null;
+      const mapped = tr.mapping.mapResult(value);
+      return mapped.deleted ? null : mapped.pos;
+    },
+  },
+});
+
 function suggestionRender(): NonNullable<SuggestionOptions<SlashCommandItem, SlashCommandItem>["render"]> {
   return () => {
-    let component: ReactRenderer<SlashCommandMenuHandle, { items: SlashCommandItem[]; command: (item: SlashCommandItem) => void }>;
-    let popup: HTMLDivElement;
+    let component: ReactRenderer<SlashCommandMenuHandle, { items: SlashCommandItem[]; command: (item: SlashCommandItem) => void }> | undefined;
+    let popup: HTMLDivElement | undefined;
+
+    const close = () => {
+      popup?.remove();
+      component?.destroy();
+      popup = undefined;
+      component = undefined;
+    };
 
     return {
       onStart: (props) => {
+        // Suggestion resolves items asynchronously, so a start can land after a later exit; never leave an orphan popup.
+        close();
         component = new ReactRenderer(SlashCommandMenu, {
           props: { items: props.items, command: (item: SlashCommandItem) => props.command(item) },
           editor: props.editor,
@@ -199,21 +231,21 @@ function suggestionRender(): NonNullable<SuggestionOptions<SlashCommandItem, Sla
         if (rect) positionMenu(popup, rect);
       },
       onUpdate: (props) => {
+        if (!component || !popup) return;
         component.updateProps({ items: props.items, command: (item: SlashCommandItem) => props.command(item) });
         const rect = props.clientRect?.();
         if (rect) positionMenu(popup, rect);
       },
       onKeyDown: (props) => {
         if (props.event.key === "Escape") {
-          popup.remove();
-          return true;
+          // Remember the dismissed "/", then let Suggestion itself exit (returning false) so its state is
+          // cleared too; hiding only the popup would leave the next Enter running a command no one can see.
+          props.view.dispatch(props.view.state.tr.setMeta(dismissedSlashKey, props.range.from));
+          return false;
         }
-        return component.ref?.onKeyDown(props.event) ?? false;
+        return component?.ref?.onKeyDown(props.event) ?? false;
       },
-      onExit: () => {
-        popup.remove();
-        component.destroy();
-      },
+      onExit: close,
     };
   };
 }
@@ -231,11 +263,14 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
   addProseMirrorPlugins() {
     const options = this.options;
     return [
+      // Must come before Suggestion: its allow() reads this plugin's state on the state being built.
+      dismissedSlashPlugin,
       Suggestion<SlashCommandItem, SlashCommandItem>({
         editor: this.editor,
         char: "/",
         startOfLine: true,
-        allow: ({ editor }) => !editor.isActive("codeBlock"),
+        allow: ({ editor, state, range }) =>
+          !editor.isActive("codeBlock") && dismissedSlashKey.getState(state) !== range.from,
         items: ({ query }) => filterItems(buildItems(options), query),
         command: ({ editor, range, props }) => props.run(editor, range),
         render: suggestionRender(),

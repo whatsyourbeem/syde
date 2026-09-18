@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SlashCommandItem } from "./tiptap-slash-command";
 
@@ -20,12 +20,20 @@ interface SlashCommandMenuProps {
 export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandMenuProps>(
   ({ items, command }, ref) => {
     const [selected, setSelected] = useState(0);
+    const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
     // The list changes on every keystroke as the query narrows; keep the highlight in range.
     useEffect(() => setSelected(0), [items]);
 
+    // The list is taller than the popup; keep the keyboard-highlighted item in view.
+    useEffect(() => {
+      itemRefs.current[selected]?.scrollIntoView({ block: "nearest" });
+    }, [selected]);
+
     useImperativeHandle(ref, () => ({
       onKeyDown(event) {
+        // Nothing to pick (e.g. "/usr/local" typed at line start): let the editor handle Enter and arrows normally.
+        if (items.length === 0) return false;
         if (event.key === "ArrowDown") {
           setSelected((prev) => (prev + 1) % items.length);
           return true;
@@ -56,6 +64,9 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
         {items.map((item, index) => (
           <button
             key={item.title}
+            ref={(el) => {
+              itemRefs.current[index] = el;
+            }}
             type="button"
             // Keep the editor selection alive; a normal mousedown would blur the editor before the click fires.
             onMouseDown={(event) => event.preventDefault()}

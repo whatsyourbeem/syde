@@ -32,6 +32,7 @@ interface TiptapEditorWrapperProps {
   onContentChange: (json: JSONContent) => void;
   placeholder?: string;
   editable?: boolean;
+  /** Resolve null when the upload failed and the writer was already told why; throw only for errors worth a toast. */
   onImageUpload?: (file: File) => Promise<string | null>;
 }
 
@@ -127,13 +128,15 @@ export default function TiptapEditorWrapper({
       }
       view.dispatch(tr);
 
-      const failed = results.length - urls.length;
-      if (failed === 0) return;
-      const reason = results.find((r): r is PromiseRejectedResult => r.status === "rejected")?.reason?.message;
+      // A null result means the uploader already told the writer why (size limit, login, ...); only
+      // unexpected throws are reported here, so a failed image never shows two toasts.
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+      if (rejected.length === 0) return;
+      const reason = rejected[0].reason?.message;
       toast.error(
         urls.length === 0
           ? reason || "이미지 업로드에 실패했습니다."
-          : `${urls.length}장 삽입, ${failed}장 실패했습니다.${reason ? ` (${reason})` : ""}`,
+          : `${urls.length}장 삽입, ${rejected.length}장 실패했습니다.${reason ? ` (${reason})` : ""}`,
       );
     });
   };

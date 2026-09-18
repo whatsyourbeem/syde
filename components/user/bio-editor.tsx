@@ -118,11 +118,7 @@ export default function BioEditor({
               onContentChange={handleContentChange}
               placeholder="당신의 SYDE를 자유롭게 표현해보세요."
               editable={true}
-              onImageUpload={async (file) => {
-                const publicUrl = await uploadImage(file, "profiles", "bio", "detail");
-                if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-                return publicUrl;
-              }}
+              onImageUpload={(file) => uploadImage(file, "profiles", "bio", "detail")}
             />
           </div>
           <div className="mt-4 flex justify-end space-x-2">

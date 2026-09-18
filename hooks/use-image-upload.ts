@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage, FILE_SIZE_LIMIT } from "@/lib/image-compression";
 import { v4 as uuidv4 } from "uuid";
@@ -16,8 +16,14 @@ interface UseImageUploadResult {
   ) => Promise<string | null>;
 }
 
+// One id for every upload error, so a batch of failed images shows one toast instead of a stack.
+const UPLOAD_ERROR_TOAST_ID = "image-upload-error";
+
 export function useImageUpload(): UseImageUploadResult {
   const [isUploading, setIsUploading] = useState(false);
+  // Uploads can overlap (several images pasted at once); stay "uploading" until the last one settles,
+  // otherwise publish re-enables while images are still on their way.
+  const pendingRef = useRef(0);
   const supabase = createClient();
 
   const uploadImage = async (
@@ -29,10 +35,11 @@ export function useImageUpload(): UseImageUploadResult {
     if (!file) return null;
 
     if (file.size > FILE_SIZE_LIMIT) {
-      toast.error("이미지는 20MB를 초과할 수 없습니다.");
+      toast.error("이미지는 20MB를 초과할 수 없습니다.", { id: UPLOAD_ERROR_TOAST_ID });
       return null;
     }
 
+    pendingRef.current += 1;
     setIsUploading(true);
 
     try {
@@ -41,7 +48,7 @@ export function useImageUpload(): UseImageUploadResult {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("로그인이 필요합니다.");
+        toast.error("로그인이 필요합니다.", { id: UPLOAD_ERROR_TOAST_ID });
         return null;
       }
 
@@ -71,10 +78,11 @@ export function useImageUpload(): UseImageUploadResult {
       return publicUrl;
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast.error("이미지 업로드에 실패했습니다.");
+      toast.error("이미지 업로드에 실패했습니다.", { id: UPLOAD_ERROR_TOAST_ID });
       return null;
     } finally {
-      setIsUploading(false);
+      pendingRef.current -= 1;
+      setIsUploading(pendingRef.current > 0);
     }
   };
 

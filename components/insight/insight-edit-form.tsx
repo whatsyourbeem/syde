@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { EditorWriteBar } from "@/components/common/editor-write-bar";
 import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
 import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
+import { isTiptapContentEmpty } from "@/lib/tiptap-content";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
 import { createInsight, updateInsight } from "@/app/insight/insight-actions";
@@ -50,17 +51,6 @@ const EMPTY_DRAFT_SIGNATURE = draftSignature({ title: "", summary: "", content: 
 type FieldErrors = Partial<Record<"title" | "body" | "summary", string>>;
 // Matches the on-screen order so validation jumps to the topmost problem.
 const FIELD_ORDER = ["title", "body", "summary"] as const;
-const NON_TEXT_CONTENT_NODES = new Set(["imageResize", "linkPreview", "horizontalRule"]);
-
-// A doc with only empty paragraphs (e.g. typed then deleted) is still empty.
-function isBodyEmpty(content: JSONContent | string): boolean {
-    if (typeof content === "string") return !content.trim();
-    const hasContent = (node: JSONContent): boolean =>
-        (node.type !== undefined && NON_TEXT_CONTENT_NODES.has(node.type)) ||
-        !!node.text?.trim() ||
-        (node.content ?? []).some(hasContent);
-    return !hasContent(content);
-}
 
 interface InsightEditFormProps {
     initialData?: {
@@ -152,7 +142,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
 
         const nextErrors: FieldErrors = {};
         if (!title.trim()) nextErrors.title = "제목을 입력해주세요.";
-        if (isBodyEmpty(content)) nextErrors.body = "본문을 입력해주세요.";
+        if (isTiptapContentEmpty(content)) nextErrors.body = "본문을 입력해주세요.";
         if (!summary.trim()) nextErrors.summary = "한 줄 소개를 입력해주세요.";
         setErrors(nextErrors);
 
@@ -202,11 +192,8 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         }
     };
 
-    const handleTiptapImageUpload = async (file: File): Promise<string | null> => {
-        const publicUrl = await uploadImage(file, "insight-images", "editor", "detail");
-        if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-        return publicUrl;
-    };
+    // uploadImage reports its own failures; resolving null keeps the editor from toasting a second time.
+    const handleTiptapImageUpload = (file: File) => uploadImage(file, "insight-images", "editor", "detail");
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

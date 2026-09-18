@@ -119,11 +119,8 @@ export default function ClubEditForm({ club }: ClubFormProps) {
     }
   };
 
-  const handleEditorImageUpload = async (file: File): Promise<string> => {
-    const publicUrl = await uploadImage(file, "clubs", "editor", "detail");
-    if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-    return publicUrl;
-  };
+  // uploadImage reports its own failures; resolving null keeps the editor from toasting a second time.
+  const handleEditorImageUpload = (file: File) => uploadImage(file, "clubs", "editor", "detail");
 
   const clientAction = async (formData: FormData) => {
     setIsSubmitting(true);

@@ -95,11 +95,11 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 
 | # | 증상 | 수정 | 파일 |
 |---|---|---|---|
-| a | 슬래시 메뉴에서 Esc를 누르면 메뉴만 사라지고 명령 입력 상태가 남는다. 이어서 Enter를 누르면 보이지 않는 명령이 실행된다(`/코` → Esc → Enter = 코드 블록) | `onKeyDown`의 Esc 분기를 삭제해, tiptap Suggestion이 `onExit`와 상태 정리를 하게 둔다 | `tiptap-slash-command.ts` |
+| a | 슬래시 메뉴에서 Esc를 누르면 메뉴만 사라지고 명령 입력 상태가 남는다. 이어서 Enter를 누르면 보이지 않는 명령이 실행된다(`/코` → Esc → Enter = 코드 블록) | Esc는 Suggestion이 직접 종료하게 둔다(`false` 반환). Suggestion은 닫은 것을 기억하지 못해 다음 입력에서 바로 다시 열리므로, Esc로 닫은 `/` 위치를 작은 플러그인 상태로 기억하고(이후 편집에 맞춰 위치 이동, `/`가 지워지면 해제) `allow`에서 제외한다. 노션처럼 닫힌 `/`는 새 `/`를 칠 때까지 열리지 않는다. 비동기 시작이 종료보다 늦게 끝나도 팝업이 남지 않게 `onStart`에서 기존 팝업을 먼저 정리한다 | `tiptap-slash-command.ts` |
 | b | 일치하는 명령이 없어도 Enter가 막힌다(`/usr/local` + Enter). 방향키를 누르면 `% 0`으로 선택 번호가 NaN이 된다 | `items.length === 0`이면 모든 키에 `false`를 돌려준다 | `slash-command-menu.tsx` |
 | c | 방향키로 선택해도 목록이 스크롤되지 않는다(14개 × 약 44px > `max-h-80`) | 항목 버튼 ref 배열을 두고, `selected`가 바뀌면 `scrollIntoView({ block: "nearest" })` | `slash-command-menu.tsx` |
 | d | 여러 장 업로드 중 한 장만 끝나도 발행 버튼이 켜진다. 그때 발행하면 나머지 이미지가 빠진다 | `isUploading`을 진행 중 개수(ref 카운터)로 계산 | `hooks/use-image-upload.ts` |
-| e | 본문 이미지 업로드 실패 시 오류 알림이 두 번 뜬다 | 훅이 사유를 알리므로, 에디터는 일부만 실패했을 때만 "n장 삽입, m장 실패"를 띄운다. 인사이트 폼은 실패 시 throw 대신 null을 반환한다. 나머지 5곳의 `onImageUpload` 반환 방식도 맞춘다 | `tiptap-editor-wrapper.tsx`, `insight-edit-form.tsx` 외 |
+| e | 본문 이미지 업로드 실패 시 오류 알림이 두 번 뜬다 | `onImageUpload` 규칙: 실패 사유를 이미 알렸으면 null을 반환하고, 예외는 예상치 못한 오류일 때만 던진다. 에디터는 예외(rejected)만 알린다. 6곳의 업로드 함수를 `uploadImage` 결과를 그대로 반환하도록 바꾸고, 훅의 오류 알림은 하나의 id로 묶어 여러 장이 실패해도 한 번만 뜨게 한다 | `tiptap-editor-wrapper.tsx`, `use-image-upload.ts`, 에디터 사용처 6곳 |
 | f | 유튜브만 있는 글은 "본문을 입력해주세요"로 발행이 막힌다 | `NON_TEXT_CONTENT_NODES`에 `youtube`를 추가하고, `isBodyEmpty`를 `lib/tiptap-content.ts`로 옮겨 공용화 | `insight-edit-form.tsx` |
 | g | `@tiptap/extension-link`가 StarterKit과 중복된 불필요한 의존성이다 | `package.json`에서 제거 | `package.json` |
 

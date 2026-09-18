@@ -755,11 +755,7 @@ export function ProjectRegistrationForm({
               }}
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
-              onImageUpload={async (file: File) => {
-                const publicUrl = await uploadImage(file, "showcases", "editor", "detail");
-                if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-                return publicUrl;
-              }}
+              onImageUpload={(file: File) => uploadImage(file, "showcases", "editor", "detail")}
             />
           </div>
         </div>
