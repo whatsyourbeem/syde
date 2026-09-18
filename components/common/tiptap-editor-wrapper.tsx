@@ -16,7 +16,7 @@ import {
 import { isExpiringImageUrl, pastedImageSrcs } from "./tiptap-external-images";
 import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImageBubbleMenu, LinkPreviewBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
+import { ImageBubbleMenu, LinkPreviewBubbleMenu, TableBubbleMenu, TextBubbleMenu } from "./tiptap-bubble-menus";
 import { toast } from "sonner";
 import { upgradeToHttps } from "@/lib/utils";
 
@@ -331,6 +331,7 @@ export default function TiptapEditorWrapper({
       <TextBubbleMenu editor={editor} onLinkClick={() => setLinkOpen(true)} />
       <ImageBubbleMenu editor={editor} />
       <LinkPreviewBubbleMenu editor={editor} />
+      <TableBubbleMenu editor={editor} />
       <input
         type="file"
         ref={fileInputRef}

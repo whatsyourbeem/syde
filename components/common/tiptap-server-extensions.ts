@@ -2,12 +2,15 @@ import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import ResizeImage from "tiptap-extension-resize-image";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { Paragraph } from "@tiptap/extension-paragraph";
+import { TableKit } from "@tiptap/extension-table";
 import { Node } from '@tiptap/core';
 import type { DOMOutputSpec } from "@tiptap/pm/model";
 import type { Element as HastElement, Root as HastRoot, RootContent as HastContent } from "hast";
 import { generateHTML, generateJSON } from "@tiptap/html";
 import { lowlight } from "./tiptap-lowlight";
 import { ImageCaption } from "./tiptap-image-caption";
+import { shouldAutoLink } from "./tiptap-link-autolink";
 
 function isHttpUrl(value: unknown): value is string {
     return typeof value === "string" && /^https?:\/\//i.test(value);
@@ -93,16 +96,28 @@ const ServerCodeBlock = CodeBlockLowlight.extend({
             ["code", { class: `hljs${language ? ` language-${language}` : ""}` }, ...tree.children.map(hastToSpec)],
         ] as DOMOutputSpec;
     },
-}).configure({ lowlight, defaultLanguage: null });
+}).configure({ lowlight, defaultLanguage: null, enableTabIndentation: true });
+
+// A blank line (Enter twice) has no content, so its margins collapse against its neighbors and the
+// blank line vanishes from the published post. The editor avoids this for free via ProseMirror's
+// caret-placement `<br>`; give the reader the same `<br>` explicitly.
+const ServerParagraph = Paragraph.extend({
+    renderHTML({ HTMLAttributes, node }) {
+        return ["p", HTMLAttributes, node.content.size === 0 ? ["br"] : 0] as DOMOutputSpec;
+    },
+});
 
 export const serverTiptapExtensions = [
     StarterKit.configure({
         codeBlock: false,
+        paragraph: false,
         link: {
             openOnClick: true,
             autolink: true,
+            shouldAutoLink,
         },
     }),
+    ServerParagraph,
     ServerCodeBlock,
     ServerLinkPreview,
     TextAlign.configure({
@@ -113,6 +128,8 @@ export const serverTiptapExtensions = [
         allowBase64: true,
     }),
     ImageCaption,
+    // The editor gets its scroll wrapper for free from the resizable table's node view; static HTML needs it explicitly.
+    TableKit.configure({ table: { renderWrapper: true } }),
 ];
 
 /**

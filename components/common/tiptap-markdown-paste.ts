@@ -9,6 +9,8 @@ const STRONG_SIGNALS = [
   /^>\s?\S/m,
   /(^\s*[-*+]\s+\S.*\n){1,}^\s*[-*+]\s+\S/m,
   /(^\s*\d+\.\s+\S.*\n){1,}^\s*\d+\.\s+\S/m,
+  // GFM table header-separator row, e.g. "|---|---|" or "| :-- | --: |" — appears in nothing but a table.
+  /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/m,
 ];
 
 const WEAK_SIGNALS = [

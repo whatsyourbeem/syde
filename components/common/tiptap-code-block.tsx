@@ -62,4 +62,4 @@ export const CodeBlock = CodeBlockLowlight.extend({
       },
     };
   },
-}).configure({ lowlight, defaultLanguage: null });
+}).configure({ lowlight, defaultLanguage: null, enableTabIndentation: true });

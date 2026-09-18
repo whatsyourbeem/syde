@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { NodeSelection } from "@tiptap/pm/state";
-import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput } from "lucide-react";
+import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput, Rows3, Columns3 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -266,6 +266,38 @@ export function LinkPreviewBubbleMenu({ editor }: { editor: Editor }) {
       </BubbleButton>
       <div className="mx-0.5 h-5 border-l border-white/20" />
       <BubbleButton label="카드 삭제" onClick={() => editor.chain().focus().deleteSelection().run()} className="text-red-300 hover:text-red-200">
+        <Trash2 size={15} />
+      </BubbleButton>
+    </BubbleMenu>
+  );
+}
+
+export function TableBubbleMenu({ editor }: { editor: Editor }) {
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey="tableBubbleMenu"
+      // Only when the caret merely sits in a cell, not while text is selected — a text selection shows
+      // TextBubbleMenu instead, and showing both at once would stack two menus on top of each other.
+      shouldShow={({ editor, view, state }) => editor.isEditable && view.hasFocus() && state.selection.empty && editor.isActive("table")}
+      options={{ placement: "top", offset: 8 }}
+      className={BUBBLE_CLASS}
+    >
+      <BubbleButton label="아래에 행 추가" onClick={() => editor.chain().focus().addRowAfter().run()} className="gap-1.5 px-3">
+        <Rows3 size={15} /> 행
+      </BubbleButton>
+      <BubbleButton label="오른쪽에 열 추가" onClick={() => editor.chain().focus().addColumnAfter().run()} className="gap-1.5 px-3">
+        <Columns3 size={15} /> 열
+      </BubbleButton>
+      <div className="mx-0.5 h-5 border-l border-white/20" />
+      <BubbleButton label="현재 행 삭제" onClick={() => editor.chain().focus().deleteRow().run()} className="gap-1.5 px-3 text-red-300 hover:text-red-200">
+        <Rows3 size={15} /> 행 삭제
+      </BubbleButton>
+      <BubbleButton label="현재 열 삭제" onClick={() => editor.chain().focus().deleteColumn().run()} className="gap-1.5 px-3 text-red-300 hover:text-red-200">
+        <Columns3 size={15} /> 열 삭제
+      </BubbleButton>
+      <div className="mx-0.5 h-5 border-l border-white/20" />
+      <BubbleButton label="표 삭제" onClick={() => editor.chain().focus().deleteTable().run()} className="text-red-300 hover:text-red-200">
         <Trash2 size={15} />
       </BubbleButton>
     </BubbleMenu>

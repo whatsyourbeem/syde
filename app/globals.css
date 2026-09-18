@@ -157,6 +157,51 @@
   pointer-events: none;
 }
 
+/* Tables (@tiptap/extension-table, backed by prosemirror-tables). The package ships its own
+   stylesheet (prosemirror-tables/style/tables.css) but nothing here imports it, so it's reproduced
+   below, rescoped to .prose (shared by the editor and the published post) and re-colored to match SYDE. */
+.prose .tableWrapper {
+  overflow-x: auto;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+.prose .tableWrapper table {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.prose table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+.prose td,
+.prose th {
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+.ProseMirror .selectedCell::after {
+  content: "";
+  z-index: 2;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 32, 64, 0.08);
+  pointer-events: none;
+}
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  z-index: 20;
+  background-color: #002040;
+  pointer-events: none;
+}
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
 /* Code block syntax highlighting (lowlight / highlight.js tokens, GitHub Dark palette on prose's dark <pre>) */
 .prose pre code .hljs-comment,
 .prose pre code .hljs-quote { color: #8b949e; font-style: italic; }

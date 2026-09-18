@@ -30,6 +30,7 @@ import {
   ChevronDown,
   MoreHorizontal,
   CircleHelp,
+  Table2,
 } from "lucide-react";
 
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -430,6 +431,9 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => editor.chain().focus().setHorizontalRule().run()}>
                 <Minus size={16} /> 구분선
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                <Table2 size={16} /> 표
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

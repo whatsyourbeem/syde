@@ -1,8 +1,10 @@
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import { TableKit } from "@tiptap/extension-table";
 import { LinkPreview } from "./tiptap-link-preview";
 import { CodeBlock } from "./tiptap-code-block";
 import { ImageCaption } from "./tiptap-image-caption";
+import { shouldAutoLink } from "./tiptap-link-autolink";
 
 import TextAlign from "@tiptap/extension-text-align";
 import ResizeImage from "tiptap-extension-resize-image";
@@ -14,6 +16,7 @@ export const commonTiptapExtensions = [
       // While editing, clicking a link should place the caret, not navigate away.
       openOnClick: false,
       autolink: true,
+      shouldAutoLink,
     },
   }),
   CodeBlock,
@@ -29,4 +32,7 @@ export const commonTiptapExtensions = [
     allowBase64: false,
   }),
   ImageCaption,
+  TableKit.configure({
+    table: { resizable: true },
+  }),
 ];
