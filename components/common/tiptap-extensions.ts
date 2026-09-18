@@ -5,6 +5,7 @@ import { LinkPreview } from "./tiptap-link-preview";
 import { CodeBlock } from "./tiptap-code-block";
 import { ImageCaption } from "./tiptap-image-caption";
 import { shouldAutoLink } from "./tiptap-link-autolink";
+import { SlashCommand } from "./tiptap-slash-command";
 
 import TextAlign from "@tiptap/extension-text-align";
 import ResizeImage from "tiptap-extension-resize-image";
@@ -35,4 +36,5 @@ export const commonTiptapExtensions = [
   TableKit.configure({
     table: { resizable: true },
   }),
+  SlashCommand,
 ];

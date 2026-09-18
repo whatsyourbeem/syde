@@ -201,6 +201,12 @@ export default function TiptapEditorWrapper({
               node.type.name === "imageCaption" ? "이미지 설명을 입력하세요 (선택)" : placeholder,
           });
         }
+        if (extension.name === "slashCommand") {
+          return extension.configure({
+            onImageUploadClick: onImageUpload ? () => fileInputRef.current?.click() : undefined,
+            onLinkClick: () => setLinkOpen(true),
+          });
+        }
         return extension;
       }),
       UploadPlaceholder,
