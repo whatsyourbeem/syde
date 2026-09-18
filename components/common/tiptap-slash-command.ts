@@ -15,6 +15,7 @@ import {
   Table2,
   ImageIcon,
   Link2,
+  MessageSquareText,
   type LucideIcon,
 } from "lucide-react";
 import { SlashCommandMenu, type SlashCommandMenuHandle } from "./slash-command-menu";
@@ -113,6 +114,19 @@ function buildItems(options: SlashCommandOptions): SlashCommandItem[] {
       icon: Minus,
       keywords: ["divider", "hr", "구분선", "수평선"],
       run: (editor, range) => editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
+    },
+    {
+      title: "콜아웃",
+      description: "강조하고 싶은 내용을 박스로 감쌉니다",
+      icon: MessageSquareText,
+      keywords: ["callout", "콜아웃", "박스", "강조"],
+      run: (editor, range) =>
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertContent({ type: "callout", attrs: { variant: "info" }, content: [{ type: "paragraph" }] })
+          .run(),
     },
   ];
 

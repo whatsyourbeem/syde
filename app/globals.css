@@ -250,6 +250,49 @@
   border-radius: 0.5rem;
 }
 
+/* Highlight (mark) — @tiptap/extension-highlight already inlines the background color; just round it a bit. */
+.prose mark {
+  border-radius: 0.2em;
+  padding: 0.05em 0.15em;
+}
+
+/* Callouts (info/tip/warning asides), shared by the editor node view and the published post. */
+.prose .callout {
+  position: relative;
+  margin: 1.5em 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+}
+.prose .callout > *:first-child { margin-top: 0; }
+.prose .callout > *:last-child { margin-bottom: 0; }
+.prose .callout-info { background: #eff6ff; border-color: #bfdbfe; color: #1e3a8a; }
+.prose .callout-tip { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+.prose .callout-warning { background: #fffbeb; border-color: #fde68a; color: #78350f; }
+
+/* Editing-only variant switcher inside the callout node view (like the code block's language select). */
+.callout-switcher {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.125rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 0.5rem;
+  padding: 0.125rem;
+}
+.callout-switcher-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.375rem;
+  opacity: 0.4;
+}
+.callout-switcher-btn:hover { opacity: 0.7; background: rgba(0, 0, 0, 0.05); }
+.callout-switcher-btn.is-active { opacity: 1; background: rgba(0, 0, 0, 0.08); }
+
 /* Code block syntax highlighting (lowlight / highlight.js tokens, GitHub Dark palette on prose's dark <pre>) */
 .prose pre code .hljs-comment,
 .prose pre code .hljs-quote { color: #8b949e; font-style: italic; }

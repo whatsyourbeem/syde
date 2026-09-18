@@ -4,9 +4,10 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { NodeSelection } from "@tiptap/pm/state";
-import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput, Rows3, Columns3 } from "lucide-react";
+import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput, Rows3, Columns3, Highlighter, Baseline, Ban } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { HIGHLIGHT_COLORS, TEXT_COLORS } from "./tiptap-colors";
 
 const BUBBLE_CLASS = "z-40 flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg";
 const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -16,12 +17,14 @@ function BubbleButton({
   onClick,
   label,
   className,
+  style,
   children,
 }: {
   active?: boolean;
   onClick: () => void;
   label: string;
   className?: string;
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
@@ -33,6 +36,7 @@ function BubbleButton({
       aria-label={label}
       aria-pressed={active}
       title={label}
+      style={style}
       className={cn(
         "flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm text-white/90 hover:bg-white/15",
         active && "bg-white/20 text-white",
@@ -44,7 +48,58 @@ function BubbleButton({
   );
 }
 
+function SwatchRow({
+  colors,
+  active,
+  onPick,
+  onClear,
+  onBack,
+}: {
+  colors: { label: string; value: string }[];
+  active: string | null;
+  onPick: (color: string) => void;
+  onClear?: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 p-0.5">
+      <BubbleButton label="뒤로" onClick={onBack} className="px-1.5">
+        <ChevronLeftIcon />
+      </BubbleButton>
+      <div className="mx-0.5 h-5 border-l border-white/20" />
+      {colors.map((swatch) => (
+        <button
+          key={swatch.value}
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onPick(swatch.value)}
+          title={swatch.label}
+          className={cn(
+            "h-6 w-6 shrink-0 rounded-full border border-white/30",
+            active === swatch.value && "ring-2 ring-offset-1 ring-offset-neutral-900 ring-white",
+          )}
+          style={{ backgroundColor: swatch.value }}
+        />
+      ))}
+      {onClear && active && (
+        <BubbleButton label="지우기" onClick={onClear} className="px-1.5">
+          <Ban size={13} />
+        </BubbleButton>
+      )}
+    </div>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
 export function TextBubbleMenu({ editor, onLinkClick }: { editor: Editor; onLinkClick: () => void }) {
+  const [picker, setPicker] = useState<"highlight" | "color" | null>(null);
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -54,8 +109,17 @@ export function TextBubbleMenu({ editor, onLinkClick }: { editor: Editor; onLink
       strike: editor.isActive("strike"),
       code: editor.isActive("code"),
       link: editor.isActive("link"),
+      highlight: editor.isActive("highlight"),
+      highlightColor: (editor.getAttributes("highlight").color as string | undefined) ?? null,
+      textColor: (editor.getAttributes("textStyle").color as string | undefined) ?? null,
+      // Not used for rendering — just forces a re-render (and the effect below) when the selection
+      // moves, even between two ranges with identical formatting, so a swatch picker doesn't linger
+      // open (the bubble menu can stay mounted and visible across an in-place selection change).
+      selectionRange: `${editor.state.selection.from}-${editor.state.selection.to}`,
     }),
   });
+
+  useEffect(() => setPicker(null), [state.selectionRange]);
 
   return (
     <BubbleMenu
@@ -71,28 +135,56 @@ export function TextBubbleMenu({ editor, onLinkClick }: { editor: Editor; onLink
         editorState.doc.textBetween(from, to).trim().length > 0
       }
       // On touch devices the OS selection callout sits above the text, so open below it.
-      options={{ placement: isTouch ? "bottom" : "top", offset: 8 }}
+      // A stale swatch row shouldn't reappear the next time the menu opens for a different selection.
+      options={{ placement: isTouch ? "bottom" : "top", offset: 8, onHide: () => setPicker(null) }}
       className={BUBBLE_CLASS}
     >
-      <BubbleButton label="굵게" active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()} className="font-bold">
-        B
-      </BubbleButton>
-      <BubbleButton label="기울임" active={state.italic} onClick={() => editor.chain().focus().toggleItalic().run()} className="italic font-serif">
-        I
-      </BubbleButton>
-      <BubbleButton label="밑줄" active={state.underline} onClick={() => editor.chain().focus().toggleUnderline().run()} className="underline">
-        U
-      </BubbleButton>
-      <BubbleButton label="취소선" active={state.strike} onClick={() => editor.chain().focus().toggleStrike().run()} className="line-through">
-        S
-      </BubbleButton>
-      <BubbleButton label="인라인 코드" active={state.code} onClick={() => editor.chain().focus().toggleCode().run()}>
-        <Code size={15} />
-      </BubbleButton>
-      <div className="mx-0.5 h-5 border-l border-white/20" />
-      <BubbleButton label="링크" active={state.link} onClick={onLinkClick}>
-        <Link2 size={15} />
-      </BubbleButton>
+      {picker === "highlight" ? (
+        <SwatchRow
+          colors={HIGHLIGHT_COLORS}
+          active={state.highlightColor}
+          onPick={(color) => editor.chain().focus().toggleHighlight({ color }).run()}
+          onClear={() => editor.chain().focus().unsetHighlight().run()}
+          onBack={() => setPicker(null)}
+        />
+      ) : picker === "color" ? (
+        <SwatchRow
+          colors={TEXT_COLORS}
+          active={state.textColor}
+          onPick={(color) => editor.chain().focus().setColor(color).run()}
+          onClear={() => editor.chain().focus().unsetColor().run()}
+          onBack={() => setPicker(null)}
+        />
+      ) : (
+        <>
+          <BubbleButton label="굵게" active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()} className="font-bold">
+            B
+          </BubbleButton>
+          <BubbleButton label="기울임" active={state.italic} onClick={() => editor.chain().focus().toggleItalic().run()} className="italic font-serif">
+            I
+          </BubbleButton>
+          <BubbleButton label="밑줄" active={state.underline} onClick={() => editor.chain().focus().toggleUnderline().run()} className="underline">
+            U
+          </BubbleButton>
+          <BubbleButton label="취소선" active={state.strike} onClick={() => editor.chain().focus().toggleStrike().run()} className="line-through">
+            S
+          </BubbleButton>
+          <BubbleButton label="인라인 코드" active={state.code} onClick={() => editor.chain().focus().toggleCode().run()}>
+            <Code size={15} />
+          </BubbleButton>
+          <div className="mx-0.5 h-5 border-l border-white/20" />
+          <BubbleButton label="형광펜" active={state.highlight} onClick={() => setPicker("highlight")} style={state.highlightColor ? { color: state.highlightColor } : undefined}>
+            <Highlighter size={15} />
+          </BubbleButton>
+          <BubbleButton label="글자색" active={!!state.textColor} onClick={() => setPicker("color")} style={state.textColor ? { color: state.textColor } : undefined}>
+            <Baseline size={15} />
+          </BubbleButton>
+          <div className="mx-0.5 h-5 border-l border-white/20" />
+          <BubbleButton label="링크" active={state.link} onClick={onLinkClick}>
+            <Link2 size={15} />
+          </BubbleButton>
+        </>
+      )}
     </BubbleMenu>
   );
 }

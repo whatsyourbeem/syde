@@ -4,9 +4,12 @@ import { TableKit } from "@tiptap/extension-table";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
 import Youtube from "@tiptap/extension-youtube";
+import Highlight from "@tiptap/extension-highlight";
+import { TextStyle, Color } from "@tiptap/extension-text-style";
 import { LinkPreview } from "./tiptap-link-preview";
 import { CodeBlock } from "./tiptap-code-block";
 import { ImageCaption } from "./tiptap-image-caption";
+import { Callout } from "./tiptap-callout";
 import { shouldAutoLink } from "./tiptap-link-autolink";
 import { SlashCommand } from "./tiptap-slash-command";
 
@@ -50,5 +53,9 @@ export const commonTiptapExtensions = [
     width: 640,
     height: 360,
   }),
+  Highlight.configure({ multicolor: true }),
+  TextStyle,
+  Color,
+  Callout,
   SlashCommand,
 ];

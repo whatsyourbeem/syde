@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { HIGHLIGHT_COLORS, TEXT_COLORS } from "./tiptap-colors";
+import { CALLOUT_VARIANTS, CALLOUT_META } from "./tiptap-callout";
 import {
   List,
   ListOrdered,
@@ -32,6 +34,10 @@ import {
   CircleHelp,
   Table2,
   ListChecks,
+  Highlighter,
+  Baseline,
+  MessageSquareText,
+  Ban,
 } from "lucide-react";
 
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
@@ -244,6 +250,99 @@ function BlockTypeMenu({ editor, current }: { editor: Editor; current: string })
   );
 }
 
+function HighlightButton({ editor, active, color }: { editor: Editor; active: boolean; color: string | null }) {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant={active ? "default" : "ghost"}
+          size="sm"
+          aria-label="형광펜"
+          aria-pressed={active}
+          title={`형광펜 (${MOD}${SHIFT}H)`}
+          className="shrink-0 h-10 min-w-10 px-2 md:h-8 md:min-w-8"
+        >
+          <Highlighter size={16} style={color ? { color } : undefined} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-auto p-2">
+        <div className="flex items-center gap-1.5">
+          {HIGHLIGHT_COLORS.map((swatch) => (
+            <button
+              key={swatch.value}
+              type="button"
+              title={swatch.label}
+              onClick={() => editor.chain().focus().toggleHighlight({ color: swatch.value }).run()}
+              className={cn(
+                "h-6 w-6 shrink-0 rounded-full border",
+                color === swatch.value ? "ring-2 ring-offset-1 ring-sydeblue" : "border-black/10",
+              )}
+              style={{ backgroundColor: swatch.value }}
+            />
+          ))}
+          {active && (
+            <button
+              type="button"
+              title="형광펜 지우기"
+              onClick={() => editor.chain().focus().unsetHighlight().run()}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-black/10 text-muted-foreground"
+            >
+              <Ban size={13} />
+            </button>
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function TextColorButton({ editor, color }: { editor: Editor; color: string | null }) {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant={color ? "default" : "ghost"}
+          size="sm"
+          aria-label="글자색"
+          title="글자색"
+          className="shrink-0 h-10 min-w-10 px-2 md:h-8 md:min-w-8"
+        >
+          <Baseline size={16} style={color ? { color } : undefined} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-auto p-2">
+        <div className="flex items-center gap-1.5">
+          {TEXT_COLORS.map((swatch) => (
+            <button
+              key={swatch.value}
+              type="button"
+              title={swatch.label}
+              onClick={() => editor.chain().focus().setColor(swatch.value).run()}
+              className={cn(
+                "h-6 w-6 shrink-0 rounded-full border",
+                color === swatch.value ? "ring-2 ring-offset-1 ring-sydeblue" : "border-black/10",
+              )}
+              style={{ backgroundColor: swatch.value }}
+            />
+          ))}
+          {color && (
+            <button
+              type="button"
+              title="글자색 지우기"
+              onClick={() => editor.chain().focus().unsetColor().run()}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-black/10 text-muted-foreground"
+            >
+              <Ban size={13} />
+            </button>
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function ShortcutHelp() {
   const markdown: [string, string][] = [
     ["# ", "제목 1"],
@@ -256,6 +355,7 @@ function ShortcutHelp() {
     ["```", "코드 블록"],
     ["---", "구분선"],
     ["`코드`", "인라인 코드"],
+    ["==형광펜==", "형광펜"],
   ];
   const keys: [string, string][] = [
     [`${MOD}B`, "굵게"],
@@ -263,6 +363,7 @@ function ShortcutHelp() {
     [`${MOD}U`, "밑줄"],
     [`${MOD}K`, "링크"],
     [`${MOD}E`, "인라인 코드"],
+    [`${MOD}${SHIFT}H`, "형광펜"],
     [`${MOD}Z`, "실행 취소"],
     [`${MOD}${SHIFT}Z`, "다시 실행"],
     ["Enter 두 번", "목록·인용·코드 블록 빠져나오기"],
@@ -324,6 +425,9 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
       strike: editor.isActive("strike"),
       code: editor.isActive("code"),
       link: editor.isActive("link"),
+      highlight: editor.isActive("highlight"),
+      highlightColor: (editor.getAttributes("highlight").color as string | undefined) ?? null,
+      textColor: (editor.getAttributes("textStyle").color as string | undefined) ?? null,
       codeBlock: editor.isActive("codeBlock"),
       blockquote: editor.isActive("blockquote"),
       bulletList: editor.isActive("bulletList"),
@@ -418,6 +522,8 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
           <ToolbarButton label="코드 블록" active={state.codeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
             <SquareCode size={16} />
           </ToolbarButton>
+          <HighlightButton editor={editor} active={state.highlight} color={state.highlightColor} />
+          <TextColorButton editor={editor} color={state.textColor} />
           <Divider />
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -442,6 +548,17 @@ export default function TiptapToolbar({ editor, onImageUploadClick, linkOpen, on
               <DropdownMenuItem onSelect={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
                 <Table2 size={16} /> 표
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {CALLOUT_VARIANTS.map((variant) => (
+                <DropdownMenuItem
+                  key={variant}
+                  onSelect={() =>
+                    editor.chain().focus().insertContent({ type: "callout", attrs: { variant }, content: [{ type: "paragraph" }] }).run()
+                  }
+                >
+                  <MessageSquareText size={16} /> 콜아웃 · {CALLOUT_META[variant].label}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
           {state.align !== "left" && (

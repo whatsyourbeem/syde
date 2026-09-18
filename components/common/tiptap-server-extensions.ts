@@ -7,6 +7,8 @@ import { TableKit } from "@tiptap/extension-table";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
 import Youtube from "@tiptap/extension-youtube";
+import Highlight from "@tiptap/extension-highlight";
+import { TextStyle, Color } from "@tiptap/extension-text-style";
 import { Node, mergeAttributes } from '@tiptap/core';
 import type { DOMOutputSpec } from "@tiptap/pm/model";
 import type { Element as HastElement, Root as HastRoot, RootContent as HastContent } from "hast";
@@ -14,6 +16,7 @@ import { generateHTML, generateJSON } from "@tiptap/html";
 import { lowlight } from "./tiptap-lowlight";
 import { ImageCaption } from "./tiptap-image-caption";
 import { shouldAutoLink } from "./tiptap-link-autolink";
+import { isCalloutVariant, type CalloutVariant } from "./tiptap-callout-shared";
 
 function isHttpUrl(value: unknown): value is string {
     return typeof value === "string" && /^https?:\/\//i.test(value);
@@ -123,6 +126,39 @@ const ServerTaskItem = TaskItem.extend({
     },
 });
 
+// Mirrors Callout (tiptap-callout.tsx) minus the client-only variant-switcher node view.
+const ServerCallout = Node.create({
+    name: "callout",
+    group: "block",
+    content: "block+",
+
+    addAttributes() {
+        return {
+            variant: {
+                default: "info",
+                parseHTML: (element) => {
+                    const value = element.getAttribute("data-variant");
+                    return isCalloutVariant(value) ? value : "info";
+                },
+                renderHTML: (attributes) => ({ "data-variant": attributes.variant }),
+            },
+        };
+    },
+
+    parseHTML() {
+        return [{ tag: 'div[data-type="callout"]' }];
+    },
+
+    renderHTML({ HTMLAttributes, node }) {
+        const variant: CalloutVariant = isCalloutVariant(node.attrs.variant) ? node.attrs.variant : "info";
+        return [
+            "div",
+            mergeAttributes(HTMLAttributes, { "data-type": "callout", class: `callout callout-${variant}` }),
+            0,
+        ] as DOMOutputSpec;
+    },
+});
+
 export const serverTiptapExtensions = [
     StarterKit.configure({
         codeBlock: false,
@@ -149,6 +185,10 @@ export const serverTiptapExtensions = [
     TaskList,
     ServerTaskItem,
     Youtube.configure({ width: 640, height: 360 }),
+    Highlight.configure({ multicolor: true }),
+    TextStyle,
+    Color,
+    ServerCallout,
 ];
 
 /**
