@@ -37,33 +37,36 @@
 | `components/common/rich-content.tsx` | 서버 HTML 표시, 링크 카드를 OG 카드로 교체 |
 | `app/globals.css`, `tailwind.config.ts` | 본문(prose) 스타일. 에디터와 독자 화면이 공유 |
 
-**에디터 사용처 6곳**: `insight/insight-edit-form.tsx`, `showcase/project-registration-form.tsx`, `club/club-post-form.tsx`, `club/club-edit-form.tsx`, `meetup/meetup-description-editor.tsx`(`meetup-edit-form.tsx`에서 사용), `user/bio-editor.tsx`
+**에디터 사용처 6곳**: `blog/blog-edit-form.tsx`, `showcase/project-registration-form.tsx`, `club/club-post-form.tsx`, `club/club-edit-form.tsx`, `meetup/meetup-description-editor.tsx`(`meetup-edit-form.tsx`에서 사용), `user/bio-editor.tsx`
 
-### 1-2. 인사이트(블로그)
+### 1-2. 블로그
 
 | 파일 | 역할 |
 |---|---|
-| `app/insight/insight-actions.ts` | `createInsight`, `updateInsight`, 댓글 |
-| `app/insight/insight-data-actions.ts` | 목록 조회 (현재 최신순 고정) |
-| `lib/queries/insight-queries.ts` | 상세·관련 조회 |
-| `app/insight/page.tsx`, `components/insight/insight-feed.tsx`, `insight-card.tsx`, `insight-thumbnail.tsx` | 목록 |
-| `app/insight/[id]/page.tsx`, `components/insight/insight-detail-client.tsx` | 상세 |
-| `components/insight/insight-edit-form.tsx`, `app/insight/write`, `app/insight/[id]/edit` | 작성·수정 |
+| `app/blog/blog-actions.ts` | `createBlogPost`, `updateBlogPost`, 댓글, 좋아요·북마크, 조회수 |
+| `app/blog/blog-data-actions.ts` | 목록 조회 |
+| `lib/queries/blog-queries.ts` | 상세·관련 조회 |
+| `app/blog/page.tsx`, `components/blog/blog-feed.tsx`, `blog-card.tsx`, `blog-thumbnail.tsx` | 목록 |
+| `app/blog/[id]/page.tsx`, `components/blog/blog-detail-client.tsx`, `article-toc.tsx`, `author-card.tsx` | 상세 |
+| `components/blog/blog-edit-form.tsx`, `blog-publish-sheet.tsx`, `app/blog/write`, `app/blog/[id]/edit` | 작성·수정 |
 
-### 1-3. DB (`insights`)
+### 1-3. DB (`blog_posts`, B10 전에는 `insights`)
 
 ```
 id UUID PK · user_id → profiles · title TEXT NOT NULL · content TEXT NOT NULL (Tiptap JSON 문자열)
-image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · created_at · updated_at
+image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · category TEXT · tags TEXT[] · created_at · updated_at
 ```
 
-- 트리거: INSERT 시 slug 생성, INSERT 시 활동 피드 생성, DELETE 시 활동 정리
+- 딸린 테이블: `blog_post_comments`, `blog_post_likes`, `blog_post_bookmarks`, `blog_post_comment_likes` (B10 전에는 `insight_*`)
+- 이미지 버킷: `blog-images` (B10 전에는 `insight-images`)
+- 트리거: INSERT 시 slug 생성, INSERT 시 활동 피드 생성(`BLOG_POST_CREATED`), DELETE 시 활동 정리
 - 보안 정책(RLS): SELECT는 누구나, INSERT·UPDATE·DELETE는 본인만
-- `insights`를 읽는 곳(8): `insight-data-actions.ts`, `insight-queries.ts`(4), `[id]/edit/page.tsx`, `search/all-search-results.tsx`, `app/sitemap.ts`, `feed-queries.ts`
 
 ---
 
 ## 2. 작업 목록
+
+> 완료된 작업(✅)의 절에 나오는 `insight` 파일·테이블 이름은 작업 당시 기록이다. 현재 이름은 1장 코드 지도와 B10 대응표를 따른다.
 
 | ID | 작업 | 범위 | 규모 | 마일스톤 | 상태 |
 |---|---|---|---|---|---|
@@ -83,10 +86,11 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 | B7 | 정렬 토글 (최신순 / 인기순) | 목록 | 0.5일 | M3 | ⏳ |
 | B8 | 카테고리 필터, 태그 모아보기 | 목록 | 0.5일 | M3 (E4a 후) | ⏳ |
 | B9 | 블로그 리네이밍 (문구·URL·메타데이터) | 사이트 전체 | 0.8일 | M3 (가장 먼저) | ✅ 7b57862 (배포 후 확인 남음) |
-| E4b | 서버 임시저장 | 인사이트 + DB | 1.5~2일 | 보류 | ⏸ |
+| B10 | DB·스토리지 이름을 blog로 변경 | DB + 스토리지 + 코드 | 1~1.5일 | M3 (B9 다음) | ⏳ |
+| E4b | 서버 임시저장 | 블로그 + DB | 1.5~2일 | 보류 | ⏸ |
 
 - **M1 합계 약 4.2일** (필수 2.7일 + 권장 1.5일). 콜드 시딩 DM 발송 전에 끝낸다.
-- **M2 약 5.0일**, **M3 약 4.8~5.8일**.
+- **M2 약 5.0일**, **M3 약 5.8~7.3일**.
 - **E4b는 보류**한다. 시작 조건은 [E4b](#e4b-서버-임시저장-보류)에 적는다.
 
 ---
@@ -246,13 +250,13 @@ create index insights_category_created_idx on public.insights (category, created
 
 **설계** (D3 결정 유지: 발행 글 테이블과 분리된 초안 테이블)
 
-**마이그레이션** `supabase/migrations/<timestamp>_insight_drafts.sql`
+**마이그레이션** `supabase/migrations/<timestamp>_blog_post_drafts.sql`
 
 ```sql
-create table public.insight_drafts (
+create table public.blog_post_drafts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
-  insight_id uuid references public.insights(id) on delete cascade, -- 발행된 글을 수정 중일 때
+  blog_post_id uuid references public.blog_posts(id) on delete cascade, -- 발행된 글을 수정 중일 때
   title text not null default '',
   summary text,
   content jsonb,
@@ -262,37 +266,37 @@ create table public.insight_drafts (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create unique index insight_drafts_user_insight_key
-  on public.insight_drafts (user_id, insight_id) where insight_id is not null;
-create index insight_drafts_user_updated_idx on public.insight_drafts (user_id, updated_at desc);
+create unique index blog_post_drafts_user_post_key
+  on public.blog_post_drafts (user_id, blog_post_id) where blog_post_id is not null;
+create index blog_post_drafts_user_updated_idx on public.blog_post_drafts (user_id, updated_at desc);
 
-alter table public.insight_drafts enable row level security;
-create policy "owner select" on public.insight_drafts for select using (auth.uid() = user_id);
-create policy "owner insert" on public.insight_drafts for insert with check (auth.uid() = user_id);
-create policy "owner update" on public.insight_drafts for update using (auth.uid() = user_id);
-create policy "owner delete" on public.insight_drafts for delete using (auth.uid() = user_id);
+alter table public.blog_post_drafts enable row level security;
+create policy "owner select" on public.blog_post_drafts for select using (auth.uid() = user_id);
+create policy "owner insert" on public.blog_post_drafts for insert with check (auth.uid() = user_id);
+create policy "owner update" on public.blog_post_drafts for update using (auth.uid() = user_id);
+create policy "owner delete" on public.blog_post_drafts for delete using (auth.uid() = user_id);
 ```
 
-**서버 액션** (`app/insight/draft-actions.ts`)
+**서버 액션** (`app/blog/draft-actions.ts`)
 
 | 함수 | 동작 |
 |---|---|
-| `saveInsightDraft({ draftId?, insightId?, title, summary, content, imageUrl, category, tags })` | upsert하고 `{ draftId, updatedAt }`을 반환한다. 새 초안이면 사용자당 50개 제한을 확인한다 |
-| `listInsightDrafts()` | 본인 초안 목록: id, title, 본문 앞 80자, updated_at |
-| `getInsightDraft(id)` | 초안 하나를 불러온다 |
-| `deleteInsightDraft(id)` | 초안을 삭제한다 |
+| `saveBlogPostDraft({ draftId?, blogPostId?, title, summary, content, imageUrl, category, tags })` | upsert하고 `{ draftId, updatedAt }`을 반환한다. 새 초안이면 사용자당 50개 제한을 확인한다 |
+| `listBlogPostDrafts()` | 본인 초안 목록: id, title, 본문 앞 80자, updated_at |
+| `getBlogPostDraft(id)` | 초안 하나를 불러온다 |
+| `deleteBlogPostDraft(id)` | 초안을 삭제한다 |
 
-- `createInsight`·`updateInsight`는 `draftId`를 선택 인자로 받고, 발행에 성공하면 해당 초안을 삭제한다. 삭제에 실패해도 발행은 성공으로 본다.
+- `createBlogPost`·`updateBlogPost`는 `draftId`를 선택 인자로 받고, 발행에 성공하면 해당 초안을 삭제한다. 삭제에 실패해도 발행은 성공으로 본다.
 
 **작성 폼 연동**
 
 - **저장 두 겹**
   - `useLocalDraft`(1초)는 그대로 둔다.
   - 새 훅 `useServerDraft`를 추가한다. 5초 디바운스로 저장하고, `visibilitychange`(hidden)와 `pagehide` 때 즉시 저장한다.
-  - 첫 저장 뒤 `router.replace("/insight/write?draft=<id>")`로 주소를 바꾼다.
+  - 첫 저장 뒤 `router.replace("/blog/write?draft=<id>")`로 주소를 바꾼다.
 - **진입**
-  - `/insight/write?draft=<id>`로 들어오면 서버 초안을 불러온다.
-  - 수정 모드(`/insight/[id]/edit`)는 `insight_id`로 초안을 찾아 복원 배너로 안내한다.
+  - `/blog/write?draft=<id>`로 들어오면 서버 초안을 불러온다.
+  - 수정 모드(`/blog/[id]/edit`)는 `blog_post_id`로 초안을 찾아 복원 배너로 안내한다.
 - **충돌**
   - 서버와 브라우저 저장본의 `savedAt`/`updated_at`을 비교해 최근 것을 제안한다.
   - `DraftRestoreBanner`에 "다른 기기에서 저장됨" 같은 출처 표시를 추가한다.
@@ -419,7 +423,7 @@ create policy "owner delete" on public.insight_drafts for delete using (auth.uid
 - 본문 안에 이미 들어간 `/insight/...` 링크는 리다이렉트로 계속 열리므로 DB를 고치지 않는다.
 
 **바꾸지 않는 내부 이름**
-- DB 테이블(`insights`, `insight_*`), 스토리지 경로, 서버 액션과 컴포넌트 파일명, React Query 키, 로컬 임시저장 키(`syde:insight-draft:*`)는 그대로 둔다. 사용자에게 보이지 않고, 바꾸면 마이그레이션 위험과 작성 중 초안 유실만 생긴다.
+- ~~DB 테이블, 스토리지 경로, 파일명 등 내부 이름은 그대로 둔다.~~ → 블로그가 공개 전이고 글이 모두 운영자 글이라 지금 바꾸기로 했다. 코드 이름은 177cc14에서 바꿨고, DB·스토리지는 **B10**에서 바꾼다.
 
 **메타데이터**
 - 목록(`app/blog/layout.tsx`): 제목은 "사이드프로젝트 블로그 | SYDE"로 바꾼다. 설명에는 "기획·개발·수익화 인사이트" 같은 표현을 남겨 기존 검색 키워드를 유지한다. canonical은 `/blog`.
@@ -467,6 +471,237 @@ create policy "owner delete" on public.insight_drafts for delete using (auth.uid
 | 인사이트 관련 토스트 전반 | "인사이트가 등록/수정/삭제되었습니다" |
 
 - `app/insight/layout.tsx`의 메타 제목·설명과 `/insight/` URL은 **바꾸지 않는다.** 2차 리네이밍 기준(작성자 20명 / 월 15건)에 도달하면 바꾼다.
+
+
+### B10. DB·스토리지 이름을 blog로 변경
+
+B9에서 화면·URL, 이어서 코드의 파일·컴포넌트 이름을 blog로 바꿨다. DB와 스토리지에는 아직 `insight` 이름이 남아 있다. 블로그가 공개 전이고 글이 모두 운영자 글인 지금 바꾼다. 다른 사람의 글과 이미지가 쌓이면 비용이 커지기 때문이다.
+
+> **원칙**
+> - 하나라도 빠지면 운영 장애가 난다. 아래 목록을 체크리스트로 쓰고, 단계마다 "확인" 쿼리로 빠진 것이 없는지 검증한다.
+> - 데이터는 옮기지 않고 `RENAME`한다. 행·인덱스·외래키·보안 정책은 이름만 바뀌고 그대로 따라온다.
+> - 함수 본문 안의 테이블 이름은 `RENAME`으로 바뀌지 않는다. 함수는 반드시 새로 쓴다.
+> - 이미 적용된 마이그레이션 파일은 고치지 않는다. 항상 새 마이그레이션 파일을 추가한다.
+> - 로컬에서 전 과정을 먼저 끝까지 해 보고, 같은 순서로 운영에 적용한다.
+
+#### 0. 이름 대응표
+
+| 종류 | 지금 | 변경 |
+|---|---|---|
+| 테이블 | `insights` | `blog_posts` |
+| 테이블 | `insight_comments` | `blog_post_comments` |
+| 테이블 | `insight_likes` | `blog_post_likes` |
+| 테이블 | `insight_bookmarks` | `blog_post_bookmarks` |
+| 테이블 | `insight_comment_likes` | `blog_post_comment_likes` |
+| 컬럼 | `insight_comments.insight_id`, `insight_likes.insight_id`, `insight_bookmarks.insight_id` | `blog_post_id` (3곳) |
+| 제약 | `insights_pkey`, `insights_user_id_fkey`, `insights_slug_key`, `insights_category_check` | `blog_posts_pkey`, `blog_posts_user_id_fkey`, `blog_posts_slug_key`, `blog_posts_category_check` |
+| 제약 | `insight_comments_pkey`, `insight_comments_insight_id_fkey`, `insight_comments_user_id_fkey`, `insight_comments_parent_comment_id_fkey` | `blog_post_comments_pkey`, `blog_post_comments_blog_post_id_fkey`, `blog_post_comments_user_id_fkey`, `blog_post_comments_parent_comment_id_fkey` |
+| 제약 | `insight_likes_insight_id_fkey`, `insight_likes_user_id_fkey`, `insight_likes_insight_id_user_id_key` | `blog_post_likes_blog_post_id_fkey`, `blog_post_likes_user_id_fkey`, `blog_post_likes_blog_post_id_user_id_key` |
+| 제약 | `insight_bookmarks_pkey`, `insight_bookmarks_insight_id_fkey`, `insight_bookmarks_user_id_fkey` | `blog_post_bookmarks_pkey`, `blog_post_bookmarks_blog_post_id_fkey`, `blog_post_bookmarks_user_id_fkey` |
+| 제약 | `insight_comment_likes_pkey`, `insight_comment_likes_comment_id_user_id_key`, `insight_comment_likes_comment_id_fkey`, `insight_comment_likes_user_id_fkey` | `blog_post_comment_likes_pkey`, `blog_post_comment_likes_comment_id_user_id_key`, `blog_post_comment_likes_comment_id_fkey`, `blog_post_comment_likes_user_id_fkey` |
+| 인덱스(제약 아님) | `insights_tags_idx`, `insights_category_created_idx` | `blog_posts_tags_idx`, `blog_posts_category_created_idx` |
+| 보안 정책 | `insights`: "anyone can view insights", "users can insert their own insights", "users can update their own insights", "users can delete their own insights" | "anyone can view blog posts", "users can insert their own blog posts", "users can update their own blog posts", "users can delete their own blog posts" |
+| 보안 정책 | "anyone can view insight comments", "anyone can view insight likes", "anyone can view insight comment likes" | "anyone can view blog post comments", "anyone can view blog post likes", "anyone can view blog post comment likes" |
+| 보안 정책 | 이름에 insight가 없는 정책(댓글·좋아요·북마크의 insert/update/delete 등) | 이름은 그대로. 테이블과 함께 따라온다 |
+| 함수 | `generate_insight_slug(title_text)` | `generate_blog_post_slug(title_text)` |
+| 함수 | `trig_handle_insight_slug()` (본문에 `public.insights`) | `trig_handle_blog_post_slug()` (본문을 `public.blog_posts`로) |
+| 함수 | `create_activity_on_insight_created()` (값 `'INSIGHT_CREATED'`) | `create_activity_on_blog_post_created()` (값 `'BLOG_POST_CREATED'`) |
+| 함수(RPC) | `increment_insight_views(insight_id uuid)` (본문에 `public.insights`, SECURITY DEFINER) | `increment_blog_post_views(p_blog_post_id uuid)` (쇼케이스의 `p_showcase_id`와 같은 형식) |
+| 트리거 | `insights.handle_insight_slug_on_insert` | `blog_posts.handle_blog_post_slug_on_insert` |
+| 트리거 | `insights.trigger_activity_insight_created` | `blog_posts.trigger_activity_blog_post_created` |
+| 트리거 | `insights.trigger_delete_activity_on_insight_deleted` (공용 함수 `delete_activity_on_target_deleted` 사용) | `blog_posts.trigger_delete_activity_on_blog_post_deleted` (함수는 그대로) |
+| 트리거 | `insight_comments.set_insight_comments_updated_at` (공용 함수 `handle_updated_at` 사용) | `blog_post_comments.set_blog_post_comments_updated_at` (함수는 그대로) |
+| 데이터 값 | `activity_feed.activity_type = 'INSIGHT_CREATED'` | `'BLOG_POST_CREATED'` |
+| 스토리지 버킷 | `insight-images` (public) | `blog-images` (public). 버킷 이름은 바꿀 수 없어 새로 만들고 파일을 복사한다 |
+| 스토리지 정책 | `storage.objects`: "Public Access"(SELECT), "Auth Upload Insight Images"(INSERT), "Auth Delete Insight Images"(DELETE). 모두 `bucket_id = 'insight-images'` 조건 | 같은 조건을 `'blog-images'`로 바꾼 "Public Read Blog Images", "Auth Upload Blog Images", "Auth Delete Blog Images" |
+| 저장된 URL | `blog_posts.image_url`, `blog_posts.content`(본문 JSON 문자열) 안의 `/storage/v1/object/public/insight-images/` | `/storage/v1/object/public/blog-images/` |
+
+로컬 조사 결과 뷰, 머티리얼라이즈드 뷰, 시퀀스, enum, 크론 작업, Realtime 발행, 알림(`notifications`) 칼럼, 다른 저장소(`syde-studio`, `syde-studio-prototypes`)에는 insight 참조가 없다. **운영 DB도 1단계에서 같은 조사를 해서 이 표와 다른 것이 있으면 표에 추가한 뒤 진행한다.**
+
+#### 1. 사전 조사와 백업 (운영, 읽기만)
+
+1. 아래 조사 쿼리를 로컬과 운영에서 각각 실행해 결과를 비교한다. 운영에만 있는 객체가 있으면 0번 표와 마이그레이션에 추가한다.
+
+   ```sql
+   -- 테이블·컬럼
+   select table_name, column_name from information_schema.columns
+    where table_schema='public' and (table_name ilike '%insight%' or column_name ilike '%insight%');
+   -- 제약
+   select conrelid::regclass, conname, pg_get_constraintdef(oid) from pg_constraint
+    where conrelid::regclass::text ilike '%insight%' or conname ilike '%insight%' or confrelid::regclass::text ilike '%insight%';
+   -- 인덱스
+   select tablename, indexname from pg_indexes
+    where schemaname='public' and (tablename ilike '%insight%' or indexname ilike '%insight%');
+   -- 보안 정책 (public, storage)
+   select schemaname, tablename, policyname, cmd, qual, with_check from pg_policies
+    where tablename ilike '%insight%' or policyname ilike '%insight%' or qual ilike '%insight%' or with_check ilike '%insight%';
+   -- 함수 (이름 또는 본문에 insight)
+   select n.nspname, p.proname, pg_get_function_identity_arguments(p.oid), p.prosecdef from pg_proc p
+     join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname not in ('pg_catalog','information_schema') and (p.proname ilike '%insight%' or p.prosrc ilike '%insight%');
+   -- 트리거
+   select event_object_table, trigger_name, action_statement from information_schema.triggers
+    where event_object_table ilike '%insight%' or trigger_name ilike '%insight%' or action_statement ilike '%insight%';
+   -- 뷰·머티리얼라이즈드 뷰·enum·크론·발행
+   select table_name from information_schema.views where view_definition ilike '%insight%';
+   select matviewname from pg_matviews where definition ilike '%insight%';
+   select t.typname, e.enumlabel from pg_enum e join pg_type t on t.oid=e.enumtypid where e.enumlabel ilike '%insight%';
+   select jobname from cron.job where command ilike '%insight%';          -- cron 확장이 없으면 생략
+   select pubname, tablename from pg_publication_tables where tablename ilike '%insight%';
+   -- 함수 권한 (다시 만들 때 똑같이 부여)
+   select grantee, privilege_type from information_schema.routine_privileges where routine_name = 'increment_insight_views';
+   -- 데이터 값
+   select activity_type, count(*) from activity_feed group by 1;
+   -- 스토리지
+   select id, public, file_size_limit, allowed_mime_types from storage.buckets where id = 'insight-images';
+   select count(*), sum((metadata->>'size')::bigint) from storage.objects where bucket_id = 'insight-images';
+   ```
+
+2. 저장된 URL이 어디에 있는지 찾는다. 0번 표에 없는 칼럼에서 나오면 4단계 URL 교체 대상에 추가한다.
+
+   ```sql
+   do $$ declare r record; n bigint; begin
+     for r in select table_name, column_name from information_schema.columns
+              where table_schema='public' and data_type in ('text','character varying','jsonb','json','ARRAY') loop
+       execute format('select count(*) from public.%I where %I::text like %L', r.table_name, r.column_name, '%insight-images%') into n;
+       if n > 0 then raise notice '%.%: %', r.table_name, r.column_name, n; end if;
+     end loop; end $$;
+   ```
+
+3. 백업한다.
+   - 대시보드에서 최근 자동 백업이 있는지 확인한다.
+   - 5개 테이블과 `activity_feed`를 데이터 덤프로 받아 둔다(`supabase db dump --linked --data-only` 등).
+   - `insight-images` 버킷의 파일 목록(경로, 크기)을 파일로 저장해 둔다.
+
+4. 되돌리기 SQL을 미리 써 둔다(2단계 마이그레이션 A의 반대 순서 RENAME). 저장소에 마이그레이션으로 넣지 말고 따로 보관한다.
+
+#### 2. 마이그레이션 A: 이름 변경 + 호환 계층 (배포 직전 적용)
+
+파일: `supabase/migrations/<timestamp>_rename_insights_to_blog_posts.sql`. 전체를 한 트랜잭션으로 실행한다.
+
+1. **테이블**: `alter table public.insights rename to blog_posts;` 등 5개.
+2. **컬럼**: `alter table public.blog_post_comments rename column insight_id to blog_post_id;` 등 3개.
+3. **제약**: `alter table ... rename constraint ... to ...;` 0번 표의 제약 전부. 기본키·유니크 제약은 이름을 바꾸면 그 인덱스 이름도 같이 바뀐다.
+4. **인덱스(제약 아님)**: `alter index public.insights_tags_idx rename to blog_posts_tags_idx;`, `insights_category_created_idx`도 같은 방식.
+5. **보안 정책**: 이름에 insight가 있는 7개를 `alter policy "..." on public.<새 테이블> rename to "...";`로 바꾼다.
+6. **함수**
+   - `generate_insight_slug`: `alter function public.generate_insight_slug(text) rename to generate_blog_post_slug;`
+   - `trig_handle_insight_slug`: 새 이름 `trig_handle_blog_post_slug()`로 `create`하고 본문의 `public.insights` → `public.blog_posts`, `generate_insight_slug` → `generate_blog_post_slug`로 바꾼다. 트리거를 새 함수로 다시 연결한 뒤 옛 함수를 `drop`한다.
+   - `create_activity_on_insight_created`: 새 이름 `create_activity_on_blog_post_created()`로 만든다. **이 단계에서는 값 `'INSIGHT_CREATED'`를 그대로 쓴다**(옛 코드가 배포돼 있는 동안 피드가 깨지지 않게). SECURITY DEFINER 유지. 트리거를 새 함수로 다시 연결한 뒤 옛 함수를 `drop`한다.
+   - `increment_insight_views`: 매개변수 이름은 `create or replace`로 바꿀 수 없다. 새 함수 `increment_blog_post_views(p_blog_post_id uuid)`를 SECURITY DEFINER, `set search_path = public`으로 만들고 본문은 `update public.blog_posts set views = views + 1 where id = p_blog_post_id;`. 1단계에서 확인한 권한을 똑같이 부여한다(`grant execute ... to anon, authenticated, service_role;`). **옛 함수 `increment_insight_views(insight_id uuid)`는 지우지 말고** 본문을 `perform public.increment_blog_post_views(insight_id);`로 바꿔 둔다(옛 코드 호환, 마이그레이션 B에서 삭제).
+7. **트리거**: `alter trigger handle_insight_slug_on_insert on public.blog_posts rename to handle_blog_post_slug_on_insert;` 등 4개. 6번에서 함수를 바꾼 트리거는 `drop trigger` 후 새 이름으로 `create trigger`해도 된다. 발생 시점(BEFORE/AFTER, INSERT/UPDATE/DELETE, FOR EACH ROW)은 1단계 조사 결과와 똑같이 둔다.
+8. **호환 뷰**: 배포가 끝나기 전까지 옛 코드가 옛 이름으로 읽고 쓰므로, 옛 이름의 뷰를 둔다.
+
+   ```sql
+   create view public.insights with (security_invoker = true) as select * from public.blog_posts;
+   create view public.insight_comments with (security_invoker = true) as
+     select id, blog_post_id as insight_id, user_id, content, created_at, updated_at, parent_comment_id from public.blog_post_comments;
+   create view public.insight_likes with (security_invoker = true) as
+     select id, blog_post_id as insight_id, user_id, created_at from public.blog_post_likes;
+   create view public.insight_bookmarks with (security_invoker = true) as
+     select blog_post_id as insight_id, user_id, created_at from public.blog_post_bookmarks;
+   create view public.insight_comment_likes with (security_invoker = true) as select * from public.blog_post_comment_likes;
+   grant select, insert, update, delete on public.insights, public.insight_comments, public.insight_likes,
+     public.insight_bookmarks, public.insight_comment_likes to anon, authenticated, service_role;
+   ```
+
+   - 칼럼 목록은 1단계 조사 결과와 똑같이 맞춘다.
+   - `security_invoker = true`여서 원래 테이블의 보안 정책이 그대로 적용된다.
+   - 옛 코드의 관계 조회(`insights`에서 `insight_comments (id)` 등)가 뷰에서 동작하는지 로컬에서 옛 코드로 확인한다. 안 되면 배포 공백을 줄이는 방식(아래 5단계 순서를 바로 붙여서 실행)으로 대체한다.
+9. **스토리지**: `blog-images` 버킷을 만든다(`public = true`, 1단계에서 확인한 `file_size_limit`, `allowed_mime_types`과 같게). `storage.objects`에 0번 표의 새 정책 3개를 만든다. **옛 버킷과 옛 정책은 그대로 둔다.**
+10. 마지막에 `notify pgrst, 'reload schema';`
+
+**확인 (로컬)**: 1단계 조사 쿼리를 다시 실행해 결과가 호환 뷰, 옛 호환 함수 `increment_insight_views`, 옛 버킷·정책뿐인지 확인한다.
+
+#### 3. 코드 변경 (마이그레이션 A와 같은 배포)
+
+1. 타입을 다시 생성한다: `supabase gen types typescript --local > types/database.types.ts`. 새 타입에 `blog_posts` 등과 호환 뷰가 함께 나오는데, 코드는 새 이름만 쓴다.
+2. DB 이름을 쓰는 코드를 모두 바꾼다.
+   - `.from("insights")` 등 테이블 5개, `.eq("insight_id", ...)`·`select("insight_id")` 등 칼럼, 관계 조회 문자열(`insight_comments (id)`, `insight_likes (id, user_id)`, `insight_bookmarks (insight_id, user_id)`)과 그 결과 필드(`item.insight_likes` 등).
+   - RPC: `supabase.rpc("increment_insight_views", { insight_id })` → `supabase.rpc("increment_blog_post_views", { p_blog_post_id })`.
+   - 버킷: `uploadImage(file, "insight-images", ...)`와 `extractStoragePath(url, "insight-images")` 등 → `"blog-images"`.
+   - `lib/server-utils.ts`의 `generateUniqueSlug` 테이블 타입 `"showcases" | "insights"` → `"showcases" | "blog_posts"`.
+   - 피드: `lib/queries/feed-queries.ts`는 **이 배포에서는 `'INSIGHT_CREATED'`와 `'BLOG_POST_CREATED'`를 둘 다** 블로그 글로 처리한다(마이그레이션 B에서 값을 바꾸므로).
+3. 코드 안의 insight 이름도 이번에 정리한다(DB와 무관하지만 남으면 헷갈린다).
+   - 변수·필드: `insight`, `insights`, `insightId`, `details.insight`, 프로필 탭 값 `"insight"`, `InteractionActions`의 `type: "insight"` 등.
+   - 캐시 태그: `insight-all`, `insight-${id}`, `insight-slug-${slug}` → `blog-post-all` 등. 캐시를 만드는 곳과 `revalidateTagSafe`로 지우는 곳을 **함께** 바꾼다.
+   - React Query 키 `["insights"]` → `["blog-posts"]`. `invalidateQueries`로 지우는 곳도 함께 바꾼다.
+   - 로컬 임시저장 키 `syde:insight-draft:*` → `syde:blog-draft:*`. 블로그가 공개 전이라 기존 브라우저 초안이 사라져도 된다.
+   - 문자열 `"SYDE insight article"`(JSON-LD 기본 설명) 등.
+4. 저장소의 다른 파일
+   - `supabase/seed.sql`: 테이블·칼럼 이름, `'INSIGHT_CREATED'` 값, 이미지 URL의 버킷 경로를 새 이름으로 바꾼다. 안 바꾸면 로컬 `supabase db reset`이 실패한다.
+   - `scripts/migrate-images.ts`: `BUCKET_CONFIG`의 `'insight-images'`와 `table: 'insights'`.
+   - 문서: 이 명세의 1-2·1-3 코드 지도, E4b의 초안 테이블 이름(`blog_post_drafts`, 칼럼 `blog_post_id`).
+5. **확인**: `rg -n -i "insight" --glob '!node_modules' --glob '!.next' --glob '!supabase/migrations/**' --glob '!docs/**'` 결과가 아래 허용 목록뿐이어야 한다.
+   - `next.config.ts`의 `/insight` 리다이렉트
+   - `lib/search-tab.ts`의 옛 검색 탭 값 `insights`
+   - `feed-queries.ts`의 `'INSIGHT_CREATED'` 호환 처리(마이그레이션 B 후 삭제)
+   - `types/database.types.ts`의 호환 뷰·옛 함수 타입(마이그레이션 B 후 재생성하면 사라짐)
+
+#### 4. 이미지 이전과 URL 교체 (배포 직후)
+
+옛 코드가 배포돼 있는 동안 `insight-images`에 새 파일이 올라올 수 있으므로, 새 코드 배포가 끝난 **뒤에** 복사한다.
+
+1. 스크립트 `scripts/migrate-blog-images.ts`(서비스 역할 키 사용, `--dry-run` 지원)를 만든다.
+   - `insight-images`의 모든 파일을 **같은 경로 그대로** `blog-images`에 복사한다. `storage.from('insight-images').copy(path, path, { destinationBucket: 'blog-images' })`를 쓰고, 지원하지 않으면 내려받아 같은 `contentType`, `cacheControl`로 올린다.
+   - 이미 복사된 파일은 건너뛴다(다시 실행해도 안전하게).
+   - 끝나면 두 버킷의 파일 수와 전체 크기가 같은지 출력한다. 다르면 URL 교체를 하지 않는다.
+2. URL을 교체한다(한 트랜잭션).
+
+   ```sql
+   begin;
+   update public.blog_posts
+      set image_url = replace(image_url, '/storage/v1/object/public/insight-images/', '/storage/v1/object/public/blog-images/')
+    where image_url like '%/storage/v1/object/public/insight-images/%';
+   update public.blog_posts
+      set content = replace(content, '/storage/v1/object/public/insight-images/', '/storage/v1/object/public/blog-images/')
+    where content like '%/storage/v1/object/public/insight-images/%';
+   -- 1단계 2번에서 찾은 다른 칼럼도 같은 방식으로
+   commit;
+   ```
+
+   - `content`는 JSON 문자열(text)이라 문자열 교체로 충분하다. 교체 전에 대상 행 수를 세어 두고 교체 후 같은지 본다.
+   - `updated_at` 트리거가 없는 테이블이라 글의 수정 시각은 바뀌지 않는다(바뀌면 안 된다).
+3. **확인**
+   - 1단계 2번 쿼리를 다시 실행해 `insight-images`가 한 건도 없어야 한다.
+   - 대표 이미지와 본문 이미지가 있는 글 몇 개를 열어 이미지가 모두 보이는지, 개발자 도구 네트워크 탭에 404가 없는지 본다.
+   - 새 글을 올려 이미지가 `blog-images`에 저장되는지 본다.
+   - 캐시된 상세 페이지가 옛 URL을 들고 있을 수 있으니 `blog-post-all` 태그를 한 번 무효화한다(또는 재배포).
+
+#### 5. 마이그레이션 B: 호환 계층 제거와 값 변경 (배포·이미지 이전 확인 후)
+
+파일: `supabase/migrations/<timestamp>_drop_insight_compat.sql`
+
+1. `update public.activity_feed set activity_type = 'BLOG_POST_CREATED' where activity_type = 'INSIGHT_CREATED';`
+2. `create_activity_on_blog_post_created()` 본문의 값을 `'BLOG_POST_CREATED'`로 바꾼다(`create or replace`).
+3. 호환 뷰 5개를 `drop view`한다.
+4. 옛 함수 `increment_insight_views(uuid)`를 `drop function`한다.
+5. `notify pgrst, 'reload schema';`
+6. 이어서 코드에서 `'INSIGHT_CREATED'` 호환 처리를 지우고 타입을 다시 생성해 배포한다.
+
+**확인**: 1단계 조사 쿼리의 결과가 옛 버킷 `insight-images`와 그 정책 3개뿐이어야 한다. 피드에 블로그 글 활동이 그대로 보이는지 본다.
+
+#### 6. 옛 버킷 정리 (나중에, 운영자가 직접)
+
+- 1~2주 동안 이미지 404가 없으면 운영자가 대시보드에서 `insight-images` 버킷을 비우고 삭제한다.
+- 그 뒤 마이그레이션 C로 옛 스토리지 정책 3개("Public Access", "Auth Upload Insight Images", "Auth Delete Insight Images")를 `drop policy`한다. **"Public Access"는 `insight-images` 조건만 가진 정책인지 다시 확인하고 지운다.**
+- `next.config.ts`의 `/insight` 리다이렉트와 `lib/search-tab.ts`의 `insights` 호환은 지우지 않는다(외부 링크 보호).
+
+#### 운영 적용 순서 요약
+
+1. 운영 조사·백업·되돌리기 SQL 준비 (1단계)
+2. 조용한 시간에 마이그레이션 A 적용 → 바로 새 코드 배포 (2~3단계)
+3. 배포 확인 후 이미지 복사와 URL 교체 (4단계)
+4. 확인 후 마이그레이션 B 적용 → 호환 처리 제거 코드 배포 (5단계)
+5. 1~2주 뒤 옛 버킷 삭제와 마이그레이션 C (6단계)
+
+**완료 조건**
+- 조사 쿼리 결과에 옛 버킷과 그 정책 외에는 insight 이름이 없다(6단계 후에는 하나도 없다).
+- 코드 검색 결과가 허용 목록뿐이다.
+- 블로그 목록·상세·글쓰기(이미지 포함)·수정·삭제·좋아요·북마크·댓글·댓글 좋아요·조회수 증가, 피드의 블로그 활동, 검색, 프로필 블로그 탭, 사이트맵이 모두 동작한다.
+- 모든 글의 대표·본문 이미지가 `blog-images` 주소로 보이고 404가 없다.
+- `supabase db reset`(로컬)이 성공한다.
+- 타입 검사와 빌드가 통과한다.
 
 ---
 
