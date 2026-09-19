@@ -45,7 +45,6 @@ interface SheetBodyProps extends InsightPublishSheetProps {
 }
 
 function SheetBody({
-  isEditMode,
   imageCandidates,
   imageUrl,
   onImageUrlChange,
@@ -145,9 +144,7 @@ function SheetBody({
           placeholder={summaryPlaceholder || "비워두면 본문 앞부분이 들어가요"}
           className="h-11 w-full rounded-[10px] border-[0.5px] border-[#B7B7B7] bg-transparent px-3 text-[16px] outline-none transition-all placeholder:text-[#999] focus:ring-1 focus:ring-sydeblue md:text-[14px]"
         />
-        <p className="text-[12px] text-[#999999]">
-          {isEditMode ? "목록 카드와 공유 미리보기에 보여요." : "비워두면 본문 앞부분으로 자동 채워져요."}
-        </p>
+        <p className="text-[12px] text-[#999999]">비워두면 본문 앞부분으로 채워져요.</p>
       </section>
     </div>
   );
