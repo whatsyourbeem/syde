@@ -9,7 +9,7 @@ import { TaskItem } from "@tiptap/extension-task-item";
 import Youtube from "@tiptap/extension-youtube";
 import Highlight from "@tiptap/extension-highlight";
 import { TextStyle, Color } from "@tiptap/extension-text-style";
-import { Node, mergeAttributes } from '@tiptap/core';
+import { Extension, Node, mergeAttributes } from '@tiptap/core';
 import type { DOMOutputSpec } from "@tiptap/pm/model";
 import type { Element as HastElement, Root as HastRoot, RootContent as HastContent } from "hast";
 import { generateHTML, generateJSON } from "@tiptap/html";
@@ -159,6 +159,26 @@ const ServerCallout = Node.create({
     },
 });
 
+// Lets headings carry an `id` so posts can be linked and outlined by section. Stored documents have none;
+// getRenderedArticle injects them right before rendering.
+const HeadingId = Extension.create({
+    name: "headingId",
+    addGlobalAttributes() {
+        return [
+            {
+                types: ["heading"],
+                attributes: {
+                    id: {
+                        default: null,
+                        parseHTML: (element: HTMLElement) => element.getAttribute("id"),
+                        renderHTML: (attributes: Record<string, unknown>) => (attributes.id ? { id: attributes.id } : {}),
+                    },
+                },
+            },
+        ];
+    },
+});
+
 export const serverTiptapExtensions = [
     StarterKit.configure({
         codeBlock: false,
@@ -189,29 +209,95 @@ export const serverTiptapExtensions = [
     TextStyle,
     Color,
     ServerCallout,
+    HeadingId,
 ];
+
+type TiptapDoc = Parameters<typeof generateHTML>[0];
+
+// Stored content is Tiptap JSON (object or string); anything else is legacy text/HTML parsed through the schema.
+function toTiptapDoc(content: unknown): TiptapDoc | null {
+    if (!content) return null;
+    let doc: unknown = content;
+    if (typeof content === "string") {
+        try {
+            doc = JSON.parse(content);
+        } catch {
+            doc = null;
+        }
+        if (!doc || typeof doc !== "object") {
+            doc = generateJSON(content, serverTiptapExtensions);
+        }
+    }
+    return doc && typeof doc === "object" ? (doc as TiptapDoc) : null;
+}
 
 /**
  * Renders stored editor content to HTML that is safe to inject.
  * Legacy non-JSON strings (plain text or old HTML) are parsed through the schema first, which drops anything it doesn't model.
  */
 export function getInitialHtmlFromTiptap(content: unknown): string {
-    if (!content) return "";
     try {
-        let doc: unknown = content;
-        if (typeof content === "string") {
-            try {
-                doc = JSON.parse(content);
-            } catch {
-                doc = null;
-            }
-            if (!doc || typeof doc !== "object") {
-                doc = generateJSON(content, serverTiptapExtensions);
-            }
-        }
-        if (!doc || typeof doc !== "object") return "";
-        return generateHTML(doc as Parameters<typeof generateHTML>[0], serverTiptapExtensions);
+        const doc = toTiptapDoc(content);
+        return doc ? generateHTML(doc, serverTiptapExtensions) : "";
     } catch {
         return "";
+    }
+}
+
+export interface TocItem {
+    level: 1 | 2 | 3;
+    text: string;
+    id: string;
+}
+
+type DocNode = { type?: string; attrs?: Record<string, unknown>; content?: DocNode[]; text?: string };
+
+function nodeText(node: DocNode): string {
+    return node.text ?? (node.content ?? []).map(nodeText).join("");
+}
+
+// Keeps Hangul and alphanumerics, turns whitespace into "-" and drops everything else.
+function slugifyHeading(text: string): string {
+    return text
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s-]/gu, "")
+        .trim()
+        .replace(/\s+/g, "-");
+}
+
+/**
+ * Like getInitialHtmlFromTiptap, but gives every heading a stable `id` and returns the outline.
+ * Duplicate titles get "-2", "-3"…; the stored document is never modified.
+ */
+export function getRenderedArticle(content: unknown): { html: string; toc: TocItem[] } {
+    try {
+        const source = toTiptapDoc(content);
+        if (!source) return { html: "", toc: [] };
+
+        const doc = structuredClone(source) as DocNode;
+        const toc: TocItem[] = [];
+        const used = new Set<string>();
+
+        const visit = (node: DocNode) => {
+            if (node.type === "heading") {
+                const level = Number(node.attrs?.level) || 1;
+                const text = nodeText(node).trim();
+                if (text) {
+                    const base = slugifyHeading(text) || "section";
+                    let id = base;
+                    for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
+                    used.add(id);
+                    node.attrs = { ...node.attrs, id };
+                    // The editor only offers levels 1-3; deeper ones still get an id but stay out of the outline.
+                    if (level <= 3) toc.push({ level: level as TocItem["level"], text, id });
+                }
+            }
+            node.content?.forEach(visit);
+        };
+        visit(doc);
+
+        return { html: generateHTML(doc as TiptapDoc, serverTiptapExtensions), toc };
+    } catch {
+        return { html: "", toc: [] };
     }
 }

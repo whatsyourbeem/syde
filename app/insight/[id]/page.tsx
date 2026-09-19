@@ -2,7 +2,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import InsightDetailClient from "@/components/insight/insight-detail-client";
-import { getInsightDetailCached } from "@/lib/queries/insight-queries";
+import { getAuthorRecentInsights, getInsightDetailCached } from "@/lib/queries/insight-queries";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
@@ -67,7 +67,7 @@ export async function generateMetadata(
     };
 }
 
-import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+import { getRenderedArticle } from "@/components/common/tiptap-server-extensions";
 
 export default async function InsightDetailPage({ params }: InsightDetailPageProps) {
     const rawParams = await params;
@@ -90,7 +90,8 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         redirect(`/insight/${insight.slug}`);
     }
 
-    const initialHtml = getInitialHtmlFromTiptap(insight.content);
+    const { html: initialHtml, toc } = getRenderedArticle(insight.content);
+    const authorRecentInsights = await getAuthorRecentInsights(supabase, insight.user_id, insight.id);
 
     // Fetch Comments
     const { data: comments } = await supabase
@@ -185,6 +186,8 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
                 id={insight.id}
                 initialInsight={insight}
                 initialHtml={initialHtml}
+                toc={toc}
+                authorRecentInsights={authorRecentInsights}
                 initialComments={comments || []}
                 initialStats={stats}
                 initialIsLiked={isLiked}

@@ -20,6 +20,9 @@ import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog"
 import { InteractionActions } from "@/components/common/interaction-actions";
 import RichContent from "@/components/common/rich-content";
 import { getCategoryLabel } from "@/lib/insight-categories";
+import { ArticleToc } from "@/components/insight/article-toc";
+import { AuthorCard, type AuthorRecentInsight } from "@/components/insight/author-card";
+import type { TocItem } from "@/components/common/tiptap-server-extensions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { formatDistanceToNow } from "date-fns";
@@ -39,6 +42,8 @@ interface InsightDetailClientProps {
     id: string;
     initialInsight: any;
     initialHtml?: string;
+    toc?: TocItem[];
+    authorRecentInsights?: AuthorRecentInsight[];
     initialComments: any[];
     initialStats: { likes: number; comments: number; bookmarks: number; views?: number };
     initialIsLiked: boolean;
@@ -50,6 +55,8 @@ export default function InsightDetailClient({
     id,
     initialInsight,
     initialHtml,
+    toc = [],
+    authorRecentInsights = [],
     initialComments,
     initialStats,
     initialIsLiked,
@@ -269,7 +276,8 @@ export default function InsightDetailClient({
 
                 <section className="w-full py-8 md:py-16 border-b-[0.5px] border-[#B7B7B7]">
                     {/* Same 768px column as the writing form, so posts read the way they were written. */}
-                    <div className="px-1 text-black w-full max-w-3xl mx-auto">
+                    <div className="relative px-1 text-black w-full max-w-3xl mx-auto">
+                        <ArticleToc items={toc} />
                         <RichContent html={initialHtml ?? ""} />
                         {Array.isArray(insight.tags) && insight.tags.length > 0 && (
                             <ul className="mt-10 flex flex-wrap gap-2">
@@ -304,6 +312,16 @@ export default function InsightDetailClient({
                         showShare={false}
                     />
                 </div>
+
+                <AuthorCard
+                    author={{
+                        id: insight.user_id,
+                        name: insight.profiles?.full_name || insight.profiles?.username || "알 수 없는 사용자",
+                        tagline: insight.profiles?.tagline ?? null,
+                        avatarUrl: insight.profiles?.avatar_url ?? null,
+                    }}
+                    recentInsights={authorRecentInsights}
+                />
 
                 <section className="w-full flex flex-col py-6 md:py-12 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/10 rounded-b-xl">
                     <div className="flex items-center gap-2 px-1">

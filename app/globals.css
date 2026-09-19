@@ -392,3 +392,51 @@
     }
   }
 }
+
+/* Headings can be linked to: keep them clear of the sticky nav, and show a "#" on hover (RichContent adds the link). */
+.prose h1[id],
+.prose h2[id],
+.prose h3[id] {
+  scroll-margin-top: calc(var(--sticky-nav-height, 0px) + 16px);
+}
+.prose .heading-anchor {
+  margin-left: 0.4em;
+  color: #b0b0b0;
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.prose :is(h1, h2, h3):hover .heading-anchor,
+.prose .heading-anchor:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .prose .heading-anchor { display: none; }
+}
+
+/* Code blocks: language label (top left) and copy button (top right), added by RichContent. */
+.prose pre { position: relative; }
+.prose pre .code-lang-label {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.75rem;
+  font-size: 0.6875rem;
+  color: #8b949e;
+  pointer-events: none;
+}
+.prose pre .code-copy-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.5rem;
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #d0d7de;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.prose pre .code-copy-btn:hover { background: rgba(255, 255, 255, 0.16); }
+.prose pre[data-copy-ready] { padding-top: 2.25rem; }

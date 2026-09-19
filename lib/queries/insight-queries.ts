@@ -163,6 +163,25 @@ export async function getInsightDetail(
   return data;
 }
 
+/** Latest posts by one author, newest first, leaving out the post currently being read. */
+export async function getAuthorRecentInsights(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  excludeId: string,
+  limit = 3
+) {
+  const { data, error } = await supabase
+    .from("insights")
+    .select("id, slug, title, created_at")
+    .eq("user_id", userId)
+    .neq("id", excludeId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
 export async function getInsightIdBySlug(
   supabase: SupabaseClient<Database>,
   slug: string
