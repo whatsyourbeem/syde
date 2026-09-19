@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { NodeSelection } from "@tiptap/pm/state";
-import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput, Rows3, Columns3, Highlighter, Baseline, Ban } from "lucide-react";
+import { Code, Link2, Captions, Trash2, ExternalLink, TextCursorInput, Rows3, Columns3, Highlighter, Baseline, Ban, Pencil, Unlink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { HIGHLIGHT_COLORS, TEXT_COLORS } from "./tiptap-colors";
@@ -317,6 +317,70 @@ export function ImageBubbleMenu({ editor }: { editor: Editor }) {
   );
 }
 
+/** A link's address shortened for display: "example.com/path?q", mailto: shown as the bare address. */
+function displayUrl(href: string): string {
+  try {
+    const url = new URL(href);
+    if (url.protocol === "mailto:") return url.pathname;
+    const path = url.pathname === "/" ? "" : url.pathname;
+    return `${url.hostname.replace(/^www\./, "")}${path}${url.search}`;
+  } catch {
+    return href;
+  }
+}
+
+/**
+ * Shown when the caret sits inside a link (no selection): see where it points, open it, edit it
+ * (the same popover as the toolbar's link button / ⌘K) or remove it — without having to select it first.
+ */
+export function LinkBubbleMenu({ editor, onEditClick }: { editor: Editor; onEditClick: () => void }) {
+  const href = useEditorState({
+    editor,
+    selector: ({ editor }) => (editor.isActive("link") ? ((editor.getAttributes("link").href as string | undefined) ?? "") : null),
+  });
+
+  const open = () => {
+    if (href && /^https?:\/\//i.test(href)) window.open(href, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      pluginKey="linkBubbleMenu"
+      // Only for a bare caret; a text selection inside a link shows TextBubbleMenu (which has its own link button).
+      shouldShow={({ editor, view, state }) =>
+        editor.isEditable && view.hasFocus() && state.selection.empty && editor.isActive("link")
+      }
+      options={{ placement: "bottom", offset: 8 }}
+      className={BUBBLE_CLASS}
+    >
+      <span title={href ?? undefined} className="max-w-56 truncate px-2 text-sm text-white/70">
+        {href ? displayUrl(href) : ""}
+      </span>
+      <div className="mx-0.5 h-5 border-l border-white/20" />
+      {href && /^https?:\/\//i.test(href) && (
+        <BubbleButton label="새 탭에서 열기" onClick={open} className="gap-1.5 px-3">
+          <ExternalLink size={15} /> 열기
+        </BubbleButton>
+      )}
+      <BubbleButton label="링크 수정" onClick={onEditClick} className="gap-1.5 px-3">
+        <Pencil size={15} /> 수정
+      </BubbleButton>
+      <BubbleButton
+        label="링크 해제"
+        // extendMarkRange selects the whole link to unlink it; put the caret back where it was so the writer
+        // isn't left with a selection (which would pop up the formatting menu).
+        onClick={() => {
+          const caret = editor.state.selection.from;
+          editor.chain().focus().extendMarkRange("link").unsetLink().setTextSelection(caret).run();
+        }}
+      >
+        <Unlink size={15} />
+      </BubbleButton>
+    </BubbleMenu>
+  );
+}
+
 export function LinkPreviewBubbleMenu({ editor }: { editor: Editor }) {
   const toLink = () => {
     const selection = selectedNode(editor, "linkPreview");
@@ -401,7 +465,10 @@ export function TableBubbleMenu({ editor }: { editor: Editor }) {
       pluginKey="tableBubbleMenu"
       // Only when the caret merely sits in a cell, not while text is selected — a text selection shows
       // TextBubbleMenu instead, and showing both at once would stack two menus on top of each other.
-      shouldShow={({ editor, view, state }) => editor.isEditable && view.hasFocus() && state.selection.empty && editor.isActive("table")}
+      // A caret inside a link in a cell shows LinkBubbleMenu instead; two menus at once would overlap.
+      shouldShow={({ editor, view, state }) =>
+        editor.isEditable && view.hasFocus() && state.selection.empty && editor.isActive("table") && !editor.isActive("link")
+      }
       options={{ placement: "top", offset: 8 }}
       className={BUBBLE_CLASS}
     >

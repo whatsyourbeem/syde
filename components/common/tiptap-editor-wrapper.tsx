@@ -21,6 +21,7 @@ import TiptapToolbar from "./tiptap-toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ImageBubbleMenu,
+  LinkBubbleMenu,
   LinkPreviewBubbleMenu,
   TableBubbleMenu,
   TextBubbleMenu,
@@ -347,6 +348,7 @@ export default function TiptapEditorWrapper({
       />
       <EmbedPrompt editor={editor} kind={embedPrompt} onClose={() => setEmbedPrompt(null)} />
       <TextBubbleMenu editor={editor} onLinkClick={() => setLinkOpen(true)} />
+      <LinkBubbleMenu editor={editor} onEditClick={() => setLinkOpen(true)} />
       <ImageBubbleMenu editor={editor} />
       <LinkPreviewBubbleMenu editor={editor} />
       <TableBubbleMenu editor={editor} />

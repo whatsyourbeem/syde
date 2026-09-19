@@ -142,9 +142,11 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 - `tiptap-bubble-menus.tsx`에 `LinkBubbleMenu`를 추가한다.
   - **표시 조건**: `editor.isEditable && view.hasFocus() && selection.empty && editor.isActive("link")`
   - **내용**: 줄인 주소(도메인 + 경로 앞부분), `열기`(새 탭, http/https만), `수정`(기존 `LinkButton` 입력창 열기), `해제`(`extendMarkRange("link").unsetLink()`)
+  - `해제`는 링크 범위를 선택해 풀기 때문에, 풀고 나서 커서를 원래 자리로 되돌린다(선택이 남으면 서식 메뉴가 뜬다).
 - `TableBubbleMenu`의 표시 조건에 `!editor.isActive("link")`를 추가해 두 메뉴가 겹치지 않게 한다.
+- 링크 입력창(`LinkButton`)이 닫힐 때 Radix가 포커스를 툴바 버튼으로 돌려놓아, 링크를 걸거나 고친 뒤 에디터 밖으로 빠지던 문제를 함께 고친다: `onCloseAutoFocus`에서 에디터로 포커스를 돌린다. 다른 입력칸을 눌러 닫은 경우는 그대로 둔다.
 
-**완료 조건**: 링크 안에 커서를 두면 주소가 보이고 열기·수정·해제가 동작한다. 표 안 링크에서 메뉴가 하나만 뜬다.
+**완료 조건**: 링크 안에 커서를 두면 주소가 보이고 열기·수정·해제가 동작한다. 표 안 링크에서 메뉴가 하나만 뜬다. 링크를 걸거나 고치거나 Esc로 닫은 뒤 커서가 에디터에 있다.
 
 ### E3. 테두리 없는 작성 화면, 발행 창, 한 줄 소개 자동화
 

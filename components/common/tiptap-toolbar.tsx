@@ -165,7 +165,17 @@ function LinkButton({
           <Link2 size={16} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-3">
+      <PopoverContent
+        align="start"
+        className="w-72 p-3"
+        // Radix returns focus to the toolbar button on close, leaving the writer outside the text they were linking.
+        // Put the caret back in the editor instead — unless they closed it by clicking into another field.
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          const active = document.activeElement;
+          if (!active || active === document.body || active instanceof HTMLButtonElement) editor.commands.focus();
+        }}
+      >
         <form
           className="flex flex-col gap-2"
           onSubmit={(e) => {
