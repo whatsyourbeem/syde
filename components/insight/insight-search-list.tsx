@@ -73,7 +73,7 @@ export function InsightSearchList({ searchQuery }: InsightSearchListProps) {
       {data?.insights.length === 0 ? (
         <p className="text-center text-muted-foreground py-10">검색 결과가 없습니다.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div className="flex w-full flex-col divide-y divide-[#F0F0F0]">
           {data?.insights.map((insight) => (
             <InsightCard key={insight.id} {...insight} />
           ))}

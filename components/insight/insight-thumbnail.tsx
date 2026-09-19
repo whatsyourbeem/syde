@@ -12,6 +12,8 @@ interface InsightThumbnailProps {
   className?: string;
   containerClassName?: string;
   unoptimized?: boolean;
+  /** Render nothing (instead of the mascot placeholder) when the post has no image. */
+  hideWhenEmpty?: boolean;
 }
 
 export function InsightThumbnail({
@@ -23,7 +25,9 @@ export function InsightThumbnail({
   className,
   containerClassName,
   unoptimized = true,
+  hideWhenEmpty = false,
 }: InsightThumbnailProps) {
+  if (hideWhenEmpty && !src) return null;
   const imageUrl = src || "/default_insight_thumbnail.png";
 
   return (

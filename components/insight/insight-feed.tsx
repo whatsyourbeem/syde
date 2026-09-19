@@ -73,7 +73,7 @@ export function InsightFeed({ initialInsights, currentUserId, currentUser }: Ins
 
       {allInsights.length > 0 ? (
         <div className="flex flex-col items-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-9 md:gap-y-14 justify-items-center w-full">
+          <div className="flex w-full max-w-3xl mx-auto flex-col divide-y divide-[#F0F0F0]">
             {allInsights.map((insight) => (
               <InsightCard key={insight.id} {...insight} />
             ))}

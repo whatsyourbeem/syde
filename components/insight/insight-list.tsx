@@ -84,7 +84,7 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full px-4 md:px-0 justify-items-center">
+        <div className="flex w-full flex-col divide-y divide-[#F0F0F0] px-4 md:px-0">
           {data?.insights.map((insight) => (
             <InsightCard key={insight.id} {...insight} showInteractions={showInteractions} />
           ))}

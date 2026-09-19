@@ -3,14 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { InteractionActions } from "@/components/common/interaction-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { toast } from "sonner";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
-import { cn } from "@/lib/utils";
+import { Eye, HeartIcon } from "lucide-react";
 import { InsightThumbnail } from "./insight-thumbnail";
 
 export interface InsightCardProps {
@@ -38,11 +37,9 @@ export interface InsightCardProps {
     };
     currentUserId: string | null;
     showInteractions?: boolean;
-    disableLink?: boolean;
-    isCentered?: boolean;
 }
 
-import { toggleInsightLike, toggleInsightBookmark } from "@/app/insight/insight-actions";
+import { toggleInsightLike } from "@/app/insight/insight-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function InsightCard({
@@ -57,14 +54,12 @@ export function InsightCard({
     initialStatus,
     currentUserId,
     showInteractions = true,
-    disableLink = false,
-    isCentered = false
 }: InsightCardProps) {
     const { openLoginDialog } = useLoginDialog();
     const queryClient = useQueryClient();
     const [stats, setStats] = useState(initialStats);
     const [status, setStatus] = useState(initialStatus || { hasLiked: false, hasBookmarked: false });
-    const [loading, setLoading] = useState({ like: false, bookmark: false });
+    const [likeLoading, setLikeLoading] = useState(false);
 
     useEffect(() => {
         setStats(initialStats);
@@ -76,9 +71,9 @@ export function InsightCard({
             openLoginDialog();
             return;
         }
-        if (loading.like) return;
+        if (likeLoading) return;
 
-        setLoading(prev => ({ ...prev, like: true }));
+        setLikeLoading(true);
         const isLiked = status.hasLiked;
 
         setStats(prev => ({ ...prev, likes: isLiked ? prev.likes - 1 : prev.likes + 1 }));
@@ -92,121 +87,77 @@ export function InsightCard({
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : prev.likes - 1 }));
             setStatus(prev => ({ ...prev, hasLiked: isLiked }));
         } finally {
-            setLoading(prev => ({ ...prev, like: false }));
+            setLikeLoading(false);
         }
     };
 
-    const handleBookmarkToggle = async () => {
-        if (!currentUserId) {
-            openLoginDialog();
-            return;
-        }
-        if (loading.bookmark) return;
-
-        setLoading(prev => ({ ...prev, bookmark: true }));
-        const isBookmarked = status.hasBookmarked;
-
-        setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks - 1 : prev.bookmarks + 1 }));
-        setStatus(prev => ({ ...prev, hasBookmarked: !isBookmarked }));
-
-        try {
-            await toggleInsightBookmark(id, isBookmarked);
-            queryClient.invalidateQueries({ queryKey: ["insights"] });
-        } catch (error) {
-            toast.error("저장 처리 중 오류가 발생했습니다.");
-            setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : prev.bookmarks - 1 }));
-            setStatus(prev => ({ ...prev, hasBookmarked: isBookmarked }));
-        } finally {
-            setLoading(prev => ({ ...prev, bookmark: false }));
-        }
-    };
+    const href = `/insight/${slug || id}`;
 
     return (
-        <div className="bg-transparent border-none shadow-none flex flex-col w-full max-w-[369px] md:max-w-[352px] h-fit">
-            {/* Thumbnail Area - Links to Insight */}
-            {disableLink ? (
-                <InsightThumbnail
-                    src={imageUrl}
-                    alt={title}
-                    containerClassName="w-full aspect-w-1 aspect-h-1 flex-none rounded-[12px]"
-                />
-            ) : (
-                <Link href={`/insight/${slug || id}`} className="block focus:outline-none">
-                    <InsightThumbnail
-                        src={imageUrl}
-                        alt={title}
-                        containerClassName="w-full aspect-w-1 aspect-h-1 cursor-pointer flex-none rounded-[12px]"
-                    />
+        <article className="flex w-full items-start gap-4 py-5 md:gap-6 md:py-6">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Link href={href} className="flex flex-col gap-1 focus:outline-none">
+                    <h3 className="text-[17px] md:text-[19px] leading-[1.4] font-bold text-black line-clamp-2">{title}</h3>
+                    {summary && (
+                        <p className="text-[14px] md:text-[15px] leading-[1.5] text-[#777777] line-clamp-2">{summary}</p>
+                    )}
                 </Link>
-            )}
 
-            {/* Unified Content Container */}
-            <div className={cn(
-                "p-3 flex flex-col gap-[5px]",
-                isCentered && "items-center text-center"
-            )}>
-                {/* Title & Summary - Links to Insight */}
-                {disableLink ? (
-                    <div className="flex flex-col gap-[5px]">
-                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-1 overflow-hidden">
-                            {title}
-                        </h3>
-                        <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
-                            {summary || "소개 글이 없습니다."}
-                        </p>
-                    </div>
-                ) : (
-                    <Link href={`/insight/${slug || id}`} className="flex flex-col gap-[5px] focus:outline-none">
-                        <h3 className="text-[18px] md:text-[16px] leading-[150%] font-bold text-black line-clamp-1 overflow-hidden">
-                            {title}
-                        </h3>
-                        <p className="text-[14px] leading-[150%] text-[#000000] md:text-[#777777] line-clamp-1">
-                            {summary || "소개 글이 없습니다."}
-                        </p>
-                    </Link>
-                )}
-
-                {/* Author Info Area - Separate Link to Profile */}
-                <ProfileHoverCard userId={author.id}>
-                    <Link href={`/@${author.id}`} className={cn(
-                        "flex items-center gap-[5px] mt-auto w-fit",
-                        isCentered && "justify-center mx-auto"
-                    )}>
-                        <Avatar className="w-5 h-5">
-                            <AvatarImage src={author.avatarUrl} />
-                            <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex items-center gap-[2px]">
-                            <span className="text-[12px] text-[#777777]">by.</span>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <ProfileHoverCard userId={author.id}>
+                        <Link href={`/@${author.id}`} className="flex items-center gap-[5px] w-fit">
+                            <Avatar className="w-5 h-5">
+                                <AvatarImage src={author.avatarUrl} />
+                                <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
+                            </Avatar>
                             <span className="text-[12px] font-semibold text-sydeblue">{author.name}</span>
                             {createdAt && (
-                                <span className="text-[11px] text-[#777777] ml-[2px]">
+                                <span className="text-[11px] text-[#777777]">
                                     · {formatDistanceToNow(new Date(createdAt), { addSuffix: true, locale: ko }).replace("약 ", "")}
                                 </span>
                             )}
+                        </Link>
+                    </ProfileHoverCard>
+
+                    {/* Only views and likes; a zero count stays quiet so a first post isn't stamped with 0s. */}
+                    {showInteractions && (
+                        <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
+                            {(stats.views ?? 0) > 0 && (
+                                <span className="flex items-center gap-0.5 select-none">
+                                    <Eye size={16} />
+                                    {stats.views}
+                                </span>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleLikeToggle}
+                                disabled={likeLoading}
+                                aria-label="좋아요"
+                                aria-pressed={status.hasLiked}
+                                className="group -m-2 flex items-center gap-0.5 rounded-md p-2 hover:bg-red-100 disabled:opacity-50"
+                            >
+                                <HeartIcon
+                                    size={16}
+                                    className={status.hasLiked ? "fill-red-500 text-red-500" : "group-hover:text-red-500"}
+                                />
+                                {stats.likes > 0 && (
+                                    <span className={status.hasLiked ? "text-red-500" : "group-hover:text-red-500"}>{stats.likes}</span>
+                                )}
+                            </button>
                         </div>
-                    </Link>
-                </ProfileHoverCard>
+                    )}
+                </div>
             </div>
 
-            {/* Interaction Bar */}
-            {showInteractions && (
-                <div className="pt-3 md:pt-0 h-11 md:h-7">
-                    <InteractionActions
-                        id={id}
-                        type="insight"
-                        stats={stats}
-                        status={status}
-                        loading={loading}
-                        onLikeToggle={handleLikeToggle}
-                        onBookmarkToggle={handleBookmarkToggle}
-                        shareUrl={`/insight/${slug || id}`}
-                        shareTitle={title}
-                        className="px-3 pt-0 md:pt-1 pb-1"
-                        showShare={false}
+            {imageUrl && (
+                <Link href={href} tabIndex={-1} aria-hidden className="shrink-0 focus:outline-none">
+                    <InsightThumbnail
+                        src={imageUrl}
+                        alt={title}
+                        containerClassName="size-[88px] md:size-[120px] rounded-[10px]"
                     />
-                </div>
+                </Link>
             )}
-        </div>
+        </article>
     );
 }
