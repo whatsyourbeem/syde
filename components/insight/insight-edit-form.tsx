@@ -15,7 +15,7 @@ import { normalizeCategory, normalizeTags, type InsightCategory } from "@/lib/in
 import { InsightPublishSheet } from "@/components/insight/insight-publish-sheet";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
-import { createInsight, updateInsight } from "@/app/insight/insight-actions";
+import { createInsight, updateInsight } from "@/app/blog/insight-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 const TiptapEditorWrapper = dynamic(
@@ -165,7 +165,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     // Writers often arrive from a shared link (e.g. a DM); "back" would leave the site, so fall back to the list.
     const handleExit = () => {
         if (window.history.length > 1) router.back();
-        else router.push("/insight");
+        else router.push("/blog");
     };
 
     // Checks title and body before the publish sheet opens, and jumps to whatever is missing.
@@ -210,7 +210,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     clearDraft();
                     queryClient.invalidateQueries({ queryKey: ["insights"] });
                     toast.success("글이 수정됐어요");
-                    router.push(`/insight/${initialData.slug || initialData.id}`);
+                    router.push(`/blog/${initialData.slug || initialData.id}`);
                 }
             } else {
                 const result = await createInsight(formData);
@@ -220,7 +220,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     clearDraft();
                     queryClient.invalidateQueries({ queryKey: ["insights"] });
                     toast.success("글이 발행됐어요");
-                    router.push(`/insight/${result.data.slug || result.data.id}`);
+                    router.push(`/blog/${result.data.slug || result.data.id}`);
                 }
             }
         } finally {

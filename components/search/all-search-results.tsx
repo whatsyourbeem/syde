@@ -125,7 +125,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
     { key: 'users', label: 'SYDERs', tab: 'users', items: data?.users || [] },
     { key: 'clubs', label: '클럽', tab: 'clubs', items: data?.clubs || [] },
     { key: 'meetups', label: '모임', tab: 'meetups', items: data?.meetups || [] },
-    { key: 'insights', label: '인사이트', tab: 'insights', items: data?.insights || [] },
+    { key: 'insights', label: '블로그', tab: 'blog', items: data?.insights || [] },
     { key: 'showcases', label: '쇼케이스', tab: 'showcase', items: data?.showcases || [] },
   ].filter((s) => s.items.length > 0);
 
@@ -258,7 +258,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
               {(section.items as any[]).map((insight) => (
                 <Link
                   key={insight.id}
-                  href={`/insight/${insight.id}`}
+                  href={`/blog/${insight.id}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <InsightThumbnail

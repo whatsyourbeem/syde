@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createComment as createLogComment, updateComment as updateLogComment } from "@/app/feed/feed-actions";
 import { createComment as createShowcaseComment, updateComment as updateShowcaseComment } from "@/app/showcase/showcase-actions";
-import { createComment as createInsightComment, updateComment as updateInsightComment } from "@/app/insight/insight-actions";
+import { createComment as createInsightComment, updateComment as updateInsightComment } from "@/app/blog/insight-actions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useFormStatus } from "react-dom";

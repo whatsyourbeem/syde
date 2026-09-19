@@ -84,7 +84,7 @@ export function getActivityMessage(
     case "SHOWCASE_CREATED":
       return `${displayName}님이 쇼케이스를 등록했어요`;
     case "INSIGHT_CREATED":
-      return `${displayName}님이 인사이트를 등록했어요`;
+      return `${displayName}님이 블로그 글을 발행했어요`;
     case "MEETUP_CREATED":
       return title
         ? `${displayName}님이 '${title}' 모임을 개설했어요`
@@ -99,7 +99,7 @@ export function getActivityLink(activity: ActivityFeedItem): string | null {
     case "SHOWCASE_CREATED":
       return activity.target_id ? `/showcase/${activity.target_id}` : null;
     case "INSIGHT_CREATED":
-      return activity.target_id ? `/insight/${activity.target_id}` : null;
+      return activity.target_id ? `/blog/${activity.target_id}` : null;
     case "MEETUP_CREATED":
       return activity.target_id ? `/meetup/${activity.target_id}` : null;
     default:

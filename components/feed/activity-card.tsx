@@ -246,7 +246,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
                       <AlertDialogHeader>
                         <AlertDialogTitle>활동을 삭제하시겠습니까?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          이 활동 피드 항목이 영구적으로 삭제됩니다. 원본 컨텐츠(쇼케이스, 인사이트, 모임)는 삭제되지 않습니다.
+                          이 활동 피드 항목이 영구적으로 삭제됩니다. 원본 컨텐츠(쇼케이스, 블로그, 모임)는 삭제되지 않습니다.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

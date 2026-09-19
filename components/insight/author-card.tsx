@@ -42,7 +42,7 @@ export function AuthorCard({ author, recentInsights }: AuthorCardProps) {
             {recentInsights.map((post) => (
               <li key={post.id}>
                 <Link
-                  href={`/insight/${post.slug || post.id}`}
+                  href={`/blog/${post.slug || post.id}`}
                   className="flex items-baseline justify-between gap-4 py-3 hover:text-sydeblue"
                 >
                   <span className="min-w-0 truncate text-[15px] font-medium">{post.title}</span>

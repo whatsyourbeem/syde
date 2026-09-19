@@ -66,7 +66,7 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
     },
   });
 
-  if (isLoading) return <div className="text-center py-10"><CenteredLoading message="인사이트 불러오는 중..." /></div>;
+  if (isLoading) return <div className="text-center py-10"><CenteredLoading message="블로그 글 불러오는 중..." /></div>;
   if (isError) return <div className="text-center py-10 text-red-500">Error: {(error as Error).message}</div>;
 
   const totalCount = data?.count || 0;
@@ -79,7 +79,7 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
           <p>아직 쓴 글이 없어요</p>
           {currentUserId === userId && (
             <Button asChild className="rounded-full bg-sydeblue px-5 text-white hover:bg-sydeblue/90">
-              <Link href="/insight/write">글쓰기</Link>
+              <Link href="/blog/write">글쓰기</Link>
             </Button>
           )}
         </div>

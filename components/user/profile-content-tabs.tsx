@@ -268,7 +268,7 @@ export function ProfileContentTabs({
           <div className="flex items-center justify-start w-full bg-white px-6 py-3 gap-[10px] border-b-[0.5px] border-[#B7B7B7] overflow-x-auto no-scrollbar">
             <SubTabButton label="피드" isActive={activeSubTab === "log"} onClick={() => setActiveSubTab("log")} />
             <SubTabButton label="쇼케이스" isActive={activeSubTab === "showcase"} onClick={() => setActiveSubTab("showcase")} />
-            <SubTabButton label="인사이트" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
+            <SubTabButton label="블로그" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
           </div>
 
           {/* Sub-tab Content with vertical padding */}

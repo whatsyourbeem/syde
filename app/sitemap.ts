@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     // 2. Static Routes
-    const staticRoutes = ["", "/feed", "/meetup", "/club", "/insight", "/showcase"].map(
+    const staticRoutes = ["", "/feed", "/meetup", "/club", "/blog", "/showcase"].map(
         (route) => ({
             url: `${baseUrl}${route}`,
             lastModified: today,
@@ -59,7 +59,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 7. Insights
     const insightRoutes = (insights || []).map((insight: any) => ({
-        url: `${baseUrl}/insight/${insight.slug || insight.id}`,
+        url: `${baseUrl}/blog/${insight.slug || insight.id}`,
         lastModified: (insight.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,

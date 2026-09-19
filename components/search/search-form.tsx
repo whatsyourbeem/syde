@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchIcon, ChevronLeft } from 'lucide-react';
+import { normalizeSearchTab } from '@/lib/search-tab';
 
 const placeholders: Record<string, string> = {
   all: '관심 주제를 검색해 보세요.',
   logs: '관심 주제를 검색해 보세요.',
-  insights: '영감을 주는 인사이트 검색',
+  blog: '영감을 주는 블로그 글 검색',
   showcase: '다양한 쇼케이스 검색',
   meetups: '새로운 모임을 찾아볼까요?',
   clubs: '함께 성장하는 클럽 찾기',
@@ -18,7 +19,7 @@ export function SearchForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
-  const currentTab = searchParams.get('tab') || 'all';
+  const currentTab = normalizeSearchTab(searchParams.get('tab'));
   const [query, setQuery] = useState(initialQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 

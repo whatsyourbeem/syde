@@ -62,7 +62,7 @@ export function InsightSearchList({ searchQuery }: InsightSearchListProps) {
     },
   });
 
-  if (isLoading) return <div className="text-center py-10">인사이트 검색 중...</div>;
+  if (isLoading) return <div className="text-center py-10">블로그 검색 중...</div>;
   if (isError) return <div className="text-center py-10 text-red-500">Error: {(error as Error).message}</div>;
 
   const totalCount = data?.count || 0;

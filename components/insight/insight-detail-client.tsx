@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { InsightThumbnail } from "./insight-thumbnail";
 import { deleteInsight } from "@/lib/queries/insight-queries";
-import { toggleInsightLike, toggleInsightBookmark, incrementInsightViews } from "@/app/insight/insight-actions";
+import { toggleInsightLike, toggleInsightBookmark, incrementInsightViews } from "@/app/blog/insight-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface InsightDetailClientProps {
@@ -110,7 +110,7 @@ export default function InsightDetailClient({
     }, [currentUserId, insight]);
 
     const handleEdit = () => {
-        router.push(`/insight/write?id=${id}`);
+        router.push(`/blog/write?id=${id}`);
     };
 
     const handleDelete = () => {
@@ -123,8 +123,8 @@ export default function InsightDetailClient({
         try {
             await deleteInsight(supabase, id);
 
-            toast.success("인사이트가 삭제되었습니다.");
-            router.push("/insight");
+            toast.success("글이 삭제됐어요");
+            router.push("/blog");
         } catch (error) {
             console.error("Error deleting insight:", error);
             toast.error("삭제 중 오류가 발생했습니다.");
@@ -194,8 +194,8 @@ export default function InsightDetailClient({
     if (!insight) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
-                <p className="text-gray-500 font-medium text-lg">인사이트를 찾을 수 없습니다.</p>
-                <Link href="/insight">
+                <p className="text-gray-500 font-medium text-lg">글을 찾을 수 없습니다.</p>
+                <Link href="/blog">
                     <Button className="bg-sydeblue text-white">목록으로 돌아가기</Button>
                 </Link>
             </div>
@@ -209,7 +209,7 @@ export default function InsightDetailClient({
                     {/* Same 768px column as the body, so the header and the writing line up. */}
                     <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
                         <div className="w-full flex items-center justify-between">
-                            <Link href="/insight" className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors shrink-0">
+                            <Link href="/blog" className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors shrink-0">
                                 <ChevronLeft className="w-6 h-6 text-[#434343]" />
                             </Link>
                             {isAuthor ? (
@@ -222,7 +222,7 @@ export default function InsightDetailClient({
                                 <DropdownMenuContent align="end" className="w-[120px] bg-white rounded-xl shadow-lg border border-gray-100 p-1">
                                     <DropdownMenuItem asChild>
                                         <Link
-                                            href={`/insight/${id}/edit`}
+                                            href={`/blog/${id}/edit`}
                                             className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-2 text-sm text-sydeblue hover:bg-gray-50 focus:bg-gray-50 font-medium"
                                         >
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -306,7 +306,7 @@ export default function InsightDetailClient({
                         }}
                         onLikeToggle={toggleLike}
                         onBookmarkToggle={toggleBookmark}
-                        shareUrl={`/insight/${id}`}
+                        shareUrl={`/blog/${id}`}
                         shareTitle={insight.title}
                         className="h-14 px-1"
                         showShare={false}

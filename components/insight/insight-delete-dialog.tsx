@@ -25,7 +25,7 @@ export function InsightDeleteDialog({
     onClose,
     onConfirm,
     loading = false,
-    title = "잠깐! 정말 인사이트 글을 삭제하실건가요?",
+    title = "잠깐! 정말 이 글을 삭제하실 건가요?",
     description = "삭제 후에는 되돌릴 수 없어요.",
 }: InsightDeleteDialogProps) {
     return (

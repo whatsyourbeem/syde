@@ -24,25 +24,25 @@ export async function generateMetadata(
     const insight = await getInsightDetailCached(supabase, id);
 
     if (!insight) {
-        return { title: "Insight Not Found - SYDE" };
+        return { title: "글을 찾을 수 없어요 - SYDE 블로그" };
     }
 
-    const title = `${insight.title} - SYDE 인사이트`;
+    const title = `${insight.title} - SYDE 블로그`;
 
     const plainText = insight.summary || extractPlainText(insight.content);
 
     const description =
-        plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText || "SYDE 인사이트를 확인해보세요.";
+        plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText || "SYDE 블로그 글을 확인해보세요.";
     const images = insight.image_url ? [insight.image_url] : ["/we-are-syders.png"];
 
-    const keywords = ["SYDE", "사이드프로젝트", "인사이트", "IT 커뮤니티"];
+    const keywords = ["SYDE", "사이드프로젝트", "블로그", "인사이트", "IT 커뮤니티"];
     if (insight.title) keywords.push(insight.title);
     if (plainText) {
         const words = plainText.split(/\s+/).filter((w: string) => w.length > 1);
         keywords.push(...words.slice(0, 5));
     }
 
-    const url = `/insight/${insight.slug || insight.id}`;
+    const url = `/blog/${insight.slug || insight.id}`;
 
     return {
         title,
@@ -80,14 +80,14 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
     if (!insight) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
-                <p className="text-gray-500 font-medium text-lg">인사이트를 찾을 수 없습니다.</p>
-                <a href="/insight" className="px-4 py-2 bg-sydeblue text-white rounded-md">목록으로 돌아가기</a>
+                <p className="text-gray-500 font-medium text-lg">글을 찾을 수 없습니다.</p>
+                <a href="/blog" className="px-4 py-2 bg-sydeblue text-white rounded-md">목록으로 돌아가기</a>
             </div>
         );
     }
 
     if (isUUID(id) && insight.slug) {
-        redirect(`/insight/${insight.slug}`);
+        redirect(`/blog/${insight.slug}`);
     }
 
     const { html: initialHtml, toc } = getRenderedArticle(insight.content);
@@ -176,7 +176,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
                 "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/icon.png`
             }
         },
-        "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/insight/${insight.slug || insight.id}`,
+        "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/blog/${insight.slug || insight.id}`,
         "datePublished": insight.created_at,
         "dateModified": insight.updated_at || insight.created_at,
     };

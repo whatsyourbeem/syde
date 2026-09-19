@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { InsightCard } from "@/components/insight/insight-card";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { fetchInsightsAction, InsightQueryResult } from "@/app/insight/insight-data-actions";
+import { fetchInsightsAction, InsightQueryResult } from "@/app/blog/insight-data-actions";
 
 const ITEMS_PER_PAGE = 18;
 
@@ -24,7 +24,7 @@ export function InsightFeed({ initialInsights, currentUserId, currentUser }: Ins
 
   const startWriting = () => {
     if (!currentUserId) openLoginDialog();
-    else router.push("/insight/write");
+    else router.push("/blog/write");
   };
 
   const {

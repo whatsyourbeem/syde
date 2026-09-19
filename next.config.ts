@@ -150,6 +150,17 @@ const nextConfig: NextConfig = {
         destination: "/feed",
         permanent: true,
       },
+      // The insight board became the blog; old links (including ones saved inside posts) keep working.
+      {
+        source: "/insight",
+        destination: "/blog",
+        permanent: true,
+      },
+      {
+        source: "/insight/:path*",
+        destination: "/blog/:path*",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

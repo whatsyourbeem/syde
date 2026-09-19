@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { Database } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
-import { deleteComment as deleteInsightComment } from "@/app/insight/insight-actions";
+import { deleteComment as deleteInsightComment } from "@/app/blog/insight-actions";
 
 import {
   AlertDialog,

@@ -39,7 +39,7 @@ export interface InsightCardProps {
     showInteractions?: boolean;
 }
 
-import { toggleInsightLike } from "@/app/insight/insight-actions";
+import { toggleInsightLike } from "@/app/blog/insight-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function InsightCard({
@@ -91,7 +91,7 @@ export function InsightCard({
         }
     };
 
-    const href = `/insight/${slug || id}`;
+    const href = `/blog/${slug || id}`;
 
     return (
         <article className="flex w-full items-start gap-4 py-5 md:gap-6 md:py-6">

@@ -49,7 +49,7 @@ export const createInsight = withAuth(
 
     if (error) throw new Error(error.message);
 
-    revalidatePath("/insight");
+    revalidatePath("/blog");
     revalidateTagSafe("insight-all");
     return createSuccessResponse({ id: data.id, slug: data.slug });
   }
@@ -57,7 +57,7 @@ export const createInsight = withAuth(
 
 export const updateInsight = withAuth(
   async ({ supabase, user }, formData: FormData) => {
-    const id = validateRequired(formData.get("id") as string | null, "인사이트 ID");
+    const id = validateRequired(formData.get("id") as string | null, "글 ID");
     const title = validateRequired(formData.get("title") as string | null, "제목");
     const summary = formData.get("summary") as string | null;
     const content = formData.get("content") as string | null;
@@ -79,8 +79,8 @@ export const updateInsight = withAuth(
 
     if (error) throw new Error(error.message);
 
-    revalidatePath("/insight");
-    revalidatePath(`/insight/${id}`);
+    revalidatePath("/blog");
+    revalidatePath(`/blog/${id}`);
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${id}`);
     return createSuccessResponse({ id });
@@ -90,7 +90,7 @@ export const updateInsight = withAuth(
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const content = validateRequired(formData.get("content") as string | null, "댓글");
-    const insightId = validateRequired(formData.get("insight_id") as string | null, "인사이트 ID");
+    const insightId = validateRequired(formData.get("insight_id") as string | null, "글 ID");
     const parentCommentId = formData.get("parent_comment_id") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
@@ -107,7 +107,7 @@ export const createComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/insight/${insightId}`);
+    revalidatePath(`/blog/${insightId}`);
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
@@ -121,7 +121,7 @@ export const updateComment = withAuth(
       formData.get("comment_id") as string,
       "댓글 ID"
     );
-    const insightId = validateRequired(formData.get("insight_id") as string | null, "인사이트 ID");
+    const insightId = validateRequired(formData.get("insight_id") as string | null, "글 ID");
 
     const processedContent = await processMentionsForSave(content, supabase);
 
@@ -136,7 +136,7 @@ export const updateComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/insight/${insightId}`);
+    revalidatePath(`/blog/${insightId}`);
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
@@ -156,7 +156,7 @@ export const deleteComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/insight/${insightId}`);
+    revalidatePath(`/blog/${insightId}`);
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
@@ -179,7 +179,7 @@ export const toggleCommentLike = withAuth(
       if (error) throw new Error(`좋아요 실패: ${error.message}`);
     }
 
-    revalidatePath(`/insight/${insightId}`);
+    revalidatePath(`/blog/${insightId}`);
     revalidateTagSafe("insight-all");
     revalidateTagSafe(`insight-${insightId}`);
     return createSuccessResponse(null);
@@ -231,7 +231,7 @@ export const toggleInsightBookmark = withAuth(
 );
 
 export async function revalidateInsightAction(insightId: string) {
-  revalidatePath("/insight");
+  revalidatePath("/blog");
   revalidateTagSafe("insight-all");
   revalidateTagSafe(`insight-${insightId}`);
 }

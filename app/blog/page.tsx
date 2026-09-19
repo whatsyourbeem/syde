@@ -1,7 +1,7 @@
 import React from "react";
 import { createClient } from "@/lib/supabase/server";
 import { InsightFeed } from "@/components/insight/insight-feed";
-import { fetchInsightsAction } from "@/app/insight/insight-data-actions";
+import { fetchInsightsAction } from "@/app/blog/insight-data-actions";
 const ITEMS_PER_PAGE = 18;
 
 export default async function InsightPage() {

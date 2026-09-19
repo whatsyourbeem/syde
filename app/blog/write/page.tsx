@@ -8,7 +8,7 @@ export default async function InsightWritePage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect("/insight");
+        redirect("/blog");
     }
 
     return (
