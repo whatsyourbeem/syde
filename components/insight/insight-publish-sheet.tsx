@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,6 @@ import { cn } from "@/lib/utils";
 import {
   INSIGHT_CATEGORIES,
   MAX_INSIGHT_TAGS,
-  MAX_INSIGHT_TAG_LENGTH,
   normalizeTags,
   type InsightCategory,
 } from "@/lib/insight-categories";
@@ -72,12 +71,25 @@ function SheetBody({
 }: SheetBodyProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tagDraft, setTagDraft] = useState("");
+  const tagInputRef = useRef<HTMLInputElement>(null);
+  const handOffFocusRef = useRef(false);
+
+  // The tag input unmounts at the limit, which would drop focus onto the dialog itself; hand it to the next field.
+  useEffect(() => {
+    if (tags.length < MAX_INSIGHT_TAGS || !handOffFocusRef.current) return;
+    handOffFocusRef.current = false;
+    document.getElementById("insight-summary")?.focus();
+  }, [tags.length]);
 
   // Commits whatever is typed as tags; a pasted "a, b" or a trailing comma adds several at once.
   const commitTags = (raw: string) => {
     const typed = raw.split(",");
     if (typed.every((part) => !part.trim())) return;
-    onTagsChange(normalizeTags([...tags, ...typed]));
+    const next = normalizeTags([...tags, ...typed]);
+    if (next.length >= MAX_INSIGHT_TAGS && document.activeElement === tagInputRef.current) {
+      handOffFocusRef.current = true;
+    }
+    onTagsChange(next);
     setTagDraft("");
   };
   // A cover uploaded directly isn't in the body, so it needs its own tile to stay visible and selectable.
@@ -205,8 +217,8 @@ function SheetBody({
           {tags.length < MAX_INSIGHT_TAGS && (
             <input
               id="insight-tags"
+              ref={tagInputRef}
               value={tagDraft}
-              maxLength={MAX_INSIGHT_TAG_LENGTH}
               onChange={(e) => {
                 // A comma ends the tag, like Enter.
                 if (e.target.value.includes(",")) commitTags(e.target.value);

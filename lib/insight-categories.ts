@@ -26,7 +26,7 @@ export function normalizeTags(values: unknown): string[] {
   const seen = new Set<string>();
   for (const value of values) {
     if (typeof value !== "string") continue;
-    const tag = value.trim().replace(/^#+/, "").trim().toLowerCase().slice(0, MAX_INSIGHT_TAG_LENGTH);
+    const tag = value.trim().replace(/^#+/, "").trim().toLowerCase().slice(0, MAX_INSIGHT_TAG_LENGTH).trim();
     if (tag) seen.add(tag);
     if (seen.size >= MAX_INSIGHT_TAGS) break;
   }
