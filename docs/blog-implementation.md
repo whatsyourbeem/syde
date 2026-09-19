@@ -73,7 +73,7 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 | E3 | 테두리 없는 작성 화면, 발행 창, 한 줄 소개 자동화 | 인사이트 | 1.5일 | M1 필수 | ✅ 258ba9b |
 | B1 | 글쓰기 진입점 | 목록 | 0.5일 | M1 필수 | ✅ 36560fa |
 | B2 | 목록 제목·빈 상태 문구 | 목록 | 0.2일 | M1 필수 | ✅ 36560fa |
-| E4 | 서버 임시저장, 카테고리·태그 | 인사이트 + DB | 2.5~3일 | M2 | ⏳ |
+| E4a | 카테고리·태그, 저장 상태 문구 | 인사이트 + DB | 1.2일 | M2 | ⏳ |
 | B3 | 텍스트 우선 목록 | 목록 | 1일 | M2 | ⏳ |
 | B4 | 목록 지표 정리 | 목록 | 0.3일 | M2 | ⏳ |
 | B5 | 상세 헤더 좌측 정렬 | 상세 | 0.5일 | M2 | ⏳ |
@@ -81,11 +81,13 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 | B6 | 작가 카드 + 다른 글 3개 | 상세 | 0.5일 | M2 | ⏳ |
 | E6 | 고급 편집 (드래그·이미지·표·마크다운 불러오기·미리보기) | 에디터 6곳 | 3~4일 | M3 | ⏳ |
 | B7 | 정렬 토글 (최신순 / 인기순) | 목록 | 0.5일 | M3 | ⏳ |
-| B8 | 카테고리 필터, 태그 모아보기 | 목록 | 0.5일 | M3 (E4 후) | ⏳ |
+| B8 | 카테고리 필터, 태그 모아보기 | 목록 | 0.5일 | M3 (E4a 후) | ⏳ |
 | B9 | "인사이트" 문구 리네이밍 (메타데이터 제외) | 사이트 전체 | 0.3일 | M3 | ⏳ |
+| E4b | 서버 임시저장 | 인사이트 + DB | 1.5~2일 | 보류 | ⏸ |
 
 - **M1 합계 약 4.2일** (필수 2.7일 + 권장 1.5일). 콜드 시딩 DM 발송 전에 끝낸다.
-- **M2 약 6.3~6.8일**, **M3 약 4.3~5.3일**.
+- **M2 약 5.0일**, **M3 약 4.3~5.3일**.
+- **E4b는 보류**한다. 시작 조건은 [E4b](#e4b-서버-임시저장-보류)에 적는다.
 
 ---
 
@@ -159,7 +161,7 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
    - **흐름**: 상단 바 "발행하기" → 제목·본문 검사(기존 검증 재사용, 실패하면 해당 항목으로 이동) → 창 열림 → 창의 "발행하기"로 `createInsight`/`updateInsight` 호출.
    - **대표 이미지**: 본문의 `imageResize` src를 모아 썸네일로 나열하고 선택하게 한다. "직접 올리기"(기존 업로드)와 "없음"도 둔다.
    - **한 줄 소개**: 선택 입력. 비어 있으면 `extractPlainText`로 뽑은 문구를 placeholder로 미리 보여준다.
-   - **카테고리·태그 자리**: E4에서 채운다.
+   - **카테고리·태그 자리**: E4a에서 채운다.
    - 폼 하단의 "발행 정보" 섹션과 하단 버튼 두 개는 삭제한다.
 3. **한 줄 소개 자동 추출**
    - `lib/tiptap-plain-text.ts`에 `extractPlainText(content, maxLength)`를 만든다. 블록 사이는 공백 하나로 잇는다.
@@ -184,9 +186,67 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 - 본문 이미지를 대표 이미지로 고를 수 있다.
 - 쇼케이스 등 나머지 5곳의 에디터 모양이 그대로다.
 
-### E4. 서버 임시저장, 카테고리·태그
+### E4a. 카테고리·태그, 저장 상태 문구
 
-**마이그레이션** `supabase/migrations/<timestamp>_insight_drafts_category_tags.sql`
+**마이그레이션** `supabase/migrations/<timestamp>_insight_category_tags.sql`
+
+```sql
+alter table public.insights
+  add column category text check (category in ('story','launch','tech','growth','til')),
+  add column tags text[] not null default '{}';
+create index insights_tags_idx on public.insights using gin (tags);
+create index insights_category_created_idx on public.insights (category, created_at desc);
+```
+
+- **카테고리 코드**: `story` 해프닝·회고 / `launch` 프로젝트 소개 / `tech` 기술 / `growth` 마케팅·그로스 / `til` TIL. 화면 이름과 코드는 `lib/insight-categories.ts` 한 곳에서 정의한다.
+- 두 열 모두 선택 값이다. 기존 글은 카테고리 없음, 태그 빈 배열로 남는다.
+- `insights`를 읽는 8곳과 기존 트리거·보안 정책은 **수정하지 않는다.**
+- 마이그레이션은 로컬 Supabase에서 먼저 적용해 검증한다.
+
+**서버 액션**
+
+- `createInsight`·`updateInsight`에 `category`, `tags` 저장을 추가한다.
+- 서버에서도 검증한다: 카테고리 값, 태그 최대 5개·태그당 20자, trim·소문자화·중복 제거.
+
+**작성 폼 연동**
+
+- **발행 창**
+  - 카테고리는 칩 5개 중 하나를 고르고, 다시 누르면 해제된다.
+  - 태그 입력: Enter·쉼표로 추가, Backspace로 마지막 태그 삭제, 최대 5개.
+  - 수정 모드에서는 저장된 카테고리·태그를 채워 연다.
+- **로컬 임시저장**: `useLocalDraft`에 저장하는 폼 데이터에 카테고리·태그를 포함한다.
+- **저장 상태 문구**: 로컬에만 저장된다는 것을 정직하게 알린다. `EditorWriteBar`는 에디터 6곳이 함께 쓰므로 모두 같이 바뀐다.
+
+  | 위치 | 현재 | 변경 |
+  |---|---|---|
+  | 저장 시각 | 임시저장됨 HH:mm | 이 기기에 저장됨 HH:mm |
+  | 저장 전 안내 | 작성 내용은 자동 저장돼요 | 작성 내용은 이 기기에 자동 저장돼요 |
+
+- **상세 페이지**: 제목 위에 카테고리 라벨을, 본문 아래에 태그 칩을 보여준다. 태그 칩 링크는 B8에서 연결한다.
+
+**완료 조건**
+- 카테고리와 태그가 저장되고 상세에 표시된다.
+- 카테고리·태그 없이도 발행된다.
+- 서버 검증: 태그 6개, 21자 태그, 없는 카테고리 값이 거부되거나 정리된다.
+- 수정 창을 열면 저장된 카테고리·태그가 채워져 있다.
+- 기존 글의 목록·상세·검색·사이트맵이 그대로 동작한다.
+
+### E4b. 서버 임시저장 (보류)
+
+로컬 임시저장(`useLocalDraft`)으로 시작하고, 서버 임시저장은 필요하다는 신호가 보일 때 만든다.
+
+**보류 이유**
+- Supabase 사용량은 부담이 작다. 비용은 복잡도에 있다: 새 테이블·보안 정책·서버 액션 4개, 로컬·서버 저장본 충돌 처리, 저장 상태 3가지, 임시저장 목록, 수정 모드 복원. 버그가 나면 글이 사라지는 영역이라 검증 부담도 크다.
+- 로컬 저장만 쓸 때 빠지는 것은 다른 기기에서 이어 쓰기, 브라우저 데이터 삭제·시크릿 창에서의 보존, 새 글 초안 여러 개다. 한 번에 쓰는 회고 글, 데스크톱 작성이 대부분인 초기에는 영향이 작다.
+
+**시작 조건** (하나라도 보이면 시작한다)
+- "쓰던 글이 날아갔다"는 문의가 들어온다.
+- 모바일 작성 비율이 의미 있게 늘어난다.
+- 한 사람이 글을 동시에 여러 편 쓰는 패턴이 보인다.
+
+**설계** (D3 결정 유지: 발행 글 테이블과 분리된 초안 테이블)
+
+**마이그레이션** `supabase/migrations/<timestamp>_insight_drafts.sql`
 
 ```sql
 create table public.insight_drafts (
@@ -211,17 +271,7 @@ create policy "owner select" on public.insight_drafts for select using (auth.uid
 create policy "owner insert" on public.insight_drafts for insert with check (auth.uid() = user_id);
 create policy "owner update" on public.insight_drafts for update using (auth.uid() = user_id);
 create policy "owner delete" on public.insight_drafts for delete using (auth.uid() = user_id);
-
-alter table public.insights
-  add column category text check (category in ('story','launch','tech','growth','til')),
-  add column tags text[] not null default '{}';
-create index insights_tags_idx on public.insights using gin (tags);
-create index insights_category_created_idx on public.insights (category, created_at desc);
 ```
-
-- **카테고리 코드**: `story` 해프닝·회고 / `launch` 프로젝트 소개 / `tech` 기술 / `growth` 마케팅·그로스 / `til` TIL. 화면 이름과 코드는 `lib/insight-categories.ts` 한 곳에서 정의한다.
-- `insights`를 읽는 8곳과 기존 트리거·보안 정책은 **수정하지 않는다.**
-- 마이그레이션은 로컬 Supabase에서 먼저 적용해 검증한다.
 
 **서버 액션** (`app/insight/draft-actions.ts`)
 
@@ -233,7 +283,6 @@ create index insights_category_created_idx on public.insights (category, created
 | `deleteInsightDraft(id)` | 초안을 삭제한다 |
 
 - `createInsight`·`updateInsight`는 `draftId`를 선택 인자로 받고, 발행에 성공하면 해당 초안을 삭제한다. 삭제에 실패해도 발행은 성공으로 본다.
-- 두 함수에 `category`, `tags` 저장을 추가한다. 서버에서도 검증한다: 카테고리 값, 태그 최대 5개·태그당 20자, trim·소문자화·중복 제거.
 
 **작성 폼 연동**
 
@@ -248,19 +297,14 @@ create index insights_category_created_idx on public.insights (category, created
   - 서버와 브라우저 저장본의 `savedAt`/`updated_at`을 비교해 최근 것을 제안한다.
   - `DraftRestoreBanner`에 "다른 기기에서 저장됨" 같은 출처 표시를 추가한다.
 - **상단 바**
-  - `EditorWriteBar`의 저장 상태를 `저장 중…` / `저장됨 HH:mm` / `오프라인 · 이 기기에만 저장됨`의 3가지로 확장한다.
+  - `EditorWriteBar`의 저장 상태를 `저장 중…` / `저장됨 HH:mm` / `오프라인 · 이 기기에만 저장됨`의 3가지로 확장한다(E4a의 "이 기기에 저장됨" 문구를 대체).
   - "임시저장" 버튼과 `임시저장 N` 목록 버튼을 둔다. 목록은 창으로 열고, 항목을 누르면 열고, 삭제할 수 있다.
-- **발행 창**
-  - 카테고리는 칩 5개 중 하나를 고르고, 다시 누르면 해제된다.
-  - 태그 입력: Enter·쉼표로 추가, Backspace로 마지막 태그 삭제, 최대 5개.
-- **상세 페이지**: 제목 위에 카테고리 라벨을, 본문 아래에 태그 칩을 보여준다. 태그 칩 링크는 B8에서 연결한다.
 
 **완료 조건**
 - 노트북에서 쓰던 글을 다른 브라우저에서 `임시저장` 목록으로 열어 이어 쓸 수 있다.
 - 네트워크를 끊으면 "오프라인" 상태가 보이고, 다시 연결되면 저장된다.
 - 발행하면 초안이 목록에서 사라진다.
 - 다른 사용자의 초안은 조회되지 않는다(보안 정책 확인).
-- 카테고리와 태그가 저장되고 상세에 표시된다.
 
 ### E5. 제목 앵커, 목차, 코드 복사
 
@@ -349,7 +393,7 @@ create index insights_category_created_idx on public.insights (category, created
 - 인기순 점수는 쇼케이스 트렌딩 RPC(`20260413000000_update_trending_rpc_scoring.sql`)의 방식을 참고해 조회·좋아요·최신성으로 정의한다. 필요하면 같은 방식의 RPC를 추가한다.
 - 목록 상단에 최신순 / 인기순 토글을 둔다. 선택값은 URL 쿼리(`?sort=popular`)에 둔다.
 
-### B8. 카테고리 필터, 태그 모아보기 (E4 이후)
+### B8. 카테고리 필터, 태그 모아보기 (E4a 이후)
 
 - 목록 상단에 카테고리 칩(전체 + 5개)을 두고 `?category=tech`로 거른다.
 - 태그 칩을 누르면 `?tag=<tag>`로 거른다(`tags @> array[tag]`, GIN 인덱스 사용).
