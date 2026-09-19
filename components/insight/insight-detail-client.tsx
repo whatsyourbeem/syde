@@ -308,7 +308,7 @@ export default function InsightDetailClient({
                         onBookmarkToggle={toggleBookmark}
                         shareUrl={`/insight/${id}`}
                         shareTitle={insight.title}
-                        className="h-14 justify-start gap-8 px-1"
+                        className="h-14 px-1"
                         showShare={false}
                     />
                 </div>
