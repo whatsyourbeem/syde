@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import InsightDetailClient from "@/components/insight/insight-detail-client";
 import { getInsightDetailCached } from "@/lib/queries/insight-queries";
+import { extractPlainText } from "@/lib/tiptap-plain-text";
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
@@ -28,24 +29,7 @@ export async function generateMetadata(
 
     const title = `${insight.title} - SYDE 인사이트`;
 
-    let plainText = "";
-    if (insight.summary) {
-        plainText = insight.summary;
-    } else {
-        try {
-            const parsed = JSON.parse(insight.content);
-            const extractText = (node: any): string => {
-                if (node.type === "text" && node.text) return node.text;
-                if (node.content && Array.isArray(node.content)) {
-                    return node.content.map(extractText).join(" ");
-                }
-                return "";
-            };
-            plainText = extractText(parsed).trim();
-        } catch (e) {
-            plainText = insight.content || "";
-        }
-    }
+    const plainText = insight.summary || extractPlainText(insight.content);
 
     const description =
         plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText || "SYDE 인사이트를 확인해보세요.";
@@ -164,24 +148,7 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
         views: (insight as any).views || 0
     };
 
-    let plainText = "";
-    if (insight.summary) {
-        plainText = insight.summary;
-    } else {
-        try {
-            const parsed = JSON.parse(insight.content);
-            const extractText = (node: any): string => {
-                if (node.type === "text" && node.text) return node.text;
-                if (node.content && Array.isArray(node.content)) {
-                    return node.content.map(extractText).join(" ");
-                }
-                return "";
-            };
-            plainText = extractText(parsed).trim();
-        } catch (e) {
-            plainText = insight.content || "";
-        }
-    }
+    const plainText = insight.summary || extractPlainText(insight.content);
 
     const jsonLd = {
         "@context": "https://schema.org",

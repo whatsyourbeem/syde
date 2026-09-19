@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { useLocalDraft } from "@/hooks/use-local-draft";
@@ -12,6 +10,8 @@ import { EditorWriteBar } from "@/components/common/editor-write-bar";
 import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
 import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 import { isTiptapContentEmpty } from "@/lib/tiptap-content";
+import { extractPlainText } from "@/lib/tiptap-plain-text";
+import { InsightPublishSheet } from "@/components/insight/insight-publish-sheet";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
 import { createInsight, updateInsight } from "@/app/insight/insight-actions";
@@ -48,9 +48,24 @@ function draftSignature({ title, summary, content, imageUrl }: DraftData): strin
 
 const EMPTY_DRAFT_SIGNATURE = draftSignature({ title: "", summary: "", content: "", imageUrl: "" });
 
-type FieldErrors = Partial<Record<"title" | "body" | "summary", string>>;
+type FieldErrors = Partial<Record<"title" | "body", string>>;
 // Matches the on-screen order so validation jumps to the topmost problem.
-const FIELD_ORDER = ["title", "body", "summary"] as const;
+const FIELD_ORDER = ["title", "body"] as const;
+
+// Same limit the server uses when it fills an empty summary from the body.
+const SUMMARY_PREVIEW_LENGTH = 120;
+
+/** Every image in the body, in reading order and without repeats: the cover candidates. */
+function collectBodyImages(content: JSONContent | string): string[] {
+    if (typeof content === "string") return [];
+    const found = new Set<string>();
+    const walk = (node: JSONContent) => {
+        if (node.type === "imageResize" && typeof node.attrs?.src === "string") found.add(node.attrs.src);
+        node.content?.forEach(walk);
+    };
+    walk(content);
+    return [...found];
+}
 
 interface InsightEditFormProps {
     initialData?: {
@@ -67,7 +82,6 @@ interface InsightEditFormProps {
 export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const isEditMode = !!initialData;
 
     // Parse string content to JSON object if needed
@@ -91,10 +105,11 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
     const [errors, setErrors] = useState<FieldErrors>({});
     const [previewOpen, setPreviewOpen] = useState(false);
+    const [publishOpen, setPublishOpen] = useState(false);
+    const [stats, setStats] = useState({ characters: 0 });
     const titleRef = useRef<HTMLTextAreaElement>(null);
     const bodyRef = useRef<HTMLDivElement>(null);
-    const summaryRef = useRef<HTMLInputElement>(null);
-    const fieldRefs = { title: titleRef, body: bodyRef, summary: summaryRef };
+    const fieldRefs = { title: titleRef, body: bodyRef };
     // Grow the title textarea with its content, including programmatic changes like draft restore.
     useEffect(() => {
         const el = titleRef.current;
@@ -104,6 +119,9 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     }, [title]);
     const clearError = (field: keyof FieldErrors) =>
         setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+
+    const imageCandidates = useMemo(() => collectBodyImages(content), [content]);
+    const summaryPlaceholder = useMemo(() => extractPlainText(content, SUMMARY_PREVIEW_LENGTH), [content]);
 
     const draftData = useMemo(() => ({ title, summary, content, imageUrl }), [title, summary, content, imageUrl]);
     const [initialSnapshot] = useState(() => draftSignature(draftData));
@@ -137,13 +155,11 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         else router.push("/insight");
     };
 
-    const handleSubmit = async () => {
-        const contentString = typeof content === 'string' ? content : JSON.stringify(content);
-
+    // Checks title and body before the publish sheet opens, and jumps to whatever is missing.
+    const handleRequestPublish = () => {
         const nextErrors: FieldErrors = {};
         if (!title.trim()) nextErrors.title = "제목을 입력해주세요.";
         if (isTiptapContentEmpty(content)) nextErrors.body = "본문을 입력해주세요.";
-        if (!summary.trim()) nextErrors.summary = "한 줄 소개를 입력해주세요.";
         setErrors(nextErrors);
 
         const firstInvalid = FIELD_ORDER.find((field) => nextErrors[field]);
@@ -155,6 +171,11 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
             focusable?.focus({ preventScroll: true });
             return;
         }
+        setPublishOpen(true);
+    };
+
+    const handleSubmit = async () => {
+        const contentString = typeof content === 'string' ? content : JSON.stringify(content);
 
         setLoading(true);
 
@@ -173,17 +194,17 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 } else {
                     clearDraft();
                     queryClient.invalidateQueries({ queryKey: ["insights"] });
-                    toast.success("인사이트가 수정되었습니다!");
+                    toast.success("글이 수정됐어요");
                     router.push(`/insight/${initialData.slug || initialData.id}`);
                 }
             } else {
                 const result = await createInsight(formData);
                 if (!result.success) {
-                    toast.error(`등록 실패: ${result.error.message}`);
+                    toast.error(`발행 실패: ${result.error.message}`);
                 } else {
                     clearDraft();
                     queryClient.invalidateQueries({ queryKey: ["insights"] });
-                    toast.success("인사이트가 등록되었습니다!");
+                    toast.success("글이 발행됐어요");
                     router.push(`/insight/${result.data.slug || result.data.id}`);
                 }
             }
@@ -195,27 +216,22 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     // uploadImage reports its own failures; resolving null keeps the editor from toasting a second time.
     const handleTiptapImageUpload = (file: File) => uploadImage(file, "insight-images", "editor", "detail");
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const handleCoverUpload = async (file: File) => {
         const publicUrl = await uploadImage(file, "insight-images", "", "detail");
-        if (publicUrl) {
-            setImageUrl(publicUrl);
-            toast.success("이미지가 업로드되었습니다.");
-        }
+        if (publicUrl) setImageUrl(publicUrl);
     };
 
     return (
         <div className="flex flex-col bg-white w-full max-w-3xl mx-auto font-[Pretendard] px-4 md:px-6">
             <EditorWriteBar
-                pageLabel={isEditMode ? "인사이트 수정" : "인사이트 등록"}
+                pageLabel={isEditMode ? "글 수정" : "글쓰기"}
                 lastSavedAt={lastSavedAt}
                 onExit={handleExit}
                 onPreview={() => setPreviewOpen(true)}
-                onPublish={handleSubmit}
-                publishLabel={isEditMode ? "수정하기" : "등록하기"}
+                onPublish={handleRequestPublish}
+                publishLabel={isEditMode ? "수정하기" : "발행하기"}
                 busyLabel={uploading ? "업로드 중" : loading ? "처리 중" : null}
+                stats={stats}
                 bleedClassName="-mx-4 md:-mx-6"
             />
             {previewOpen && (
@@ -223,11 +239,26 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     open={previewOpen}
                     onOpenChange={setPreviewOpen}
                     title={title}
-                    subtitle={summary}
+                    subtitle={summary.trim() || summaryPlaceholder}
                     imageUrl={imageUrl}
                     content={content}
                 />
             )}
+            <InsightPublishSheet
+                open={publishOpen}
+                onOpenChange={setPublishOpen}
+                isEditMode={isEditMode}
+                imageCandidates={imageCandidates}
+                imageUrl={imageUrl}
+                onImageUrlChange={setImageUrl}
+                onUploadImage={handleCoverUpload}
+                uploading={uploading}
+                summary={summary}
+                onSummaryChange={setSummary}
+                summaryPlaceholder={summaryPlaceholder}
+                submitting={loading}
+                onConfirm={handleSubmit}
+            />
             <div className="h-6 md:h-8" />
 
             {pendingDraft && (
@@ -271,126 +302,32 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     {errors.title && <p className="text-[12px] text-red-500">{errors.title}</p>}
                 </div>
 
-                {/* Content Area */}
+                {/* Content Area: no frame, so the page itself reads as the writing surface */}
                 <div className="flex flex-col gap-1 w-full">
                     <label className="sr-only">본문 (필수)</label>
                     <div
                         ref={bodyRef}
-                        className={cn(
-                            // Edge-to-edge on mobile so the page and editor paddings don't stack up.
-                            "-mx-4 w-[calc(100%+2rem)] md:mx-0 md:w-full min-h-[500px] border-y-[0.5px] md:border-[0.5px] border-[#B7B7B7] md:rounded-[10px] relative transition-all md:focus-within:ring-1 md:focus-within:ring-sydeblue overflow-clip",
-                            errors.body && "border-red-500 ring-1 ring-red-500",
-                        )}
+                        className={cn("relative min-h-[500px]", errors.body && "rounded-[10px] ring-1 ring-red-500")}
                     >
                         <TiptapEditorWrapper
+                            variant="document"
                             initialContent={typeof content === 'string' ? null : content}
                             onContentChange={(json) => {
                                 setContent(json);
                                 clearError("body");
                             }}
-                            placeholder="인사이트 내용을 입력해주세요."
+                            placeholder="오늘 어떤 일이 있었나요? 편하게 적어보세요."
                             onImageUpload={handleTiptapImageUpload}
+                            onStatsChange={setStats}
+                            onBackspaceAtStart={() => {
+                                const el = titleRef.current;
+                                if (!el) return;
+                                el.focus();
+                                el.setSelectionRange(el.value.length, el.value.length);
+                            }}
                         />
                     </div>
                     {errors.body && <p className="text-[12px] text-red-500">{errors.body}</p>}
-                </div>
-
-                {/* Publish details: needed for the card, but not what the writer came here to do */}
-                <section className="flex flex-col gap-5 border-t border-[#E5E5E5] pt-6">
-                    <h2 className="text-[16px] font-bold text-sydeblue">발행 정보</h2>
-
-                    <div className="flex flex-col gap-1 w-full">
-                        <label htmlFor="insight-summary" className="text-[14px] font-medium text-sydeblue flex items-center gap-0.5">
-                            한 줄 소개 <span className="text-red-500">*</span>
-                        </label>
-                        <div className={cn(
-                            "w-full h-11 border-[0.5px] border-[#B7B7B7] rounded-[10px] relative transition-all focus-within:ring-1 focus-within:ring-sydeblue",
-                            errors.summary && "border-red-500 ring-1 ring-red-500",
-                        )}>
-                            <input
-                                id="insight-summary"
-                                ref={summaryRef}
-                                value={summary}
-                                onChange={(e) => {
-                                    setSummary(e.target.value);
-                                    clearError("summary");
-                                }}
-                                aria-invalid={!!errors.summary}
-                                placeholder="SYDE 인사이트를 한 줄로 표현해주세요."
-                                className="w-full h-full bg-transparent px-3 text-[16px] md:text-[14px] outline-none placeholder:text-[#777777]"
-                            />
-                        </div>
-                        {errors.summary
-                            ? <p className="text-[12px] text-red-500">{errors.summary}</p>
-                            : <p className="text-[12px] text-[#999999]">목록 카드에 제목과 함께 보여요.</p>}
-                    </div>
-
-                {/* Representative Image UI */}
-                <div className="flex flex-col gap-1 w-full">
-                    <label className="text-[14px] font-medium text-sydeblue">대표 이미지 <span className="font-normal text-[#999999]">(선택)</span></label>
-                    <div className="w-full h-[120px] md:h-[160px] border-[0.5px] border-[#B7B7B7] rounded-[10px] flex flex-row items-center justify-between p-0 overflow-hidden bg-gray-50/30">
-                        <div className="flex flex-col justify-center items-start flex-1 p-4 md:p-8 gap-3">
-                            <p className="text-[12px] md:text-[14px] leading-[1.5] text-[#777777] text-left">
-                                인사이트를 잘 표현하는<br />대표 이미지를 설정해주세요.
-                            </p>
-                            <div className="flex flex-col gap-2 items-start">
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    accept="image/*"
-                                />
-                                <Button
-                                    className="w-20 md:w-24 h-8 md:h-10 bg-sydeblue hover:bg-sydeblue/90 text-white text-[14px] rounded-[12px] font-normal"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploading}
-                                >
-                                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "이미지 설정"}
-                                </Button>
-                                {imageUrl && (
-                                    <button
-                                        onClick={() => setImageUrl("")}
-                                        className="text-[10px] md:text-[12px] text-red-400 hover:underline"
-                                    >
-                                        이미지 삭제
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="w-[120px] md:w-[280px] h-full bg-[#222E35] flex items-center justify-center relative flex-shrink-0">
-                            {imageUrl ? (
-                                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                            ) : (
-                                <img src="/we-are-syders.png" alt="We are SYDERS" className="w-full h-full object-cover opacity-50" />
-                            )}
-                            {!imageUrl && (
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <Plus className="w-10 h-10 text-white/20" />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                </section>
-
-                {/* Buttons Section */}
-                <div className="flex flex-row justify-end items-center gap-2.5 w-full mt-2">
-                    <Button
-                        variant="outline"
-                        className="w-24 h-10 border-sydeblue text-sydeblue rounded-[12px] text-[14px] hover:bg-gray-50"
-                        onClick={handleExit}
-                    >
-                        취소
-                    </Button>
-                    <Button
-                        className="w-48 h-10 bg-sydeblue hover:bg-sydeblue/90 text-white rounded-[12px] text-[14px] font-medium"
-                        onClick={handleSubmit}
-                        disabled={loading || uploading}
-                    >
-                        {uploading ? "업로드 중..." : loading ? "처리 중..." : `인사이트 ${isEditMode ? '수정하기' : '등록하기'}`}
-                    </Button>
                 </div>
             </main>
         </div>

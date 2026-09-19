@@ -6,6 +6,7 @@ import { TextSelection } from "@tiptap/pm/state";
 import { Fragment, Slice, type Node as PMNode } from "@tiptap/pm/model";
 import { undo } from "@tiptap/pm/history";
 import { looksLikeMarkdown, pasteMarkdown, pastePlainText } from "./tiptap-markdown-paste";
+import { CharacterCount } from "@tiptap/extensions";
 import { commonTiptapExtensions } from "./tiptap-extensions";
 import {
   UploadPlaceholder,
@@ -28,7 +29,7 @@ import {
   YoutubeBubbleMenu,
 } from "./tiptap-bubble-menus";
 import { toast } from "sonner";
-import { upgradeToHttps } from "@/lib/utils";
+import { cn, upgradeToHttps } from "@/lib/utils";
 
 interface TiptapEditorWrapperProps {
   initialContent: JSONContent | null;
@@ -37,6 +38,12 @@ interface TiptapEditorWrapperProps {
   editable?: boolean;
   /** Resolve null when the upload failed and the writer was already told why; throw only for errors worth a toast. */
   onImageUpload?: (file: File) => Promise<string | null>;
+  /** "document" drops the padding so the editor sits flush inside a page that draws its own frame (blog writing). */
+  variant?: "boxed" | "document";
+  /** Body character count, reported on load and after every edit. */
+  onStatsChange?: (stats: { characters: number }) => void;
+  /** Backspace at the very start of the body (first block a paragraph); lets a page hop back to its title field. */
+  onBackspaceAtStart?: () => void;
 }
 
 const OWN_STORAGE_PREFIX = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -79,10 +86,17 @@ export default function TiptapEditorWrapper({
   placeholder = "내용을 입력해주세요.",
   editable = true,
   onImageUpload,
+  variant = "boxed",
+  onStatsChange,
+  onBackspaceAtStart,
 }: TiptapEditorWrapperProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const onImageUploadRef = useRef(onImageUpload);
   onImageUploadRef.current = onImageUpload;
+  const onStatsChangeRef = useRef(onStatsChange);
+  onStatsChangeRef.current = onStatsChange;
+  const onBackspaceAtStartRef = useRef(onBackspaceAtStart);
+  onBackspaceAtStartRef.current = onBackspaceAtStart;
   // Tracks the last JSON emitted so parent echoes of our own updates skip the resync effect.
   const lastEmittedRef = useRef<JSONContent | null>(null);
 
@@ -221,12 +235,29 @@ export default function TiptapEditorWrapper({
         return extension;
       }),
       UploadPlaceholder,
+      CharacterCount,
     ],
     editorProps: {
       attributes: {
-        class: "prose max-w-none focus:outline-none p-4 min-h-full",
+        class: cn(
+          "prose max-w-none focus:outline-none min-h-full",
+          variant === "document" ? "py-2 min-h-[50vh]" : "p-4",
+        ),
       },
-      handleKeyDown: (_view, event) => {
+      handleKeyDown: (view, event) => {
+        const { selection } = view.state;
+        if (
+          event.key === "Backspace" &&
+          !event.isComposing &&
+          onBackspaceAtStartRef.current &&
+          selection.empty &&
+          selection.from === TextSelection.atStart(view.state.doc).from &&
+          view.state.doc.firstChild?.type.name === "paragraph"
+        ) {
+          event.preventDefault();
+          onBackspaceAtStartRef.current();
+          return true;
+        }
         if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "k") {
           event.preventDefault();
           setLinkOpen(true);
@@ -290,6 +321,7 @@ export default function TiptapEditorWrapper({
       const json = editor.getJSON();
       lastEmittedRef.current = json;
       onContentChange(json);
+      onStatsChangeRef.current?.({ characters: editor.storage.characterCount.characters() });
 
       const expiring = pastedImageSrcs(transaction).filter((src) => isExpiringImageUrl(src, OWN_STORAGE_PREFIX));
       if (expiring.length > 0) rehostImagesRef.current(editor.view, expiring);
@@ -299,6 +331,8 @@ export default function TiptapEditorWrapper({
   useEffect(() => {
     if (!editor) return;
     if (initialContent && initialContent === lastEmittedRef.current) return;
+    // Loaded/restored content never fires onUpdate, so report its size here.
+    const reportStats = () => onStatsChangeRef.current?.({ characters: editor.storage.characterCount.characters() });
 
     const isContentSame =
       JSON.stringify(initialContent) === JSON.stringify(editor.getJSON());
@@ -312,6 +346,7 @@ export default function TiptapEditorWrapper({
         .setContent(initialContent || { type: "doc", content: [] }, { emitUpdate: false })
         .run();
     }
+    reportStats();
   }, [editor, initialContent]);
 
   useEffect(() => {

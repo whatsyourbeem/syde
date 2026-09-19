@@ -5,6 +5,14 @@ import { processMentionsForSave } from "@/lib/utils";
 import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe } from "@/lib/server-utils";
+import { extractPlainText } from "@/lib/tiptap-plain-text";
+
+const SUMMARY_FALLBACK_LENGTH = 120;
+
+// Writers may leave the one-liner empty; derive it from the body so cards, search and share previews still have text.
+function resolveSummary(summary: string | null, content: string | null): string | null {
+  return summary?.trim() || extractPlainText(content, SUMMARY_FALLBACK_LENGTH) || null;
+}
 
 export const createInsight = withAuth(
   async ({ supabase, user }, formData: FormData) => {
@@ -19,7 +27,7 @@ export const createInsight = withAuth(
       .insert({
         user_id: user.id,
         title,
-        summary,
+        summary: resolveSummary(summary, content),
         content: content ? JSON.parse(content) : null,
         image_url: imageUrl || null,
       })
@@ -46,7 +54,7 @@ export const updateInsight = withAuth(
       .from("insights")
       .update({
         title,
-        summary,
+        summary: resolveSummary(summary, content),
         content: content ? JSON.parse(content) : null,
         image_url: imageUrl || null,
         // slug은 최초 생성 후 변경하지 않음 (외부 공유 URL 보호)

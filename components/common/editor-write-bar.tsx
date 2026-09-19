@@ -6,6 +6,8 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+const READING_CHARS_PER_MINUTE = 500;
+
 interface EditorWriteBarProps {
   pageLabel: string;
   lastSavedAt: number | null;
@@ -14,6 +16,8 @@ interface EditorWriteBarProps {
   onPublish: () => void;
   publishLabel: string;
   busyLabel: string | null;
+  /** Optional body size, shown as "1,234자 · 약 3분" next to the save state. */
+  stats?: { characters: number };
   /**
    * Negative margin to bleed edge-to-edge past the page's own side padding, e.g. "-mx-4 md:-mx-6"
    * for a page padded with "px-4 md:px-6". Omit when the page container has no side padding to cancel.
@@ -25,7 +29,7 @@ interface EditorWriteBarProps {
  * Sticky bar for a writing page (insight, showcase, ...): keeps exit, save status, preview and the
  * publish action in reach while the writer is deep in a long form, and looks the same everywhere.
  */
-export function EditorWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPublish, publishLabel, busyLabel, bleedClassName }: EditorWriteBarProps) {
+export function EditorWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPublish, publishLabel, busyLabel, stats, bleedClassName }: EditorWriteBarProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // The editor toolbar sticks right below this bar; publish our height so it doesn't slide underneath.
@@ -56,6 +60,11 @@ export function EditorWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPu
         <h1 className="truncate text-[14px] font-semibold text-sydeblue">{pageLabel}</h1>
 
         <div className="ml-auto flex items-center gap-3">
+          {stats && stats.characters > 0 && (
+            <span className="hidden md:inline text-[12px] text-[#888] tabular-nums">
+              {stats.characters.toLocaleString("ko-KR")}자 · 약 {Math.max(1, Math.round(stats.characters / READING_CHARS_PER_MINUTE))}분
+            </span>
+          )}
           <span className="hidden sm:flex items-center gap-1 text-[12px] text-[#888]" aria-live="polite">
             {lastSavedAt ? (
               <>
