@@ -23,7 +23,7 @@ interface AuthorCardProps {
 /** End-of-post card: who wrote it, a way to their profile, and their latest posts to keep reading. */
 export function AuthorCard({ author, recentInsights }: AuthorCardProps) {
   return (
-    <section className="w-full max-w-3xl mx-auto flex flex-col gap-5 rounded-[12px] border border-[#E5E5E5] p-5 md:p-6 my-8">
+    <section className="w-full max-w-3xl mx-auto flex flex-col gap-5 rounded-[12px] border border-[#E5E5E5] p-5 md:p-6 mt-6 mb-10">
       <Link href={`/@${author.id}`} className="flex items-center gap-3 w-fit">
         <Avatar className="size-12">
           <AvatarImage src={author.avatarUrl ?? undefined} alt="" />

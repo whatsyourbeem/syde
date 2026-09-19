@@ -91,52 +91,57 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
     }
 
     const { html: initialHtml, toc } = getRenderedArticle(insight.content);
-    const authorRecentInsights = await getAuthorRecentInsights(supabase, insight.user_id, insight.id);
 
-    // Fetch Comments
-    const { data: comments } = await supabase
-        .from("insight_comments")
-        .select(`
-            *,
-            profiles:user_id (
-              username,
-              avatar_url,
-              tagline
-            )
-          `)
-        .eq("insight_id", insight.id)
-        .order("created_at", { ascending: true });
+    // None of these depend on each other, so fetch them together.
+    const [
+        authorRecentInsights,
+        { data: comments },
+        { count: likesCount },
+        { count: bookmarksCount },
+        { data: { user } },
+    ] = await Promise.all([
+        getAuthorRecentInsights(supabase, insight.user_id, insight.id),
+        supabase
+            .from("insight_comments")
+            .select(`
+                *,
+                profiles:user_id (
+                  username,
+                  avatar_url,
+                  tagline
+                )
+              `)
+            .eq("insight_id", insight.id)
+            .order("created_at", { ascending: true }),
+        supabase
+            .from("insight_likes")
+            .select("*", { count: "exact", head: true })
+            .eq("insight_id", insight.id),
+        supabase
+            .from("insight_bookmarks")
+            .select("*", { count: "exact", head: true })
+            .eq("insight_id", insight.id),
+        supabase.auth.getUser(),
+    ]);
 
-    // Fetch Stats
-    const { count: likesCount } = await supabase
-        .from("insight_likes")
-        .select("*", { count: "exact", head: true })
-        .eq("insight_id", insight.id);
-
-    const { count: bookmarksCount } = await supabase
-        .from("insight_bookmarks")
-        .select("*", { count: "exact", head: true })
-        .eq("insight_id", insight.id);
-
-    // Fetch User State
-    const { data: { user } } = await supabase.auth.getUser();
     let isLiked = false;
     let isBookmarked = false;
 
     if (user) {
-        const { data: likeData } = await supabase
-            .from("insight_likes")
-            .select("id")
-            .eq("insight_id", insight.id)
-            .eq("user_id", user.id)
-            .maybeSingle();
-
-        const { data: bookmarkData } = await supabase
-            .from("insight_bookmarks")
-            .select("insight_id")
-            .eq("insight_id", insight.id)
-            .eq("user_id", user.id)
-            .maybeSingle();
+        const [{ data: likeData }, { data: bookmarkData }] = await Promise.all([
+            supabase
+                .from("insight_likes")
+                .select("id")
+                .eq("insight_id", insight.id)
+                .eq("user_id", user.id)
+                .maybeSingle(),
+            supabase
+                .from("insight_bookmarks")
+                .select("insight_id")
+                .eq("insight_id", insight.id)
+                .eq("user_id", user.id)
+                .maybeSingle(),
+        ]);
 
         isLiked = !!likeData;
         isBookmarked = !!bookmarkData;

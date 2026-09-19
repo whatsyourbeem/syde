@@ -205,7 +205,7 @@ export default function InsightDetailClient({
     return (
         <div className="flex flex-col bg-white w-full max-w-6xl mx-auto relative font-[Pretendard] pb-10 px-4 md:px-6 border-x border-gray-50">
             <main className="flex flex-col pt-4">
-                <section className="w-full flex flex-col gap-2 pb-6 md:pb-8 border-b-[0.5px] border-[#B7B7B7]">
+                <section className="w-full flex flex-col gap-2 pb-8 md:pb-10">
                     {/* Same 768px column as the body, so the header and the writing line up. */}
                     <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
                         <div className="w-full flex items-center justify-between">
@@ -274,7 +274,7 @@ export default function InsightDetailClient({
                     </div>
                 </section>
 
-                <section className="w-full py-8 md:py-16 border-b-[0.5px] border-[#B7B7B7]">
+                <section className="w-full pt-2 pb-10 md:pb-14">
                     {/* Same 768px column as the writing form, so posts read the way they were written. */}
                     <div className="relative px-1 text-black w-full max-w-3xl mx-auto">
                         <ArticleToc items={toc} />
@@ -291,7 +291,7 @@ export default function InsightDetailClient({
                     </div>
                 </section>
 
-                <div className="w-full flex justify-center py-4">
+                <div className="w-full max-w-3xl mx-auto py-2">
                     <InteractionActions
                         id={id}
                         type="insight"
@@ -308,7 +308,7 @@ export default function InsightDetailClient({
                         onBookmarkToggle={toggleBookmark}
                         shareUrl={`/insight/${id}`}
                         shareTitle={insight.title}
-                        className="w-full max-w-2xl h-16 px-6"
+                        className="h-14 justify-start gap-8 px-1"
                         showShare={false}
                     />
                 </div>
@@ -323,11 +323,8 @@ export default function InsightDetailClient({
                     recentInsights={authorRecentInsights}
                 />
 
-                <section className="w-full flex flex-col py-6 md:py-12 gap-6 border-t-[0.5px] border-[#B7B7B7] bg-gray-50/10 rounded-b-xl">
-                    <div className="flex items-center gap-2 px-1">
-                        <div className="w-[24px] h-[4px] bg-sydeorange rounded-full shrink-0" />
-                        <h2 className="text-xl font-bold text-sydeblue">댓글 및 리뷰</h2>
-                    </div>
+                <section className="w-full max-w-3xl mx-auto flex flex-col gap-6 pt-4 pb-10">
+                    <h2 className="px-1 text-[13px] font-semibold text-[#999]">댓글 {stats.comments}</h2>
 
                     <div className="flex flex-col gap-4 px-1 min-h-[100px]">
                         <CommentList

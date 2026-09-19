@@ -163,7 +163,10 @@ export async function getInsightDetail(
   return data;
 }
 
-/** Latest posts by one author, newest first, leaving out the post currently being read. */
+/**
+ * Latest posts by one author, newest first, leaving out the post currently being read.
+ * This is a nicety under the post, so a failed lookup yields an empty list rather than breaking the page.
+ */
 export async function getAuthorRecentInsights(
   supabase: SupabaseClient<Database>,
   userId: string,
@@ -178,7 +181,10 @@ export async function getAuthorRecentInsights(
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) {
+    console.error("Failed to load the author's other insights:", error);
+    return [];
+  }
   return data || [];
 }
 

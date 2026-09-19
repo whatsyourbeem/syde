@@ -67,18 +67,24 @@ export default function RichContent({ html, className = "prose max-w-none" }: Ri
     root.querySelectorAll<HTMLElement>("pre").forEach((pre) => {
       if (pre.dataset.copyReady) return;
       pre.dataset.copyReady = "true";
+      // The pre scrolls sideways on long lines, so anything inside it would scroll away too; hang the
+      // label and button on a fixed wrapper instead.
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block";
+      pre.replaceWith(wrapper);
+      wrapper.append(pre);
       const language = pre.querySelector("code")?.className.match(/language-([\w+#-]+)/)?.[1];
       if (language) {
         const label = document.createElement("span");
         label.className = "code-lang-label";
         label.textContent = language;
-        pre.append(label);
+        wrapper.append(label);
       }
       const button = document.createElement("button");
       button.type = "button";
       button.className = "code-copy-btn";
       button.textContent = "복사";
-      pre.append(button);
+      wrapper.append(button);
     });
   }, [innerHtml]);
 
@@ -90,7 +96,7 @@ export default function RichContent({ html, className = "prose max-w-none" }: Ri
   const handleClick = async (event: MouseEvent<HTMLDivElement>) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>(".code-copy-btn");
     if (!button) return;
-    const code = button.closest("pre")?.querySelector("code")?.textContent ?? "";
+    const code = button.closest(".code-block")?.querySelector("code")?.textContent ?? "";
     try {
       await navigator.clipboard.writeText(code);
       button.textContent = "복사됨";

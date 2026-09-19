@@ -415,9 +415,11 @@
   .prose .heading-anchor { display: none; }
 }
 
-/* Code blocks: language label (top left) and copy button (top right), added by RichContent. */
-.prose pre { position: relative; }
-.prose pre .code-lang-label {
+/* Code blocks: RichContent wraps each <pre> so the language label (top left) and copy button (top right) stay
+   put while a long line scrolls sideways inside the pre. */
+.prose .code-block { position: relative; margin: 1.25em 0; }
+.prose .code-block > pre { margin: 0; padding-top: 2.25rem; }
+.prose .code-block .code-lang-label {
   position: absolute;
   top: 0.4rem;
   left: 0.75rem;
@@ -425,7 +427,7 @@
   color: #8b949e;
   pointer-events: none;
 }
-.prose pre .code-copy-btn {
+.prose .code-block .code-copy-btn {
   position: absolute;
   top: 0.35rem;
   right: 0.5rem;
@@ -438,5 +440,4 @@
   font-size: 0.75rem;
   cursor: pointer;
 }
-.prose pre .code-copy-btn:hover { background: rgba(255, 255, 255, 0.16); }
-.prose pre[data-copy-ready] { padding-top: 2.25rem; }
+.prose .code-block .code-copy-btn:hover { background: rgba(255, 255, 255, 0.16); }
