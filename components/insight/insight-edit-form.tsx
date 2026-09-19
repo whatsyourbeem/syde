@@ -11,6 +11,7 @@ import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
 import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 import { isTiptapContentEmpty } from "@/lib/tiptap-content";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
+import { normalizeCategory, normalizeTags, type InsightCategory } from "@/lib/insight-categories";
 import { InsightPublishSheet } from "@/components/insight/insight-publish-sheet";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
@@ -40,13 +41,15 @@ interface DraftData {
     summary: string;
     content: JSONContent | string;
     imageUrl: string;
+    category: InsightCategory | null;
+    tags: string[];
 }
 
-function draftSignature({ title, summary, content, imageUrl }: DraftData): string {
-    return JSON.stringify([title.trim(), summary.trim(), imageUrl, normalizeTiptapContent(content)]);
+function draftSignature({ title, summary, content, imageUrl, category, tags }: DraftData): string {
+    return JSON.stringify([title.trim(), summary.trim(), imageUrl, category, tags, normalizeTiptapContent(content)]);
 }
 
-const EMPTY_DRAFT_SIGNATURE = draftSignature({ title: "", summary: "", content: "", imageUrl: "" });
+const EMPTY_DRAFT_SIGNATURE = draftSignature({ title: "", summary: "", content: "", imageUrl: "", category: null, tags: [] });
 
 type FieldErrors = Partial<Record<"title" | "body", string>>;
 // Matches the on-screen order so validation jumps to the topmost problem.
@@ -76,6 +79,8 @@ interface InsightEditFormProps {
         image_url: string | null;
         user_id: string;
         slug: string | null;
+        category?: string | null;
+        tags?: string[] | null;
     } | null;
 }
 
@@ -103,6 +108,8 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const [summary, setSummary] = useState(initialData?.summary || "");
     const [content, setContent] = useState<JSONContent | string>(getInitialContent());
     const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
+    const [category, setCategory] = useState<InsightCategory | null>(normalizeCategory(initialData?.category));
+    const [tags, setTags] = useState<string[]>(normalizeTags(initialData?.tags));
     const [errors, setErrors] = useState<FieldErrors>({});
     const [previewOpen, setPreviewOpen] = useState(false);
     const [publishOpen, setPublishOpen] = useState(false);
@@ -123,7 +130,10 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const imageCandidates = useMemo(() => collectBodyImages(content), [content]);
     const summaryPlaceholder = useMemo(() => extractPlainText(content, SUMMARY_PREVIEW_LENGTH), [content]);
 
-    const draftData = useMemo(() => ({ title, summary, content, imageUrl }), [title, summary, content, imageUrl]);
+    const draftData = useMemo(
+        () => ({ title, summary, content, imageUrl, category, tags }),
+        [title, summary, content, imageUrl, category, tags],
+    );
     const [initialSnapshot] = useState(() => draftSignature(draftData));
     const {
         pendingDraft,
@@ -147,6 +157,9 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         setSummary(draft.summary);
         setContent(draft.content);
         setImageUrl(draft.imageUrl);
+        // Drafts saved before categories existed have neither field.
+        setCategory(normalizeCategory(draft.category));
+        setTags(normalizeTags(draft.tags));
     };
 
     // Writers often arrive from a shared link (e.g. a DM); "back" would leave the site, so fall back to the list.
@@ -184,6 +197,8 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         formData.append("summary", summary);
         formData.append("content", contentString);
         formData.append("imageUrl", imageUrl || "");
+        formData.append("category", category ?? "");
+        formData.append("tags", JSON.stringify(tags));
 
         try {
             if (isEditMode && initialData) {
@@ -253,6 +268,10 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                 onImageUrlChange={setImageUrl}
                 onUploadImage={handleCoverUpload}
                 uploading={uploading}
+                category={category}
+                onCategoryChange={setCategory}
+                tags={tags}
+                onTagsChange={setTags}
                 summary={summary}
                 onSummaryChange={setSummary}
                 summaryPlaceholder={summaryPlaceholder}

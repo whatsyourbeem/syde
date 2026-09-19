@@ -6,8 +6,19 @@ import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe } from "@/lib/server-utils";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
+import { normalizeCategory, normalizeTags } from "@/lib/insight-categories";
 
 const SUMMARY_FALLBACK_LENGTH = 120;
+
+// Tags travel as a JSON array in FormData; anything malformed just means "no tags".
+function parseTags(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    return normalizeTags(JSON.parse(raw));
+  } catch {
+    return [];
+  }
+}
 
 // Writers may leave the one-liner empty; derive it from the body so cards, search and share previews still have text.
 function resolveSummary(summary: string | null, content: string | null): string | null {
@@ -30,6 +41,8 @@ export const createInsight = withAuth(
         summary: resolveSummary(summary, content),
         content: content ? JSON.parse(content) : null,
         image_url: imageUrl || null,
+        category: normalizeCategory(formData.get("category")),
+        tags: parseTags(formData.get("tags") as string | null),
       })
       .select("id, slug")
       .single();
@@ -57,6 +70,8 @@ export const updateInsight = withAuth(
         summary: resolveSummary(summary, content),
         content: content ? JSON.parse(content) : null,
         image_url: imageUrl || null,
+        category: normalizeCategory(formData.get("category")),
+        tags: parseTags(formData.get("tags") as string | null),
         // slug은 최초 생성 후 변경하지 않음 (외부 공유 URL 보호)
       })
       .eq("id", id)

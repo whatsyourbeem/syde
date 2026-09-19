@@ -69,16 +69,16 @@ export function EditorWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPu
             {lastSavedAt ? (
               <>
                 <Check size={13} className="text-emerald-600" />
-                임시저장됨 {format(lastSavedAt, "HH:mm")}
+                이 기기에 저장됨 {format(lastSavedAt, "HH:mm")}
               </>
             ) : (
-              "작성 내용은 자동 저장돼요"
+              "작성 내용은 이 기기에 자동 저장돼요"
             )}
           </span>
           {/* Narrow screens: icon-only save state so the publish button keeps its room. */}
           <span
             className="sm:hidden flex items-center text-[12px] text-[#888]"
-            aria-label={lastSavedAt ? `임시저장됨 ${format(lastSavedAt, "HH:mm")}` : "자동 저장"}
+            aria-label={lastSavedAt ? `이 기기에 저장됨 ${format(lastSavedAt, "HH:mm")}` : "이 기기에 자동 저장"}
           >
             {lastSavedAt && (
               <>

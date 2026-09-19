@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import RichContent from "@/components/common/rich-content";
+import { getCategoryLabel } from "@/lib/insight-categories";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { formatDistanceToNow } from "date-fns";
@@ -249,6 +250,9 @@ export default function InsightDetailClient({
                             <div className="p-3 flex flex-col gap-[5px] items-center text-center">
                                 {/* Title & Summary */}
                                 <div className="flex flex-col gap-[5px]">
+                                    {getCategoryLabel(insight.category) && (
+                                        <span className="text-[13px] font-semibold text-sydeblue">{getCategoryLabel(insight.category)}</span>
+                                    )}
                                     <h3 className="text-[30px] md:text-[40px] leading-[1.3] font-bold text-black h-auto line-clamp-none">
                                         {insight.title}
                                     </h3>
@@ -286,6 +290,15 @@ export default function InsightDetailClient({
                     {/* Same 768px column as the writing form, so posts read the way they were written. */}
                     <div className="px-1 text-black w-full max-w-3xl mx-auto">
                         <RichContent html={initialHtml ?? ""} />
+                        {Array.isArray(insight.tags) && insight.tags.length > 0 && (
+                            <ul className="mt-10 flex flex-wrap gap-2">
+                                {insight.tags.map((tag: string) => (
+                                    <li key={tag} className="rounded-full bg-sydeblue/10 px-3 py-1 text-[13px] text-sydeblue">
+                                        #{tag}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </section>
 

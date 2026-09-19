@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { Check, ImagePlus, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Check, ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,13 @@ import {
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
+import {
+  INSIGHT_CATEGORIES,
+  MAX_INSIGHT_TAGS,
+  MAX_INSIGHT_TAG_LENGTH,
+  normalizeTags,
+  type InsightCategory,
+} from "@/lib/insight-categories";
 
 interface InsightPublishSheetProps {
   open: boolean;
@@ -32,6 +39,10 @@ interface InsightPublishSheetProps {
   onImageUrlChange: (url: string) => void;
   onUploadImage: (file: File) => Promise<void>;
   uploading: boolean;
+  category: InsightCategory | null;
+  onCategoryChange: (category: InsightCategory | null) => void;
+  tags: string[];
+  onTagsChange: (tags: string[]) => void;
   summary: string;
   onSummaryChange: (summary: string) => void;
   /** Auto-generated one-liner, previewed while the field is empty. */
@@ -50,12 +61,25 @@ function SheetBody({
   onImageUrlChange,
   onUploadImage,
   uploading,
+  category,
+  onCategoryChange,
+  tags,
+  onTagsChange,
   summary,
   onSummaryChange,
   summaryPlaceholder,
   layout,
 }: SheetBodyProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tagDraft, setTagDraft] = useState("");
+
+  // Commits whatever is typed as tags; a pasted "a, b" or a trailing comma adds several at once.
+  const commitTags = (raw: string) => {
+    const typed = raw.split(",");
+    if (typed.every((part) => !part.trim())) return;
+    onTagsChange(normalizeTags([...tags, ...typed]));
+    setTagDraft("");
+  };
   // A cover uploaded directly isn't in the body, so it needs its own tile to stay visible and selectable.
   const tiles = imageUrl && !imageCandidates.includes(imageUrl) ? [imageUrl, ...imageCandidates] : imageCandidates;
 
@@ -130,6 +154,79 @@ function SheetBody({
         {imageCandidates.length === 0 && !imageUrl && (
           <p className="text-[12px] text-[#999999]">본문에 이미지를 넣으면 여기서 고를 수 있어요.</p>
         )}
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h3 className="text-[14px] font-medium text-sydeblue">
+          카테고리 <span className="font-normal text-[#999999]">(선택)</span>
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {INSIGHT_CATEGORIES.map(({ code, label }) => {
+            const selected = category === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                aria-pressed={selected}
+                // Pressing the chosen chip again clears it: a category is never forced.
+                onClick={() => onCategoryChange(selected ? null : code)}
+                className={cn(
+                  "h-10 rounded-full border px-4 text-[14px] transition-colors md:h-9",
+                  selected
+                    ? "border-sydeblue bg-sydeblue text-white"
+                    : "border-[#E5E5E5] text-[#555] hover:bg-slate-50",
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <label htmlFor="insight-tags" className="text-[14px] font-medium text-sydeblue">
+          태그 <span className="font-normal text-[#999999]">(선택, 최대 {MAX_INSIGHT_TAGS}개)</span>
+        </label>
+        <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-[10px] border-[0.5px] border-[#B7B7B7] px-2 py-1.5 transition-all focus-within:ring-1 focus-within:ring-sydeblue">
+          {tags.map((tag) => (
+            <span key={tag} className="flex h-8 items-center gap-1 rounded-full bg-sydeblue/10 pl-3 pr-1.5 text-[13px] text-sydeblue">
+              #{tag}
+              <button
+                type="button"
+                aria-label={`${tag} 태그 삭제`}
+                onClick={() => onTagsChange(tags.filter((t) => t !== tag))}
+                className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-sydeblue/10"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+          {tags.length < MAX_INSIGHT_TAGS && (
+            <input
+              id="insight-tags"
+              value={tagDraft}
+              maxLength={MAX_INSIGHT_TAG_LENGTH}
+              onChange={(e) => {
+                // A comma ends the tag, like Enter.
+                if (e.target.value.includes(",")) commitTags(e.target.value);
+                else setTagDraft(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitTags(tagDraft);
+                } else if (e.key === "Backspace" && !tagDraft && tags.length > 0) {
+                  onTagsChange(tags.slice(0, -1));
+                }
+              }}
+              onBlur={() => commitTags(tagDraft)}
+              placeholder={tags.length === 0 ? "Enter로 태그 추가" : ""}
+              className="h-8 min-w-[120px] flex-1 bg-transparent px-1 text-[16px] outline-none placeholder:text-[#999] md:text-[14px]"
+            />
+          )}
+        </div>
       </section>
 
       <section className="flex flex-col gap-1">

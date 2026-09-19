@@ -488,36 +488,42 @@ export type Database = {
       }
       insights: {
         Row: {
+          category: string | null
           content: string
           created_at: string
           id: string
           image_url: string | null
           slug: string | null
           summary: string | null
+          tags: string[]
           title: string
           updated_at: string
           user_id: string
           views: number
         }
         Insert: {
+          category?: string | null
           content: string
           created_at?: string
           id?: string
           image_url?: string | null
           slug?: string | null
           summary?: string | null
+          tags?: string[]
           title: string
           updated_at?: string
           user_id: string
           views?: number
         }
         Update: {
+          category?: string | null
           content?: string
           created_at?: string
           id?: string
           image_url?: string | null
           slug?: string | null
           summary?: string | null
+          tags?: string[]
           title?: string
           updated_at?: string
           user_id?: string
