@@ -48,6 +48,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
+  // The site is designed light-only; without this, browsers on a dark OS theme draw dark scrollbars and form controls.
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
