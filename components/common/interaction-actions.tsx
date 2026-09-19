@@ -117,7 +117,7 @@ function InteractionActionsBase({
                 {showShare && (
                     <ShareButton
                         url={shareUrl}
-                        title={shareTitle || (type === "log" ? "SYDE Log" : "SYDE Insight")}
+                        title={shareTitle || (type === "log" ? "SYDE Log" : "SYDE Blog")}
                         iconSize={18}
                     />
                 )}

@@ -1,27 +1,27 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
-import InsightDetailClient from "@/components/insight/insight-detail-client";
-import { getAuthorRecentInsights, getInsightDetailCached } from "@/lib/queries/insight-queries";
+import BlogDetailClient from "@/components/blog/blog-detail-client";
+import { getAuthorRecentBlogPosts, getBlogPostDetailCached } from "@/lib/queries/blog-queries";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
-interface InsightDetailPageProps {
+interface BlogDetailPageProps {
     params: Promise<{
         id: string;
     }>;
 }
 
 export async function generateMetadata(
-    { params }: InsightDetailPageProps,
+    { params }: BlogDetailPageProps,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     const rawParams = await params;
     const id = decodeURIComponent(rawParams.id);
     const supabase = await createClient();
 
-    const insight = await getInsightDetailCached(supabase, id);
+    const insight = await getBlogPostDetailCached(supabase, id);
 
     if (!insight) {
         return { title: "글을 찾을 수 없어요 - SYDE 블로그" };
@@ -69,13 +69,13 @@ export async function generateMetadata(
 
 import { getRenderedArticle } from "@/components/common/tiptap-server-extensions";
 
-export default async function InsightDetailPage({ params }: InsightDetailPageProps) {
+export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     const rawParams = await params;
     const id = decodeURIComponent(rawParams.id);
     const supabase = await createClient();
 
     // Fetch Insight
-    const insight = await getInsightDetailCached(supabase, id);
+    const insight = await getBlogPostDetailCached(supabase, id);
 
     if (!insight) {
         return (
@@ -94,13 +94,13 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
 
     // None of these depend on each other, so fetch them together.
     const [
-        authorRecentInsights,
+        authorRecentPosts,
         { data: comments },
         { count: likesCount },
         { count: bookmarksCount },
         { data: { user } },
     ] = await Promise.all([
-        getAuthorRecentInsights(supabase, insight.user_id, insight.id),
+        getAuthorRecentBlogPosts(supabase, insight.user_id, insight.id),
         supabase
             .from("insight_comments")
             .select(`
@@ -187,12 +187,12 @@ export default async function InsightDetailPage({ params }: InsightDetailPagePro
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <InsightDetailClient
+            <BlogDetailClient
                 id={insight.id}
-                initialInsight={insight}
+                initialPost={insight}
                 initialHtml={initialHtml}
                 toc={toc}
-                authorRecentInsights={authorRecentInsights}
+                authorRecentPosts={authorRecentPosts}
                 initialComments={comments || []}
                 initialStats={stats}
                 initialIsLiked={isLiked}

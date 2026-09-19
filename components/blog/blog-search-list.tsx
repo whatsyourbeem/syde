@@ -3,33 +3,33 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
-import { InsightCard } from './insight-card';
+import { BlogCard } from './blog-card';
 import { Button } from '@/components/ui/button';
-import { getInsightsList } from '@/lib/queries/insight-queries';
+import { getBlogPostsList } from '@/lib/queries/blog-queries';
 
-import { insightKeys } from '@/lib/queries/query-keys';
+import { blogKeys } from '@/lib/queries/query-keys';
 
 const ITEMS_PER_PAGE = 12;
 
-interface InsightSearchListProps {
+interface BlogSearchListProps {
   searchQuery: string;
 }
 
-export function InsightSearchList({ searchQuery }: InsightSearchListProps) {
+export function BlogSearchList({ searchQuery }: BlogSearchListProps) {
   const supabase = createClient();
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: insightKeys.list({ searchQuery, currentPage }),
+    queryKey: blogKeys.list({ searchQuery, currentPage }),
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { insights: insightsData, count } = await getInsightsList(supabase, {
+      const { insights: postsData, count } = await getBlogPostsList(supabase, {
         currentPage,
         itemsPerPage: ITEMS_PER_PAGE,
         searchQuery,
       });
 
-      const formattedInsights = (insightsData || []).map((item: any) => ({
+      const formattedPosts = (postsData || []).map((item: any) => ({
         id: item.id,
         slug: item.slug,
         title: item.title,
@@ -56,7 +56,7 @@ export function InsightSearchList({ searchQuery }: InsightSearchListProps) {
       }));
 
       return {
-        insights: formattedInsights,
+        insights: formattedPosts,
         count: count || 0,
       };
     },
@@ -75,7 +75,7 @@ export function InsightSearchList({ searchQuery }: InsightSearchListProps) {
       ) : (
         <div className="flex w-full flex-col divide-y divide-[#F0F0F0]">
           {data?.insights.map((insight) => (
-            <InsightCard key={insight.id} {...insight} />
+            <BlogCard key={insight.id} {...insight} />
           ))}
         </div>
       )}

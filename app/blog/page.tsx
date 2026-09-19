@@ -1,10 +1,10 @@
 import React from "react";
 import { createClient } from "@/lib/supabase/server";
-import { InsightFeed } from "@/components/insight/insight-feed";
-import { fetchInsightsAction } from "@/app/blog/insight-data-actions";
+import { BlogFeed } from "@/components/blog/blog-feed";
+import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
 const ITEMS_PER_PAGE = 18;
 
-export default async function InsightPage() {
+export default async function BlogPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -12,7 +12,7 @@ export default async function InsightPage() {
     ? await supabase.from("profiles").select("avatar_url, full_name, username").eq("id", user.id).single()
     : { data: null };
 
-  const initialInsights = await fetchInsightsAction({
+  const initialPosts = await fetchBlogPostsAction({
     currentPage: 1,
     itemsPerPage: ITEMS_PER_PAGE,
     currentUserId: user?.id || null,
@@ -33,8 +33,8 @@ export default async function InsightPage() {
       </div>
 
       {/* Main Content (Client Component Feed) */}
-      <InsightFeed
-        initialInsights={initialInsights}
+      <BlogFeed
+        initialPosts={initialPosts}
         currentUserId={user?.id || null}
         currentUser={profile ? { name: profile.full_name || profile.username || "", avatarUrl: profile.avatar_url } : null}
       />

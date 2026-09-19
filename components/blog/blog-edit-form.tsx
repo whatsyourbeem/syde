@@ -11,11 +11,11 @@ import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
 import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 import { isTiptapContentEmpty } from "@/lib/tiptap-content";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
-import { normalizeCategory, normalizeTags, type InsightCategory } from "@/lib/insight-categories";
-import { InsightPublishSheet } from "@/components/insight/insight-publish-sheet";
+import { normalizeCategory, normalizeTags, type BlogCategory } from "@/lib/blog-categories";
+import { BlogPublishSheet } from "@/components/blog/blog-publish-sheet";
 import dynamic from "next/dynamic";
 import { JSONContent } from "@tiptap/react";
-import { createInsight, updateInsight } from "@/app/blog/insight-actions";
+import { createBlogPost, updateBlogPost } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 const TiptapEditorWrapper = dynamic(
@@ -41,7 +41,7 @@ interface DraftData {
     summary: string;
     content: JSONContent | string;
     imageUrl: string;
-    category: InsightCategory | null;
+    category: BlogCategory | null;
     tags: string[];
 }
 
@@ -70,7 +70,7 @@ function collectBodyImages(content: JSONContent | string): string[] {
     return [...found];
 }
 
-interface InsightEditFormProps {
+interface BlogEditFormProps {
     initialData?: {
         id: string;
         title: string;
@@ -84,7 +84,7 @@ interface InsightEditFormProps {
     } | null;
 }
 
-export default function InsightEditForm({ initialData }: InsightEditFormProps) {
+export default function BlogEditForm({ initialData }: BlogEditFormProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
     const isEditMode = !!initialData;
@@ -108,7 +108,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
     const [summary, setSummary] = useState(initialData?.summary || "");
     const [content, setContent] = useState<JSONContent | string>(getInitialContent());
     const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
-    const [category, setCategory] = useState<InsightCategory | null>(normalizeCategory(initialData?.category));
+    const [category, setCategory] = useState<BlogCategory | null>(normalizeCategory(initialData?.category));
     const [tags, setTags] = useState<string[]>(normalizeTags(initialData?.tags));
     const [errors, setErrors] = useState<FieldErrors>({});
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -203,7 +203,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
         try {
             if (isEditMode && initialData) {
                 formData.append("id", initialData.id);
-                const result = await updateInsight(formData);
+                const result = await updateBlogPost(formData);
                 if (!result.success) {
                     toast.error(`수정 실패: ${result.error.message}`);
                 } else {
@@ -213,7 +213,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     router.push(`/blog/${initialData.slug || initialData.id}`);
                 }
             } else {
-                const result = await createInsight(formData);
+                const result = await createBlogPost(formData);
                 if (!result.success) {
                     toast.error(`발행 실패: ${result.error.message}`);
                 } else {
@@ -259,7 +259,7 @@ export default function InsightEditForm({ initialData }: InsightEditFormProps) {
                     content={content}
                 />
             )}
-            <InsightPublishSheet
+            <BlogPublishSheet
                 open={publishOpen}
                 onOpenChange={setPublishOpen}
                 isEditMode={isEditMode}

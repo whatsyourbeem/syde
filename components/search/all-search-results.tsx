@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { ShowcaseThumbnail } from '@/components/showcase/showcase-thumbnail';
-import { InsightThumbnail } from '@/components/insight/insight-thumbnail';
+import { BlogThumbnail } from '@/components/blog/blog-thumbnail';
 
 
 function formatDate(dateString: string) {
@@ -57,7 +57,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
       const escaped = searchQuery.replace(/"/g, '\\"');
       const q = `%${escaped}%`;
 
-      const [logsRes, usersRes, clubsRes, meetupsRes, insightsRes, showcasesRes] = await Promise.all([
+      const [logsRes, usersRes, clubsRes, meetupsRes, blogRes, showcasesRes] = await Promise.all([
         // Logs
         supabase
           .from('logs')
@@ -109,7 +109,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
         users: usersRes.data || [],
         clubs: clubsRes.data || [],
         meetups: meetupsRes.data || [],
-        insights: insightsRes.data || [],
+        insights: blogRes.data || [],
         showcases: showcasesRes.data || [],
       };
     },
@@ -261,7 +261,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                   href={`/blog/${insight.id}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
-                  <InsightThumbnail
+                  <BlogThumbnail
                     src={insight.image_url}
                     alt={insight.title}
                     containerClassName="w-16 h-16 shrink-0 rounded-lg"

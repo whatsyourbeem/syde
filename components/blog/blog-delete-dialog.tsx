@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-interface InsightDeleteDialogProps {
+interface BlogDeleteDialogProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
@@ -20,14 +20,14 @@ interface InsightDeleteDialogProps {
     description?: string;
 }
 
-export function InsightDeleteDialog({
+export function BlogDeleteDialog({
     isOpen,
     onClose,
     onConfirm,
     loading = false,
     title = "잠깐! 정말 이 글을 삭제하실 건가요?",
     description = "삭제 후에는 되돌릴 수 없어요.",
-}: InsightDeleteDialogProps) {
+}: BlogDeleteDialogProps) {
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[337px] p-[25px] gap-4 rounded-[10px] border-[0.909091px] border-black/10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]">

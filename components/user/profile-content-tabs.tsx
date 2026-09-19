@@ -5,7 +5,7 @@ import { UserActivityLogList } from "@/components/user/user-activity-log-list";
 import BioEditor from "@/components/user/bio-editor";
 import { FeedList } from "@/components/feed/feed-list";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
-import { InsightList } from "@/components/insight/insight-list";
+import { BlogList } from "@/components/blog/blog-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { UserShowcaseList } from "@/components/user/user-showcase-list";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
@@ -287,7 +287,7 @@ export function ProfileContentTabs({
               />
             )}
             {activeSubTab === "insight" && (
-              <InsightList 
+              <BlogList 
                 currentUserId={currentUserId}
                 userId={profile.id}
                 showInteractions={false}

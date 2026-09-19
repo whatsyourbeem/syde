@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteActivity } from "@/app/feed/activity-actions";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
-import { InsightThumbnail } from "@/components/insight/insight-thumbnail";
+import { BlogThumbnail } from "@/components/blog/blog-thumbnail";
 
 interface ActivityCardProps {
   activity: ActivityFeedItem;
@@ -121,9 +121,9 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
       const { insight } = details;
       return (
         <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pr-3">
-          <InsightThumbnail
+          <BlogThumbnail
             src={insight.image_url}
-            alt="Insight thumbnail"
+            alt="Blog thumbnail"
             containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
           />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">

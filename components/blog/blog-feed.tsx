@@ -6,19 +6,19 @@ import { useRouter } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { InsightCard } from "@/components/insight/insight-card";
+import { BlogCard } from "@/components/blog/blog-card";
 import { useLoginDialog } from "@/context/LoginDialogContext";
-import { fetchInsightsAction, InsightQueryResult } from "@/app/blog/insight-data-actions";
+import { fetchBlogPostsAction, BlogPostQueryResult } from "@/app/blog/blog-data-actions";
 
 const ITEMS_PER_PAGE = 18;
 
-interface InsightFeedProps {
-  initialInsights: InsightQueryResult;
+interface BlogFeedProps {
+  initialPosts: BlogPostQueryResult;
   currentUserId: string | null;
   currentUser: { name: string; avatarUrl: string | null } | null;
 }
 
-export function InsightFeed({ initialInsights, currentUserId, currentUser }: InsightFeedProps) {
+export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedProps) {
   const router = useRouter();
   const { openLoginDialog } = useLoginDialog();
 
@@ -35,7 +35,7 @@ export function InsightFeed({ initialInsights, currentUserId, currentUser }: Ins
   } = useInfiniteQuery({
     queryKey: ["insights", "feed"],
     queryFn: ({ pageParam = 1 }) =>
-      fetchInsightsAction({
+      fetchBlogPostsAction({
         currentPage: pageParam,
         itemsPerPage: ITEMS_PER_PAGE,
         currentUserId,
@@ -48,13 +48,13 @@ export function InsightFeed({ initialInsights, currentUserId, currentUser }: Ins
       return undefined;
     },
     initialData: {
-      pages: [initialInsights],
+      pages: [initialPosts],
       pageParams: [1],
     },
     staleTime: 0,
   });
 
-  const allInsights = data?.pages.flatMap((page) => page.insights) || [];
+  const allPosts = data?.pages.flatMap((page) => page.insights) || [];
 
   return (
     <div className="flex-1 w-full max-w-6xl mx-auto px-3 md:px-0 py-[6px] md:py-8">
@@ -71,11 +71,11 @@ export function InsightFeed({ initialInsights, currentUserId, currentUser }: Ins
         <span className="text-[14px] md:text-[15px] text-[#777777]">오늘 만들면서 있었던 일, 편하게 적어보세요</span>
       </button>
 
-      {allInsights.length > 0 ? (
+      {allPosts.length > 0 ? (
         <div className="flex flex-col items-center">
           <div className="flex w-full max-w-3xl mx-auto flex-col divide-y divide-[#F0F0F0]">
-            {allInsights.map((insight) => (
-              <InsightCard key={insight.id} {...insight} />
+            {allPosts.map((insight) => (
+              <BlogCard key={insight.id} {...insight} />
             ))}
           </div>
           {hasNextPage && (

@@ -14,6 +14,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function InsightLayout({ children }: { children: React.ReactNode }) {
+export default function BlogLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

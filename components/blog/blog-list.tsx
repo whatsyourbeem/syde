@@ -4,36 +4,36 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { InsightCard } from "./insight-card";
+import { BlogCard } from "./blog-card";
 import { Button } from "@/components/ui/button";
 import { CenteredLoading } from "@/components/ui/loading-states";
 
-import { getInsightsList } from "@/lib/queries/insight-queries";
+import { getBlogPostsList } from "@/lib/queries/blog-queries";
 
-import { insightKeys } from "@/lib/queries/query-keys";
+import { blogKeys } from "@/lib/queries/query-keys";
 
 const ITEMS_PER_PAGE = 12;
 
-interface InsightListProps {
+interface BlogListProps {
   currentUserId: string | null;
   userId: string;
   showInteractions?: boolean;
 }
 
-export function InsightList({ currentUserId, userId, showInteractions = true }: InsightListProps) {
+export function BlogList({ currentUserId, userId, showInteractions = true }: BlogListProps) {
   const supabase = createClient();
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: insightKeys.list({ userId, currentPage }),
+    queryKey: blogKeys.list({ userId, currentPage }),
     queryFn: async () => {
-      const { insights: insightsData, count } = await getInsightsList(supabase, {
+      const { insights: postsData, count } = await getBlogPostsList(supabase, {
         currentPage,
         itemsPerPage: ITEMS_PER_PAGE,
         userId,
       });
 
-      const formattedInsights = (insightsData || []).map((item: any) => ({
+      const formattedPosts = (postsData || []).map((item: any) => ({
         id: item.id,
         slug: item.slug,
         title: item.title,
@@ -60,7 +60,7 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
       }));
 
       return {
-        insights: formattedInsights,
+        insights: formattedPosts,
         count: count || 0,
       };
     },
@@ -86,7 +86,7 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
       ) : (
         <div className="flex w-full flex-col divide-y divide-[#F0F0F0] px-4 md:px-0">
           {data?.insights.map((insight) => (
-            <InsightCard key={insight.id} {...insight} showInteractions={showInteractions} />
+            <BlogCard key={insight.id} {...insight} showInteractions={showInteractions} />
           ))}
         </div>
       )}

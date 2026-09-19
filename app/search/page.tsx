@@ -7,7 +7,7 @@ import { FeedListWrapper } from "@/components/feed/feed-list-wrapper";
 import { UserList } from "@/components/user/user-list";
 import { ClubSearchList } from "@/components/club/club-search-list";
 import { MeetupSearchList } from "@/components/meetup/meetup-search-list";
-import { InsightSearchList } from "@/components/insight/insight-search-list";
+import { BlogSearchList } from "@/components/blog/blog-search-list";
 import { ShowcaseSearchList } from "@/components/showcase/showcase-search-list";
 import { AllSearchResults } from "@/components/search/all-search-results";
 import { normalizeSearchTab } from "@/lib/search-tab";
@@ -71,7 +71,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       case "meetups":
         return <MeetupSearchList searchQuery={q} />;
       case "blog":
-        return <InsightSearchList searchQuery={q} />;
+        return <BlogSearchList searchQuery={q} />;
       case "showcase":
         return <ShowcaseSearchList searchQuery={q} />;
       default:

@@ -10,9 +10,9 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
 import { Eye, HeartIcon } from "lucide-react";
-import { InsightThumbnail } from "./insight-thumbnail";
+import { BlogThumbnail } from "./blog-thumbnail";
 
-export interface InsightCardProps {
+export interface BlogCardProps {
     id: string;
     slug?: string;
     title: string;
@@ -39,10 +39,10 @@ export interface InsightCardProps {
     showInteractions?: boolean;
 }
 
-import { toggleInsightLike } from "@/app/blog/insight-actions";
+import { toggleBlogPostLike } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
-export function InsightCard({
+export function BlogCard({
     id,
     slug,
     title,
@@ -54,7 +54,7 @@ export function InsightCard({
     initialStatus,
     currentUserId,
     showInteractions = true,
-}: InsightCardProps) {
+}: BlogCardProps) {
     const { openLoginDialog } = useLoginDialog();
     const queryClient = useQueryClient();
     const [stats, setStats] = useState(initialStats);
@@ -80,7 +80,7 @@ export function InsightCard({
         setStatus(prev => ({ ...prev, hasLiked: !isLiked }));
 
         try {
-            await toggleInsightLike(id, isLiked);
+            await toggleBlogPostLike(id, isLiked);
             queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
             toast.error("좋아요 처리 중 오류가 발생했습니다.");
@@ -151,7 +151,7 @@ export function InsightCard({
 
             {imageUrl && (
                 <Link href={href} tabIndex={-1} aria-hidden className="shrink-0 focus:outline-none">
-                    <InsightThumbnail
+                    <BlogThumbnail
                         src={imageUrl}
                         alt={title}
                         containerClassName="size-[88px] md:size-[120px] rounded-[10px]"

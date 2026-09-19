@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-interface InsightThumbnailProps {
+interface BlogThumbnailProps {
   src?: string | null;
   alt: string;
   fill?: boolean;
@@ -16,7 +16,7 @@ interface InsightThumbnailProps {
   hideWhenEmpty?: boolean;
 }
 
-export function InsightThumbnail({
+export function BlogThumbnail({
   src,
   alt,
   fill = true,
@@ -26,15 +26,15 @@ export function InsightThumbnail({
   containerClassName,
   unoptimized = true,
   hideWhenEmpty = false,
-}: InsightThumbnailProps) {
+}: BlogThumbnailProps) {
   if (hideWhenEmpty && !src) return null;
-  const imageUrl = src || "/default_insight_thumbnail.png";
+  const imageUrl = src || "/default_blog_thumbnail.png";
 
   return (
     <div className={cn("relative overflow-hidden bg-[#222E35]", containerClassName)}>
       <Image
         src={imageUrl}
-        alt={alt || "Insight Thumbnail"}
+        alt={alt || "Blog Thumbnail"}
         fill={fill}
         width={!fill ? width : undefined}
         height={!fill ? height : undefined}

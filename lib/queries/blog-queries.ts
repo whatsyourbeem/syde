@@ -5,7 +5,7 @@ import { unstable_cache } from "next/cache";
 /**
  * Delete an insight by ID
  */
-export async function deleteInsight(
+export async function deleteBlogPost(
   supabase: SupabaseClient<Database>,
   insightId: string
 ): Promise<void> {
@@ -20,7 +20,7 @@ export async function deleteInsight(
 /**
  * Remove a like from an insight
  */
-export async function deleteInsightLike(
+export async function deleteBlogPostLike(
   supabase: SupabaseClient<Database>,
   insightId: string,
   userId: string
@@ -37,7 +37,7 @@ export async function deleteInsightLike(
 /**
  * Add a like to an insight
  */
-export async function insertInsightLike(
+export async function insertBlogPostLike(
   supabase: SupabaseClient<Database>,
   insightId: string,
   userId: string
@@ -52,7 +52,7 @@ export async function insertInsightLike(
 /**
  * Remove a bookmark from an insight
  */
-export async function deleteInsightBookmark(
+export async function deleteBlogPostBookmark(
   supabase: SupabaseClient<Database>,
   insightId: string,
   userId: string
@@ -69,7 +69,7 @@ export async function deleteInsightBookmark(
 /**
  * Add a bookmark to an insight
  */
-export async function insertInsightBookmark(
+export async function insertBlogPostBookmark(
   supabase: SupabaseClient<Database>,
   insightId: string,
   userId: string
@@ -81,14 +81,14 @@ export async function insertInsightBookmark(
   if (error) throw error;
 }
 
-export interface InsightsListOptions {
+export interface BlogPostsListOptions {
   currentPage: number;
   itemsPerPage: number;
   userId?: string;
   searchQuery?: string;
 }
 
-export interface InsightsListResult {
+export interface BlogPostsListResult {
   insights: any[];
   count: number;
 }
@@ -96,10 +96,10 @@ export interface InsightsListResult {
 /**
  * Fetch insights list with optional user ID filter and search query
  */
-export async function getInsightsList(
+export async function getBlogPostsList(
   supabase: SupabaseClient<Database>,
-  { currentPage, itemsPerPage, userId, searchQuery }: InsightsListOptions
-): Promise<InsightsListResult> {
+  { currentPage, itemsPerPage, userId, searchQuery }: BlogPostsListOptions
+): Promise<BlogPostsListResult> {
   const from = (currentPage - 1) * itemsPerPage;
   const to = from + itemsPerPage - 1;
 
@@ -136,7 +136,7 @@ export async function getInsightsList(
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
-export async function getInsightDetail(
+export async function getBlogPostDetail(
   supabase: SupabaseClient<Database>,
   idOrSlug: string
 ) {
@@ -167,7 +167,7 @@ export async function getInsightDetail(
  * Latest posts by one author, newest first, leaving out the post currently being read.
  * This is a nicety under the post, so a failed lookup yields an empty list rather than breaking the page.
  */
-export async function getAuthorRecentInsights(
+export async function getAuthorRecentBlogPosts(
   supabase: SupabaseClient<Database>,
   userId: string,
   excludeId: string,
@@ -188,7 +188,7 @@ export async function getAuthorRecentInsights(
   return data || [];
 }
 
-export async function getInsightIdBySlug(
+export async function getBlogPostIdBySlug(
   supabase: SupabaseClient<Database>,
   slug: string
 ): Promise<string | null> {
@@ -202,13 +202,13 @@ export async function getInsightIdBySlug(
   return data.id;
 }
 
-export const getInsightIdBySlugCached = (
+export const getBlogPostIdBySlugCached = (
   supabase: SupabaseClient<Database>,
   slug: string
 ) => {
   return unstable_cache(
     async () => {
-      return getInsightIdBySlug(supabase, slug);
+      return getBlogPostIdBySlug(supabase, slug);
     },
     ["insight-id-by-slug", slug],
     {
@@ -218,20 +218,20 @@ export const getInsightIdBySlugCached = (
   )();
 };
 
-export const getInsightDetailCached = async (
+export const getBlogPostDetailCached = async (
   supabase: SupabaseClient<Database>,
   idOrSlug: string
 ) => {
   let actualId = idOrSlug;
   if (!isUUID(idOrSlug)) {
-    const resolvedId = await getInsightIdBySlugCached(supabase, idOrSlug);
+    const resolvedId = await getBlogPostIdBySlugCached(supabase, idOrSlug);
     if (!resolvedId) return null;
     actualId = resolvedId;
   }
 
   return unstable_cache(
     async () => {
-      return getInsightDetail(supabase, actualId);
+      return getBlogPostDetail(supabase, actualId);
     },
     ["insight-detail-by-id", actualId],
     {

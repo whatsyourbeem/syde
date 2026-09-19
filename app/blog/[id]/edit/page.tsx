@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import InsightEditForm from "@/components/insight/insight-edit-form";
+import BlogEditForm from "@/components/blog/blog-edit-form";
 
-export default async function InsightEditPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BlogEditPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient();
     const { id } = await params;
 
@@ -27,7 +27,7 @@ export default async function InsightEditPage({ params }: { params: Promise<{ id
 
     return (
         <div className="bg-white min-h-screen">
-            <InsightEditForm initialData={insight} />
+            <BlogEditForm initialData={insight} />
         </div>
     );
 }

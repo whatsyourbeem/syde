@@ -16,12 +16,12 @@ import { CommentForm } from "@/components/comment/comment-form";
 import { CommentList } from "@/components/comment/comment-list";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { InsightDeleteDialog } from "@/components/insight/insight-delete-dialog";
+import { BlogDeleteDialog } from "@/components/blog/blog-delete-dialog";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import RichContent from "@/components/common/rich-content";
-import { getCategoryLabel } from "@/lib/insight-categories";
-import { ArticleToc } from "@/components/insight/article-toc";
-import { AuthorCard, type AuthorRecentInsight } from "@/components/insight/author-card";
+import { getCategoryLabel } from "@/lib/blog-categories";
+import { ArticleToc } from "@/components/blog/article-toc";
+import { AuthorCard, type AuthorRecentBlogPost } from "@/components/blog/author-card";
 import type { TocItem } from "@/components/common/tiptap-server-extensions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
@@ -33,17 +33,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InsightThumbnail } from "./insight-thumbnail";
-import { deleteInsight } from "@/lib/queries/insight-queries";
-import { toggleInsightLike, toggleInsightBookmark, incrementInsightViews } from "@/app/blog/insight-actions";
+import { BlogThumbnail } from "./blog-thumbnail";
+import { deleteBlogPost } from "@/lib/queries/blog-queries";
+import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
-interface InsightDetailClientProps {
+interface BlogDetailClientProps {
     id: string;
-    initialInsight: any;
+    initialPost: any;
     initialHtml?: string;
     toc?: TocItem[];
-    authorRecentInsights?: AuthorRecentInsight[];
+    authorRecentPosts?: AuthorRecentBlogPost[];
     initialComments: any[];
     initialStats: { likes: number; comments: number; bookmarks: number; views?: number };
     initialIsLiked: boolean;
@@ -51,22 +51,22 @@ interface InsightDetailClientProps {
     initialCurrentUserId: string | null;
 }
 
-export default function InsightDetailClient({
+export default function BlogDetailClient({
     id,
-    initialInsight,
+    initialPost,
     initialHtml,
     toc = [],
-    authorRecentInsights = [],
+    authorRecentPosts = [],
     initialComments,
     initialStats,
     initialIsLiked,
     initialIsBookmarked,
     initialCurrentUserId
-}: InsightDetailClientProps) {
+}: BlogDetailClientProps) {
     const supabase = createClient();
     const queryClient = useQueryClient();
 
-    const [insight, setInsight] = useState<any>(initialInsight);
+    const [insight, setInsight] = useState<any>(initialPost);
     const [stats, setStats] = useState(initialStats);
     const [viewsCount, setViewsCount] = useState(initialStats.views ?? 0);
     const [isLiked, setIsLiked] = useState(initialIsLiked);
@@ -96,7 +96,7 @@ export default function InsightDetailClient({
         const lastViewed = localStorage.getItem(key);
         const now = Date.now();
         if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
-            incrementInsightViews(id);
+            incrementBlogPostViews(id);
             localStorage.setItem(key, String(now));
             setViewsCount(prev => prev + 1);
         }
@@ -121,7 +121,7 @@ export default function InsightDetailClient({
     const confirmDelete = async () => {
         setDeleting(true);
         try {
-            await deleteInsight(supabase, id);
+            await deleteBlogPost(supabase, id);
 
             toast.success("글이 삭제됐어요");
             router.push("/blog");
@@ -153,7 +153,7 @@ export default function InsightDetailClient({
         setStats(prev => ({ ...prev, likes: isLiked ? Math.max(0, prev.likes - 1) : prev.likes + 1 }));
 
         try {
-            await toggleInsightLike(id, isLiked);
+            await toggleBlogPostLike(id, isLiked);
             queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
             setIsLiked(prevLiked);
@@ -179,7 +179,7 @@ export default function InsightDetailClient({
         setStats(prev => ({ ...prev, bookmarks: isBookmarked ? Math.max(0, prev.bookmarks - 1) : prev.bookmarks + 1 }));
 
         try {
-            await toggleInsightBookmark(id, isBookmarked);
+            await toggleBlogPostBookmark(id, isBookmarked);
             queryClient.invalidateQueries({ queryKey: ["insights"] });
         } catch (error) {
             setIsBookmarked(prevBookmarked);
@@ -241,7 +241,7 @@ export default function InsightDetailClient({
                                 ) : null}
                         </div>
 
-                        <InsightThumbnail
+                        <BlogThumbnail
                             hideWhenEmpty
                             src={insight.image_url}
                             alt={insight.title}
@@ -320,7 +320,7 @@ export default function InsightDetailClient({
                         tagline: insight.profiles?.tagline ?? null,
                         avatarUrl: insight.profiles?.avatar_url ?? null,
                     }}
-                    recentInsights={authorRecentInsights}
+                    recentPosts={authorRecentPosts}
                 />
 
                 <section className="w-full max-w-3xl mx-auto flex flex-col gap-6 pt-4 pb-10">
@@ -360,7 +360,7 @@ export default function InsightDetailClient({
                 </section>
             </main>
 
-            <InsightDeleteDialog
+            <BlogDeleteDialog
                 isOpen={isDeleteDialogOpen}
                 onClose={() => setIsDeleteDialogOpen(false)}
                 onConfirm={confirmDelete}

@@ -6,7 +6,7 @@ import { createSuccessResponse } from "@/lib/types/api";
 import { withAuth, validateRequired } from "@/lib/error-handler";
 import { revalidateTagSafe } from "@/lib/server-utils";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
-import { normalizeCategory, normalizeTags } from "@/lib/insight-categories";
+import { normalizeCategory, normalizeTags } from "@/lib/blog-categories";
 
 const SUMMARY_FALLBACK_LENGTH = 120;
 
@@ -25,7 +25,7 @@ function resolveSummary(summary: string | null, content: string | null): string 
   return summary?.trim() || extractPlainText(content, SUMMARY_FALLBACK_LENGTH) || null;
 }
 
-export const createInsight = withAuth(
+export const createBlogPost = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const title = validateRequired(formData.get("title") as string | null, "제목");
     const summary = formData.get("summary") as string | null;
@@ -55,7 +55,7 @@ export const createInsight = withAuth(
   }
 );
 
-export const updateInsight = withAuth(
+export const updateBlogPost = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const id = validateRequired(formData.get("id") as string | null, "글 ID");
     const title = validateRequired(formData.get("title") as string | null, "제목");
@@ -186,7 +186,7 @@ export const toggleCommentLike = withAuth(
   }
 );
 
-export const toggleInsightLike = withAuth(
+export const toggleBlogPostLike = withAuth(
   async ({ supabase, user }, insightId: string, currentlyLiked: boolean) => {
     if (currentlyLiked) {
       const { error } = await supabase
@@ -208,7 +208,7 @@ export const toggleInsightLike = withAuth(
   }
 );
 
-export const toggleInsightBookmark = withAuth(
+export const toggleBlogPostBookmark = withAuth(
   async ({ supabase, user }, insightId: string, currentlyBookmarked: boolean) => {
     if (currentlyBookmarked) {
       const { error } = await supabase
@@ -230,13 +230,13 @@ export const toggleInsightBookmark = withAuth(
   }
 );
 
-export async function revalidateInsightAction(insightId: string) {
+export async function revalidateBlogPostAction(insightId: string) {
   revalidatePath("/blog");
   revalidateTagSafe("insight-all");
   revalidateTagSafe(`insight-${insightId}`);
 }
 
-export async function incrementInsightViews(insightId: string): Promise<void> {
+export async function incrementBlogPostViews(insightId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const { error } = await supabase.rpc("increment_insight_views", { insight_id: insightId });

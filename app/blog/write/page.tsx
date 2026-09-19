@@ -1,9 +1,9 @@
 import React, { Suspense } from "react";
-import InsightEditForm from "@/components/insight/insight-edit-form";
+import BlogEditForm from "@/components/blog/blog-edit-form";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function InsightWritePage() {
+export default async function BlogWritePage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -13,7 +13,7 @@ export default async function InsightWritePage() {
 
     return (
         <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sydeblue"></div></div>}>
-            <InsightEditForm />
+            <BlogEditForm />
         </Suspense>
     );
 }

@@ -366,7 +366,7 @@ async function fetchActivityDetails(
     .filter(a => a.activity_type === "SHOWCASE_CREATED" && a.target_id)
     .map(a => a.target_id as string);
   
-  const insightIds = activities
+  const postIds = activities
     .filter(a => a.activity_type === "INSIGHT_CREATED" && a.target_id)
     .map(a => a.target_id as string);
   
@@ -378,8 +378,8 @@ async function fetchActivityDetails(
     showcaseIds.length > 0
       ? supabase.from("showcases").select("id, name, short_description, thumbnail_url, views_count, status").in("id", showcaseIds)
       : Promise.resolve({ data: [] }),
-    insightIds.length > 0
-      ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", insightIds)
+    postIds.length > 0
+      ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", postIds)
       : Promise.resolve({ data: [] }),
     meetupIds.length > 0
       ? supabase.from("meetups").select(`

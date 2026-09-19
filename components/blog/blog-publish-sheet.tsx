@@ -22,13 +22,13 @@ import {
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import {
-  INSIGHT_CATEGORIES,
-  MAX_INSIGHT_TAGS,
+  BLOG_CATEGORIES,
+  MAX_BLOG_TAGS,
   normalizeTags,
-  type InsightCategory,
-} from "@/lib/insight-categories";
+  type BlogCategory,
+} from "@/lib/blog-categories";
 
-interface InsightPublishSheetProps {
+interface BlogPublishSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isEditMode: boolean;
@@ -38,8 +38,8 @@ interface InsightPublishSheetProps {
   onImageUrlChange: (url: string) => void;
   onUploadImage: (file: File) => Promise<void>;
   uploading: boolean;
-  category: InsightCategory | null;
-  onCategoryChange: (category: InsightCategory | null) => void;
+  category: BlogCategory | null;
+  onCategoryChange: (category: BlogCategory | null) => void;
   tags: string[];
   onTagsChange: (tags: string[]) => void;
   summary: string;
@@ -50,7 +50,7 @@ interface InsightPublishSheetProps {
   onConfirm: () => void;
 }
 
-interface SheetBodyProps extends InsightPublishSheetProps {
+interface SheetBodyProps extends BlogPublishSheetProps {
   layout: "dialog" | "drawer";
 }
 
@@ -76,7 +76,7 @@ function SheetBody({
 
   // The tag input unmounts at the limit, which would drop focus onto the dialog itself; hand it to the next field.
   useEffect(() => {
-    if (tags.length < MAX_INSIGHT_TAGS || !handOffFocusRef.current) return;
+    if (tags.length < MAX_BLOG_TAGS || !handOffFocusRef.current) return;
     handOffFocusRef.current = false;
     document.getElementById("insight-summary")?.focus();
   }, [tags.length]);
@@ -86,7 +86,7 @@ function SheetBody({
     const typed = raw.split(",");
     if (typed.every((part) => !part.trim())) return;
     const next = normalizeTags([...tags, ...typed]);
-    if (next.length >= MAX_INSIGHT_TAGS && document.activeElement === tagInputRef.current) {
+    if (next.length >= MAX_BLOG_TAGS && document.activeElement === tagInputRef.current) {
       handOffFocusRef.current = true;
     }
     onTagsChange(next);
@@ -173,7 +173,7 @@ function SheetBody({
           카테고리 <span className="font-normal text-[#999999]">(선택)</span>
         </h3>
         <div className="flex flex-wrap gap-2">
-          {INSIGHT_CATEGORIES.map(({ code, label }) => {
+          {BLOG_CATEGORIES.map(({ code, label }) => {
             const selected = category === code;
             return (
               <button
@@ -198,7 +198,7 @@ function SheetBody({
 
       <section className="flex flex-col gap-2">
         <label htmlFor="insight-tags" className="text-[14px] font-medium text-sydeblue">
-          태그 <span className="font-normal text-[#999999]">(선택, 최대 {MAX_INSIGHT_TAGS}개)</span>
+          태그 <span className="font-normal text-[#999999]">(선택, 최대 {MAX_BLOG_TAGS}개)</span>
         </label>
         <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-[10px] border-[0.5px] border-[#B7B7B7] px-2 py-1.5 transition-all focus-within:ring-1 focus-within:ring-sydeblue">
           {tags.map((tag) => (
@@ -214,7 +214,7 @@ function SheetBody({
               </button>
             </span>
           ))}
-          {tags.length < MAX_INSIGHT_TAGS && (
+          {tags.length < MAX_BLOG_TAGS && (
             <input
               id="insight-tags"
               ref={tagInputRef}
@@ -260,7 +260,7 @@ function SheetBody({
 }
 
 /** Publish step: everything optional about a post lives here so the writing screen stays just title + body. */
-export function InsightPublishSheet(props: InsightPublishSheetProps) {
+export function BlogPublishSheet(props: BlogPublishSheetProps) {
   const { open, onOpenChange, isEditMode, uploading, submitting, onConfirm } = props;
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const confirmLabel = isEditMode ? "수정하기" : "발행하기";

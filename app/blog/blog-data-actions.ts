@@ -1,26 +1,26 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { InsightCardProps } from "@/components/insight/insight-card";
+import { BlogCardProps } from "@/components/blog/blog-card";
 
-export interface InsightQueryOptions {
+export interface BlogPostQueryOptions {
   currentPage: number;
   itemsPerPage: number;
   currentUserId?: string | null;
 }
 
-export interface InsightQueryResult {
-  insights: InsightCardProps[];
+export interface BlogPostQueryResult {
+  insights: BlogCardProps[];
   count: number;
   hasMore: boolean;
   currentPage: number;
 }
 
-export async function fetchInsightsAction({
+export async function fetchBlogPostsAction({
   currentPage,
   itemsPerPage,
   currentUserId,
-}: InsightQueryOptions): Promise<InsightQueryResult> {
+}: BlogPostQueryOptions): Promise<BlogPostQueryResult> {
   const supabase = await createClient();
   const from = (currentPage - 1) * itemsPerPage;
   const to = from + itemsPerPage - 1;
@@ -54,7 +54,7 @@ export async function fetchInsightsAction({
     throw new Error(error.message);
   }
 
-  const mappedData: InsightCardProps[] = (data || []).map((item: any) => ({
+  const mappedData: BlogCardProps[] = (data || []).map((item: any) => ({
     id: item.id,
     slug: item.slug,
     title: item.title,
