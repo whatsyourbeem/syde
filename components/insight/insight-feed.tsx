@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { InsightCard } from "@/components/insight/insight-card";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { fetchInsightsAction, InsightQueryResult } from "@/app/insight/insight-data-actions";
@@ -14,11 +15,17 @@ const ITEMS_PER_PAGE = 18;
 interface InsightFeedProps {
   initialInsights: InsightQueryResult;
   currentUserId: string | null;
+  currentUser: { name: string; avatarUrl: string | null } | null;
 }
 
-export function InsightFeed({ initialInsights, currentUserId }: InsightFeedProps) {
+export function InsightFeed({ initialInsights, currentUserId, currentUser }: InsightFeedProps) {
   const router = useRouter();
   const { openLoginDialog } = useLoginDialog();
+
+  const startWriting = () => {
+    if (!currentUserId) openLoginDialog();
+    else router.push("/insight/write");
+  };
 
   const {
     data,
@@ -51,6 +58,19 @@ export function InsightFeed({ initialInsights, currentUserId }: InsightFeedProps
 
   return (
     <div className="flex-1 w-full max-w-6xl mx-auto px-3 md:px-0 py-[6px] md:py-8">
+      {/* Inline prompt: makes the list read as a place anyone can post, not a publication. */}
+      <button
+        type="button"
+        onClick={startWriting}
+        className="mb-8 flex w-full max-w-3xl mx-auto items-center gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
+      >
+        <Avatar className="size-9">
+          <AvatarImage src={currentUser?.avatarUrl ?? undefined} alt="" />
+          <AvatarFallback className="text-[13px]">{currentUser?.name?.slice(0, 1) || "S"}</AvatarFallback>
+        </Avatar>
+        <span className="text-[14px] md:text-[15px] text-[#777777]">오늘 만들면서 있었던 일, 편하게 적어보세요</span>
+      </button>
+
       {allInsights.length > 0 ? (
         <div className="flex flex-col items-center">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-9 md:gap-y-14 justify-items-center w-full">
@@ -72,23 +92,17 @@ export function InsightFeed({ initialInsights, currentUserId }: InsightFeedProps
       ) : (
         <div className="text-center py-20 text-gray-400 flex flex-col gap-2">
           <div className="text-4xl">💭</div>
-          <p>작성된 인사이트가 없습니다.</p>
-          <p className="text-xs">첫 번째 인사이트의 주인공이 되어보세요!</p>
+          <p>아직 글이 없어요. 첫 글을 남겨보세요</p>
         </div>
       )}
 
-      {/* Floating Create Button */}
+      {/* Floating Create Button: labeled so it reads as "write", and kept low on mobile so it clears card stats. */}
       <Button
-        onClick={() => {
-          if (!currentUserId) {
-            openLoginDialog();
-          } else {
-            router.push("/insight/write");
-          }
-        }}
-        className="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-sydeblue hover:bg-sydeblue/90 shadow-xl flex items-center justify-center p-0 z-50"
+        onClick={startWriting}
+        className="fixed bottom-5 right-4 md:bottom-10 md:right-10 h-12 gap-1.5 rounded-full bg-sydeblue px-5 text-[15px] font-medium text-white shadow-xl hover:bg-sydeblue/90 z-50"
       >
-        <Plus className="w-8 h-8 text-white" />
+        <Pencil className="size-4" />
+        글쓰기
       </Button>
     </div>
   );

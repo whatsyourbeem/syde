@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { InsightCard } from "./insight-card";
@@ -74,7 +75,14 @@ export function InsightList({ currentUserId, userId, showInteractions = true }: 
   return (
     <div className="space-y-6">
       {data?.insights.length === 0 ? (
-        <p className="text-center text-muted-foreground py-10">작성된 인사이트가 없습니다.</p>
+        <div className="flex flex-col items-center gap-4 py-10 text-center text-muted-foreground">
+          <p>아직 쓴 글이 없어요</p>
+          {currentUserId === userId && (
+            <Button asChild className="rounded-full bg-sydeblue px-5 text-white hover:bg-sydeblue/90">
+              <Link href="/insight/write">글쓰기</Link>
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full px-4 md:px-0 justify-items-center">
           {data?.insights.map((insight) => (
