@@ -95,6 +95,12 @@
   }
 }
 
+/* Long unbroken strings (URLs, long words) wrap inside the column instead of stretching the page.
+   Code keeps its own horizontal scroll: white-space: pre already prevents wrapping there. */
+.prose {
+  overflow-wrap: anywhere;
+}
+
 .no-footer footer {
   display: none;
 }
