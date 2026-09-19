@@ -77,8 +77,8 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 | B3 | 텍스트 우선 목록 | 목록 | 1일 | M2 | ✅ c83f348 |
 | B4 | 목록 지표 정리 | 목록 | 0.3일 | M2 | ✅ c83f348 |
 | B5 | 상세 헤더 좌측 정렬 | 상세 | 0.5일 | M2 | ✅ c83f348 |
-| E5 | 제목 앵커, 목차, 코드 복사 | 상세 | 1.5일 | M2 | ⏳ |
-| B6 | 작가 카드 + 다른 글 3개 | 상세 | 0.5일 | M2 | ⏳ |
+| E5 | 제목 앵커, 목차, 코드 복사 | 상세 | 1.5일 | M2 | ✅ c56bfbb, a75f6d0 |
+| B6 | 작가 카드 + 다른 글 3개 | 상세 | 0.5일 | M2 | ✅ c56bfbb, a75f6d0 |
 | E6 | 고급 편집 (드래그·이미지·표·마크다운 불러오기·미리보기) | 에디터 6곳 | 3~4일 | M3 | ⏳ |
 | B7 | 정렬 토글 (최신순 / 인기순) | 목록 | 0.5일 | M3 | ⏳ |
 | B8 | 카테고리 필터, 태그 모아보기 | 목록 | 0.5일 | M3 (E4a 후) | ⏳ |
@@ -323,6 +323,7 @@ create policy "owner delete" on public.insight_drafts for delete using (auth.uid
 3. **코드 복사**
    - `RichContent`의 효과(링크 카드 처리 옆)에서 각 `pre`에 `복사` 버튼과 언어 라벨(`language-xxx` 클래스)을 붙인다.
    - 효과가 다시 실행돼도 중복으로 붙지 않게 표시용 data 속성을 둔다.
+   - `pre`는 긴 줄을 가로로 스크롤하므로, 버튼과 라벨은 `pre` 안이 아니라 `pre`를 감싼 `.code-block` 요소에 붙인다. 그래야 옆으로 스크롤해도 버튼이 제자리에 있다.
    - 누르면 `navigator.clipboard.writeText(code.textContent)`로 복사하고 "복사됨"을 1.5초 보여준다.
 
 **완료 조건**
@@ -386,7 +387,13 @@ create policy "owner delete" on public.insight_drafts for delete using (auth.uid
 ### B6. 작가 카드 + 다른 글 3개
 
 - 댓글 섹션 위에 새 컴포넌트 `components/insight/author-card.tsx`를 둔다: 아바타, 이름, tagline, 프로필 링크, 같은 작가의 최근 글 3개(현재 글 제외).
-- `insight-queries.ts`에 `getAuthorRecentInsights(userId, excludeId, limit = 3)`를 추가한다.
+- `insight-queries.ts`에 `getAuthorRecentInsights(userId, excludeId, limit = 3)`를 추가한다. 조회에 실패하면 빈 목록을 돌려준다(곁가지 정보 때문에 글을 못 읽게 하지 않는다). 상세 페이지의 댓글·통계 조회와 함께 병렬로 실행한다.
+
+**상세 하단 레이아웃** (B5·B6 이후 정리)
+- 헤더, 본문, 태그, 반응 버튼, 작가 카드, 댓글이 모두 본문과 같은 768px 열에 선다.
+- 영역 사이에 가로 구분선을 두지 않고 여백으로만 나눈다.
+- 순서는 본문 → 태그 → 반응 버튼 → 작가 카드 → 댓글이다. 작가 카드와 다른 글은 다음 글로 이어지는 통로라서, 댓글이 길어져도 밀려나지 않게 댓글 위에 둔다.
+- 댓글 제목은 "댓글 N"이다. 사이트 공통의 주황색 막대는 인사이트 상세에서만 쓰지 않는다(쇼케이스·프로필은 유지).
 
 ### B7. 정렬 토글
 
