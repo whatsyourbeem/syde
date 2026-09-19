@@ -1,18 +1,83 @@
 "use client";
 
 import { useEditor, EditorContent, JSONContent } from "@tiptap/react";
+import type { EditorView } from "@tiptap/pm/view";
+import { TextSelection } from "@tiptap/pm/state";
+import { Fragment, Slice, type Node as PMNode } from "@tiptap/pm/model";
+import { undo } from "@tiptap/pm/history";
+import { looksLikeMarkdown, pasteMarkdown, pastePlainText } from "./tiptap-markdown-paste";
+import { CharacterCount } from "@tiptap/extensions";
 import { commonTiptapExtensions } from "./tiptap-extensions";
+import {
+  UploadPlaceholder,
+  addUploadPlaceholder,
+  findUploadPlaceholder,
+  removeUploadPlaceholder,
+} from "./tiptap-upload-placeholder";
+import { isExpiringImageUrl, pastedImageSrcs } from "./tiptap-external-images";
+import { linkPreviewNode, toHttpUrl, youtubeNode } from "./tiptap-embed";
+import type { EmbedKind } from "./tiptap-slash-command";
+import { EmbedPrompt } from "./tiptap-embed-prompt";
 import TiptapToolbar from "./tiptap-toolbar";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ImageBubbleMenu,
+  LinkBubbleMenu,
+  LinkPreviewBubbleMenu,
+  TableBubbleMenu,
+  TextBubbleMenu,
+  YoutubeBubbleMenu,
+} from "./tiptap-bubble-menus";
 import { toast } from "sonner";
-import { upgradeToHttps } from "@/lib/utils";
+import { cn, upgradeToHttps } from "@/lib/utils";
 
 interface TiptapEditorWrapperProps {
   initialContent: JSONContent | null;
   onContentChange: (json: JSONContent) => void;
   placeholder?: string;
   editable?: boolean;
+  /** Resolve null when the upload failed and the writer was already told why; throw only for errors worth a toast. */
   onImageUpload?: (file: File) => Promise<string | null>;
+  /** "document" drops the padding so the editor sits flush inside a page that draws its own frame (blog writing). */
+  variant?: "boxed" | "document";
+  /** Body character count, reported on load and after every edit. */
+  onStatsChange?: (stats: { characters: number }) => void;
+  /** Backspace at the very start of the body (first block a paragraph); lets a page hop back to its title field. */
+  onBackspaceAtStart?: () => void;
+}
+
+const OWN_STORAGE_PREFIX = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/`
+  : null;
+
+// Same shape the resize extension writes when a user centers an image; blog images read better centered.
+const CENTERED_IMAGE_STYLE = "position: relative; margin: 0px auto;";
+
+// Touch keyboards make "/" awkward to reach, so the per-line "/" hint is desktop-only.
+const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
+function getImageFiles(files: FileList | undefined | null): File[] {
+  return Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
+}
+
+function pasteUrl(view: EditorView, url: string) {
+  const { state } = view;
+  const { selection, schema } = state;
+  const linkMark = schema.marks.link.create({ href: url });
+
+  if (!selection.empty) {
+    view.dispatch(state.tr.addMark(selection.from, selection.to, linkMark));
+    return;
+  }
+
+  const parent = selection.$from.parent;
+  const isEmptyParagraph = parent.type.name === "paragraph" && parent.content.size === 0;
+  if (isEmptyParagraph) {
+    view.dispatch(state.tr.replaceSelectionWith(youtubeNode(schema, url) ?? linkPreviewNode(schema, url)));
+    return;
+  }
+
+  view.dispatch(state.tr.replaceSelectionWith(schema.text(url, [linkMark]), false));
 }
 
 export default function TiptapEditorWrapper({
@@ -21,84 +86,267 @@ export default function TiptapEditorWrapper({
   placeholder = "내용을 입력해주세요.",
   editable = true,
   onImageUpload,
+  variant = "boxed",
+  onStatsChange,
+  onBackspaceAtStart,
 }: TiptapEditorWrapperProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const onImageUploadRef = useRef(onImageUpload);
+  onImageUploadRef.current = onImageUpload;
+  const onStatsChangeRef = useRef(onStatsChange);
+  onStatsChangeRef.current = onStatsChange;
+  const onBackspaceAtStartRef = useRef(onBackspaceAtStart);
+  onBackspaceAtStartRef.current = onBackspaceAtStart;
+  // Tracks the last JSON emitted so parent echoes of our own updates skip the resync effect.
+  const lastEmittedRef = useRef<JSONContent | null>(null);
+
+  const insertImageFilesRef = useRef<(view: EditorView, files: File[]) => void>(() => {});
+  insertImageFilesRef.current = (view, files) => {
+    const upload = onImageUploadRef.current;
+    if (!upload || files.length === 0) return;
+
+    const placeholderId = crypto.randomUUID();
+    view.dispatch(addUploadPlaceholder(view.state.tr, placeholderId, view.state.selection.from, files.length));
+
+    Promise.allSettled(files.map((file) => upload(file))).then((results) => {
+      if (view.isDestroyed) return;
+      const urls = results
+        .map((result) => (result.status === "fulfilled" ? result.value : null))
+        .filter((url): url is string => !!url)
+        .map((url) => upgradeToHttps(url) || url);
+
+      const { state } = view;
+      // If the writer deleted the text around the placeholder, fall back to the caret rather than dropping the upload.
+      const pos = findUploadPlaceholder(state, placeholderId) ?? state.selection.from;
+      let tr = removeUploadPlaceholder(state.tr, placeholderId);
+      if (urls.length > 0) {
+        const nodes = urls.map((src) =>
+          state.schema.nodes.imageResize.create({ src, containerStyle: CENTERED_IMAGE_STYLE }),
+        );
+        // A single slice keeps the images in order; replaceRange splits a paragraph if the upload started mid-text.
+        // An empty line is consumed entirely so no stray blank paragraph is left behind.
+        const $pos = tr.doc.resolve(pos);
+        const onEmptyLine = $pos.parent.type.name === "paragraph" && $pos.parent.content.size === 0 && $pos.depth > 0;
+        tr = onEmptyLine
+          ? tr.replaceWith($pos.before(), $pos.after(), Fragment.from(nodes))
+          : tr.replaceRange(pos, pos, new Slice(Fragment.from(nodes), 0, 0));
+      }
+      view.dispatch(tr);
+
+      // A null result means the uploader already told the writer why (size limit, login, ...); only
+      // unexpected throws are reported here, so a failed image never shows two toasts.
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+      if (rejected.length === 0) return;
+      const reason = rejected[0].reason?.message;
+      toast.error(
+        urls.length === 0
+          ? reason || "이미지 업로드에 실패했습니다."
+          : `${urls.length}장 삽입, ${rejected.length}장 실패했습니다.${reason ? ` (${reason})` : ""}`,
+      );
+    });
+  };
+
+  // Pasted Notion/Google Docs/signed image URLs expire after a while; copy them into our storage and swap the src.
+  const rehostingRef = useRef(new Set<string>());
+  const rehostImagesRef = useRef<(view: EditorView, srcs: string[]) => void>(() => {});
+  rehostImagesRef.current = (view, srcs) => {
+    const upload = onImageUploadRef.current;
+    const pending = srcs.filter((src) => !rehostingRef.current.has(src));
+    if (!upload || pending.length === 0) return;
+    pending.forEach((src) => rehostingRef.current.add(src));
+
+    const toastId = toast.loading(
+      pending.length > 1 ? `외부 이미지 ${pending.length}장을 옮기는 중…` : "외부 이미지를 옮기는 중…",
+      { description: "원본 주소가 만료되면 이미지가 깨지기 때문에 SYDE에 저장하고 있어요." },
+    );
+
+    Promise.allSettled(
+      pending.map(async (src) => {
+        try {
+          const response = await fetch(`/api/fetch-image?url=${encodeURIComponent(src)}`);
+          if (!response.ok) throw new Error(`fetch-image ${response.status}`);
+          const blob = await response.blob();
+          const file = new File([blob], "pasted-image", { type: blob.type });
+          const uploaded = await upload(file);
+          if (!uploaded) throw new Error("upload failed");
+          return { src, uploaded: upgradeToHttps(uploaded) || uploaded };
+        } finally {
+          rehostingRef.current.delete(src);
+        }
+      }),
+    ).then((results) => {
+      if (!view.isDestroyed) {
+        const replacements = new Map(
+          results.flatMap((r) => (r.status === "fulfilled" ? [[r.value.src, r.value.uploaded] as const] : [])),
+        );
+        if (replacements.size > 0) {
+          const tr = view.state.tr;
+          view.state.doc.descendants((node, pos) => {
+            const next = node.type.name === "imageResize" ? replacements.get(node.attrs.src) : undefined;
+            if (next) tr.setNodeAttribute(pos, "src", next);
+          });
+          // Swapping the URL isn't a user edit; keep it out of undo so undo doesn't bring back the expiring link.
+          view.dispatch(tr.setMeta("addToHistory", false));
+        }
+      }
+
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed === 0) {
+        toast.success("외부 이미지를 SYDE에 저장했어요.", { id: toastId, description: undefined });
+      } else {
+        toast.warning(
+          failed === results.length ? "외부 이미지를 옮기지 못했어요." : `외부 이미지 ${failed}장을 옮기지 못했어요.`,
+          {
+            id: toastId,
+            description: "원본 주소가 만료되면 깨질 수 있어요. 이미지를 저장한 뒤 직접 올려주세요.",
+            duration: 8000,
+          },
+        );
+      }
+    });
+  };
+
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [embedPrompt, setEmbedPrompt] = useState<EmbedKind | null>(null);
+
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: commonTiptapExtensions.map((extension) => {
-      if (extension.name === "placeholder") {
-        return extension.configure({ placeholder });
-      }
-      return extension;
-    }),
+    extensions: [
+      ...commonTiptapExtensions.map((extension) => {
+        if (extension.name === "placeholder") {
+          return extension.configure({
+            // Placeholder only decorates the empty top-level textblock under the caret, so lists,
+            // table cells and callouts never get a hint.
+            placeholder: ({ editor, node }: { editor: { isEmpty: boolean }; node: PMNode }) => {
+              if (node.type.name === "imageCaption") return "이미지 설명을 입력하세요 (선택)";
+              if (node.type.name === "heading") return `제목 ${node.attrs.level}`;
+              if (editor.isEmpty) return placeholder;
+              return isTouch ? "" : "'/'를 입력해 블록 추가";
+            },
+          });
+        }
+        if (extension.name === "slashCommand") {
+          return extension.configure({
+            onImageUploadClick: onImageUpload ? () => fileInputRef.current?.click() : undefined,
+            onLinkClick: () => setLinkOpen(true),
+            onEmbedClick: setEmbedPrompt,
+          });
+        }
+        return extension;
+      }),
+      UploadPlaceholder,
+      CharacterCount,
+    ],
     editorProps: {
       attributes: {
-        class: "prose max-w-none focus:outline-none p-4 min-h-full",
+        class: cn(
+          "prose max-w-none focus:outline-none min-h-full",
+          variant === "document" ? "py-2 min-h-[50vh]" : "p-4",
+        ),
+      },
+      handleKeyDown: (view, event) => {
+        const { selection } = view.state;
+        if (
+          event.key === "Backspace" &&
+          !event.isComposing &&
+          onBackspaceAtStartRef.current &&
+          selection.empty &&
+          selection.from === TextSelection.atStart(view.state.doc).from &&
+          view.state.doc.firstChild?.type.name === "paragraph"
+        ) {
+          event.preventDefault();
+          onBackspaceAtStartRef.current();
+          return true;
+        }
+        if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          setLinkOpen(true);
+          return true;
+        }
+        return false;
       },
       handlePaste: (view, event) => {
-        // If there are files, don't try to handle it as a URL
-        const file = event.clipboardData?.files?.[0];
-        if (file && file.type.startsWith("image/")) {
-          insertImageFile(file);
+        const images = getImageFiles(event.clipboardData?.files);
+        if (images.length > 0) {
+          insertImageFilesRef.current(view, images);
           return true;
         }
 
-        const text = event.clipboardData?.getData("text/plain");
-        if (text) {
-          try {
-            const url = new URL(text);
-            if (url.protocol === "http:" || url.protocol === "https:") {
-              // Upgrade HTTP to HTTPS for security
-              const secureUrl = upgradeToHttps(text) || text;
-              view.dispatch(
-                view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.linkPreview.create({
-                    src: secureUrl,
-                  }),
-                ),
-              );
-              return true; // Mark as handled
-            }
-          } catch {
-            // Not a valid URL, fall back to default paste behavior
-          }
+        const rawText = event.clipboardData?.getData("text/plain") ?? "";
+        const text = rawText.trim();
+        const url = text ? toHttpUrl(text) : null;
+        if (url) {
+          pasteUrl(view, url);
+          return true;
         }
-        return false; // Use default paste behavior
-      },
-      handleDrop: (view, event, slice, moved) => {
-        if (
-          !moved &&
-          event.dataTransfer &&
-          event.dataTransfer.files &&
-          event.dataTransfer.files[0]
-        ) {
-          const file = event.dataTransfer.files[0];
-          if (file.type.startsWith("image/")) {
-            insertImageFile(file);
-            return true;
-          }
+
+        if (text && looksLikeMarkdown(rawText, event.clipboardData?.getData("text/html"))) {
+          pasteMarkdown(view, rawText);
+          const docAfterPaste = view.state.doc;
+          toast("마크다운 서식을 적용했어요", {
+            action: {
+              label: "원문 그대로",
+              onClick: () => {
+                if (view.isDestroyed || view.state.doc !== docAfterPaste) {
+                  toast.info("이미 편집을 이어가서 되돌릴 수 없어요. 실행 취소를 이용해주세요.");
+                  return;
+                }
+                undo(view.state, view.dispatch);
+                pastePlainText(view, rawText);
+              },
+            },
+          });
+          return true;
         }
         return false;
+      },
+      handleDrop: (view, event, _slice, moved) => {
+        if (moved) return false;
+        const images = getImageFiles(event.dataTransfer?.files);
+        if (images.length === 0) return false;
+
+        event.preventDefault();
+        const dropPos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+        if (dropPos) {
+          const { state } = view;
+          view.dispatch(state.tr.setSelection(TextSelection.near(state.doc.resolve(dropPos.pos))));
+        }
+        insertImageFilesRef.current(view, images);
+        return true;
       },
     },
     content: initialContent || { type: "doc", content: [] },
     editable,
-    onUpdate: ({ editor }) => {
-      onContentChange(editor.getJSON());
+    onUpdate: ({ editor, transaction }) => {
+      const json = editor.getJSON();
+      lastEmittedRef.current = json;
+      onContentChange(json);
+      onStatsChangeRef.current?.({ characters: editor.storage.characterCount.characters() });
+
+      const expiring = pastedImageSrcs(transaction).filter((src) => isExpiringImageUrl(src, OWN_STORAGE_PREFIX));
+      if (expiring.length > 0) rehostImagesRef.current(editor.view, expiring);
     },
   });
 
   useEffect(() => {
     if (!editor) return;
+    if (initialContent && initialContent === lastEmittedRef.current) return;
+    // Loaded/restored content never fires onUpdate, so report its size here.
+    const reportStats = () => onStatsChangeRef.current?.({ characters: editor.storage.characterCount.characters() });
 
-    const currentContent = editor.getJSON();
     const isContentSame =
-      JSON.stringify(initialContent) === JSON.stringify(currentContent);
+      JSON.stringify(initialContent) === JSON.stringify(editor.getJSON());
 
     if (!isContentSame) {
-      editor.commands.setContent(
-        initialContent || { type: "doc", content: [] },
-      );
+      // The parent already holds this value; echoing it back would mark untouched forms as edited.
+      // Kept out of undo history so undo can't wipe externally loaded content (e.g. a restored draft).
+      editor
+        .chain()
+        .setMeta("addToHistory", false)
+        .setContent(initialContent || { type: "doc", content: [] }, { emitUpdate: false })
+        .run();
     }
+    reportStats();
   }, [editor, initialContent]);
 
   useEffect(() => {
@@ -107,45 +355,17 @@ export default function TiptapEditorWrapper({
     }
   }, [editor, editable]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const insertImageFile = useCallback(
-    async (file: File) => {
-      if (!file || !onImageUpload || !editor) return;
-
-      const promise = onImageUpload(file);
-
-      toast.promise(promise, {
-        loading: "이미지를 업로드하는 중입니다...",
-        success: (publicUrl) => {
-          if (publicUrl && editor) {
-            // Ensure HTTPS for security
-            const secureUrl = upgradeToHttps(publicUrl) || publicUrl;
-            editor.chain().focus().setImage({ src: secureUrl }).run();
-            return "이미지가 성공적으로 삽입되었습니다.";
-          }
-          return "업로드되었으나 URL이 유효하지 않습니다.";
-        },
-        error: (err) => {
-          // If it's the size error we threw, we can show it directly
-          return `${err.message}`;
-        },
-      });
-    },
-    [editor, onImageUpload],
-  );
-
   const handleImageUpload = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        insertImageFile(file);
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const images = getImageFiles(event.target.files);
+      if (editor && images.length > 0) {
+        insertImageFilesRef.current(editor.view, images);
       }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     },
-    [insertImageFile],
+    [editor],
   );
 
   if (!editor) {
@@ -156,17 +376,28 @@ export default function TiptapEditorWrapper({
     <div className="flex flex-col min-h-[inherit] h-full">
       <TiptapToolbar
         editor={editor}
-        onImageUploadClick={() => fileInputRef.current?.click()}
+        onImageUploadClick={onImageUpload ? () => fileInputRef.current?.click() : undefined}
+        linkOpen={linkOpen}
+        onLinkOpenChange={setLinkOpen}
+        onEmbedClick={setEmbedPrompt}
       />
+      <EmbedPrompt editor={editor} kind={embedPrompt} onClose={() => setEmbedPrompt(null)} />
+      <TextBubbleMenu editor={editor} onLinkClick={() => setLinkOpen(true)} />
+      <LinkBubbleMenu editor={editor} onEditClick={() => setLinkOpen(true)} />
+      <ImageBubbleMenu editor={editor} />
+      <LinkPreviewBubbleMenu editor={editor} />
+      <TableBubbleMenu editor={editor} />
+      <YoutubeBubbleMenu editor={editor} />
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleImageUpload}
         className="hidden"
         accept="image/jpeg,image/png,image/gif,image/webp"
+        multiple
       />
-      <div 
-        className="flex-1 max-h-[60vh] overflow-y-auto cursor-text min-h-[inherit] h-full"
+      <div
+        className="flex-1 cursor-text min-h-[inherit] h-full"
         onClick={() => editor.commands.focus()}
       >
         <EditorContent editor={editor} />

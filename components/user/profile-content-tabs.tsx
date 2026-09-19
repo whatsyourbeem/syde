@@ -5,7 +5,7 @@ import { UserActivityLogList } from "@/components/user/user-activity-log-list";
 import BioEditor from "@/components/user/bio-editor";
 import { FeedList } from "@/components/feed/feed-list";
 import { ShowcaseList } from "@/components/showcase/showcase-list";
-import { InsightList } from "@/components/insight/insight-list";
+import { BlogList } from "@/components/blog/blog-list";
 import { UserJoinedClubsList } from "@/components/user/user-joined-clubs-list";
 import { UserShowcaseList } from "@/components/user/user-showcase-list";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
@@ -194,6 +194,7 @@ export function ProfileContentTabs({
                 /* 스토리 Editor (Edit Mode) */
                 <div className="px-5 py-8 md:px-8">
                   <BioEditor
+                    profileId={profile.id}
                     initialBio={profile.bio}
                     isOwnProfile={isOwnProfile}
                     initialHtml={initialHtml}
@@ -219,6 +220,7 @@ export function ProfileContentTabs({
                     </SectionHeader>
                     <div className="rounded-xl relative bg-[#FAFAFA] p-5">
                       <BioEditor
+                        profileId={profile.id}
                         initialBio={profile.bio}
                         isOwnProfile={isOwnProfile}
                         initialHtml={initialHtml}
@@ -266,7 +268,7 @@ export function ProfileContentTabs({
           <div className="flex items-center justify-start w-full bg-white px-6 py-3 gap-[10px] border-b-[0.5px] border-[#B7B7B7] overflow-x-auto no-scrollbar">
             <SubTabButton label="피드" isActive={activeSubTab === "log"} onClick={() => setActiveSubTab("log")} />
             <SubTabButton label="쇼케이스" isActive={activeSubTab === "showcase"} onClick={() => setActiveSubTab("showcase")} />
-            <SubTabButton label="인사이트" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
+            <SubTabButton label="블로그" isActive={activeSubTab === "insight"} onClick={() => setActiveSubTab("insight")} />
           </div>
 
           {/* Sub-tab Content with vertical padding */}
@@ -285,7 +287,7 @@ export function ProfileContentTabs({
               />
             )}
             {activeSubTab === "insight" && (
-              <InsightList 
+              <BlogList 
                 currentUserId={currentUserId}
                 userId={profile.id}
                 showInteractions={false}

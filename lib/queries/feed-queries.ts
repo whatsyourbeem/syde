@@ -84,7 +84,7 @@ export function getActivityMessage(
     case "SHOWCASE_CREATED":
       return `${displayName}님이 쇼케이스를 등록했어요`;
     case "INSIGHT_CREATED":
-      return `${displayName}님이 인사이트를 등록했어요`;
+      return `${displayName}님이 블로그 글을 발행했어요`;
     case "MEETUP_CREATED":
       return title
         ? `${displayName}님이 '${title}' 모임을 개설했어요`
@@ -99,7 +99,7 @@ export function getActivityLink(activity: ActivityFeedItem): string | null {
     case "SHOWCASE_CREATED":
       return activity.target_id ? `/showcase/${activity.target_id}` : null;
     case "INSIGHT_CREATED":
-      return activity.target_id ? `/insight/${activity.target_id}` : null;
+      return activity.target_id ? `/blog/${activity.target_id}` : null;
     case "MEETUP_CREATED":
       return activity.target_id ? `/meetup/${activity.target_id}` : null;
     default:
@@ -366,7 +366,7 @@ async function fetchActivityDetails(
     .filter(a => a.activity_type === "SHOWCASE_CREATED" && a.target_id)
     .map(a => a.target_id as string);
   
-  const insightIds = activities
+  const postIds = activities
     .filter(a => a.activity_type === "INSIGHT_CREATED" && a.target_id)
     .map(a => a.target_id as string);
   
@@ -378,8 +378,8 @@ async function fetchActivityDetails(
     showcaseIds.length > 0
       ? supabase.from("showcases").select("id, name, short_description, thumbnail_url, views_count, status").in("id", showcaseIds)
       : Promise.resolve({ data: [] }),
-    insightIds.length > 0
-      ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", insightIds)
+    postIds.length > 0
+      ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", postIds)
       : Promise.resolve({ data: [] }),
     meetupIds.length > 0
       ? supabase.from("meetups").select(`

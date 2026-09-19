@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
@@ -38,6 +38,9 @@ import {
   MEETUP_STATUSES,
   MEETUP_STATUS_DISPLAY_NAMES,
 } from "@/lib/constants";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
+import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
 
 const MeetupDescriptionEditor = dynamic(
   () => import("@/components/meetup/meetup-description-editor"),
@@ -53,6 +56,31 @@ interface MeetupEditFormProps {
   meetup?: Meetup;
   clubId?: string;
   thumbnailUrl?: string;
+}
+
+// Dates are stored as ISO strings — a Date object round-trips through localStorage's JSON as a
+// plain string anyway, so drafting them as strings from the start avoids a silent type mismatch on restore.
+interface MeetupDraftData {
+  title: string;
+  description: JSONContent | null;
+  status: Enums<"meetup_status_enum"> | undefined;
+  startDatetime: string | null;
+  endDatetime: string | null;
+  location: string;
+  address: string;
+  maxParticipants: string;
+  fee: string;
+  thumbnailUrl: string | null;
+}
+
+function meetupDraftSignature(data: MeetupDraftData): string {
+  return JSON.stringify({
+    ...data,
+    title: data.title.trim(),
+    location: data.location.trim(),
+    address: data.address.trim(),
+    description: data.description ? normalizeTiptapContent(data.description) : [],
+  });
 }
 
 export default function MeetupEditForm({
@@ -94,6 +122,48 @@ export default function MeetupEditForm({
   const { isUploading: isImageUploading, uploadImage } = useImageUpload();
   const isCompressing = isImageUploading;
 
+  const draftData = useMemo<MeetupDraftData>(
+    () => ({
+      title,
+      description,
+      status,
+      startDatetime: startDatetime ? startDatetime.toISOString() : null,
+      endDatetime: endDatetime ? endDatetime.toISOString() : null,
+      location,
+      address,
+      maxParticipants: String(maxParticipants),
+      fee: String(fee),
+      thumbnailUrl,
+    }),
+    [title, description, status, startDatetime, endDatetime, location, address, maxParticipants, fee, thumbnailUrl],
+  );
+  const [initialSnapshot] = useState(() => meetupDraftSignature(draftData));
+  const {
+    pendingDraft,
+    restore: restoreDraft,
+    discard: discardDraft,
+    clear: clearDraft,
+  } = useLocalDraft({
+    key: `syde:meetup-draft:${meetup?.id ?? "new"}`,
+    data: draftData,
+    isPristine: (data) => meetupDraftSignature(data) === initialSnapshot,
+  });
+
+  const handleRestoreDraft = () => {
+    const draft = restoreDraft();
+    if (!draft) return;
+    setTitle(draft.title);
+    setDescription(draft.description);
+    setStatus(draft.status);
+    setStartDatetime(draft.startDatetime ? new Date(draft.startDatetime) : undefined);
+    setEndDatetime(draft.endDatetime ? new Date(draft.endDatetime) : undefined);
+    setLocation(draft.location);
+    setAddress(draft.address);
+    setMaxParticipants(draft.maxParticipants);
+    setFee(draft.fee);
+    setThumbnailUrl(draft.thumbnailUrl);
+  };
+
   useEffect(() => {
     if (!startDatetime || !endDatetime) {
       setDateError("시작 날짜와 종료 날짜를 모두 선택해주세요.");
@@ -125,11 +195,8 @@ export default function MeetupEditForm({
     }
   };
 
-  const handleEditorImageUpload = async (file: File): Promise<string> => {
-    const publicUrl = await uploadImage(file, "meetups", "editor", "detail");
-    if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-    return publicUrl;
-  };
+  // uploadImage reports its own failures; resolving null keeps the editor from toasting a second time.
+  const handleEditorImageUpload = (file: File) => uploadImage(file, "meetups", "editor", "detail");
 
   const clientAction = async (formData: FormData) => {
     setIsSubmitting(true);
@@ -164,6 +231,7 @@ export default function MeetupEditForm({
         toast.error(`모임 업데이트 실패: ${result.error.message}`);
       } else {
         toast.success("모임이 성공적으로 업데이트되었습니다.");
+        clearDraft();
         router.push(`/meetup/${result.data.meetupId}`);
       }
       setIsSubmitting(false);
@@ -173,6 +241,7 @@ export default function MeetupEditForm({
         toast.error(`모임 생성 실패: ${result.error.message}`);
       } else {
         toast.success("모임이 성공적으로 생성되었습니다.");
+        clearDraft();
         router.push(`/meetup/${result.data.meetupId}`);
       }
       setIsSubmitting(false);
@@ -181,6 +250,14 @@ export default function MeetupEditForm({
 
   return (
     <form ref={formRef} action={clientAction} className="space-y-6">
+      {pendingDraft && (
+        <DraftRestoreBanner
+          savedAt={pendingDraft.savedAt}
+          preview={pendingDraft.data.title}
+          onDiscard={discardDraft}
+          onRestore={handleRestoreDraft}
+        />
+      )}
       <div>
         <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
           모임 제목 <span className="text-red-500">*</span>

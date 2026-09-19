@@ -6,6 +6,10 @@ export async function compressImage(
   file: File,
   type: "thumbnail" | "detail" | "avatar",
 ): Promise<File> {
+  // Converting to WebP renders the canvas once, dropping every frame but the first —
+  // an animated GIF (a common project demo format) would upload as a still image.
+  if (file.type === "image/gif") return file;
+
   const options = {
     maxSizeMB: type === "avatar" ? 0.03 : type === "thumbnail" ? 0.3 : 1,
     maxWidthOrHeight: type === "avatar" ? 120 : type === "thumbnail" ? 600 : 1200,

@@ -90,12 +90,12 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
           </SheetClose>
           <SheetClose asChild>
             <Link
-              href="/insight"
+              href="/blog"
               className={`p-2 hover:bg-secondary rounded-md transition-all ${
-                pathname.startsWith("/insight") ? "font-bold text-primary" : ""
+                pathname.startsWith("/blog") ? "font-bold text-primary" : ""
               }`}
             >
-              인사이트
+              블로그
             </Link>
           </SheetClose>
           <SheetClose asChild>

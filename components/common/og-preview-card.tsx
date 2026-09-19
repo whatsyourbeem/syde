@@ -13,9 +13,21 @@ interface OGData {
 
 interface OgPreviewCardProps {
   url: string;
+  /** Inside the editor the card must not navigate; a click selects the block instead. */
+  interactive?: boolean;
 }
 
-export function OgPreviewCard({ url }: OgPreviewCardProps) {
+function CardLink({ href, interactive, children }: { href: string; interactive: boolean; children: React.ReactNode }) {
+  return interactive ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="not-prose block">
+      {children}
+    </a>
+  ) : (
+    <div className="not-prose block">{children}</div>
+  );
+}
+
+export function OgPreviewCard({ url, interactive = true }: OgPreviewCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
   const [ogData, setOgData] = useState<OGData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,17 +87,19 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
     );
   }
 
+  // Sites without OG tags used to render nothing, making the link invisible to readers and impossible to find in the editor.
   if (!ogData || (!ogData.title && !ogData.description)) {
-    return null;
+    return (
+      <CardLink href={url} interactive={interactive}>
+        <Card className="my-4 flex items-center gap-2 px-4 py-3 text-sm transition-colors hover:bg-muted/50">
+          <span className="truncate text-[#2563eb] underline underline-offset-2">{url}</span>
+        </Card>
+      </CardLink>
+    );
   }
 
   return (
-    <a
-      href={ogData.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="not-prose block"
-    >
+    <CardLink href={ogData.url} interactive={interactive}>
       <Card className="my-4 flex overflow-hidden transition-colors hover:bg-muted/50 h-24 md:h-30">
         {ogData.image && !hasImageError && (
           <div className="w-24 h-24 md:w-30 md:h-30 flex-shrink-0 bg-muted">
@@ -93,6 +107,8 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
             <img
               src={ogData.image}
               alt={ogData.title || "OG Image"}
+              loading="lazy"
+              decoding="async"
               className="h-full object-cover"
               onError={() => setHasImageError(true)}
             />
@@ -114,6 +130,6 @@ export function OgPreviewCard({ url }: OgPreviewCardProps) {
           </div>
         </div>
       </Card>
-    </a>
+    </CardLink>
   );
 }

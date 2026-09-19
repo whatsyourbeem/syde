@@ -2,11 +2,12 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { normalizeSearchTab } from '@/lib/search-tab';
 
 const categories = [
   { id: 'all', label: '전체' },
   { id: 'logs', label: '피드' },
-  { id: 'insights', label: '인사이트' },
+  { id: 'blog', label: '블로그' },
   { id: 'showcase', label: '쇼케이스' },
   { id: 'users', label: 'SYDERs' },
   { id: 'meetups', label: '모임' },
@@ -16,7 +17,7 @@ const categories = [
 export function CategoryTab() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'all';
+  const currentTab = normalizeSearchTab(searchParams.get('tab'));
 
   const handleTabChange = (tabId: string) => {
     const params = new URLSearchParams(searchParams.toString());

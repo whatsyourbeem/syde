@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tables, Enums } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import TiptapViewer from "@/components/common/tiptap-viewer";
-import { cn } from "@/lib/utils";
+import RichContent from "@/components/common/rich-content";
 import ClubPostForm from "@/components/club/club-post-form"; // ClubPostForm is a default export
 import { ClubPostDetailHeader } from "@/components/club/club-post-detail-header"; // Keep this for the header
 import { CLUB_PERMISSION_LEVEL_DISPLAY_NAMES, CLUB_PERMISSION_LEVELS } from "@/lib/constants"; // Added import
@@ -44,15 +43,10 @@ export default function ClubPostDetailClient({
   isAuthorized,
   clubOwnerId,
 }: ClubPostDetailClientProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [replyTo, setReplyTo] = useState<{ parentId: string; authorName: string; authorUsername: string | null; authorAvatarUrl: string | null; } | null>(null);
   const queryClient = useQueryClient();
   const formattedPostDate = post.created_at ? formatRelativeTime(post.created_at) : '';
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleEditSuccess = () => {
     setIsEditing(false);
@@ -120,14 +114,7 @@ export default function ClubPostDetailClient({
             {isAuthorized ? (
               post.content && (
                 <div className="w-full">
-                  {/* SEO fallback */}
-                  {initialHtml && !isMounted && (
-                    <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: initialHtml }} />
-                  )}
-                  {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
-                  <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
-                    <TiptapViewer content={post.content} />
-                  </div>
+                  <RichContent html={initialHtml ?? ""} />
                 </div>
               )
             ) : (

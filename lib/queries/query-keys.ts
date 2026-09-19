@@ -11,12 +11,12 @@ export const showcaseKeys = {
   detail: (id: string) => [...showcaseKeys.details(), id] as const,
 };
 
-export const insightKeys = {
+export const blogKeys = {
   all: ["insights"] as const,
-  lists: () => [...insightKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) => [...insightKeys.lists(), filters] as const,
-  details: () => [...insightKeys.all, "detail"] as const,
-  detail: (id: string) => [...insightKeys.details(), id] as const,
+  lists: () => [...blogKeys.all, "list"] as const,
+  list: (filters: Record<string, unknown>) => [...blogKeys.lists(), filters] as const,
+  details: () => [...blogKeys.all, "detail"] as const,
+  detail: (id: string) => [...blogKeys.details(), id] as const,
 };
 
 export const logKeys = {

@@ -82,21 +82,51 @@ export default {
         DEFAULT: {
           css: {
             "--tw-prose-body": "hsl(var(--foreground))",
+            // Default bullets (gray-300) were nearly invisible; links matched body text too closely to notice.
+            "--tw-prose-bullets": "#6b7280",
+            "--tw-prose-links": "#2563eb",
+            a: {
+              fontWeight: "500",
+              textUnderlineOffset: "3px",
+              textDecorationColor: "rgb(37 99 235 / 0.4)",
+            },
+            "a:hover": { textDecorationColor: "currentColor" },
+            // Plain strings: theme("fontSize.*") returns [size, { lineHeight }], which typography silently drops.
+            // Body headings stay below the post title (40px desktop / 30px mobile), like velog. Mobile sizes: globals.css.
             h1: {
-              fontSize: theme("fontSize.3xl"),
+              fontSize: "2rem",
               fontWeight: theme("fontWeight.bold"),
             },
             h2: {
-              fontSize: theme("fontSize.2xl"),
+              fontSize: "1.625rem",
               fontWeight: theme("fontWeight.bold"),
             },
             h3: {
-              fontSize: theme("fontSize.xl"),
+              fontSize: "1.3125rem",
               fontWeight: theme("fontWeight.bold"),
             },
             h4: {
-              fontSize: theme("fontSize.lg"),
+              fontSize: "1.125rem",
               fontWeight: theme("fontWeight.bold"),
+            },
+            // Typography's defaults add curly quotes to blockquotes and backticks around inline code;
+            // authors type their own quotes, so they doubled up, and backticks read as unrendered markdown.
+            "blockquote p:first-of-type::before": { content: "none" },
+            "blockquote p:last-of-type::after": { content: "none" },
+            blockquote: { fontStyle: "normal" },
+            "code::before": { content: "none" },
+            "code::after": { content: "none" },
+            code: {
+              backgroundColor: "rgb(243 244 246)",
+              borderRadius: "0.25rem",
+              padding: "0.125rem 0.375rem",
+              fontWeight: "500",
+            },
+            "pre code": {
+              backgroundColor: "transparent",
+              borderRadius: "0",
+              padding: "0",
+              fontWeight: "inherit",
             },
           },
         },

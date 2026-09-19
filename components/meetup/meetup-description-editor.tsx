@@ -14,7 +14,7 @@ const TiptapEditorWrapper = dynamic(
 interface MeetupDescriptionEditorProps {
   initialDescription: JSONContent | null;
   onDescriptionChange: (json: JSONContent) => void;
-  onImageUpload: (file: File) => Promise<string>;
+  onImageUpload: (file: File) => Promise<string | null>;
 }
 
 export default function MeetupDescriptionEditor({

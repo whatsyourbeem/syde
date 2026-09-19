@@ -7,9 +7,10 @@ import { FeedListWrapper } from "@/components/feed/feed-list-wrapper";
 import { UserList } from "@/components/user/user-list";
 import { ClubSearchList } from "@/components/club/club-search-list";
 import { MeetupSearchList } from "@/components/meetup/meetup-search-list";
-import { InsightSearchList } from "@/components/insight/insight-search-list";
+import { BlogSearchList } from "@/components/blog/blog-search-list";
 import { ShowcaseSearchList } from "@/components/showcase/showcase-search-list";
 import { AllSearchResults } from "@/components/search/all-search-results";
+import { normalizeSearchTab } from "@/lib/search-tab";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   } = await supabase.auth.getUser();
   const resolvedSearchParams = await searchParams;
   const q = resolvedSearchParams.q || "";
-  const currentTab = resolvedSearchParams.tab || "all";
+  const currentTab = normalizeSearchTab(resolvedSearchParams.tab);
 
   let profile = null;
   let avatarUrl = null;
@@ -69,8 +70,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         return <ClubSearchList searchQuery={q} />;
       case "meetups":
         return <MeetupSearchList searchQuery={q} />;
-      case "insights":
-        return <InsightSearchList searchQuery={q} />;
+      case "blog":
+        return <BlogSearchList searchQuery={q} />;
       case "showcase":
         return <ShowcaseSearchList searchQuery={q} />;
       default:

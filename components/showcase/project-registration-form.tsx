@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { generateHTML, generateJSON } from "@tiptap/html";
 import { commonTiptapExtensions } from "@/components/common/tiptap-extensions";
-import { ImagePlus, X, ChevronLeft, Plus, Globe } from "lucide-react";
+import { ImagePlus, X, Plus, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,9 @@ import { updateShowcase } from "@/app/showcase/showcase-actions";
 import { SuccessDialog } from "@/components/showcase/success-dialog";
 import { CancelDialog } from "@/components/showcase/cancel-dialog";
 import { useImageUpload } from "@/hooks/use-image-upload";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
+import { EditorWriteBar } from "@/components/common/editor-write-bar";
 
 const TiptapEditorWrapper = dynamic(
   () => import("@/components/common/tiptap-editor-wrapper"),
@@ -54,6 +57,40 @@ const TiptapEditorWrapper = dynamic(
     ssr: false,
   },
 );
+
+// Pulls in the server HTML renderer (syntax highlighting, etc.); only worth loading once the writer asks to preview.
+const EditorPreviewDialog = dynamic(
+  () => import("@/components/common/editor-preview-dialog").then((mod) => mod.EditorPreviewDialog),
+  { ssr: false },
+);
+
+interface ShowcaseTeamMember {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+interface ShowcaseDraftData {
+  title: string;
+  tagline: string;
+  status: ShowcaseStatus;
+  description: string;
+  mainImageUrl: string | null;
+  detailImageUrls: string[];
+  websiteLinks: string[];
+  googlePlayLink: string;
+  appStoreLink: string;
+  teamMembers: ShowcaseTeamMember[];
+}
+
+function showcaseDraftSignature(data: ShowcaseDraftData): string {
+  // Order-independent + ignores blank link slots, so an untouched "" website field doesn't count as a change.
+  return JSON.stringify({
+    ...data,
+    websiteLinks: data.websiteLinks.filter((link) => link.trim()),
+  });
+}
 
 interface ProjectRegistrationFormProps {
   initialData?: OptimizedShowcase;
@@ -80,6 +117,11 @@ export function ProjectRegistrationForm({
   const [isMounted, setIsMounted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  // Set once the initialData-hydration effect below has run, so an edit page's loaded content
+  // isn't itself mistaken for an unsaved draft the moment the page opens.
+  const initialSnapshotRef = useRef<string | null>(null);
 
   // Website Links State
   const [websiteLinks, setWebsiteLinks] = useState<string[]>([""]);
@@ -192,17 +234,29 @@ export function ProjectRegistrationForm({
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Defaults matching the useState() initializers above, used for the snapshot when there's no initialData.
+    let snapshot: ShowcaseDraftData = {
+      title: "",
+      tagline: "",
+      status: SHOWCASE_STATUSES.IN_SERVICE,
+      description: "",
+      mainImageUrl: null,
+      detailImageUrls: [],
+      websiteLinks: [""],
+      googlePlayLink: "",
+      appStoreLink: "",
+      teamMembers: [],
+    };
+
     if (initialData) {
       setTitle(initialData.name || "");
       setTagline(initialData.short_description || "");
       if (initialData.status) setStatus(initialData.status);
 
       const desc = initialData.description;
-      if (desc && typeof desc === "object") {
-        setDescription(JSON.stringify(desc));
-      } else {
-        setDescription(desc || "");
-      }
+      const descriptionString = desc && typeof desc === "object" ? JSON.stringify(desc) : desc || "";
+      setDescription(descriptionString);
 
       if (initialData.thumbnail_url) {
         setMainImagePreview(initialData.thumbnail_url);
@@ -220,14 +274,15 @@ export function ProjectRegistrationForm({
       if (initialData.web_url) {
         websites.push(initialData.web_url);
       }
-      
+
       if (websites.length > 0) setWebsiteLinks(websites);
       if (initialData.playstore_url) setGooglePlayLink(initialData.playstore_url);
       if (initialData.appstore_url) setAppStoreLink(initialData.appstore_url);
 
       // Initialize Members
+      let members: ShowcaseTeamMember[] = [];
       if (initialData.members) {
-        const members = initialData.members.map((m: any) => ({
+        members = initialData.members.map((m: any) => ({
           id: m.user_id,
           username: m.profile?.username || "unknown",
           avatar_url: m.profile?.avatar_url || null,
@@ -235,8 +290,73 @@ export function ProjectRegistrationForm({
         }));
         setSelectedTeamMembers(members);
       }
+
+      snapshot = {
+        title: initialData.name || "",
+        tagline: initialData.short_description || "",
+        status: initialData.status || SHOWCASE_STATUSES.IN_SERVICE,
+        description: descriptionString,
+        mainImageUrl: initialData.thumbnail_url || null,
+        detailImageUrls: initialData.images || [],
+        websiteLinks: websites.length > 0 ? websites : [""],
+        googlePlayLink: initialData.playstore_url || "",
+        appStoreLink: initialData.appstore_url || "",
+        teamMembers: members,
+      };
     }
+
+    initialSnapshotRef.current = showcaseDraftSignature(snapshot);
   }, [initialData]);
+
+  const draftData = useMemo<ShowcaseDraftData>(
+    () => ({
+      title,
+      tagline,
+      status,
+      description,
+      mainImageUrl,
+      detailImageUrls,
+      websiteLinks,
+      googlePlayLink,
+      appStoreLink,
+      teamMembers: selectedTeamMembers,
+    }),
+    [title, tagline, status, description, mainImageUrl, detailImageUrls, websiteLinks, googlePlayLink, appStoreLink, selectedTeamMembers],
+  );
+
+  const {
+    pendingDraft,
+    restore: restoreDraft,
+    discard: discardDraft,
+    clear: clearDraft,
+    lastSavedAt,
+  } = useLocalDraft({
+    key: `syde:showcase-draft:${initialData?.id ?? "new"}`,
+    data: draftData,
+    isPristine: (data) => {
+      // Not hydrated yet: treat as pristine so the autosave effect doesn't fire on stale defaults.
+      if (initialSnapshotRef.current === null) return true;
+      const signature = showcaseDraftSignature(data);
+      return signature === initialSnapshotRef.current;
+    },
+  });
+
+  const handleRestoreDraft = () => {
+    const draft = restoreDraft();
+    if (!draft) return;
+    setTitle(draft.title);
+    setTagline(draft.tagline);
+    setStatus(draft.status);
+    setDescription(draft.description);
+    setMainImageUrl(draft.mainImageUrl);
+    setMainImagePreview(draft.mainImageUrl);
+    setDetailImageUrls(draft.detailImageUrls);
+    setDetailImagePreviews(draft.detailImageUrls);
+    setWebsiteLinks(draft.websiteLinks.length > 0 ? draft.websiteLinks : [""]);
+    setGooglePlayLink(draft.googlePlayLink);
+    setAppStoreLink(draft.appStoreLink);
+    setSelectedTeamMembers(draft.teamMembers);
+  };
 
   const handleMainImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -339,8 +459,10 @@ export function ProjectRegistrationForm({
     setWebsiteLinks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Called both from the form's native onSubmit and directly from the top write bar's button,
+  // which sits outside the <form> element.
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     if (!title.trim()) {
       toast.error("프로덕트 이름을 입력해주세요.");
@@ -427,6 +549,7 @@ export function ProjectRegistrationForm({
         });
       }
 
+      clearDraft();
       setShowSuccessDialog(true);
       setTimeout(() => {
         if (initialData) {
@@ -447,26 +570,42 @@ export function ProjectRegistrationForm({
 
   return (
     <div className="w-full md:w-[850px] mx-auto pb-20 bg-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center gap-6 h-[57px] md:h-[76px] px-5 py-[16px]">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="h-11 w-6 p-0 hover:bg-transparent"
-        >
-          <ChevronLeft className="h-6 w-6 text-[#434343]" />
-        </Button>
-        <h1 className="text-[18px] md:text-[32px] font-bold text-sydeblue leading-[21px] md:leading-[38px]">
-          {initialData ? "프로젝트 수정하기" : "프로젝트 등록하기"}
-        </h1>
-      </div>
+      <EditorWriteBar
+        pageLabel={initialData ? "프로젝트 수정하기" : "프로젝트 등록하기"}
+        lastSavedAt={lastSavedAt}
+        onExit={() => setShowCancelDialog(true)}
+        onPreview={() => setPreviewOpen(true)}
+        onPublish={() => handleSubmit()}
+        publishLabel={initialData ? "수정하기" : "등록하기"}
+        busyLabel={isCompressing ? "업로드 중" : isSubmitting ? "처리 중" : null}
+      />
+      {previewOpen && (
+        <EditorPreviewDialog
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          title={title}
+          subtitle={tagline}
+          imageUrl={mainImagePreview}
+          content={description}
+          contentLabel="소개"
+        />
+      )}
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         noValidate
         className="flex flex-col gap-5 px-5 md:px-[68px] py-5"
       >
+        {pendingDraft && (
+          <DraftRestoreBanner
+            savedAt={pendingDraft.savedAt}
+            preview={pendingDraft.data.title}
+            onDiscard={discardDraft}
+            onRestore={handleRestoreDraft}
+          />
+        )}
+
         {/* Project Name */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-medium text-sydeblue">
@@ -594,7 +733,7 @@ export function ProjectRegistrationForm({
         {/* Project Description (TipTap) */}
         <div className="flex flex-col gap-1 min-h-[237px]">
           <p className="text-sm font-medium text-sydeblue">프로덕트 설명</p>
-          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white min-h-[216px] flex flex-col overflow-hidden">
+          <div className="border-[0.5px] border-[#B7B7B7] rounded-[10px] bg-white min-h-[216px] flex flex-col overflow-clip">
             <TiptapEditorWrapper
               initialContent={(() => {
                 const content = initialData?.description;
@@ -616,11 +755,7 @@ export function ProjectRegistrationForm({
               }}
               placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
-              onImageUpload={async (file: File) => {
-                const publicUrl = await uploadImage(file, "showcases", "editor", "detail");
-                if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-                return publicUrl;
-              }}
+              onImageUpload={(file: File) => uploadImage(file, "showcases", "editor", "detail")}
             />
           </div>
         </div>

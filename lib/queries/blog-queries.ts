@@ -1,0 +1,242 @@
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "@/types/database.types";
+import { unstable_cache } from "next/cache";
+
+/**
+ * Delete an insight by ID
+ */
+export async function deleteBlogPost(
+  supabase: SupabaseClient<Database>,
+  insightId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("insights")
+    .delete()
+    .eq("id", insightId);
+
+  if (error) throw error;
+}
+
+/**
+ * Remove a like from an insight
+ */
+export async function deleteBlogPostLike(
+  supabase: SupabaseClient<Database>,
+  insightId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("insight_likes")
+    .delete()
+    .eq("insight_id", insightId)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}
+
+/**
+ * Add a like to an insight
+ */
+export async function insertBlogPostLike(
+  supabase: SupabaseClient<Database>,
+  insightId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("insight_likes")
+    .insert({ insight_id: insightId, user_id: userId });
+
+  if (error) throw error;
+}
+
+/**
+ * Remove a bookmark from an insight
+ */
+export async function deleteBlogPostBookmark(
+  supabase: SupabaseClient<Database>,
+  insightId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("insight_bookmarks")
+    .delete()
+    .eq("insight_id", insightId)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}
+
+/**
+ * Add a bookmark to an insight
+ */
+export async function insertBlogPostBookmark(
+  supabase: SupabaseClient<Database>,
+  insightId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("insight_bookmarks")
+    .insert({ insight_id: insightId, user_id: userId });
+
+  if (error) throw error;
+}
+
+export interface BlogPostsListOptions {
+  currentPage: number;
+  itemsPerPage: number;
+  userId?: string;
+  searchQuery?: string;
+}
+
+export interface BlogPostsListResult {
+  insights: any[];
+  count: number;
+}
+
+/**
+ * Fetch insights list with optional user ID filter and search query
+ */
+export async function getBlogPostsList(
+  supabase: SupabaseClient<Database>,
+  { currentPage, itemsPerPage, userId, searchQuery }: BlogPostsListOptions
+): Promise<BlogPostsListResult> {
+  const from = (currentPage - 1) * itemsPerPage;
+  const to = from + itemsPerPage - 1;
+
+  let query = supabase
+    .from("insights")
+    .select(`
+      *,
+      author:profiles!user_id(id, username, full_name, avatar_url, tagline, certified),
+      insight_comments(id),
+      insight_likes(id, user_id),
+      insight_bookmarks(insight_id, user_id)
+    `, { count: "exact" });
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  if (searchQuery) {
+    const escaped = searchQuery.replace(/"/g, '\\"');
+    query = query.or(`title.ilike."%${escaped}%",summary.ilike."%${escaped}%"`);
+  }
+
+  const { data, error, count } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) throw error;
+
+  return {
+    insights: data || [],
+    count: count || 0,
+  };
+}
+
+const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+
+export async function getBlogPostDetail(
+  supabase: SupabaseClient<Database>,
+  idOrSlug: string
+) {
+  let query = supabase
+    .from("insights")
+    .select(`
+        *,
+        profiles:user_id (
+          username,
+          full_name,
+          avatar_url,
+          tagline
+        )
+      `);
+
+  if (isUUID(idOrSlug)) {
+    query = query.eq("id", idOrSlug);
+  } else {
+    query = query.eq("slug", idOrSlug);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Latest posts by one author, newest first, leaving out the post currently being read.
+ * This is a nicety under the post, so a failed lookup yields an empty list rather than breaking the page.
+ */
+export async function getAuthorRecentBlogPosts(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  excludeId: string,
+  limit = 3
+) {
+  const { data, error } = await supabase
+    .from("insights")
+    .select("id, slug, title, created_at")
+    .eq("user_id", userId)
+    .neq("id", excludeId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load the author's other insights:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getBlogPostIdBySlug(
+  supabase: SupabaseClient<Database>,
+  slug: string
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("insights")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data.id;
+}
+
+export const getBlogPostIdBySlugCached = (
+  supabase: SupabaseClient<Database>,
+  slug: string
+) => {
+  return unstable_cache(
+    async () => {
+      return getBlogPostIdBySlug(supabase, slug);
+    },
+    ["insight-id-by-slug", slug],
+    {
+      revalidate: 3600,
+      tags: ["insight-all", `insight-slug-${slug}`],
+    }
+  )();
+};
+
+export const getBlogPostDetailCached = async (
+  supabase: SupabaseClient<Database>,
+  idOrSlug: string
+) => {
+  let actualId = idOrSlug;
+  if (!isUUID(idOrSlug)) {
+    const resolvedId = await getBlogPostIdBySlugCached(supabase, idOrSlug);
+    if (!resolvedId) return null;
+    actualId = resolvedId;
+  }
+
+  return unstable_cache(
+    async () => {
+      return getBlogPostDetail(supabase, actualId);
+    },
+    ["insight-detail-by-id", actualId],
+    {
+      revalidate: 3600,
+      tags: ["insight-all", `insight-${actualId}`, `insight-${idOrSlug}`],
+    }
+  )();
+};

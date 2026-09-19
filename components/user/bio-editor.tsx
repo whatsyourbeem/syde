@@ -1,16 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { updateBio } from "@/app/[username]/actions";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import TiptapViewer from "@/components/common/tiptap-viewer";
+import RichContent from "@/components/common/rich-content";
 import { Json } from "@/types/database.types";
 import { isTiptapJsonEmpty } from "@/lib/utils";
 import { JSONContent } from "@tiptap/react";
-import { cn } from "@/lib/utils";
+import { useLocalDraft } from "@/hooks/use-local-draft";
+import { DraftRestoreBanner } from "@/components/common/draft-restore-banner";
+import { normalizeTiptapContent } from "@/lib/tiptap-content-signature";
+
 // The dynamic import for next/dynamic is already present above, no need to duplicate.
 
 const TiptapEditorWrapper = dynamic(
@@ -22,6 +25,7 @@ const TiptapEditorWrapper = dynamic(
 );
 
 interface BioEditorProps {
+  profileId: string;
   initialBio: Json | null;
   initialHtml?: string;
   isOwnProfile: boolean;
@@ -30,7 +34,12 @@ interface BioEditorProps {
   onEditingChange: (isEditing: boolean) => void;
 }
 
+function bioDraftSignature(content: JSONContent | null): string {
+  return JSON.stringify(content ? normalizeTiptapContent(content) : []);
+}
+
 export default function BioEditor({
+  profileId,
   initialBio,
   initialHtml,
   isOwnProfile,
@@ -39,17 +48,29 @@ export default function BioEditor({
   onEditingChange,
 }: BioEditorProps) {
   const { uploadImage } = useImageUpload();
-  const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentBioContent, setCurrentBioContent] = useState<JSONContent | null>(initialBio as JSONContent | null);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
     setCurrentBioContent(initialBio as JSONContent | null);
   }, [initialBio]);
+
+  const [initialSnapshot] = useState(() => bioDraftSignature(initialBio as JSONContent | null));
+  const {
+    pendingDraft,
+    restore: restoreDraft,
+    discard: discardDraft,
+    clear: clearDraft,
+  } = useLocalDraft({
+    key: `syde:bio-draft:${profileId}`,
+    data: currentBioContent,
+    isPristine: (data) => bioDraftSignature(data) === initialSnapshot,
+  });
+
+  // Only ever called from the banner below, which only renders while a pending draft actually exists.
+  const handleRestoreDraft = useCallback(() => {
+    setCurrentBioContent(restoreDraft());
+  }, [restoreDraft]);
 
   const handleSave = useCallback(async () => {
     if (!currentBioContent) return;
@@ -69,10 +90,11 @@ export default function BioEditor({
       });
     } else {
       toast.success("자유 소개 저장 완료");
+      clearDraft();
       onEditingChange(false);
     }
     setIsLoading(false);
-  }, [currentBioContent, onEditingChange]);
+  }, [currentBioContent, clearDraft, onEditingChange]);
 
   const handleCancel = useCallback(() => {
     setCurrentBioContent(initialBio as JSONContent | null);
@@ -87,17 +109,16 @@ export default function BioEditor({
     <div className="relative group">
       {isEditing ? (
         <>
+          {pendingDraft && (
+            <DraftRestoreBanner savedAt={pendingDraft.savedAt} onDiscard={discardDraft} onRestore={handleRestoreDraft} />
+          )}
           <div className="my-2 p-4 border rounded-xl bg-white shadow-sm min-h-[400px]">
             <TiptapEditorWrapper
               initialContent={currentBioContent}
               onContentChange={handleContentChange}
               placeholder="당신의 SYDE를 자유롭게 표현해보세요."
               editable={true}
-              onImageUpload={async (file) => {
-                const publicUrl = await uploadImage(file, "profiles", "bio", "detail");
-                if (!publicUrl) throw new Error("이미지 업로드에 실패했습니다.");
-                return publicUrl;
-              }}
+              onImageUpload={(file) => uploadImage(file, "profiles", "bio", "detail")}
             />
           </div>
           <div className="mt-4 flex justify-end space-x-2">
@@ -138,14 +159,7 @@ export default function BioEditor({
             </div>
           ) : (
             <div className="w-full">
-              {/* SEO fallback */}
-              {initialHtml && !isMounted && (
-                <div className="prose prose-sm max-w-none prose-p:my-1" dangerouslySetInnerHTML={{ __html: initialHtml }} />
-              )}
-              {/* 클라이언트 사이드 Tiptap 로드 후 작동 */}
-              <div className={cn(initialHtml && !isMounted ? "hidden" : "block")}>
-                <TiptapViewer content={initialBio} />
-              </div>
+              <RichContent html={initialHtml ?? ""} />
             </div>
           )}
 

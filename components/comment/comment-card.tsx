@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import { linkifyMentions, formatRelativeTime } from "@/lib/utils";
 import { Database } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
-import { deleteComment as deleteInsightComment } from "@/app/insight/insight-actions";
+import { deleteComment as deleteBlogPostComment } from "@/app/blog/blog-actions";
 
 import {
   AlertDialog,
@@ -196,7 +196,7 @@ export function CommentCard({
     setLoading(true);
     try {
       if (insightId) {
-        await deleteInsightComment(comment.id, insightId);
+        await deleteBlogPostComment(comment.id, insightId);
       } else {
         const parentTable = logId ? "log_comments" : "showcase_comments";
         const { error } = await supabase
