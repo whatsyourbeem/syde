@@ -82,11 +82,11 @@ image_url TEXT · summary TEXT (nullable) · slug TEXT UNIQUE · views INT · cr
 | E6 | 고급 편집 (드래그·이미지·표·마크다운 불러오기·미리보기) | 에디터 6곳 | 3~4일 | M3 | ⏳ |
 | B7 | 정렬 토글 (최신순 / 인기순) | 목록 | 0.5일 | M3 | ⏳ |
 | B8 | 카테고리 필터, 태그 모아보기 | 목록 | 0.5일 | M3 (E4a 후) | ⏳ |
-| B9 | "인사이트" 문구 리네이밍 (메타데이터 제외) | 사이트 전체 | 0.3일 | M3 | ⏳ |
+| B9 | 블로그 리네이밍 (문구·URL·메타데이터) | 사이트 전체 | 0.8일 | M3 (가장 먼저) | ⏳ |
 | E4b | 서버 임시저장 | 인사이트 + DB | 1.5~2일 | 보류 | ⏸ |
 
 - **M1 합계 약 4.2일** (필수 2.7일 + 권장 1.5일). 콜드 시딩 DM 발송 전에 끝낸다.
-- **M2 약 5.0일**, **M3 약 4.3~5.3일**.
+- **M2 약 5.0일**, **M3 약 4.8~5.8일**.
 - **E4b는 보류**한다. 시작 조건은 [E4b](#e4b-서버-임시저장-보류)에 적는다.
 
 ---
@@ -406,10 +406,56 @@ create policy "owner delete" on public.insight_drafts for delete using (auth.uid
 - 목록 상단에 카테고리 칩(전체 + 5개)을 두고 `?category=tech`로 거른다.
 - 태그 칩을 누르면 `?tag=<tag>`로 거른다(`tags @> array[tag]`, GIN 인덱스 사용).
 
-### B9. "인사이트" 문구 리네이밍 (메타데이터 제외)
+### B9. 블로그 리네이밍 (문구·URL·메타데이터)
+
+사용자에게 보이는 이름을 "인사이트"에서 "블로그"로 한 번에 바꾼다. 메뉴 이름, 주소, 검색 제목이 서로 어긋나지 않게 하고, 링크가 퍼지기 전(콜드 시딩 전)에 끝낸다.
+
+**URL**
+- `app/insight/` 폴더를 `app/blog/`로 옮긴다. 목록 `/blog`, 상세 `/blog/<slug>`, 글쓰기 `/blog/write`, 수정 `/blog/<id>/edit`.
+- `next.config.ts`의 `redirects()`에 영구 리다이렉트를 추가한다(`/log` → `/feed`와 같은 방식).
+  - `/insight` → `/blog`
+  - `/insight/:path*` → `/blog/:path*`
+- 경로를 참조하는 곳을 모두 바꾼다: 링크, `router.push`·`redirect`, `revalidatePath`, `app/sitemap.ts`, canonical, 공유 URL, 피드·검색·프로필의 글 링크. `rg "/insight"`로 남은 곳이 없는지 확인한다.
+- 본문 안에 이미 들어간 `/insight/...` 링크는 리다이렉트로 계속 열리므로 DB를 고치지 않는다.
+
+**바꾸지 않는 내부 이름**
+- DB 테이블(`insights`, `insight_*`), 스토리지 경로, 서버 액션과 컴포넌트 파일명, React Query 키, 로컬 임시저장 키(`syde:insight-draft:*`)는 그대로 둔다. 사용자에게 보이지 않고, 바꾸면 마이그레이션 위험과 작성 중 초안 유실만 생긴다.
+
+**메타데이터**
+- 목록(`app/blog/layout.tsx`): 제목은 "사이드프로젝트 블로그 | SYDE"로 바꾼다. 설명에는 "기획·개발·수익화 인사이트" 같은 표현을 남겨 기존 검색 키워드를 유지한다. canonical은 `/blog`.
+- 상세: 제목 접미사 "- SYDE 인사이트"를 "- SYDE 블로그"로 바꾸고, canonical과 OG URL을 `/blog/<slug>`로 바꾼다.
+
+**검색 탭**
+- `/search?tab=blog`를 새 값으로 쓴다. 기존 `?tab=insights`도 계속 받아 같은 결과를 보여준다.
+
+**화면 문구**
 
 | 파일 | 내용 |
 |---|---|
+| `components/layout/header-navigation.tsx` | 데스크톱 메뉴 "인사이트" |
+| `components/layout/mobile-menu.tsx` | 모바일 메뉴 "인사이트" |
+| `components/search/category-tab.tsx` | 검색 탭 "인사이트" |
+| `components/search/search-form.tsx` | "영감을 주는 인사이트 검색" |
+| `components/user/profile-content-tabs.tsx` | 프로필 하위 탭 "인사이트" |
+| `lib/queries/feed-queries.ts` | "…님이 인사이트를 등록했어요" |
+| `components/feed/activity-card.tsx` | 삭제 안내 문구 |
+| `app/guideline/page.tsx` | 가이드라인 본문 |
+| 인사이트 관련 토스트 전반 | "인사이트가 등록/수정/삭제되었습니다" |
+
+- `rg "인사이트"`로 사용자에게 보이는 문구가 남았는지 확인한다. 주석과 내부 식별자는 그대로 둬도 된다.
+
+**배포 후**
+- Search Console에 새 사이트맵을 제출한다. 도메인이 같으므로 주소 변경 도구는 쓰지 않는다.
+- 운영 환경에서 `/insight/<기존 slug>`가 `/blog/<slug>`로 한 번에 넘어가는지 확인한다.
+
+**완료 조건**
+- `/insight`, `/insight/<slug>`, `/insight/<uuid>`, `/insight/write`가 모두 `/blog/...`로 영구 리다이렉트된다.
+- 사이트맵, canonical, OG URL이 `/blog/...`이다.
+- 화면에 "인사이트"라는 이름이 보이지 않는다(검색 설명의 키워드 표현은 예외).
+- `?tab=insights`와 `?tab=blog` 모두 블로그 검색 결과를 보여준다.
+- 글쓰기, 수정, 삭제, 좋아요, 댓글이 새 주소에서 동작한다.
+
+---|---|
 | `components/layout/header-navigation.tsx` | 데스크톱 메뉴 "인사이트" |
 | `components/layout/mobile-menu.tsx` | 모바일 메뉴 "인사이트" |
 | `components/search/category-tab.tsx` | 검색 탭 "인사이트" |
