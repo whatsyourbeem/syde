@@ -244,6 +244,9 @@ function suggestionRender(): NonNullable<SuggestionOptions<SlashCommandItem, Sla
         });
         const popup = document.createElement("div");
         popup.className = "z-50";
+        // Fixed from the start so the popup never sits in the page flow (at the bottom of <body>) before
+        // mount() positions it; mount() overwrites top/left with the real coordinates.
+        Object.assign(popup.style, { position: "fixed", top: "0px", left: "0px" });
         popup.appendChild(component.element);
         // Suggestion keeps the popup anchored to the "/" across scroll, resize and layout shifts,
         // and closes it on a click outside both the popup and the editor.

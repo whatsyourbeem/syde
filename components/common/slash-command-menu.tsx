@@ -21,17 +21,24 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
   ({ items, command }, ref) => {
     const [selected, setSelected] = useState(0);
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+    const listRef = useRef<HTMLDivElement>(null);
 
     // The list changes on every keystroke as the query narrows; keep the highlight in range.
     useEffect(() => setSelected(0), [items]);
 
     // The list is taller than the popup; keep the keyboard-highlighted item in view, together with its
     // group heading when it's the first item of a group (e.g. after wrapping back to the top).
+    // Scrolls only the list itself: scrollIntoView would also scroll the page, and on the first render the
+    // popup isn't positioned yet, so the page jumped to wherever the unpositioned popup sat (its bottom).
     useEffect(() => {
+      const list = listRef.current;
       const el = itemRefs.current[selected];
-      if (!el) return;
-      if (items[selected]?.group !== items[selected - 1]?.group) el.previousElementSibling?.scrollIntoView({ block: "nearest" });
-      el.scrollIntoView({ block: "nearest" });
+      if (!list || !el) return;
+      const heading = items[selected]?.group !== items[selected - 1]?.group ? (el.previousElementSibling as HTMLElement | null) : null;
+      const top = (heading ?? el).offsetTop;
+      const bottom = el.offsetTop + el.offsetHeight;
+      if (top < list.scrollTop) list.scrollTop = top;
+      else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
     }, [selected, items]);
 
     useImperativeHandle(ref, () => ({
@@ -64,7 +71,8 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
     }
 
     return (
-      <div className="max-h-80 w-64 overflow-y-auto rounded-lg border bg-popover p-1 shadow-md">
+      // relative: item offsetTop is measured from this scroll container.
+      <div ref={listRef} className="relative max-h-80 w-64 overflow-y-auto rounded-lg border bg-popover p-1 shadow-md">
         {items.map((item, index) => (
           <Fragment key={item.title}>
             {/* Headings are just labels; arrow keys still move through the items as one flat list. */}
