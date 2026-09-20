@@ -12,8 +12,15 @@ type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 
 export type ActivityType =
   | "SHOWCASE_CREATED"
+  | "BLOG_POST_CREATED"
+  // Legacy value: rows written before the blog rename. The database migration that renames the rows deploys
+  // after this code, so both values must be understood until then. Remove with that follow-up change.
   | "INSIGHT_CREATED"
   | "MEETUP_CREATED";
+
+function isBlogPostActivity(activityType: ActivityType): boolean {
+  return activityType === "BLOG_POST_CREATED" || activityType === "INSIGHT_CREATED";
+}
 
 export interface ActivityFeedItem {
   id: string;
@@ -30,7 +37,7 @@ export interface ActivityFeedItem {
       views_count?: number | null;
       status?: ShowcaseStatus | null;
     };
-    insight?: {
+    blogPost?: {
       title: string | null;
       summary: string | null;
       image_url: string | null;
@@ -77,12 +84,13 @@ export function getActivityMessage(
   displayName: string
 ): string {
   const title = activity.details?.showcase?.title || 
-                activity.details?.insight?.title || 
+                activity.details?.blogPost?.title || 
                 activity.details?.meetup?.title;
 
   switch (activity.activity_type) {
     case "SHOWCASE_CREATED":
       return `${displayName}님이 쇼케이스를 등록했어요`;
+    case "BLOG_POST_CREATED":
     case "INSIGHT_CREATED":
       return `${displayName}님이 블로그 글을 발행했어요`;
     case "MEETUP_CREATED":
@@ -98,6 +106,7 @@ export function getActivityLink(activity: ActivityFeedItem): string | null {
   switch (activity.activity_type) {
     case "SHOWCASE_CREATED":
       return activity.target_id ? `/showcase/${activity.target_id}` : null;
+    case "BLOG_POST_CREATED":
     case "INSIGHT_CREATED":
       return activity.target_id ? `/blog/${activity.target_id}` : null;
     case "MEETUP_CREATED":
@@ -111,6 +120,7 @@ export function getActivityEmoji(activityType: ActivityType): string {
   switch (activityType) {
     case "SHOWCASE_CREATED":
       return "🚀";
+    case "BLOG_POST_CREATED":
     case "INSIGHT_CREATED":
       return "💡";
     case "MEETUP_CREATED":
@@ -367,19 +377,19 @@ async function fetchActivityDetails(
     .map(a => a.target_id as string);
   
   const postIds = activities
-    .filter(a => a.activity_type === "INSIGHT_CREATED" && a.target_id)
+    .filter(a => isBlogPostActivity(a.activity_type) && a.target_id)
     .map(a => a.target_id as string);
   
   const meetupIds = activities
     .filter(a => a.activity_type === "MEETUP_CREATED" && a.target_id)
     .map(a => a.target_id as string);
 
-  const [showcases, insights, meetups] = await Promise.all([
+  const [showcases, blogPosts, meetups] = await Promise.all([
     showcaseIds.length > 0
       ? supabase.from("showcases").select("id, name, short_description, thumbnail_url, views_count, status").in("id", showcaseIds)
       : Promise.resolve({ data: [] }),
     postIds.length > 0
-      ? supabase.from("insights").select("id, title, summary, image_url, content").in("id", postIds)
+      ? supabase.from("blog_posts").select("id, title, summary, image_url, content").in("id", postIds)
       : Promise.resolve({ data: [] }),
     meetupIds.length > 0
       ? supabase.from("meetups").select(`
@@ -411,11 +421,11 @@ async function fetchActivityDetails(
           }
         };
       }
-    } else if (activity.activity_type === "INSIGHT_CREATED") {
-      const detail = insights.data?.find(i => i.id === activity.target_id);
+    } else if (isBlogPostActivity(activity.activity_type)) {
+      const detail = blogPosts.data?.find(i => i.id === activity.target_id);
       if (detail) {
         activity.details = {
-          insight: {
+          blogPost: {
             title: detail.title,
             summary: detail.summary,
             image_url: detail.image_url,

@@ -26,7 +26,7 @@ interface EditorWriteBarProps {
 }
 
 /**
- * Sticky bar for a writing page (insight, showcase, ...): keeps exit, save status, preview and the
+ * Sticky bar for a writing page (blog, showcase, ...): keeps exit, save status, preview and the
  * publish action in reach while the writer is deep in a long form, and looks the same everywhere.
  */
 export function EditorWriteBar({ pageLabel, lastSavedAt, onExit, onPreview, onPublish, publishLabel, busyLabel, stats, bleedClassName }: EditorWriteBarProps) {

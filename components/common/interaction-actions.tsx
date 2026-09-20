@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface InteractionActionsProps {
     id: string;
-    type: "log" | "insight";
+    type: "log" | "blog";
     stats: {
         likes: number;
         comments: number;

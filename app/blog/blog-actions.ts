@@ -32,9 +32,9 @@ export const createBlogPost = withAuth(
     const content = formData.get("content") as string | null;
     const imageUrl = formData.get("imageUrl") as string | null;
 
-    // slug는 DB 트리거(trig_handle_insight_slug)가 title 기반으로 자동 생성
+    // slug는 DB 트리거(trig_handle_blog_post_slug)가 title 기반으로 자동 생성
     const { data, error } = await supabase
-      .from("insights")
+      .from("blog_posts")
       .insert({
         user_id: user.id,
         title,
@@ -50,7 +50,7 @@ export const createBlogPost = withAuth(
     if (error) throw new Error(error.message);
 
     revalidatePath("/blog");
-    revalidateTagSafe("insight-all");
+    revalidateTagSafe("blog-post-all");
     return createSuccessResponse({ id: data.id, slug: data.slug });
   }
 );
@@ -64,7 +64,7 @@ export const updateBlogPost = withAuth(
     const imageUrl = formData.get("imageUrl") as string | null;
 
     const { error } = await supabase
-      .from("insights")
+      .from("blog_posts")
       .update({
         title,
         summary: resolveSummary(summary, content),
@@ -81,8 +81,8 @@ export const updateBlogPost = withAuth(
 
     revalidatePath("/blog");
     revalidatePath(`/blog/${id}`);
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${id}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${id}`);
     return createSuccessResponse({ id });
   }
 );
@@ -90,14 +90,14 @@ export const updateBlogPost = withAuth(
 export const createComment = withAuth(
   async ({ supabase, user }, formData: FormData) => {
     const content = validateRequired(formData.get("content") as string | null, "댓글");
-    const insightId = validateRequired(formData.get("insight_id") as string | null, "글 ID");
+    const blogPostId = validateRequired(formData.get("blog_post_id") as string | null, "글 ID");
     const parentCommentId = formData.get("parent_comment_id") as string | null;
 
     const processedContent = await processMentionsForSave(content, supabase);
 
-    const { error } = await supabase.from("insight_comments").insert({
+    const { error } = await supabase.from("blog_post_comments").insert({
       content: processedContent,
-      insight_id: insightId,
+      blog_post_id: blogPostId,
       user_id: user.id,
       parent_comment_id: parentCommentId,
     });
@@ -107,9 +107,9 @@ export const createComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/blog/${insightId}`);
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${insightId}`);
+    revalidatePath(`/blog/${blogPostId}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
 );
@@ -121,12 +121,12 @@ export const updateComment = withAuth(
       formData.get("comment_id") as string,
       "댓글 ID"
     );
-    const insightId = validateRequired(formData.get("insight_id") as string | null, "글 ID");
+    const blogPostId = validateRequired(formData.get("blog_post_id") as string | null, "글 ID");
 
     const processedContent = await processMentionsForSave(content, supabase);
 
     const { error } = await supabase
-      .from("insight_comments")
+      .from("blog_post_comments")
       .update({ content: processedContent })
       .eq("id", commentId)
       .eq("user_id", user.id);
@@ -136,17 +136,17 @@ export const updateComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/blog/${insightId}`);
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${insightId}`);
+    revalidatePath(`/blog/${blogPostId}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
 );
 
 export const deleteComment = withAuth(
-  async ({ supabase, user }, commentId: string, insightId: string) => {
+  async ({ supabase, user }, commentId: string, blogPostId: string) => {
     const { error } = await supabase
-      .from("insight_comments")
+      .from("blog_post_comments")
       .delete()
       .eq("id", commentId)
       .eq("user_id", user.id);
@@ -156,91 +156,91 @@ export const deleteComment = withAuth(
       throw new Error(error.message);
     }
 
-    revalidatePath(`/blog/${insightId}`);
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${insightId}`);
+    revalidatePath(`/blog/${blogPostId}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
 );
 
 export const toggleCommentLike = withAuth(
-  async ({ supabase, user }, commentId: string, insightId: string, hasLiked: boolean) => {
+  async ({ supabase, user }, commentId: string, blogPostId: string, hasLiked: boolean) => {
     if (hasLiked) {
       const { error } = await supabase
-        .from("insight_comment_likes")
+        .from("blog_post_comment_likes")
         .delete()
         .eq("comment_id", commentId)
         .eq("user_id", user.id);
       if (error) throw new Error(`좋아요 취소 실패: ${error.message}`);
     } else {
       const { error } = await supabase
-        .from("insight_comment_likes")
+        .from("blog_post_comment_likes")
         .insert({ comment_id: commentId, user_id: user.id });
       if (error) throw new Error(`좋아요 실패: ${error.message}`);
     }
 
-    revalidatePath(`/blog/${insightId}`);
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${insightId}`);
+    revalidatePath(`/blog/${blogPostId}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
 );
 
 export const toggleBlogPostLike = withAuth(
-  async ({ supabase, user }, insightId: string, currentlyLiked: boolean) => {
+  async ({ supabase, user }, blogPostId: string, currentlyLiked: boolean) => {
     if (currentlyLiked) {
       const { error } = await supabase
-        .from("insight_likes")
+        .from("blog_post_likes")
         .delete()
-        .eq("insight_id", insightId)
+        .eq("blog_post_id", blogPostId)
         .eq("user_id", user.id);
       if (error) throw new Error(error.message);
     } else {
       const { error } = await supabase
-        .from("insight_likes")
-        .insert({ insight_id: insightId, user_id: user.id });
+        .from("blog_post_likes")
+        .insert({ blog_post_id: blogPostId, user_id: user.id });
       if (error) throw new Error(error.message);
     }
 
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${insightId}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
 );
 
 export const toggleBlogPostBookmark = withAuth(
-  async ({ supabase, user }, insightId: string, currentlyBookmarked: boolean) => {
+  async ({ supabase, user }, blogPostId: string, currentlyBookmarked: boolean) => {
     if (currentlyBookmarked) {
       const { error } = await supabase
-        .from("insight_bookmarks")
+        .from("blog_post_bookmarks")
         .delete()
-        .eq("insight_id", insightId)
+        .eq("blog_post_id", blogPostId)
         .eq("user_id", user.id);
       if (error) throw new Error(error.message);
     } else {
       const { error } = await supabase
-        .from("insight_bookmarks")
-        .insert({ insight_id: insightId, user_id: user.id });
+        .from("blog_post_bookmarks")
+        .insert({ blog_post_id: blogPostId, user_id: user.id });
       if (error) throw new Error(error.message);
     }
 
-    revalidateTagSafe("insight-all");
-    revalidateTagSafe(`insight-${insightId}`);
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
 );
 
-export async function revalidateBlogPostAction(insightId: string) {
+export async function revalidateBlogPostAction(blogPostId: string) {
   revalidatePath("/blog");
-  revalidateTagSafe("insight-all");
-  revalidateTagSafe(`insight-${insightId}`);
+  revalidateTagSafe("blog-post-all");
+  revalidateTagSafe(`blog-post-${blogPostId}`);
 }
 
-export async function incrementBlogPostViews(insightId: string): Promise<void> {
+export async function incrementBlogPostViews(blogPostId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
-  const { error } = await supabase.rpc("increment_insight_views", { insight_id: insightId });
+  const { error } = await supabase.rpc("increment_blog_post_views", { p_blog_post_id: blogPostId });
   if (error) {
-    console.error("Error incrementing insight views:", error);
+    console.error("Error incrementing blog post views:", error);
   }
 }

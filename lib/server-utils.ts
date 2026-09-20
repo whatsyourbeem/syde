@@ -27,7 +27,7 @@ function slugify(text: string): string {
 
 export async function generateUniqueSlug(
   supabase: SupabaseClient,
-  table: "showcases" | "insights",
+  table: "showcases" | "blog_posts",
   name: string
 ): Promise<string> {
   const fallback = table === "showcases" ? "project" : "post";

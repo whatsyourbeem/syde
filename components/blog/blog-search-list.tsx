@@ -23,7 +23,7 @@ export function BlogSearchList({ searchQuery }: BlogSearchListProps) {
     queryKey: blogKeys.list({ searchQuery, currentPage }),
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { insights: postsData, count } = await getBlogPostsList(supabase, {
+      const { blogPosts: postsData, count } = await getBlogPostsList(supabase, {
         currentPage,
         itemsPerPage: ITEMS_PER_PAGE,
         searchQuery,
@@ -43,20 +43,20 @@ export function BlogSearchList({ searchQuery }: BlogSearchListProps) {
           avatarUrl: item.author?.avatar_url
         },
         stats: {
-          likes: item.insight_likes?.length || 0,
-          comments: item.insight_comments?.length || 0,
-          bookmarks: item.insight_bookmarks?.length || 0,
+          likes: item.blog_post_likes?.length || 0,
+          comments: item.blog_post_comments?.length || 0,
+          bookmarks: item.blog_post_bookmarks?.length || 0,
           views: item.views || 0
         },
         initialStatus: {
-          hasLiked: user ? item.insight_likes?.some((l: any) => l.user_id === user.id) : false,
-          hasBookmarked: user ? item.insight_bookmarks?.some((b: any) => b.user_id === user.id) : false
+          hasLiked: user ? item.blog_post_likes?.some((l: any) => l.user_id === user.id) : false,
+          hasBookmarked: user ? item.blog_post_bookmarks?.some((b: any) => b.user_id === user.id) : false
         },
         currentUserId: user?.id || null
       }));
 
       return {
-        insights: formattedPosts,
+        blogPosts: formattedPosts,
         count: count || 0,
       };
     },
@@ -70,12 +70,12 @@ export function BlogSearchList({ searchQuery }: BlogSearchListProps) {
 
   return (
     <div className="space-y-6">
-      {data?.insights.length === 0 ? (
+      {data?.blogPosts.length === 0 ? (
         <p className="text-center text-muted-foreground py-10">검색 결과가 없습니다.</p>
       ) : (
         <div className="flex w-full flex-col divide-y divide-[#F0F0F0]">
-          {data?.insights.map((insight) => (
-            <BlogCard key={insight.id} {...insight} />
+          {data?.blogPosts.map((blogPost) => (
+            <BlogCard key={blogPost.id} {...blogPost} />
           ))}
         </div>
       )}

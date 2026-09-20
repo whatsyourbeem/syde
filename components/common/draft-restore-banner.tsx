@@ -17,7 +17,7 @@ interface DraftRestoreBannerProps {
 
 /**
  * Offers a locally-saved draft found on mount. Shared across every editor that uses `useLocalDraft`
- * (insight, showcase, club, meetup, bio) so the recovery experience looks the same everywhere.
+ * (blog, showcase, club, meetup, bio) so the recovery experience looks the same everywhere.
  */
 export function DraftRestoreBanner({ savedAt, preview, onDiscard, onRestore, className }: DraftRestoreBannerProps) {
   return (

@@ -27,7 +27,7 @@ export function BlogList({ currentUserId, userId, showInteractions = true }: Blo
   const { data, isLoading, isError, error } = useQuery({
     queryKey: blogKeys.list({ userId, currentPage }),
     queryFn: async () => {
-      const { insights: postsData, count } = await getBlogPostsList(supabase, {
+      const { blogPosts: postsData, count } = await getBlogPostsList(supabase, {
         currentPage,
         itemsPerPage: ITEMS_PER_PAGE,
         userId,
@@ -47,20 +47,20 @@ export function BlogList({ currentUserId, userId, showInteractions = true }: Blo
           avatarUrl: item.author?.avatar_url
         },
         stats: {
-          likes: item.insight_likes?.length || 0,
-          comments: item.insight_comments?.length || 0,
-          bookmarks: item.insight_bookmarks?.length || 0,
+          likes: item.blog_post_likes?.length || 0,
+          comments: item.blog_post_comments?.length || 0,
+          bookmarks: item.blog_post_bookmarks?.length || 0,
           views: item.views || 0
         },
         initialStatus: {
-          hasLiked: currentUserId ? item.insight_likes?.some((l: any) => l.user_id === currentUserId) : false,
-          hasBookmarked: currentUserId ? item.insight_bookmarks?.some((b: any) => b.user_id === currentUserId) : false
+          hasLiked: currentUserId ? item.blog_post_likes?.some((l: any) => l.user_id === currentUserId) : false,
+          hasBookmarked: currentUserId ? item.blog_post_bookmarks?.some((b: any) => b.user_id === currentUserId) : false
         },
         currentUserId: currentUserId
       }));
 
       return {
-        insights: formattedPosts,
+        blogPosts: formattedPosts,
         count: count || 0,
       };
     },
@@ -74,7 +74,7 @@ export function BlogList({ currentUserId, userId, showInteractions = true }: Blo
 
   return (
     <div className="space-y-6">
-      {data?.insights.length === 0 ? (
+      {data?.blogPosts.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-10 text-center text-muted-foreground">
           <p>아직 쓴 글이 없어요</p>
           {currentUserId === userId && (
@@ -85,8 +85,8 @@ export function BlogList({ currentUserId, userId, showInteractions = true }: Blo
         </div>
       ) : (
         <div className="flex w-full flex-col divide-y divide-[#F0F0F0] px-4 md:px-0">
-          {data?.insights.map((insight) => (
-            <BlogCard key={insight.id} {...insight} showInteractions={showInteractions} />
+          {data?.blogPosts.map((blogPost) => (
+            <BlogCard key={blogPost.id} {...blogPost} showInteractions={showInteractions} />
           ))}
         </div>
       )}

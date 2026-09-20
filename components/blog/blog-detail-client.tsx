@@ -66,7 +66,7 @@ export default function BlogDetailClient({
     const supabase = createClient();
     const queryClient = useQueryClient();
 
-    const [insight, setInsight] = useState<any>(initialPost);
+    const [blogPost, setBlogPost] = useState<any>(initialPost);
     const [stats, setStats] = useState(initialStats);
     const [viewsCount, setViewsCount] = useState(initialStats.views ?? 0);
     const [isLiked, setIsLiked] = useState(initialIsLiked);
@@ -92,7 +92,7 @@ export default function BlogDetailClient({
 
     // Increment view count once per 1h per browser via localStorage
     useEffect(() => {
-        const key = `viewed_insight_${id}`;
+        const key = `viewed_blog_post_${id}`;
         const lastViewed = localStorage.getItem(key);
         const now = Date.now();
         if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
@@ -104,10 +104,10 @@ export default function BlogDetailClient({
     }, [id]);
 
     useEffect(() => {
-        if (currentUserId && insight?.user_id) {
-            setIsAuthor(currentUserId === insight.user_id);
+        if (currentUserId && blogPost?.user_id) {
+            setIsAuthor(currentUserId === blogPost.user_id);
         }
-    }, [currentUserId, insight]);
+    }, [currentUserId, blogPost]);
 
     const handleEdit = () => {
         router.push(`/blog/write?id=${id}`);
@@ -126,7 +126,7 @@ export default function BlogDetailClient({
             toast.success("글이 삭제됐어요");
             router.push("/blog");
         } catch (error) {
-            console.error("Error deleting insight:", error);
+            console.error("Error deleting blog post:", error);
             toast.error("삭제 중 오류가 발생했습니다.");
         } finally {
             setDeleting(false);
@@ -154,7 +154,7 @@ export default function BlogDetailClient({
 
         try {
             await toggleBlogPostLike(id, isLiked);
-            queryClient.invalidateQueries({ queryKey: ["insights"] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
         } catch (error) {
             setIsLiked(prevLiked);
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : Math.max(0, prev.likes - 1) }));
@@ -180,7 +180,7 @@ export default function BlogDetailClient({
 
         try {
             await toggleBlogPostBookmark(id, isBookmarked);
-            queryClient.invalidateQueries({ queryKey: ["insights"] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
         } catch (error) {
             setIsBookmarked(prevBookmarked);
             setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : Math.max(0, prev.bookmarks - 1) }));
@@ -191,7 +191,7 @@ export default function BlogDetailClient({
     };
 
 
-    if (!insight) {
+    if (!blogPost) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
                 <p className="text-gray-500 font-medium text-lg">글을 찾을 수 없습니다.</p>
@@ -243,32 +243,32 @@ export default function BlogDetailClient({
 
                         <BlogThumbnail
                             hideWhenEmpty
-                            src={insight.image_url}
-                            alt={insight.title}
+                            src={blogPost.image_url}
+                            alt={blogPost.title}
                             containerClassName="w-full aspect-w-16 aspect-h-9 rounded-[12px]"
                         />
 
                         <h1 className="text-[30px] md:text-[40px] leading-[1.3] font-bold text-black break-words">
-                            {insight.title}
+                            {blogPost.title}
                         </h1>
 
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <ProfileHoverCard userId={insight.user_id}>
-                                <Link href={`/@${insight.user_id}`} className="flex items-center gap-[5px] w-fit">
+                            <ProfileHoverCard userId={blogPost.user_id}>
+                                <Link href={`/@${blogPost.user_id}`} className="flex items-center gap-[5px] w-fit">
                                     <Avatar className="w-5 h-5">
-                                        <AvatarImage src={insight.profiles?.avatar_url} />
-                                        <AvatarFallback className="bg-[#D9D9D9]">{insight.profiles?.username?.[0] || 'U'}</AvatarFallback>
+                                        <AvatarImage src={blogPost.profiles?.avatar_url} />
+                                        <AvatarFallback className="bg-[#D9D9D9]">{blogPost.profiles?.username?.[0] || 'U'}</AvatarFallback>
                                     </Avatar>
-                                    <span className="text-[13px] font-semibold text-sydeblue">{insight.profiles?.full_name || insight.profiles?.username || '알 수 없는 사용자'}</span>
+                                    <span className="text-[13px] font-semibold text-sydeblue">{blogPost.profiles?.full_name || blogPost.profiles?.username || '알 수 없는 사용자'}</span>
                                 </Link>
                             </ProfileHoverCard>
-                            {insight.created_at && (
+                            {blogPost.created_at && (
                                 <span className="text-[12px] text-[#777777]">
-                                    · {formatDistanceToNow(new Date(insight.created_at), { addSuffix: true, locale: ko }).replace("약 ", "")}
+                                    · {formatDistanceToNow(new Date(blogPost.created_at), { addSuffix: true, locale: ko }).replace("약 ", "")}
                                 </span>
                             )}
-                            {getCategoryLabel(insight.category) && (
-                                <span className="text-[12px] text-[#777777]">· {getCategoryLabel(insight.category)}</span>
+                            {getCategoryLabel(blogPost.category) && (
+                                <span className="text-[12px] text-[#777777]">· {getCategoryLabel(blogPost.category)}</span>
                             )}
                         </div>
                     </div>
@@ -279,9 +279,9 @@ export default function BlogDetailClient({
                     <div className="relative px-1 text-black w-full max-w-3xl mx-auto">
                         <ArticleToc items={toc} />
                         <RichContent html={initialHtml ?? ""} />
-                        {Array.isArray(insight.tags) && insight.tags.length > 0 && (
+                        {Array.isArray(blogPost.tags) && blogPost.tags.length > 0 && (
                             <ul className="mt-10 flex flex-wrap gap-2">
-                                {insight.tags.map((tag: string) => (
+                                {blogPost.tags.map((tag: string) => (
                                     <li key={tag} className="rounded-full bg-sydeblue/10 px-3 py-1 text-[13px] text-sydeblue">
                                         #{tag}
                                     </li>
@@ -294,7 +294,7 @@ export default function BlogDetailClient({
                 <div className="w-full max-w-3xl mx-auto py-2">
                     <InteractionActions
                         id={id}
-                        type="insight"
+                        type="blog"
                         stats={{ ...stats, views: viewsCount }}
                         status={{
                             hasLiked: isLiked,
@@ -307,7 +307,7 @@ export default function BlogDetailClient({
                         onLikeToggle={toggleLike}
                         onBookmarkToggle={toggleBookmark}
                         shareUrl={`/blog/${id}`}
-                        shareTitle={insight.title}
+                        shareTitle={blogPost.title}
                         className="h-14 px-1"
                         showShare={false}
                     />
@@ -315,10 +315,10 @@ export default function BlogDetailClient({
 
                 <AuthorCard
                     author={{
-                        id: insight.user_id,
-                        name: insight.profiles?.full_name || insight.profiles?.username || "알 수 없는 사용자",
-                        tagline: insight.profiles?.tagline ?? null,
-                        avatarUrl: insight.profiles?.avatar_url ?? null,
+                        id: blogPost.user_id,
+                        name: blogPost.profiles?.full_name || blogPost.profiles?.username || "알 수 없는 사용자",
+                        tagline: blogPost.profiles?.tagline ?? null,
+                        avatarUrl: blogPost.profiles?.avatar_url ?? null,
                     }}
                     recentPosts={authorRecentPosts}
                 />
@@ -328,7 +328,7 @@ export default function BlogDetailClient({
 
                     <div className="flex flex-col gap-4 px-1 min-h-[100px]">
                         <CommentList
-                            insightId={id}
+                            blogPostId={id}
                             currentUserId={currentUserId}
                             isDetailPage={true}
                             setReplyTo={setReplyTo}
@@ -336,14 +336,14 @@ export default function BlogDetailClient({
                             newParentCommentId={newParentCommentId}
                             onCommentDeleted={() => {
                                 setStats(prev => ({ ...prev, comments: Math.max(0, prev.comments - 1) }));
-                                queryClient.invalidateQueries({ queryKey: ["insights"] });
+                                queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
                             }}
                         />
                     </div>
 
                     <div className="pt-4">
                         <CommentForm
-                            insightId={id}
+                            blogPostId={id}
                             parentCommentId={replyTo?.parentId}
                             currentUserId={currentUserId}
                             onCommentAdded={() => {
@@ -351,7 +351,7 @@ export default function BlogDetailClient({
                                 setReplyTo(null);
                                 setNewCommentId(Math.random().toString());
                                 setNewParentCommentId(replyTo?.parentId);
-                                queryClient.invalidateQueries({ queryKey: ["insights"] });
+                                queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
                             }}
                             onCancel={replyTo ? () => setReplyTo(null) : undefined}
                             replyTo={replyTo}

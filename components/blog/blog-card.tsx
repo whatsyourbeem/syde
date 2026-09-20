@@ -81,7 +81,7 @@ export function BlogCard({
 
         try {
             await toggleBlogPostLike(id, isLiked);
-            queryClient.invalidateQueries({ queryKey: ["insights"] });
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
         } catch (error) {
             toast.error("좋아요 처리 중 오류가 발생했습니다.");
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : prev.likes - 1 }));

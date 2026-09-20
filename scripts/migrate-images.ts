@@ -44,8 +44,8 @@ const BUCKET_CONFIG: Record<string, Array<{ table: string; column: string; isArr
   'meetups': [
     { table: 'meetups', column: 'thumbnail_url' },
   ],
-  'insight-images': [
-    { table: 'insights', column: 'image_url' },
+  'blog-images': [
+    { table: 'blog_posts', column: 'image_url' },
   ],
 };
 

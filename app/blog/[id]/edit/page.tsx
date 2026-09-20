@@ -6,19 +6,19 @@ export default async function BlogEditPage({ params }: { params: Promise<{ id: s
     const supabase = await createClient();
     const { id } = await params;
 
-    const { data: insight, error } = await supabase
-        .from("insights")
+    const { data: blogPost, error } = await supabase
+        .from("blog_posts")
         .select("*")
         .eq("id", id)
         .single();
 
-    if (error || !insight) {
-        console.error("Error fetching insight for edit:", error);
+    if (error || !blogPost) {
+        console.error("Error fetching blog post for edit:", error);
         notFound();
     }
 
     const { data: { user } } = await supabase.auth.getUser();
-    const isAuthor = user?.id === insight.user_id;
+    const isAuthor = user?.id === blogPost.user_id;
 
     if (!isAuthor) {
         // Prevent editing if the user is not the author
@@ -27,7 +27,7 @@ export default async function BlogEditPage({ params }: { params: Promise<{ id: s
 
     return (
         <div className="bg-white min-h-screen">
-            <BlogEditForm initialData={insight} />
+            <BlogEditForm initialData={blogPost} />
         </div>
     );
 }

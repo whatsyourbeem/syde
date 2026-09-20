@@ -22,12 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [
         { data: meetups },
         { data: clubs },
-        { data: insights },
+        { data: blogPosts },
         { data: showcases }
     ] = await Promise.all([
         supabase.from("meetups").select("id, created_at"),
         supabase.from("clubs").select("id, updated_at"),
-        supabase.from("insights").select("id, slug, updated_at"),
+        supabase.from("blog_posts").select("id, slug, updated_at"),
         supabase.from("showcases").select("id, slug, updated_at")
     ]);
 
@@ -57,10 +57,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }));
 
-    // 7. Insights
-    const blogRoutes = (insights || []).map((insight: any) => ({
-        url: `${baseUrl}/blog/${insight.slug || insight.id}`,
-        lastModified: (insight.updated_at || today).split("T")[0],
+    // 7. Blog posts
+    const blogRoutes = (blogPosts || []).map((blogPost: any) => ({
+        url: `${baseUrl}/blog/${blogPost.slug || blogPost.id}`,
+        lastModified: (blogPost.updated_at || today).split("T")[0],
         changeFrequency: "weekly" as const,
         priority: 0.7,
     }));

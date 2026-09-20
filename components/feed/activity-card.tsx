@@ -117,23 +117,23 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
       );
     }
 
-    if (details.insight) {
-      const { insight } = details;
+    if (details.blogPost) {
+      const { blogPost } = details;
       return (
         <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pr-3">
           <BlogThumbnail
-            src={insight.image_url}
+            src={blogPost.image_url}
             alt="Blog thumbnail"
             containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
           />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
-              {insight.title}
+              {blogPost.title}
             </h4>
             <div className="flex flex-col">
-              {insight.summary && (
+              {blogPost.summary && (
                 <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-snug">
-                  {insight.summary}
+                  {blogPost.summary}
                 </p>
               )}
             </div>
