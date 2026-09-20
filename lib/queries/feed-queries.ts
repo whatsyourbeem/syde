@@ -13,14 +13,7 @@ type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 export type ActivityType =
   | "SHOWCASE_CREATED"
   | "BLOG_POST_CREATED"
-  // Legacy value: rows written before the blog rename. The database migration that renames the rows deploys
-  // after this code, so both values must be understood until then. Remove with that follow-up change.
-  | "INSIGHT_CREATED"
   | "MEETUP_CREATED";
-
-function isBlogPostActivity(activityType: ActivityType): boolean {
-  return activityType === "BLOG_POST_CREATED" || activityType === "INSIGHT_CREATED";
-}
 
 export interface ActivityFeedItem {
   id: string;
@@ -91,7 +84,6 @@ export function getActivityMessage(
     case "SHOWCASE_CREATED":
       return `${displayName}님이 쇼케이스를 등록했어요`;
     case "BLOG_POST_CREATED":
-    case "INSIGHT_CREATED":
       return `${displayName}님이 블로그 글을 발행했어요`;
     case "MEETUP_CREATED":
       return title
@@ -107,7 +99,6 @@ export function getActivityLink(activity: ActivityFeedItem): string | null {
     case "SHOWCASE_CREATED":
       return activity.target_id ? `/showcase/${activity.target_id}` : null;
     case "BLOG_POST_CREATED":
-    case "INSIGHT_CREATED":
       return activity.target_id ? `/blog/${activity.target_id}` : null;
     case "MEETUP_CREATED":
       return activity.target_id ? `/meetup/${activity.target_id}` : null;
@@ -121,7 +112,6 @@ export function getActivityEmoji(activityType: ActivityType): string {
     case "SHOWCASE_CREATED":
       return "🚀";
     case "BLOG_POST_CREATED":
-    case "INSIGHT_CREATED":
       return "💡";
     case "MEETUP_CREATED":
       return "📢";
@@ -377,7 +367,7 @@ async function fetchActivityDetails(
     .map(a => a.target_id as string);
   
   const postIds = activities
-    .filter(a => isBlogPostActivity(a.activity_type) && a.target_id)
+    .filter(a => a.activity_type === "BLOG_POST_CREATED" && a.target_id)
     .map(a => a.target_id as string);
   
   const meetupIds = activities
@@ -421,7 +411,7 @@ async function fetchActivityDetails(
           }
         };
       }
-    } else if (isBlogPostActivity(activity.activity_type)) {
+    } else if (activity.activity_type === "BLOG_POST_CREATED") {
       const detail = blogPosts.data?.find(i => i.id === activity.target_id);
       if (detail) {
         activity.details = {

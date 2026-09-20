@@ -129,13 +129,6 @@ export type Database = {
             referencedRelation: "blog_posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
-            columns: ["blog_post_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
         ]
       }
       blog_post_comment_likes: {
@@ -163,13 +156,6 @@ export type Database = {
             columns: ["comment_id"]
             isOneToOne: false
             referencedRelation: "blog_post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "insight_comments"
             referencedColumns: ["id"]
           },
         ]
@@ -211,24 +197,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
-            columns: ["blog_post_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
             columns: ["parent_comment_id"]
             isOneToOne: false
             referencedRelation: "blog_post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "insight_comments"
             referencedColumns: ["id"]
           },
           {
@@ -265,13 +237,6 @@ export type Database = {
             columns: ["blog_post_id"]
             isOneToOne: false
             referencedRelation: "blog_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
-            columns: ["blog_post_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
             referencedColumns: ["id"]
           },
         ]
@@ -1287,230 +1252,7 @@ export type Database = {
       }
     }
     Views: {
-      insight_bookmarks: {
-        Row: {
-          created_at: string | null
-          insight_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          insight_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          insight_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "blog_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_comment_likes: {
-        Row: {
-          comment_id: string | null
-          created_at: string | null
-          id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          comment_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          comment_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "blog_post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "insight_comments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_comments: {
-        Row: {
-          content: string | null
-          created_at: string | null
-          id: string | null
-          insight_id: string | null
-          parent_comment_id: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string | null
-          id?: string | null
-          insight_id?: string | null
-          parent_comment_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string | null
-          created_at?: string | null
-          id?: string | null
-          insight_id?: string | null
-          parent_comment_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "blog_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "blog_post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "insight_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_likes: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          insight_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          insight_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          insight_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "blog_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insights: {
-        Row: {
-          category: string | null
-          content: string | null
-          created_at: string | null
-          id: string | null
-          image_url: string | null
-          slug: string | null
-          summary: string | null
-          tags: string[] | null
-          title: string | null
-          updated_at: string | null
-          user_id: string | null
-          views: number | null
-        }
-        Insert: {
-          category?: string | null
-          content?: string | null
-          created_at?: string | null
-          id?: string | null
-          image_url?: string | null
-          slug?: string | null
-          summary?: string | null
-          tags?: string[] | null
-          title?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          views?: number | null
-        }
-        Update: {
-          category?: string | null
-          content?: string | null
-          created_at?: string | null
-          id?: string | null
-          image_url?: string | null
-          slug?: string | null
-          summary?: string | null
-          tags?: string[] | null
-          title?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          views?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       bump_showcase: {
@@ -1543,10 +1285,6 @@ export type Database = {
       }
       increment_blog_post_views: {
         Args: { p_blog_post_id: string }
-        Returns: undefined
-      }
-      increment_insight_views: {
-        Args: { insight_id: string }
         Returns: undefined
       }
       increment_showcase_view: {
