@@ -18,7 +18,7 @@ import { reverseMentions } from "@/lib/utils";
 interface CommentFormProps {
   logId?: string;
   showcaseId?: string;
-  insightId?: string;
+  blogPostId?: string;
   currentUserId: string | null;
   parentCommentId?: string | null;
   initialCommentData?: any; // Using any to support multiple table row types
@@ -62,7 +62,7 @@ function SubmitButton({
 export function CommentForm({
   logId,
   showcaseId,
-  insightId,
+  blogPostId,
   currentUserId,
   parentCommentId,
   initialCommentData,
@@ -331,8 +331,8 @@ export function CommentForm({
       formData.set("log_id", logId);
     } else if (showcaseId) {
       formData.set("showcase_id", showcaseId);
-    } else if (insightId) {
-      formData.set("insight_id", insightId);
+    } else if (blogPostId) {
+      formData.set("blog_post_id", blogPostId);
     }
 
     if (parentCommentId) {
@@ -379,7 +379,7 @@ export function CommentForm({
     >
       {logId && <input type="hidden" name="log_id" value={logId} />}
       {showcaseId && <input type="hidden" name="showcase_id" value={showcaseId} />}
-      {insightId && <input type="hidden" name="insight_id" value={insightId} />}
+      {blogPostId && <input type="hidden" name="blog_post_id" value={blogPostId} />}
       {initialCommentData && (
         <input type="hidden" name="comment_id" value={initialCommentData.id} />
       )}

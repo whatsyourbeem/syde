@@ -88,9 +88,9 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
           .order('start_datetime', { ascending: false })
           .limit(PREVIEW_COUNT),
 
-        // Insights
+        // Blog posts
         supabase
-          .from('insights')
+          .from('blog_posts')
           .select('id, title, summary, image_url, created_at, profiles(username, avatar_url, full_name)')
           .or(`title.ilike."${q}",summary.ilike."${q}"`)
           .order('created_at', { ascending: false })
@@ -109,7 +109,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
         users: usersRes.data || [],
         clubs: clubsRes.data || [],
         meetups: meetupsRes.data || [],
-        insights: blogRes.data || [],
+        blogPosts: blogRes.data || [],
         showcases: showcasesRes.data || [],
       };
     },
@@ -125,7 +125,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
     { key: 'users', label: 'SYDERs', tab: 'users', items: data?.users || [] },
     { key: 'clubs', label: '클럽', tab: 'clubs', items: data?.clubs || [] },
     { key: 'meetups', label: '모임', tab: 'meetups', items: data?.meetups || [] },
-    { key: 'insights', label: '블로그', tab: 'blog', items: data?.insights || [] },
+    { key: 'blogPosts', label: '블로그', tab: 'blog', items: data?.blogPosts || [] },
     { key: 'showcases', label: '쇼케이스', tab: 'showcase', items: data?.showcases || [] },
   ].filter((s) => s.items.length > 0);
 
@@ -252,33 +252,33 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
             </div>
           )}
 
-          {/* Insight items */}
-          {section.key === 'insights' && (
+          {/* Blog post items */}
+          {section.key === 'blogPosts' && (
             <div className="flex flex-col divide-y divide-[#F0F0F0]">
-              {(section.items as any[]).map((insight) => (
+              {(section.items as any[]).map((blogPost) => (
                 <Link
-                  key={insight.id}
-                  href={`/blog/${insight.id}`}
+                  key={blogPost.id}
+                  href={`/blog/${blogPost.id}`}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <BlogThumbnail
-                    src={insight.image_url}
-                    alt={insight.title}
+                    src={blogPost.image_url}
+                    alt={blogPost.title}
                     containerClassName="w-16 h-16 shrink-0 rounded-lg"
                   />
                   <div className="flex flex-col min-w-0 gap-0.5">
-                    <span className="text-sm font-semibold text-sydeblue line-clamp-1">{insight.title}</span>
-                    {insight.summary && (
-                      <span className="text-xs text-[#777777] line-clamp-1">{insight.summary}</span>
+                    <span className="text-sm font-semibold text-sydeblue line-clamp-1">{blogPost.title}</span>
+                    {blogPost.summary && (
+                      <span className="text-xs text-[#777777] line-clamp-1">{blogPost.summary}</span>
                     )}
-                    {insight.profiles && (
+                    {blogPost.profiles && (
                       <span className="flex items-center gap-1 text-xs text-[#777777] truncate">
                         <span className="relative w-4 h-4 shrink-0 rounded-full overflow-hidden bg-gray-200 inline-block">
-                          {(insight.profiles as any).avatar_url && (
-                            <Image src={(insight.profiles as any).avatar_url} alt="" fill className="object-cover" unoptimized />
+                          {(blogPost.profiles as any).avatar_url && (
+                            <Image src={(blogPost.profiles as any).avatar_url} alt="" fill className="object-cover" unoptimized />
                           )}
                         </span>
-                        {(insight.profiles as any).full_name || (insight.profiles as any).username}
+                        {(blogPost.profiles as any).full_name || (blogPost.profiles as any).username}
                       </span>
                     )}
                   </div>

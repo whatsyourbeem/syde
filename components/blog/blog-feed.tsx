@@ -33,7 +33,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["insights", "feed"],
+    queryKey: ["blog-posts", "feed"],
     queryFn: ({ pageParam = 1 }) =>
       fetchBlogPostsAction({
         currentPage: pageParam,
@@ -54,7 +54,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
     staleTime: 0,
   });
 
-  const allPosts = data?.pages.flatMap((page) => page.insights) || [];
+  const allPosts = data?.pages.flatMap((page) => page.blogPosts) || [];
 
   return (
     <div className="flex-1 w-full max-w-6xl mx-auto px-3 md:px-0 py-[6px] md:py-8">
@@ -74,8 +74,8 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
       {allPosts.length > 0 ? (
         <div className="flex flex-col items-center">
           <div className="flex w-full max-w-3xl mx-auto flex-col divide-y divide-[#F0F0F0]">
-            {allPosts.map((insight) => (
-              <BlogCard key={insight.id} {...insight} />
+            {allPosts.map((blogPost) => (
+              <BlogCard key={blogPost.id} {...blogPost} />
             ))}
           </div>
           {hasNextPage && (

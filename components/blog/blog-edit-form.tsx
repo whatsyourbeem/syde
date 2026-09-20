@@ -142,7 +142,7 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
         clear: clearDraft,
         lastSavedAt,
     } = useLocalDraft({
-        key: `syde:insight-draft:${initialData?.id ?? "new"}`,
+        key: `syde:blog-draft:${initialData?.id ?? "new"}`,
         data: draftData,
         isPristine: (data) => {
             const signature = draftSignature(data);
@@ -208,7 +208,7 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
                     toast.error(`수정 실패: ${result.error.message}`);
                 } else {
                     clearDraft();
-                    queryClient.invalidateQueries({ queryKey: ["insights"] });
+                    queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
                     toast.success("글이 수정됐어요");
                     router.push(`/blog/${initialData.slug || initialData.id}`);
                 }
@@ -218,7 +218,7 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
                     toast.error(`발행 실패: ${result.error.message}`);
                 } else {
                     clearDraft();
-                    queryClient.invalidateQueries({ queryKey: ["insights"] });
+                    queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
                     toast.success("글이 발행됐어요");
                     router.push(`/blog/${result.data.slug || result.data.id}`);
                 }
@@ -229,10 +229,10 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
     };
 
     // uploadImage reports its own failures; resolving null keeps the editor from toasting a second time.
-    const handleTiptapImageUpload = (file: File) => uploadImage(file, "insight-images", "editor", "detail");
+    const handleTiptapImageUpload = (file: File) => uploadImage(file, "blog-images", "editor", "detail");
 
     const handleCoverUpload = async (file: File) => {
-        const publicUrl = await uploadImage(file, "insight-images", "", "detail");
+        const publicUrl = await uploadImage(file, "blog-images", "", "detail");
         if (publicUrl) setImageUrl(publicUrl);
     };
 
@@ -293,9 +293,9 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
             <main className="flex-grow flex flex-col gap-5 pb-10">
                 {/* Title: a writing surface, not a form field */}
                 <div className="flex flex-col gap-1 w-full">
-                    <label htmlFor="insight-title" className="sr-only">제목 (필수)</label>
+                    <label htmlFor="blog-title" className="sr-only">제목 (필수)</label>
                     <textarea
-                        id="insight-title"
+                        id="blog-title"
                         ref={titleRef}
                         rows={1}
                         value={title}

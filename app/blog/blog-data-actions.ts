@@ -10,7 +10,7 @@ export interface BlogPostQueryOptions {
 }
 
 export interface BlogPostQueryResult {
-  insights: BlogCardProps[];
+  blogPosts: BlogCardProps[];
   count: number;
   hasMore: boolean;
   currentPage: number;
@@ -26,7 +26,7 @@ export async function fetchBlogPostsAction({
   const to = from + itemsPerPage - 1;
 
   const { data, error, count } = await supabase
-    .from("insights")
+    .from("blog_posts")
     .select(`
         id,
         slug,
@@ -42,15 +42,15 @@ export async function fetchBlogPostsAction({
             avatar_url,
             tagline
         ),
-        insight_comments (id),
-        insight_likes (id, user_id),
-        insight_bookmarks (insight_id, user_id)
+        blog_post_comments (id),
+        blog_post_likes (id, user_id),
+        blog_post_bookmarks (blog_post_id, user_id)
     `, { count: "exact" })
     .order("created_at", { ascending: false })
     .range(from, to);
 
   if (error) {
-    console.error("Error fetching insights:", error);
+    console.error("Error fetching blog posts:", error);
     throw new Error(error.message);
   }
 
@@ -68,20 +68,20 @@ export async function fetchBlogPostsAction({
       avatarUrl: item.profiles?.avatar_url
     },
     stats: {
-      likes: item.insight_likes?.length || 0,
-      comments: item.insight_comments?.length || 0,
-      bookmarks: item.insight_bookmarks?.length || 0,
+      likes: item.blog_post_likes?.length || 0,
+      comments: item.blog_post_comments?.length || 0,
+      bookmarks: item.blog_post_bookmarks?.length || 0,
       views: item.views || 0
     },
     initialStatus: {
-      hasLiked: currentUserId ? item.insight_likes?.some((l: any) => l.user_id === currentUserId) : false,
-      hasBookmarked: currentUserId ? item.insight_bookmarks?.some((b: any) => b.user_id === currentUserId) : false
+      hasLiked: currentUserId ? item.blog_post_likes?.some((l: any) => l.user_id === currentUserId) : false,
+      hasBookmarked: currentUserId ? item.blog_post_bookmarks?.some((b: any) => b.user_id === currentUserId) : false
     },
     currentUserId: currentUserId || null
   }));
 
   return {
-    insights: mappedData,
+    blogPosts: mappedData,
     count: count || 0,
     hasMore: data?.length === itemsPerPage,
     currentPage

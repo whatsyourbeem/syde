@@ -78,7 +78,7 @@ function SheetBody({
   useEffect(() => {
     if (tags.length < MAX_BLOG_TAGS || !handOffFocusRef.current) return;
     handOffFocusRef.current = false;
-    document.getElementById("insight-summary")?.focus();
+    document.getElementById("blog-summary")?.focus();
   }, [tags.length]);
 
   // Commits whatever is typed as tags; a pasted "a, b" or a trailing comma adds several at once.
@@ -197,7 +197,7 @@ function SheetBody({
       </section>
 
       <section className="flex flex-col gap-2">
-        <label htmlFor="insight-tags" className="text-[14px] font-medium text-sydeblue">
+        <label htmlFor="blog-tags" className="text-[14px] font-medium text-sydeblue">
           태그 <span className="font-normal text-[#999999]">(선택, 최대 {MAX_BLOG_TAGS}개)</span>
         </label>
         <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-[10px] border-[0.5px] border-[#B7B7B7] px-2 py-1.5 transition-all focus-within:ring-1 focus-within:ring-sydeblue">
@@ -216,7 +216,7 @@ function SheetBody({
           ))}
           {tags.length < MAX_BLOG_TAGS && (
             <input
-              id="insight-tags"
+              id="blog-tags"
               ref={tagInputRef}
               value={tagDraft}
               onChange={(e) => {
@@ -242,11 +242,11 @@ function SheetBody({
       </section>
 
       <section className="flex flex-col gap-1">
-        <label htmlFor="insight-summary" className="text-[14px] font-medium text-sydeblue">
+        <label htmlFor="blog-summary" className="text-[14px] font-medium text-sydeblue">
           한 줄 소개 <span className="font-normal text-[#999999]">(선택)</span>
         </label>
         <input
-          id="insight-summary"
+          id="blog-summary"
           value={summary}
           onChange={(e) => onSummaryChange(e.target.value)}
           maxLength={200}

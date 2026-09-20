@@ -257,7 +257,7 @@ export function ShowcaseList({
             ))}
           </div>
 
-          {/* Load More Button - Insight Style */}
+          {/* Load More Button - Blog Style */}
           {hasNextPage && (
             <div className="flex justify-center mt-12 mb-12">
               <Button

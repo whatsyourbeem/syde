@@ -43,7 +43,7 @@ interface CommentCardProps {
   comment: ProcessedComment;
   logId?: string;
   showcaseId?: string;
-  insightId?: string;
+  blogPostId?: string;
   userId: string | null;
   isLiked: boolean;
   likeCount: number;
@@ -80,7 +80,7 @@ export function CommentCard({
   onLikeStatusChange,
   logId,
   showcaseId,
-  insightId,
+  blogPostId,
   level = 0,
   isDetailPage = false,
   isMobile = false,
@@ -156,7 +156,7 @@ export function CommentCard({
       ? "log_comment_likes" 
       : showcaseId 
       ? "showcase_comment_likes" 
-      : "insight_comment_likes";
+      : "blog_post_comment_likes";
 
     if (hasLiked) {
       // Unlike
@@ -195,8 +195,8 @@ export function CommentCard({
 
     setLoading(true);
     try {
-      if (insightId) {
-        await deleteBlogPostComment(comment.id, insightId);
+      if (blogPostId) {
+        await deleteBlogPostComment(comment.id, blogPostId);
       } else {
         const parentTable = logId ? "log_comments" : "showcase_comments";
         const { error } = await supabase
@@ -211,7 +211,7 @@ export function CommentCard({
 
       onCommentDeleted?.(); // Notify parent of deletion success
 
-      const parentId = logId || showcaseId || insightId;
+      const parentId = logId || showcaseId || blogPostId;
       queryClient.invalidateQueries({
         queryKey: ["comments", { parentId }],
       });
@@ -286,13 +286,13 @@ export function CommentCard({
             <CommentForm
               logId={logId || comment.log_id}
               showcaseId={showcaseId}
-              insightId={insightId}
+              blogPostId={blogPostId}
               currentUserId={currentUserId}
               initialCommentData={comment}
               mentionedProfiles={mentionedProfiles}
               onCommentUpdated={() => {
                 setIsEditing(false);
-                const parentId = logId || showcaseId || insightId;
+                const parentId = logId || showcaseId || blogPostId;
                 queryClient.invalidateQueries({
                   queryKey: ["comments", { parentId }],
                 });
@@ -448,7 +448,7 @@ export function CommentCard({
                   onLikeStatusChange={onLikeStatusChange}
                   logId={logId}
                   showcaseId={showcaseId}
-                  insightId={insightId}
+                  blogPostId={blogPostId}
                   level={level + 1}
                   isMobile={isMobile}
                   onCommentDeleted={onCommentDeleted}
@@ -513,11 +513,11 @@ export function CommentCard({
             <CommentForm
               logId={logId}
               showcaseId={showcaseId}
-              insightId={insightId}
+              blogPostId={blogPostId}
               currentUserId={currentUserId}
               parentCommentId={comment.id}
               onCommentAdded={() => {
-                const parentId = logId || showcaseId || insightId;
+                const parentId = logId || showcaseId || blogPostId;
                 queryClient.invalidateQueries({
                   queryKey: ["comments", { parentId }],
                 });

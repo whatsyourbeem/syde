@@ -105,6 +105,230 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_post_bookmarks: {
+        Row: {
+          blog_post_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          blog_post_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          blog_post_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "blog_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "insight_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_comments: {
+        Row: {
+          blog_post_id: string
+          content: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blog_post_id: string
+          content: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blog_post_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "blog_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "insight_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_likes: {
+        Row: {
+          blog_post_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          blog_post_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          blog_post_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          slug: string | null
+          summary: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+          views: number
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          slug?: string | null
+          summary?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+          views?: number
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          slug?: string | null
+          summary?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_comment_likes: {
         Row: {
           comment_id: string
@@ -344,195 +568,6 @@ export type Database = {
           {
             foreignKeyName: "clubs_owner_id_fkey"
             columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_bookmarks: {
-        Row: {
-          created_at: string
-          insight_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          insight_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          insight_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insight_bookmarks_insight_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_comment_likes: {
-        Row: {
-          comment_id: string
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          comment_id: string
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          comment_id?: string
-          created_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insight_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "insight_comments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_comments: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          insight_id: string
-          parent_comment_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          insight_id: string
-          parent_comment_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          insight_id?: string
-          parent_comment_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insight_comments_insight_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "insight_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "insight_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "insight_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insight_likes: {
-        Row: {
-          created_at: string
-          id: string
-          insight_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          insight_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          insight_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insight_likes_insight_id_fkey"
-            columns: ["insight_id"]
-            isOneToOne: false
-            referencedRelation: "insights"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      insights: {
-        Row: {
-          category: string | null
-          content: string
-          created_at: string
-          id: string
-          image_url: string | null
-          slug: string | null
-          summary: string | null
-          tags: string[]
-          title: string
-          updated_at: string
-          user_id: string
-          views: number
-        }
-        Insert: {
-          category?: string | null
-          content: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          slug?: string | null
-          summary?: string | null
-          tags?: string[]
-          title: string
-          updated_at?: string
-          user_id: string
-          views?: number
-        }
-        Update: {
-          category?: string | null
-          content?: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          slug?: string | null
-          summary?: string | null
-          tags?: string[]
-          title?: string
-          updated_at?: string
-          user_id?: string
-          views?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insights_user_id_fkey"
-            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1252,7 +1287,230 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      insight_bookmarks: {
+        Row: {
+          created_at: string | null
+          insight_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          insight_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          insight_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_bookmarks_blog_post_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insight_comment_likes: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "blog_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "insight_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insight_comments: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string | null
+          insight_id: string | null
+          parent_comment_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          insight_id?: string | null
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          insight_id?: string | null
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_blog_post_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "blog_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "insight_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insight_likes: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          insight_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          insight_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          insight_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_likes_blog_post_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insights: {
+        Row: {
+          category: string | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          image_url: string | null
+          slug: string | null
+          summary: string | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+          views: number | null
+        }
+        Insert: {
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          slug?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          views?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          slug?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       bump_showcase: {
@@ -1263,7 +1521,7 @@ export type Database = {
           next_bump_at: string
         }[]
       }
-      generate_insight_slug: { Args: { title_text: string }; Returns: string }
+      generate_blog_post_slug: { Args: { title_text: string }; Returns: string }
       generate_showcase_slug: { Args: { name_text: string }; Returns: string }
       get_club_member_role: {
         Args: { p_club_id: string; p_user_id: string }
@@ -1282,6 +1540,10 @@ export type Database = {
           upvotes_count: number
           views_count: number
         }[]
+      }
+      increment_blog_post_views: {
+        Args: { p_blog_post_id: string }
+        Returns: undefined
       }
       increment_insight_views: {
         Args: { insight_id: string }
@@ -1318,12 +1580,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1347,11 +1609,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1372,11 +1634,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1397,11 +1659,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1414,11 +1676,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

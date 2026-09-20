@@ -10,7 +10,7 @@ interface EditorPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  /** One-line subtitle shown under the title (insight's summary, showcase's tagline, ...). */
+  /** One-line subtitle shown under the title (blog post's summary, showcase's tagline, ...). */
   subtitle?: string;
   imageUrl?: string | null;
   content: JSONContent | string;

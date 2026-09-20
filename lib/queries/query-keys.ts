@@ -12,7 +12,7 @@ export const showcaseKeys = {
 };
 
 export const blogKeys = {
-  all: ["insights"] as const,
+  all: ["blog-posts"] as const,
   lists: () => [...blogKeys.all, "list"] as const,
   list: (filters: Record<string, unknown>) => [...blogKeys.lists(), filters] as const,
   details: () => [...blogKeys.all, "detail"] as const,

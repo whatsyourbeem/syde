@@ -3,80 +3,80 @@ import { Database } from "@/types/database.types";
 import { unstable_cache } from "next/cache";
 
 /**
- * Delete an insight by ID
+ * Delete a blog post by ID
  */
 export async function deleteBlogPost(
   supabase: SupabaseClient<Database>,
-  insightId: string
+  blogPostId: string
 ): Promise<void> {
   const { error } = await supabase
-    .from("insights")
+    .from("blog_posts")
     .delete()
-    .eq("id", insightId);
+    .eq("id", blogPostId);
 
   if (error) throw error;
 }
 
 /**
- * Remove a like from an insight
+ * Remove a like from a blog post
  */
 export async function deleteBlogPostLike(
   supabase: SupabaseClient<Database>,
-  insightId: string,
+  blogPostId: string,
   userId: string
 ): Promise<void> {
   const { error } = await supabase
-    .from("insight_likes")
+    .from("blog_post_likes")
     .delete()
-    .eq("insight_id", insightId)
+    .eq("blog_post_id", blogPostId)
     .eq("user_id", userId);
 
   if (error) throw error;
 }
 
 /**
- * Add a like to an insight
+ * Add a like to a blog post
  */
 export async function insertBlogPostLike(
   supabase: SupabaseClient<Database>,
-  insightId: string,
+  blogPostId: string,
   userId: string
 ): Promise<void> {
   const { error } = await supabase
-    .from("insight_likes")
-    .insert({ insight_id: insightId, user_id: userId });
+    .from("blog_post_likes")
+    .insert({ blog_post_id: blogPostId, user_id: userId });
 
   if (error) throw error;
 }
 
 /**
- * Remove a bookmark from an insight
+ * Remove a bookmark from a blog post
  */
 export async function deleteBlogPostBookmark(
   supabase: SupabaseClient<Database>,
-  insightId: string,
+  blogPostId: string,
   userId: string
 ): Promise<void> {
   const { error } = await supabase
-    .from("insight_bookmarks")
+    .from("blog_post_bookmarks")
     .delete()
-    .eq("insight_id", insightId)
+    .eq("blog_post_id", blogPostId)
     .eq("user_id", userId);
 
   if (error) throw error;
 }
 
 /**
- * Add a bookmark to an insight
+ * Add a bookmark to a blog post
  */
 export async function insertBlogPostBookmark(
   supabase: SupabaseClient<Database>,
-  insightId: string,
+  blogPostId: string,
   userId: string
 ): Promise<void> {
   const { error } = await supabase
-    .from("insight_bookmarks")
-    .insert({ insight_id: insightId, user_id: userId });
+    .from("blog_post_bookmarks")
+    .insert({ blog_post_id: blogPostId, user_id: userId });
 
   if (error) throw error;
 }
@@ -89,12 +89,12 @@ export interface BlogPostsListOptions {
 }
 
 export interface BlogPostsListResult {
-  insights: any[];
+  blogPosts: any[];
   count: number;
 }
 
 /**
- * Fetch insights list with optional user ID filter and search query
+ * Fetch blog posts list with optional user ID filter and search query
  */
 export async function getBlogPostsList(
   supabase: SupabaseClient<Database>,
@@ -104,13 +104,13 @@ export async function getBlogPostsList(
   const to = from + itemsPerPage - 1;
 
   let query = supabase
-    .from("insights")
+    .from("blog_posts")
     .select(`
       *,
       author:profiles!user_id(id, username, full_name, avatar_url, tagline, certified),
-      insight_comments(id),
-      insight_likes(id, user_id),
-      insight_bookmarks(insight_id, user_id)
+      blog_post_comments(id),
+      blog_post_likes(id, user_id),
+      blog_post_bookmarks(blog_post_id, user_id)
     `, { count: "exact" });
 
   if (userId) {
@@ -129,7 +129,7 @@ export async function getBlogPostsList(
   if (error) throw error;
 
   return {
-    insights: data || [],
+    blogPosts: data || [],
     count: count || 0,
   };
 }
@@ -141,7 +141,7 @@ export async function getBlogPostDetail(
   idOrSlug: string
 ) {
   let query = supabase
-    .from("insights")
+    .from("blog_posts")
     .select(`
         *,
         profiles:user_id (
@@ -174,7 +174,7 @@ export async function getAuthorRecentBlogPosts(
   limit = 3
 ) {
   const { data, error } = await supabase
-    .from("insights")
+    .from("blog_posts")
     .select("id, slug, title, created_at")
     .eq("user_id", userId)
     .neq("id", excludeId)
@@ -182,7 +182,7 @@ export async function getAuthorRecentBlogPosts(
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load the author's other insights:", error);
+    console.error("Failed to load the author's other blog posts:", error);
     return [];
   }
   return data || [];
@@ -193,7 +193,7 @@ export async function getBlogPostIdBySlug(
   slug: string
 ): Promise<string | null> {
   const { data, error } = await supabase
-    .from("insights")
+    .from("blog_posts")
     .select("id")
     .eq("slug", slug)
     .maybeSingle();
@@ -210,10 +210,10 @@ export const getBlogPostIdBySlugCached = (
     async () => {
       return getBlogPostIdBySlug(supabase, slug);
     },
-    ["insight-id-by-slug", slug],
+    ["blog-post-id-by-slug", slug],
     {
       revalidate: 3600,
-      tags: ["insight-all", `insight-slug-${slug}`],
+      tags: ["blog-post-all", `blog-post-slug-${slug}`],
     }
   )();
 };
@@ -233,10 +233,10 @@ export const getBlogPostDetailCached = async (
     async () => {
       return getBlogPostDetail(supabase, actualId);
     },
-    ["insight-detail-by-id", actualId],
+    ["blog-post-detail-by-id", actualId],
     {
       revalidate: 3600,
-      tags: ["insight-all", `insight-${actualId}`, `insight-${idOrSlug}`],
+      tags: ["blog-post-all", `blog-post-${actualId}`, `blog-post-${idOrSlug}`],
     }
   )();
 };
