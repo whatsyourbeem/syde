@@ -11,6 +11,7 @@ interface ShowcaseLayoutContentProps {
   user: any;
   profile: Profile | null;
   avatarUrl: string | null;
+  sydePick?: React.ReactNode;
   banner?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -19,6 +20,7 @@ export function ShowcaseLayoutContent({
   user,
   profile,
   avatarUrl,
+  sydePick,
   banner,
   children,
 }: ShowcaseLayoutContentProps) {
@@ -61,7 +63,7 @@ export function ShowcaseLayoutContent({
         </div>
 
         {/* Right Sidebar: 메인 페이지에서만 표시 */}
-        {isMainPage && <ShowcaseRightSidebar banner={banner} />}
+        {isMainPage && <ShowcaseRightSidebar sydePick={sydePick} banner={banner} />}
       </main>
     </div>
   );
