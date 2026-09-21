@@ -96,7 +96,7 @@ export function BlogCard({
     const href = `/blog/${slug || id}`;
 
     return (
-        <article className="flex w-full items-start gap-4 py-5 md:gap-6 md:py-6">
+        <article className="flex w-full items-stretch gap-4 py-6 md:gap-6 md:py-8">
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <Link href={href} className="flex flex-col gap-1 focus:outline-none">
                     <h3 className="text-[17px] md:text-[19px] leading-[1.4] font-bold text-black line-clamp-2">{title}</h3>
@@ -105,7 +105,7 @@ export function BlogCard({
                     )}
                 </Link>
 
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
                     <ProfileHoverCard userId={author.id}>
                         <Link href={`/@${author.username || author.id}`} className="flex items-center gap-[5px] w-fit">
                             <Avatar className="w-5 h-5">
@@ -152,7 +152,7 @@ export function BlogCard({
             </div>
 
             {imageUrl && (
-                <Link href={href} tabIndex={-1} aria-hidden className="shrink-0 focus:outline-none">
+                <Link href={href} tabIndex={-1} aria-hidden className="shrink-0 self-start focus:outline-none">
                     <BlogThumbnail
                         src={imageUrl}
                         alt={title}

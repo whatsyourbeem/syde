@@ -290,7 +290,6 @@ export function ProfileContentTabs({
               <BlogList 
                 currentUserId={currentUserId}
                 userId={profile.id}
-                showInteractions={false}
               />
             )}
           </div>
