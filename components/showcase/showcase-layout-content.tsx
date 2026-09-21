@@ -11,6 +11,7 @@ interface ShowcaseLayoutContentProps {
   user: any;
   profile: Profile | null;
   avatarUrl: string | null;
+  banner?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export function ShowcaseLayoutContent({
   user,
   profile,
   avatarUrl,
+  banner,
   children,
 }: ShowcaseLayoutContentProps) {
   const pathname = usePathname();
@@ -59,7 +61,7 @@ export function ShowcaseLayoutContent({
         </div>
 
         {/* Right Sidebar: 메인 페이지에서만 표시 */}
-        {isMainPage && <ShowcaseRightSidebar />}
+        {isMainPage && <ShowcaseRightSidebar banner={banner} />}
       </main>
     </div>
   );
