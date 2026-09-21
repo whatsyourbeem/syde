@@ -85,7 +85,7 @@ export function BlogList({ currentUserId, userId, showInteractions = true }: Blo
           )}
         </div>
       ) : (
-        <div className="flex w-full flex-col divide-y divide-[#F0F0F0] px-4 md:px-0">
+        <div className="flex w-full flex-col divide-y divide-[#F0F0F0] px-4 md:px-5 [&>article:first-child]:pt-0">
           {data?.blogPosts.map((blogPost) => (
             <BlogCard key={blogPost.id} {...blogPost} showInteractions={showInteractions} />
           ))}
