@@ -63,6 +63,7 @@ export async function fetchBlogPostsAction({
     imageUrl: item.image_url,
     author: {
       id: item.user_id,
+      username: item.profiles?.username,
       name: item.profiles?.full_name || item.profiles?.username || "알 수 없는 사용자",
       role: item.profiles?.tagline || "멤버",
       avatarUrl: item.profiles?.avatar_url

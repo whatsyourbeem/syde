@@ -38,6 +38,7 @@ export function BlogSearchList({ searchQuery }: BlogSearchListProps) {
         imageUrl: item.image_url,
         author: {
           id: item.user_id,
+          username: item.author?.username,
           name: item.author?.full_name || item.author?.username || "알 수 없는 사용자",
           role: item.author?.tagline || "멤버",
           avatarUrl: item.author?.avatar_url
