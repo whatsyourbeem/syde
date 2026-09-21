@@ -4,6 +4,7 @@ import { TrendingShowcases } from "@/components/showcase/trending-showcases";
 import Image from "next/image";
 import Link from "next/link";
 import { Banner } from "@/components/common/banner";
+import { SydePickSidebarCard } from "@/components/showcase/syde-pick-sidebar-card";
 import { BANNER_POSITIONS } from "@/lib/constants";
 import { Metadata } from "next";
 
@@ -27,8 +28,11 @@ export default function FeedLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full md:w-4/5 lg:w-3/5 border-x border-gray-200">
         {children}
       </div>
-      <div className="hidden lg:block w-1/5 sticky top-[70px] self-start h-screen py-4 px-0 space-y-8">
+      <div className="hidden lg:flex lg:flex-col w-1/5 sticky top-[70px] self-start h-screen py-4 px-0 gap-8">
         <TrendingShowcases />
+        <div className="mt-3 -mb-3">
+          <SydePickSidebarCard />
+        </div>
         <Banner position={BANNER_POSITIONS.LOG_SIDEBAR} />
         <div className="flex flex-col items-center text-center">
           <p className="text-sm text-gray-500 mb-4">ⓒ {new Date().getFullYear()}. SYDE</p>

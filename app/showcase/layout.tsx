@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShowcaseLayoutContent } from "@/components/showcase/showcase-layout-content";
 import { Metadata } from "next";
+import { Banner } from "@/components/common/banner";
+import { SydePickSidebarCard } from "@/components/showcase/syde-pick-sidebar-card";
+import { BANNER_POSITIONS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "사이드프로젝트 쇼케이스 - 1인개발자 프로젝트 | SYDE",
@@ -51,6 +54,8 @@ export default async function ShowcaseLayout({
         user={user}
         profile={profile}
         avatarUrl={avatarUrl}
+        sydePick={<SydePickSidebarCard />}
+        banner={<Banner position={BANNER_POSITIONS.LOG_SIDEBAR} />}
       >
         {children}
       </ShowcaseLayoutContent>
