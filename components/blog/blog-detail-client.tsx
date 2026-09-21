@@ -254,7 +254,7 @@ export default function BlogDetailClient({
 
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <ProfileHoverCard userId={blogPost.user_id}>
-                                <Link href={`/@${blogPost.user_id}`} className="flex items-center gap-[5px] w-fit">
+                                <Link href={`/@${blogPost.profiles?.username || blogPost.user_id}`} className="flex items-center gap-[5px] w-fit">
                                     <Avatar className="w-5 h-5">
                                         <AvatarImage src={blogPost.profiles?.avatar_url} />
                                         <AvatarFallback className="bg-[#D9D9D9]">{blogPost.profiles?.username?.[0] || 'U'}</AvatarFallback>
@@ -316,6 +316,7 @@ export default function BlogDetailClient({
                 <AuthorCard
                     author={{
                         id: blogPost.user_id,
+                        username: blogPost.profiles?.username,
                         name: blogPost.profiles?.full_name || blogPost.profiles?.username || "알 수 없는 사용자",
                         tagline: blogPost.profiles?.tagline ?? null,
                         avatarUrl: blogPost.profiles?.avatar_url ?? null,

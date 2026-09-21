@@ -21,6 +21,8 @@ export interface BlogCardProps {
     imageUrl?: string | null;
     author: {
         id: string;
+        /** Profile URLs are /@username; id is only a fallback. */
+        username?: string | null;
         name: string;
         role: string;
         avatarUrl?: string;
@@ -105,7 +107,7 @@ export function BlogCard({
 
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                     <ProfileHoverCard userId={author.id}>
-                        <Link href={`/@${author.id}`} className="flex items-center gap-[5px] w-fit">
+                        <Link href={`/@${author.username || author.id}`} className="flex items-center gap-[5px] w-fit">
                             <Avatar className="w-5 h-5">
                                 <AvatarImage src={author.avatarUrl} />
                                 <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>

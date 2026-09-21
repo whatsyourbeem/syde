@@ -13,6 +13,8 @@ export interface AuthorRecentBlogPost {
 interface AuthorCardProps {
   author: {
     id: string;
+    /** Profile URLs are /@username; id is only a fallback. */
+    username?: string | null;
     name: string;
     tagline: string | null;
     avatarUrl: string | null;
@@ -24,7 +26,7 @@ interface AuthorCardProps {
 export function AuthorCard({ author, recentPosts }: AuthorCardProps) {
   return (
     <section className="w-full max-w-3xl mx-auto flex flex-col gap-5 rounded-[12px] border border-[#E5E5E5] p-5 md:p-6 mt-6 mb-10">
-      <Link href={`/@${author.id}`} className="flex items-center gap-3 w-fit">
+      <Link href={`/@${author.username || author.id}`} className="flex items-center gap-3 w-fit">
         <Avatar className="size-12">
           <AvatarImage src={author.avatarUrl ?? undefined} alt="" />
           <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || "U"}</AvatarFallback>
