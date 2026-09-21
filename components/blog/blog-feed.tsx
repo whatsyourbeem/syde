@@ -57,12 +57,12 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
   const allPosts = data?.pages.flatMap((page) => page.blogPosts) || [];
 
   return (
-    <div className="flex-1 w-full max-w-6xl mx-auto px-3 md:px-0 py-[6px] md:py-8">
+    <div className="w-full px-3 md:px-5 pt-[6px] pb-[6px] md:pt-0 md:pb-6">
       {/* Inline prompt: makes the list read as a place anyone can post, not a publication. */}
       <button
         type="button"
         onClick={startWriting}
-        className="mb-8 flex w-full max-w-3xl mx-auto items-center gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
+        className="mb-6 flex w-full items-center gap-3 md:hidden rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
       >
         <Avatar className="size-9">
           <AvatarImage src={currentUser?.avatarUrl ?? undefined} alt="" />
@@ -73,7 +73,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
 
       {allPosts.length > 0 ? (
         <div className="flex flex-col items-center">
-          <div className="flex w-full max-w-3xl mx-auto flex-col divide-y divide-[#F0F0F0]">
+          <div className="flex w-full flex-col divide-y divide-[#F0F0F0]">
             {allPosts.map((blogPost) => (
               <BlogCard key={blogPost.id} {...blogPost} />
             ))}
@@ -99,7 +99,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
       {/* Floating Create Button: labeled so it reads as "write", and kept low on mobile so it clears card stats. */}
       <Button
         onClick={startWriting}
-        className="fixed bottom-5 right-4 md:bottom-10 md:right-10 h-12 gap-1.5 rounded-full bg-sydeblue px-5 text-[15px] font-medium text-white shadow-xl hover:bg-sydeblue/90 z-50"
+        className="fixed bottom-5 right-4 md:hidden h-12 gap-1.5 rounded-full bg-sydeblue px-5 text-[15px] font-medium text-white shadow-xl hover:bg-sydeblue/90 z-50"
       >
         <Pencil className="size-4" />
         글쓰기

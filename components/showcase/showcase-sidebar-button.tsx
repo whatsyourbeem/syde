@@ -14,6 +14,10 @@ interface ShowcaseSidebarButtonProps {
   full_name: string | null;
   tagline?: string | null;
   certified?: boolean | null;
+  href?: string;
+  label?: string;
+  icon?: React.ReactNode;
+  inline?: boolean;
 }
 
 export function ShowcaseSidebarButton({
@@ -23,6 +27,10 @@ export function ShowcaseSidebarButton({
   full_name,
   tagline,
   certified,
+  href = "/showcase/create",
+  label = "내 프로젝트 등록하기",
+  icon = <CirclePlus className="size-5" strokeWidth={2.5} />,
+  inline = false,
 }: ShowcaseSidebarButtonProps) {
   return (
     <div className="flex flex-col items-center p-4">
@@ -42,14 +50,17 @@ export function ShowcaseSidebarButton({
         </div>
       )}
       {username && <p className="text-sm text-gray-500">@{username}</p>}
-      <Link href="/showcase/create" className="w-full">
+      <Link href={href} className={inline ? undefined : "w-full"}>
         <Button
           variant="default"
-          className="mt-4 w-full h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px]"
+          className={cn(
+            "mt-4",
+            !inline && "w-full h-auto flex flex-col gap-[10px] py-3 px-4 rounded-[12px]"
+          )}
         >
-          <CirclePlus className="size-5" strokeWidth={2.5} />
+          {icon}
           <span className="text-sm leading-[14px] font-semibold">
-            내 프로젝트 등록하기
+            {label}
           </span>
         </Button>
       </Link>
