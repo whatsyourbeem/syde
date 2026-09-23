@@ -10,7 +10,7 @@
     "sb:version": ".\\node_modules\\.bin\\supabase --version",
     "sb": "supabase",
     "sb:start": ".\\node_modules\\.bin\\supabase start",
-    "sb:pull-seed": "npx supabase db dump --data-only --linked --exclude storage.buckets > supabase/seed.sql",
+    "sb:pull-seed": "npx supabase db dump --data-only --linked --exclude storage.buckets --exclude storage.objects --exclude auth.one_time_tokens > supabase/seed.sql",
     "sb:reset": "npx supabase db reset"
   },
   "dependencies": {

@@ -102,6 +102,8 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
             src={showcase.thumbnail_url}
             alt="Showcase thumbnail"
             containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
+            status={showcase.status}
+            statusSize="sm"
           />
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
@@ -120,24 +122,24 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
     if (details.blogPost) {
       const { blogPost } = details;
       return (
-        <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pr-3">
-          <BlogThumbnail
-            src={blogPost.image_url}
-            alt="Blog thumbnail"
-            containerClassName="w-[72px] h-[72px] md:w-28 md:h-28 flex-shrink-0 rounded-l-md"
-          />
-          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+        <div className="mt-3 flex gap-3 overflow-hidden border rounded-lg pl-4 min-h-[72px] md:min-h-28">
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 py-4">
             <h4 className="text-sm md:text-base font-semibold line-clamp-2 leading-tight">
               {blogPost.title}
             </h4>
             <div className="flex flex-col">
-              {blogPost.summary && (
-                <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 leading-snug">
-                  {blogPost.summary}
+              {(blogPost.content_preview || blogPost.summary) && (
+                <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-3 leading-snug">
+                  {blogPost.content_preview || blogPost.summary}
                 </p>
               )}
             </div>
           </div>
+          <BlogThumbnail
+            src={blogPost.image_url}
+            alt="Blog thumbnail"
+            containerClassName="w-[72px] md:w-28 flex-shrink-0 rounded-r-md"
+          />
         </div>
       );
     }
