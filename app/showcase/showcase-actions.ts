@@ -403,4 +403,7 @@ export async function incrementShowcaseView(showcaseId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   await supabase.rpc("increment_showcase_view", { p_showcase_id: showcaseId });
+  // Detail page data is cached (unstable_cache, revalidate: 3600s) keyed by this id,
+  // so without this the incremented count won't show up until the cache expires.
+  revalidateTagSafe(`showcase-${showcaseId}`);
 }

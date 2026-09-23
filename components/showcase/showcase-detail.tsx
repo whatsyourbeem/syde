@@ -79,19 +79,6 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   const queryClient = useQueryClient();
   const { openLoginDialog } = useLoginDialog();
 
-  // Increment view count once per 1h per browser via localStorage
-  useEffect(() => {
-    const key = `viewed_showcase_${showcase.id}`;
-    const lastViewed = localStorage.getItem(key);
-    const now = Date.now();
-    if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
-      incrementShowcaseView(showcase.id);
-      localStorage.setItem(key, String(now));
-      setViewsCount(prev => prev + 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showcase.id]);
-
   // Gallery State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -124,9 +111,21 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
     showcase.showcase_comments?.length || 0,
   );
 
+  // Sync from server data, then increment (once per 1h per browser via localStorage).
+  // Both updates live in one effect so the optimistic +1 can't be clobbered by a
+  // separate prop-sync effect running right after it.
   useEffect(() => {
     setViewsCount(showcase.views_count ?? 0);
-  }, [showcase.views_count, showcase.id]);
+
+    const key = `viewed_showcase_${showcase.id}`;
+    const lastViewed = localStorage.getItem(key);
+    const now = Date.now();
+    if (!lastViewed || now - parseInt(lastViewed) > 1 * 60 * 60 * 1000) {
+      incrementShowcaseView(showcase.id);
+      localStorage.setItem(key, String(now));
+      setViewsCount(prev => prev + 1);
+    }
+  }, [showcase.id, showcase.views_count]);
 
   // Gallery Logic
   const galleryImages = showcase.images || [];
