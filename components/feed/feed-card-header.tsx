@@ -47,7 +47,7 @@ function FeedCardHeaderBase({ log, currentUserId, onDelete, loading }: FeedCardH
       <div className="flex items-start">
         <ProfileHoverCard userId={log.user_id} profileData={log.profiles}>
           <div className="flex items-start cursor-pointer">
-            <Link href={`/@${log.profiles?.username || log.user_id}`} className="shrink-0 mr-2">
+            <Link href={`/@${log.profiles?.username || log.user_id}`} prefetch={false} className="shrink-0 mr-2">
               <Avatar className="size-9">
                 <AvatarImage
                   src={avatarUrlWithCacheBuster || undefined}
@@ -61,7 +61,7 @@ function FeedCardHeaderBase({ log, currentUserId, onDelete, loading }: FeedCardH
             </Link>
             <div className="flex-grow min-w-0 overflow-hidden">
               <div className="flex items-baseline gap-1 overflow-hidden">
-                <Link href={`/@${log.profiles?.username || log.user_id}`} className="flex-shrink-0">
+                <Link href={`/@${log.profiles?.username || log.user_id}`} prefetch={false} className="flex-shrink-0">
                   <div className="flex items-center gap-1">
                     <p className="font-semibold hover:underline text-sm md:text-log-content">
                       {log.profiles?.full_name ||

@@ -84,6 +84,7 @@ export function UserShowcaseList({
           <Link
             key={showcase.id}
             href={`/showcase/${showcase.id}`}
+            prefetch={false}
             className="flex flex-col items-center gap-2 group"
           >
             <ShowcaseThumbnail

@@ -118,6 +118,7 @@ export default async function ClubPage() {
                       <li key={club.id}>
                         <Link
                           href={`/club/${club.id}`}
+                          prefetch={false}
                           className="flex items-center gap-3 hover:bg-gray-50 p-1 rounded-md transition-colors"
                         >
                           <Image

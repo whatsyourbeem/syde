@@ -277,7 +277,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
 
   if (link) {
     return (
-      <Link href={link} className="block group">
+      <Link href={link} prefetch={false} className="block group">
         {content}
       </Link>
     );

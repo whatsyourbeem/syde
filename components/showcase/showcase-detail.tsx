@@ -807,7 +807,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 profileData={member.profileData}
               >
                 <div>
-                  <Link href={`/@${member.username || member.userId}`} className="block">
+                  <Link href={`/@${member.username || member.userId}`} prefetch={false} className="block">
                     <div className="flex flex-col items-center gap-1 w-[128px] h-auto p-2 rounded-[10px] flex-shrink-0 relative bg-alabasterwhite hover:bg-gray-100 transition-colors cursor-pointer group">
                       {/* Crown for Leader/Author (Logic assumption: first member or matches author role) */}
                       {member.role === "author" && (

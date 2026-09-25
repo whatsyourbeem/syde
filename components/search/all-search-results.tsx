@@ -148,6 +148,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 <Link
                   key={log.id}
                   href={`/feed/${log.id}`}
+                  prefetch={false}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <div className="relative w-8 h-8 shrink-0 rounded-full overflow-hidden bg-gray-200">
@@ -173,6 +174,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 <Link
                   key={user.id}
                   href={`/@${user.username}`}
+                  prefetch={false}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <div className="relative w-9 h-9 shrink-0 rounded-full overflow-hidden bg-gray-200">
@@ -200,6 +202,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 <Link
                   key={club.id}
                   href={`/club/${club.id}`}
+                  prefetch={false}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-200">
@@ -225,6 +228,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 <Link
                   key={meetup.id}
                   href={`/meetup/${meetup.id}`}
+                  prefetch={false}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   {meetup.thumbnail_url && (
@@ -259,6 +263,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 <Link
                   key={blogPost.id}
                   href={`/blog/${blogPost.id}`}
+                  prefetch={false}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <BlogThumbnail
@@ -294,6 +299,7 @@ export function AllSearchResults({ searchQuery }: AllSearchResultsProps) {
                 <Link
                   key={showcase.id}
                   href={`/showcase/${showcase.id}`}
+                  prefetch={false}
                   className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1"
                 >
                   <ShowcaseThumbnail
