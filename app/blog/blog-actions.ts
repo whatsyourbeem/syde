@@ -224,11 +224,34 @@ export const toggleBlogPostBookmark = withAuth(
   }
 );
 
-export async function revalidateBlogPostAction(blogPostId: string) {
-  revalidatePath("/blog");
-  revalidateTagSafe("blog-post-all");
-  revalidateTagSafe(`blog-post-${blogPostId}`);
-}
+// Deletes the post and revalidates its caches in one authenticated action.
+// This used to be split into a client-side `deleteBlogPost` DB call (relying on
+// RLS for authorization) plus a separately-exported `revalidateBlogPostAction`
+// that had no auth check at all — since it's referenced from a client component,
+// its action ID ships in the public JS bundle, so anyone who found that ID could
+// call it directly (POST with a Next-Action header) with an arbitrary post id and
+// repeatedly force `blog-post-all` to invalidate, busting every blog detail
+// page's cache on demand. Folding delete + revalidate into one `withAuth` action
+// that only proceeds if the row it just deleted actually belonged to the caller
+// closes that hole.
+export const deleteBlogPostAction = withAuth(
+  async ({ supabase, user }, blogPostId: string) => {
+    const { error, count } = await supabase
+      .from("blog_posts")
+      .delete({ count: "exact" })
+      .eq("id", blogPostId)
+      .eq("user_id", user.id);
+
+    if (error) throw new Error(error.message);
+    if (!count) throw new Error("삭제할 글을 찾을 수 없어요.");
+
+    revalidatePath("/blog");
+    revalidateTagSafe("blog-post-all");
+    revalidateTagSafe(`blog-post-${blogPostId}`);
+
+    return createSuccessResponse(null);
+  }
+);
 
 export async function incrementBlogPostViews(blogPostId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");

@@ -43,8 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<PublicProfile | null>(null);
+  // Tracks which user id `profile` was last fetched for (or attempted, even if
+  // the fetch came back null) rather than a plain loading boolean — a separate
+  // `isProfileLoading` state would only flip to true once the profile effect
+  // below actually runs, which is a render *after* `userId` first becomes
+  // truthy. In that gap, `user` is set but `profile` is still null, so a
+  // consumer doing `user && profile ? ... : <LoginPromptCard/>` briefly renders
+  // the logged-out UI for a logged-in visitor. Deriving isProfileLoading from
+  // this instead makes it correct on the very same render as the userId change.
+  const [profileLoadedForUserId, setProfileLoadedForUserId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
-  const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   const userId = user?.id ?? null;
@@ -67,20 +75,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) {
       setProfile(null);
+      setProfileLoadedForUserId(null);
       return;
     }
     let cancelled = false;
-    setIsProfileLoading(true);
     getProfileById(supabase, userId).then((data) => {
       if (cancelled) return;
       setProfile(data);
-      setIsProfileLoading(false);
+      // Set even when `data` is null (fetch failed/row missing) so isProfileLoading
+      // below can resolve to false instead of staying stuck on "loading" forever.
+      setProfileLoadedForUserId(userId);
     });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  const isProfileLoading = !!userId && profileLoadedForUserId !== userId;
 
   // Owned here (not in NotificationBell) so the count/subscription exist exactly
   // once even though NotificationBell itself is mounted twice (mobile + desktop
@@ -165,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       avatarUrl,
       unreadNotificationCount,
-      isLoading: isSessionLoading || (!!userId && isProfileLoading),
+      isLoading: isSessionLoading || isProfileLoading,
       refreshProfile,
       markAllNotificationsRead,
       markOneNotificationRead,

@@ -35,8 +35,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BlogThumbnail } from "./blog-thumbnail";
-import { deleteBlogPost } from "@/lib/queries/blog-queries";
-import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews, revalidateBlogPostAction } from "@/app/blog/blog-actions";
+import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews, deleteBlogPostAction } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface BlogDetailClientProps {
@@ -155,8 +154,11 @@ export default function BlogDetailClient({
     const confirmDelete = async () => {
         setDeleting(true);
         try {
-            await deleteBlogPost(supabase, id);
-            await revalidateBlogPostAction(id);
+            const result = await deleteBlogPostAction(id);
+            if (!result.success) {
+                toast.error(result.error.message || "삭제 중 오류가 발생했습니다.");
+                return;
+            }
 
             toast.success("글이 삭제됐어요");
             router.push("/blog");

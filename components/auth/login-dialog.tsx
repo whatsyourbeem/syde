@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { loginWithGoogle, loginWithKakao } from "@/app/auth/login/actions";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 
 export function LoginDialog() {
   const { isLoginDialogOpen, closeLoginDialog } = useLoginDialog();
+  const router = useRouter();
   // 보안: Next.js 빌드 도구가 배포용 빌드 시 이 코드 블록을 아예 제거하도록 환경변수 체크로 변경
   const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -40,6 +42,11 @@ export function LoginDialog() {
     }
 
     closeLoginDialog();
+    // The header updates via onAuthStateChange, but Server Components that read
+    // the session with their own cookie-based auth.getUser() (e.g. showcase's
+    // upvote state, club membership/role) won't see this until the router cache
+    // is invalidated.
+    router.refresh();
   };
 
   return (
