@@ -24,6 +24,7 @@ import { ArticleToc } from "@/components/blog/article-toc";
 import { AuthorCard, type AuthorRecentBlogPost } from "@/components/blog/author-card";
 import type { TocItem } from "@/components/common/tiptap-server-extensions";
 import { useLoginDialog } from "@/context/LoginDialogContext";
+import { useAuth } from "@/context/AuthContext";
 import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -35,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BlogThumbnail } from "./blog-thumbnail";
 import { deleteBlogPost } from "@/lib/queries/blog-queries";
-import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews } from "@/app/blog/blog-actions";
+import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews, revalidateBlogPostAction } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface BlogDetailClientProps {
@@ -46,9 +47,6 @@ interface BlogDetailClientProps {
     authorRecentPosts?: AuthorRecentBlogPost[];
     initialComments: any[];
     initialStats: { likes: number; comments: number; bookmarks: number; views?: number };
-    initialIsLiked: boolean;
-    initialIsBookmarked: boolean;
-    initialCurrentUserId: string | null;
 }
 
 export default function BlogDetailClient({
@@ -59,19 +57,18 @@ export default function BlogDetailClient({
     authorRecentPosts = [],
     initialComments,
     initialStats,
-    initialIsLiked,
-    initialIsBookmarked,
-    initialCurrentUserId
 }: BlogDetailClientProps) {
     const supabase = createClient();
     const queryClient = useQueryClient();
+    const { user } = useAuth();
+    const currentUserId = user?.id ?? null;
 
     const [blogPost, setBlogPost] = useState<any>(initialPost);
     const [stats, setStats] = useState(initialStats);
     const [viewsCount, setViewsCount] = useState(initialStats.views ?? 0);
-    const [isLiked, setIsLiked] = useState(initialIsLiked);
-    const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
-    
+    const [isLiked, setIsLiked] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
+
     // Unified comment states
     const [replyTo, setReplyTo] = useState<{
         parentId: string;
@@ -86,7 +83,6 @@ export default function BlogDetailClient({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(initialCurrentUserId);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const router = useRouter();
 
@@ -109,6 +105,44 @@ export default function BlogDetailClient({
         }
     }, [currentUserId, blogPost]);
 
+    // The page is rendered without a session (so it stays cacheable), so
+    // resolve the viewer's own like/bookmark state client-side once AuthContext
+    // has a user.
+    useEffect(() => {
+        if (!currentUserId) {
+            setIsLiked(false);
+            setIsBookmarked(false);
+            return;
+        }
+
+        let cancelled = false;
+        (async () => {
+            const [{ data: likeData }, { data: bookmarkData }] = await Promise.all([
+                supabase
+                    .from("blog_post_likes")
+                    .select("id")
+                    .eq("blog_post_id", id)
+                    .eq("user_id", currentUserId)
+                    .maybeSingle(),
+                supabase
+                    .from("blog_post_bookmarks")
+                    .select("blog_post_id")
+                    .eq("blog_post_id", id)
+                    .eq("user_id", currentUserId)
+                    .maybeSingle(),
+            ]);
+
+            if (cancelled) return;
+            setIsLiked(!!likeData);
+            setIsBookmarked(!!bookmarkData);
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id, currentUserId]);
+
     const handleEdit = () => {
         router.push(`/blog/write?id=${id}`);
     };
@@ -122,6 +156,7 @@ export default function BlogDetailClient({
         setDeleting(true);
         try {
             await deleteBlogPost(supabase, id);
+            await revalidateBlogPostAction(id);
 
             toast.success("글이 삭제됐어요");
             router.push("/blog");

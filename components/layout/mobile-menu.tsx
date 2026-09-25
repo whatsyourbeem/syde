@@ -12,9 +12,10 @@ import {
 import { Menu, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/auth/auth-actions";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,17 +29,26 @@ import {
 import { useEffect, useState } from "react";
 
 interface MobileMenuProps {
-  user: User | null;
   authButton: React.ReactNode;
 }
 
-export function MobileMenu({ user, authButton }: MobileMenuProps) {
+export function MobileMenu({ authButton }: MobileMenuProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleLogout = async () => {
+    // Fire SIGNED_OUT locally first so AuthContext updates immediately — logout()
+    // below redirects server-side, which is a client-side navigation with no
+    // reload, so onAuthStateChange would otherwise never see the session change.
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    await logout();
+  };
 
   if (!isMounted) {
     return (
@@ -125,13 +135,11 @@ export function MobileMenu({ user, authButton }: MobileMenuProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>취소</AlertDialogCancel>
-                  <form action={logout}>
-                    <AlertDialogAction asChild>
-                      <Button className="w-full" type="submit">
-                        로그아웃
-                      </Button>
-                    </AlertDialogAction>
-                  </form>
+                  <AlertDialogAction asChild>
+                    <Button className="w-full" onClick={handleLogout}>
+                      로그아웃
+                    </Button>
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

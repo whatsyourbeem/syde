@@ -17,10 +17,11 @@ import { useRouter } from 'next/navigation';
 
 interface NotificationDropdownProps {
   unreadCount: number;
-  setUnreadCount: (count: number | ((prev: number) => number)) => void;
+  onMarkAllRead: () => void;
+  onMarkOneRead: () => void;
 }
 
-const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropdownProps) => {
+const NotificationDropdown = ({ unreadCount, onMarkAllRead, onMarkOneRead }: NotificationDropdownProps) => {
   const [notifications, setNotifications] = useState<NotificationType[] | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -43,14 +44,14 @@ const NotificationDropdown = ({ unreadCount, setUnreadCount }: NotificationDropd
 
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
-    setUnreadCount(0);
+    onMarkAllRead();
     fetchNotifications(); // Refresh list
   };
 
   const onNotificationClick = async (notificationId: string, logId?: string | null, showcaseId?: string | null) => {
     await handleNotificationClick(notificationId, logId, showcaseId);
     // Optimistically update the count
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    onMarkOneRead();
   };
 
   if (!isMounted) {

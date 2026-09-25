@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuth, withErrorHandling } from "@/lib/error-handler";
 import { DeleteResponse, createSuccessResponse } from "@/lib/types/api";
@@ -12,7 +11,10 @@ export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
 
-  revalidatePath("/", "layout");
+  // No revalidatePath("/", "layout") here: the header no longer renders anything
+  // user-specific server-side (see context/AuthContext.tsx), so that call would
+  // only have the side effect of blowing away the site-wide ISR cache on every
+  // logout for no benefit.
   redirect("/");
 }
 
@@ -98,10 +100,12 @@ export async function deleteAccount(): Promise<DeleteResponse> {
       throw new Error(`사용자 삭제 실패: ${deleteUserError.message}`);
     }
 
-    // Revalidate and redirect
-    revalidatePath("/", "layout");
-    redirect("/");
-
+    // No redirect() here on purpose: the trigger (components/user/profile-form.tsx)
+    // calls this as a plain async function and needs to run its own client-side
+    // supabase.auth.signOut() + navigation after it resolves. A server-side
+    // redirect() throws NEXT_REDIRECT, which would make that follow-up code
+    // unreliable to run (Next.js re-throws it through withErrorHandling).
+    // No revalidatePath("/", "layout") either — see the note in logout() above.
     return createSuccessResponse(undefined);
   });
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { HeaderServer, HeaderSkeleton } from "@/components/layout/header-server";
-import { Suspense } from "react";
+import { HeaderServer } from "@/components/layout/header-server";
 import { Providers } from "@/components/layout/providers";
+import { AuthProvider } from "@/context/AuthContext";
 import { LoginDialogProvider } from "@/context/LoginDialogContext";
 import { LoginDialog } from "@/components/auth/login-dialog";
 
@@ -95,22 +95,22 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body className={`${pretendard.className} antialiased`}>
         <Providers>
-          <LoginDialogProvider>
-            <div className="flex flex-col min-h-dvh">
-              <div className="contents">
-                <Suspense fallback={<HeaderSkeleton paperlogyClassName={paperlogy.className} />}>
+          <AuthProvider>
+            <LoginDialogProvider>
+              <div className="flex flex-col min-h-dvh">
+                <div className="contents">
                   <HeaderServer paperlogyClassName={paperlogy.className} />
-                </Suspense>
-                <HeaderNavigationWrapper>
-                  <HeaderNavigation />
-                </HeaderNavigationWrapper>
+                  <HeaderNavigationWrapper>
+                    <HeaderNavigation />
+                  </HeaderNavigationWrapper>
+                </div>
+                <main className="flex-1 h-full">{children}</main>
+                <Toaster />
+                <LoginDialog />
+                <Footer />
               </div>
-              <main className="flex-1 h-full">{children}</main>
-              <Toaster />
-              <LoginDialog />
-              <Footer />
-            </div>
-          </LoginDialogProvider>
+            </LoginDialogProvider>
+          </AuthProvider>
         </Providers>
         <Analytics />
       </body>

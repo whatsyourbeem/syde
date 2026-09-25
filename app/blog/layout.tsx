@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
 import { BlogLayoutContent } from "@/components/blog/blog-layout-content";
 import { Banner } from "@/components/common/banner";
 import { SydePickSidebarCard } from "@/components/showcase/syde-pick-sidebar-card";
@@ -19,34 +18,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function BlogLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let profile = null;
-  let avatarUrl = null;
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*, updated_at")
-      .eq("id", user.id)
-      .single();
-    if (data) {
-      profile = data;
-      avatarUrl =
-        data.avatar_url && data.updated_at
-          ? `${data.avatar_url}?t=${new Date(data.updated_at).getTime()}`
-          : data.avatar_url;
-    }
-  }
-
+// No cookies/auth are read here — BlogLayoutContent resolves the viewer's own
+// session client-side via context/AuthContext.tsx instead, so every page under
+// this layout (including /blog/[id]) stays eligible for the Full Route Cache.
+export default function BlogLayout({ children }: { children: React.ReactNode }) {
   return (
     <BlogLayoutContent
-      user={user}
-      profile={profile}
-      avatarUrl={avatarUrl}
       sydePick={<SydePickSidebarCard />}
       banner={<Banner position={BANNER_POSITIONS.LOG_SIDEBAR} />}
     >

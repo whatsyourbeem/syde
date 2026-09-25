@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUpCircle,
@@ -69,15 +69,15 @@ type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
 
 interface ShowcaseDetailProps {
   showcase: ShowcaseWithRelations;
-  user: User | null;
   initialHtml?: string;
 }
 
-export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailProps) {
+export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
   const supabase = createClient();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { openLoginDialog } = useLoginDialog();
+  const { user: currentUser } = useAuth();
 
   // Gallery State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -102,14 +102,20 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   const [upvotesCount, setUpvotesCount] = useState(
     showcase.showcase_upvotes?.length || 0,
   );
-  const [hasUpvoted, setHasUpvoted] = useState(
-    user
-      ? showcase.showcase_upvotes?.some((upvote: any) => upvote.user_id === user.id)
-      : false,
-  );
+  const [hasUpvoted, setHasUpvoted] = useState(false);
   const [commentsCount, setCommentsCount] = useState(
     showcase.showcase_comments?.length || 0,
   );
+
+  // showcase_upvotes is public data already on the page; once the viewer's
+  // id is known, just filter it locally instead of a separate query.
+  useEffect(() => {
+    if (currentUser) {
+      setHasUpvoted(
+        showcase.showcase_upvotes?.some((upvote: any) => upvote.user_id === currentUser.id) ?? false,
+      );
+    }
+  }, [currentUser, showcase.showcase_upvotes]);
 
   // Sync from server data, then increment (once per 1h per browser via localStorage).
   // Both updates live in one effect so the optimistic +1 can't be clobbered by a
@@ -193,7 +199,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
 
   // --- Actions ---
   const handleUpvote = async () => {
-    if (!user?.id) return openLoginDialog();
+    if (!currentUser?.id) return openLoginDialog();
 
     const previousUpvoted = hasUpvoted;
     const previousCount = upvotesCount;
@@ -228,7 +234,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   };
 
   const handleDelete = async () => {
-    if (user?.id !== showcase.user_id) return;
+    if (currentUser?.id !== showcase.user_id) return;
     setIsDeleting(true);
     const result = await deleteShowcase(showcase.id);
     if (!result.success) {
@@ -255,7 +261,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
   // --- Real Content for UI ---
   const projectTitle = showcase.name || "제목 없음";
   const projectTagline = showcase.short_description || "설명이 없습니다.";
-  const isAuthor = user?.id === showcase.user_id;
+  const isAuthor = currentUser?.id === showcase.user_id;
 
   // Combine Author and Members
   const authorMember = {
@@ -555,7 +561,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
                 <ShowcaseBumpBar
                   showcaseId={showcase.id}
                   ownerId={showcase.user_id}
-                  currentUserId={user?.id ?? null}
+                  currentUserId={currentUser?.id ?? null}
                   bumpedAt={showcase.bumped_at}
                 />
               </div>
@@ -874,7 +880,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
           <div className="space-y-6">
             <CommentList
               showcaseId={showcase.id}
-              currentUserId={user?.id || null}
+              currentUserId={currentUser?.id || null}
               pageSize={10}
               isDetailPage={true}
               setReplyTo={setReplyTo}
@@ -882,7 +888,7 @@ export function ShowcaseDetail({ showcase, user, initialHtml }: ShowcaseDetailPr
             />
             <CommentForm
               showcaseId={showcase.id}
-              currentUserId={user?.id || null}
+              currentUserId={currentUser?.id || null}
               onCommentAdded={handleCommentAdded}
               replyTo={replyTo}
             />

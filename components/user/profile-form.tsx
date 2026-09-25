@@ -469,13 +469,26 @@ export default function ProfileForm({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel className="rounded-xl border-[#B7B7B7]">취소</AlertDialogCancel>
-                <form action={async () => { await deleteAccount(); }}>
-                  <AlertDialogAction asChild>
-                    <Button type="submit" variant="destructive" className="rounded-xl">
-                      탈퇴
-                    </Button>
-                  </AlertDialogAction>
-                </form>
+                <AlertDialogAction asChild>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="rounded-xl"
+                    onClick={async () => {
+                      // deleteAccount() requires an authenticated request server-side,
+                      // so we can't sign out client-side first — it has to run after,
+                      // and deleteAccount() no longer redirects so this code is
+                      // guaranteed to run once it resolves.
+                      const result = await deleteAccount();
+                      if (result.success) {
+                        await supabase.auth.signOut({ scope: "local" });
+                        window.location.assign("/");
+                      }
+                    }}
+                  >
+                    탈퇴
+                  </Button>
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

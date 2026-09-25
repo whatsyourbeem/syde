@@ -4,27 +4,26 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { UserRound } from "lucide-react";
-import { User } from "@supabase/supabase-js";
 import { SheetClose } from "@/components/ui/sheet";
 import { useLoginDialog } from "@/context/LoginDialogContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface ClientAuthButtonProps {
-  user: User | null; // Supabase user object
-  avatarUrl: string | null;
-  username: string | null;
-  fullName: string | null;
   sheetHeader?: boolean;
 }
 
-export function ClientAuthButton({
-  user,
-  avatarUrl,
-  username,
-  fullName,
-  sheetHeader,
-}: ClientAuthButtonProps) {
+export function ClientAuthButton({ sheetHeader }: ClientAuthButtonProps) {
   const { openLoginDialog } = useLoginDialog();
+  const { user, profile, avatarUrl, isLoading } = useAuth();
+  const username = profile?.username ?? null;
+  const fullName = profile?.full_name ?? username;
   const profileLink = username ? `/@${username}` : "/profile";
+
+  // While the client session resolves, show the same "no avatar yet" placeholder
+  // used below instead of flashing the logged-out login button at a logged-in visitor.
+  if (isLoading) {
+    return <div className="w-9 h-9 bg-gray-200 rounded-full m-0.5" />;
+  }
 
   return (
     <>

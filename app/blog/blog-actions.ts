@@ -108,7 +108,6 @@ export const createComment = withAuth(
     }
 
     revalidatePath(`/blog/${blogPostId}`);
-    revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
@@ -137,7 +136,6 @@ export const updateComment = withAuth(
     }
 
     revalidatePath(`/blog/${blogPostId}`);
-    revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
@@ -157,7 +155,6 @@ export const deleteComment = withAuth(
     }
 
     revalidatePath(`/blog/${blogPostId}`);
-    revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
@@ -180,7 +177,6 @@ export const toggleCommentLike = withAuth(
     }
 
     revalidatePath(`/blog/${blogPostId}`);
-    revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
@@ -202,7 +198,6 @@ export const toggleBlogPostLike = withAuth(
       if (error) throw new Error(error.message);
     }
 
-    revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }
@@ -224,7 +219,6 @@ export const toggleBlogPostBookmark = withAuth(
       if (error) throw new Error(error.message);
     }
 
-    revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
     return createSuccessResponse(null);
   }

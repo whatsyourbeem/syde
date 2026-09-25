@@ -1,5 +1,5 @@
 import { Metadata, ResolvingMetadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/static";
 import { notFound, redirect } from "next/navigation";
 import BlogDetailClient from "@/components/blog/blog-detail-client";
 import { getAuthorRecentBlogPosts, getBlogPostDetailCached } from "@/lib/queries/blog-queries";
@@ -19,7 +19,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
     const rawParams = await params;
     const id = decodeURIComponent(rawParams.id);
-    const supabase = await createClient();
+    const supabase = createStaticClient();
 
     const blogPost = await getBlogPostDetailCached(supabase, id);
 
@@ -69,10 +69,22 @@ export async function generateMetadata(
 
 import { getRenderedArticle } from "@/components/common/tiptap-server-extensions";
 
+// Matches the 1h TTL already used by getBlogPostDetailCached/getAuthorRecentBlogPosts,
+// so this doesn't introduce staleness beyond what those caches already allow.
+export const revalidate = 3600;
+
+// Required for ISR on a dynamic segment with no known params at build time —
+// without this, `revalidate` alone doesn't make the route eligible for caching.
+export async function generateStaticParams() {
+  return [];
+}
+
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     const rawParams = await params;
     const id = decodeURIComponent(rawParams.id);
-    const supabase = await createClient();
+    // Cookie-free client: keeps this page eligible for the Full Route Cache/ISR.
+    // Per-viewer state (likes, bookmarks, edit menu) is resolved client-side instead.
+    const supabase = createStaticClient();
 
     // Fetch blog post
     const blogPost = await getBlogPostDetailCached(supabase, id);
@@ -93,12 +105,14 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     const { html: initialHtml, toc } = getRenderedArticle(blogPost.content);
 
     // None of these depend on each other, so fetch them together.
+    // Personalized state (isLiked/isBookmarked/currentUserId) is resolved
+    // client-side in BlogDetailClient instead, since this client has no
+    // session to check against.
     const [
         authorRecentPosts,
         { data: comments },
         { count: likesCount },
         { count: bookmarksCount },
-        { data: { user } },
     ] = await Promise.all([
         getAuthorRecentBlogPosts(supabase, blogPost.user_id, blogPost.id),
         supabase
@@ -121,31 +135,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             .from("blog_post_bookmarks")
             .select("*", { count: "exact", head: true })
             .eq("blog_post_id", blogPost.id),
-        supabase.auth.getUser(),
     ]);
-
-    let isLiked = false;
-    let isBookmarked = false;
-
-    if (user) {
-        const [{ data: likeData }, { data: bookmarkData }] = await Promise.all([
-            supabase
-                .from("blog_post_likes")
-                .select("id")
-                .eq("blog_post_id", blogPost.id)
-                .eq("user_id", user.id)
-                .maybeSingle(),
-            supabase
-                .from("blog_post_bookmarks")
-                .select("blog_post_id")
-                .eq("blog_post_id", blogPost.id)
-                .eq("user_id", user.id)
-                .maybeSingle(),
-        ]);
-
-        isLiked = !!likeData;
-        isBookmarked = !!bookmarkData;
-    }
 
     const stats = {
         likes: likesCount || 0,
@@ -195,9 +185,6 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 authorRecentPosts={authorRecentPosts}
                 initialComments={comments || []}
                 initialStats={stats}
-                initialIsLiked={isLiked}
-                initialIsBookmarked={isBookmarked}
-                initialCurrentUserId={user?.id || null}
             />
         </>
     );

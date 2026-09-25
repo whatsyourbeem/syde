@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/static";
 import { BANNER_POSITIONS, type BannerPosition } from "@/lib/constants";
 
 export interface Banner {
@@ -17,7 +17,11 @@ export interface Banner {
 }
 
 export async function getActiveBanners(position?: BannerPosition): Promise<Banner[]> {
-  const supabase = await createClient();
+  // Cookie-free client: this is rendered inside app/blog|showcase/layout.tsx as a
+  // prop passed into a client component, so it runs on every page under those
+  // layouts (including cacheable detail pages) regardless of whether it's
+  // actually displayed there. `banners` SELECT RLS is public (USING (true)).
+  const supabase = createStaticClient();
 
   let query = supabase
     .from("banners")
