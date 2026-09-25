@@ -5,27 +5,22 @@ import { Pencil } from "lucide-react";
 import { ShowcaseSidebarButton } from "@/components/showcase/showcase-sidebar-button";
 import { ShowcaseRightSidebar } from "@/components/showcase/right-sidebar";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
-import { PublicProfile as Profile } from "@/types/profile";
+import { useAuth } from "@/context/AuthContext";
 
 interface BlogLayoutContentProps {
-  user: any;
-  profile: Profile | null;
-  avatarUrl: string | null;
   sydePick?: React.ReactNode;
   banner?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export function BlogLayoutContent({
-  user,
-  profile,
-  avatarUrl,
   sydePick,
   banner,
   children,
 }: BlogLayoutContentProps) {
   const pathname = usePathname();
   const isMainPage = pathname === "/blog";
+  const { user, profile, avatarUrl, isLoading } = useAuth();
 
   if (!isMainPage) {
     return <>{children}</>;
@@ -44,7 +39,7 @@ export function BlogLayoutContent({
 
       <main className="flex justify-center gap-x-5 md:px-5 max-w-6xl mx-auto">
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-          {user && profile ? (
+          {isLoading ? null : user && profile ? (
             <ShowcaseSidebarButton
               userId={user.id}
               avatarUrl={avatarUrl}

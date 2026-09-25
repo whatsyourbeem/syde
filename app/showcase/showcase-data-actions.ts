@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/static";
 import { OptimizedShowcase, ShowcaseQueryOptions, ShowcaseQueryResult } from "@/lib/queries/showcase-queries";
 import { Database } from "@/types/database.types";
 
@@ -139,7 +140,14 @@ export async function fetchShowcasesAction({
  * Fetches the most recently awarded SYDE Pick showcase.
  */
 export async function fetchLatestAwardedShowcase(currentUserId?: string | null): Promise<OptimizedShowcase | null> {
-  const supabase = await createClient();
+  // Cookie-free client: this is rendered inside app/blog|showcase/layout.tsx as a
+  // prop passed into a client component, so it runs on every page under those
+  // layouts (including cacheable detail pages) regardless of whether it's
+  // actually displayed there. The upvote-status lookup below is filtered by the
+  // explicit `currentUserId` param, not by the request's session, and
+  // `showcases`/`showcase_awards`/`showcase_upvotes` SELECT RLS are all public
+  // (USING (true)), so this client swap doesn't change what any caller sees.
+  const supabase = createStaticClient();
 
   // 1. Calculate the date 30 days ago
   const thirtyDaysAgo = new Date();

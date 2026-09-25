@@ -5,27 +5,22 @@ import { ShowcaseSidebarButton } from "@/components/showcase/showcase-sidebar-bu
 import { ShowcaseHeader } from "@/components/showcase/showcase-header";
 import { ShowcaseRightSidebar } from "@/components/showcase/right-sidebar";
 import { LoginPromptCard } from "@/components/auth/login-prompt-card";
-import { PublicProfile as Profile } from "@/types/profile";
+import { useAuth } from "@/context/AuthContext";
 
 interface ShowcaseLayoutContentProps {
-  user: any;
-  profile: Profile | null;
-  avatarUrl: string | null;
   sydePick?: React.ReactNode;
   banner?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export function ShowcaseLayoutContent({
-  user,
-  profile,
-  avatarUrl,
   sydePick,
   banner,
   children,
 }: ShowcaseLayoutContentProps) {
   const pathname = usePathname();
   const isMainPage = pathname === "/showcase";
+  const { user, profile, avatarUrl, isLoading } = useAuth();
 
   return (
     <div className="w-full">
@@ -36,7 +31,7 @@ export function ShowcaseLayoutContent({
         {/* Left Sidebar: 메인 페이지에서만 표시 */}
         {isMainPage && (
           <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
-            {user && profile ? (
+            {isLoading ? null : user && profile ? (
               <ShowcaseSidebarButton
                 userId={user.id}
                 avatarUrl={avatarUrl}

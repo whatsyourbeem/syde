@@ -1,52 +1,25 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import NotificationDropdown from './notification-dropdown';
-import { Tables } from '@/types/database.types';
+import { useAuth } from '@/context/AuthContext';
 
-interface NotificationBellProps {
-  initialUnreadCount: number;
-  userId: string | null;
-}
+// The count and its realtime subscription live in AuthContext, not here — this
+// component is mounted twice (mobile + desktop header blocks, hidden via
+// responsive CSS, not conditionally rendered), so owning that state here would
+// double-count every new notification.
+const NotificationBell = () => {
+  const { user, unreadNotificationCount, markAllNotificationsRead, markOneNotificationRead } = useAuth();
 
-const NotificationBell = ({ initialUnreadCount, userId }: NotificationBellProps) => {
-  const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
-  const supabase = createClient();
-
-  useEffect(() => {
-    setUnreadCount(initialUnreadCount);
-  }, [initialUnreadCount]);
-
-  useEffect(() => {
-    if (!userId) {
-      return;
-    }
-
-    const channel = supabase
-      .channel('realtime-notifications')
-      .on<Tables<"notifications">>(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_user_id=eq.${userId}` },
-        () => {
-          setUnreadCount((prevCount) => prevCount + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, supabase]);
-
-  if (!userId) {
+  if (!user) {
     return null;
   }
 
   return (
-    <Suspense fallback={<div className="w-8 h-8 bg-gray-200 rounded-full" />}>
-       <NotificationDropdown unreadCount={unreadCount} setUnreadCount={setUnreadCount} />
-    </Suspense>
+    <NotificationDropdown
+      unreadCount={unreadNotificationCount}
+      onMarkAllRead={markAllNotificationsRead}
+      onMarkOneRead={markOneNotificationRead}
+    />
   );
 };
 

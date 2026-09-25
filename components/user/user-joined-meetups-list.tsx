@@ -88,6 +88,7 @@ export function UserJoinedMeetupsList({ userId, variant = "scroll" }: UserJoined
         <Link
           key={meetup.id}
           href={`/meetup/${meetup.id}`}
+          prefetch={false}
           className={cn("group", isGrid ? "block w-full" : "flex-shrink-0 w-[160px]")}
         >
           <div className={cn(

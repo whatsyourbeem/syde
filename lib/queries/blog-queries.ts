@@ -3,21 +3,6 @@ import { Database } from "@/types/database.types";
 import { unstable_cache } from "next/cache";
 
 /**
- * Delete a blog post by ID
- */
-export async function deleteBlogPost(
-  supabase: SupabaseClient<Database>,
-  blogPostId: string
-): Promise<void> {
-  const { error } = await supabase
-    .from("blog_posts")
-    .delete()
-    .eq("id", blogPostId);
-
-  if (error) throw error;
-}
-
-/**
  * Remove a like from a blog post
  */
 export async function deleteBlogPostLike(

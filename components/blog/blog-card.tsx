@@ -98,7 +98,7 @@ export function BlogCard({
     return (
         <article className="flex w-full items-stretch gap-4 py-6 md:gap-6 md:py-8">
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <Link href={href} className="flex flex-col gap-1 focus:outline-none">
+                <Link href={href} prefetch={false} className="flex flex-col gap-1 focus:outline-none">
                     <h3 className="text-[17px] md:text-[19px] leading-[1.4] font-bold text-black line-clamp-2">{title}</h3>
                     {summary && (
                         <p className="text-[14px] md:text-[15px] leading-[1.5] text-[#777777] line-clamp-2">{summary}</p>
@@ -152,7 +152,7 @@ export function BlogCard({
             </div>
 
             {imageUrl && (
-                <Link href={href} tabIndex={-1} aria-hidden className="shrink-0 self-start focus:outline-none">
+                <Link href={href} prefetch={false} tabIndex={-1} aria-hidden className="shrink-0 self-start focus:outline-none">
                     <BlogThumbnail
                         src={imageUrl}
                         alt={title}

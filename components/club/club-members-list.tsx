@@ -205,7 +205,7 @@ export default function ClubMembersList({
               >
                 <div className="flex items-center justify-between rounded-md p-2 bg-gray-50 mt-4">
                   <div className="flex items-center gap-x-2">
-                    <Link href={`/@${currentMember.profiles?.username}`}>
+                    <Link href={`/@${currentMember.profiles?.username}`} prefetch={false}>
                       <div className="relative">
                         <Avatar className="size-7">
                           <AvatarImage
@@ -223,7 +223,7 @@ export default function ClubMembersList({
                       </div>
                     </Link>
                     <div className="text-left">
-                      <Link href={`/@${currentMember.profiles?.username}`}>
+                      <Link href={`/@${currentMember.profiles?.username}`} prefetch={false}>
                         <p className="font-semibold text-sm hover:underline line-clamp-1">
                           {currentMember.profiles?.full_name ||
                             currentMember.profiles?.username}

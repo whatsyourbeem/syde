@@ -70,7 +70,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
       key={meetup.id}
       className="bg-white overflow-hidden h-full flex flex-col transition-all duration-200 ease-in-out hover:scale-[1.01]"
     >
-      <Link href={`/meetup/${meetup.id}`} className="block">
+      <Link href={`/meetup/${meetup.id}`} prefetch={false} className="block">
         <div className="relative w-full aspect-w-1 aspect-h-1 bg-muted/20">
           <Image
             src={meetup.thumbnail_url || "/default_meetup_thumbnail.png"}
@@ -91,7 +91,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
           <Badge className={`${getStatusBadgeClass(meetup.status)} w-fit`}>
             {MEETUP_STATUS_DISPLAY_NAMES[meetup.status]}
           </Badge>
-          <Link href={`/meetup/${meetup.id}`}>
+          <Link href={`/meetup/${meetup.id}`} prefetch={false}>
             <div className="flex justify-between items-start">
               <h2 className="text-sm md:text-base font-semibold line-clamp-2 hover:underline">
                 {meetup.title}
@@ -101,6 +101,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
           {meetup.clubs && (
             <Link
               href={`/club/${meetup.clubs.id}`}
+              prefetch={false}
               className="inline-flex items-center gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 hover:underline"
             >
               <div className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
@@ -129,7 +130,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
               profileData={meetup.organizer_profile}
             >
               <div className="text-xs md:text-sm text-gray-500 flex items-center gap-1 md:gap-2">
-                <Link href={`/@${meetup.organizer_profile?.username}`}>
+                <Link href={`/@${meetup.organizer_profile?.username}`} prefetch={false}>
                   <Avatar className="size-5">
                     <AvatarImage
                       src={meetup.organizer_profile?.avatar_url || undefined}
@@ -142,6 +143,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
                 <p className="flex items-center">
                   <Link
                     href={`/@${meetup.organizer_profile?.username}`}
+                    prefetch={false}
                     className="inline-flex items-center gap-1"
                   >
                     <span className="truncate inline-block max-w-full font-semibold text-gray-700 hover:underline">
@@ -162,7 +164,7 @@ export default function MeetupCard({ meetup, priority = false }: MeetupCardProps
 
         {/* Group 2: Date & Location Info */}
         <div>
-          <Link href={`/meetup/${meetup.id}`} className="text-sm text-gray-500">
+          <Link href={`/meetup/${meetup.id}`} prefetch={false} className="text-sm text-gray-500">
             <p className="text-[11px] md:text-sm text-gray-500 font-normal md:font-medium flex items-center gap-2 md:mb-1">
               {meetup.start_datetime && (
                 <>

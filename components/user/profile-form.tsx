@@ -14,6 +14,7 @@ import { useFormStatus } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
 import { deleteAccount } from "@/app/auth/auth-actions";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,6 +102,7 @@ export default function ProfileForm({
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(
     null
   );
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   useEffect(() => {
@@ -469,13 +471,42 @@ export default function ProfileForm({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel className="rounded-xl border-[#B7B7B7]">취소</AlertDialogCancel>
-                <form action={async () => { await deleteAccount(); }}>
-                  <AlertDialogAction asChild>
-                    <Button type="submit" variant="destructive" className="rounded-xl">
-                      탈퇴
-                    </Button>
-                  </AlertDialogAction>
-                </form>
+                <AlertDialogAction asChild>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="rounded-xl"
+                    disabled={isDeletingAccount}
+                    onClick={async (event) => {
+                      // Keep the dialog open until we know the result — Radix
+                      // closes it on click by default, which would otherwise
+                      // hide a failure behind a dialog that's already gone.
+                      event.preventDefault();
+                      if (isDeletingAccount) return;
+                      setIsDeletingAccount(true);
+                      try {
+                        // deleteAccount() requires an authenticated request server-side,
+                        // so we can't sign out client-side first — it has to run after,
+                        // and deleteAccount() no longer redirects so this code is
+                        // guaranteed to run once it resolves.
+                        const result = await deleteAccount();
+                        if (result.success) {
+                          await supabase.auth.signOut({ scope: "local" });
+                          window.location.assign("/");
+                          return;
+                        }
+                        toast.error(result.error.message || "탈퇴 처리 중 오류가 발생했습니다.");
+                      } catch (error) {
+                        console.error("Error deleting account:", error);
+                        toast.error("탈퇴 처리 중 오류가 발생했습니다.");
+                      } finally {
+                        setIsDeletingAccount(false);
+                      }
+                    }}
+                  >
+                    {isDeletingAccount ? "탈퇴 처리 중..." : "탈퇴"}
+                  </Button>
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

@@ -183,7 +183,7 @@ export function ClubPostCommentCard({
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
-            <Link href={`/@${comment.author?.username || comment.user_id}`}>
+            <Link href={`/@${comment.author?.username || comment.user_id}`} prefetch={false}>
               {avatarUrlWithCacheBuster && (
                 <div className="relative w-8 h-8 overflow-hidden shrink-0 rounded-full bg-[#D9D9D9]">
                   <Image
@@ -201,7 +201,7 @@ export function ClubPostCommentCard({
           <div className="flex items-center justify-between gap-1 w-full">
             <ProfileHoverCard userId={comment.user_id} profileData={comment.author}>
               <div className="flex flex-col md:flex-row md:items-center md:gap-2 min-w-0 cursor-pointer">
-                <Link href={`/@${comment.author?.username || comment.user_id}`} className="min-w-0">
+                <Link href={`/@${comment.author?.username || comment.user_id}`} prefetch={false} className="min-w-0">
                   <div className="flex items-center gap-1">
                     <p className="font-semibold text-sm hover:underline truncate max-w-48">
                       {comment.author?.full_name ||

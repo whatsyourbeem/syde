@@ -265,7 +265,6 @@ export const createComment = withAuth(
     }
 
     revalidatePath(`/showcase/${showcaseId}`);
-    revalidateTagSafe("showcase-all");
     revalidateTagSafe(`showcase-${showcaseId}`);
     return createSuccessResponse(null);
   }
@@ -294,7 +293,6 @@ export const updateComment = withAuth(
     }
 
     revalidatePath(`/showcase/${showcaseId}`);
-    revalidateTagSafe("showcase-all");
     revalidateTagSafe(`showcase-${showcaseId}`);
     return createSuccessResponse(null);
   }
@@ -370,7 +368,6 @@ export const toggleShowcaseUpvote = withAuth(
       if (error) return createErrorResponse("DATABASE_ERROR", "업보트 실패");
     }
 
-    revalidateTagSafe("showcase-all");
     revalidateTagSafe(`showcase-${showcaseId}`);
     return createSuccessResponse(null);
   }
@@ -392,7 +389,6 @@ export const bumpShowcase = withAuth(async ({ supabase }, showcaseId: string) =>
   }
 
   revalidatePath("/showcase");
-  revalidateTagSafe("showcase-all");
   revalidateTagSafe(`showcase-${showcaseId}`);
 
   return createSuccessResponse(data[0]);
@@ -403,7 +399,10 @@ export async function incrementShowcaseView(showcaseId: string): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   await supabase.rpc("increment_showcase_view", { p_showcase_id: showcaseId });
-  // Detail page data is cached (unstable_cache, revalidate: 3600s) keyed by this id,
-  // so without this the incremented count won't show up until the cache expires.
-  revalidateTagSafe(`showcase-${showcaseId}`);
+  // Deliberately NOT calling revalidateTagSafe here. A single-argument revalidateTag
+  // is a hard expire (Next.js treats it as { expire: 0 }), so busting the tag on every
+  // view would mean a popular showcase's page almost never stays cached. The client
+  // already shows an optimistic +1 (showcase-detail.tsx), so the server-rendered count
+  // lagging by up to `revalidate` (3600s) is an accepted trade-off — do not re-add this
+  // invalidation to "fix" that lag without also reconsidering the page's cacheability.
 }

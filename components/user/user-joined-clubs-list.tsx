@@ -86,9 +86,10 @@ export function UserJoinedClubsList({
     return (
       <div className="flex items-center gap-4 py-2 px-1">
         {displayClubs.map((club) => (
-          <Link 
-            key={club.id} 
+          <Link
+            key={club.id}
             href={`/club/${club.id}`}
+            prefetch={false}
             className="flex flex-col items-center gap-2 group"
           >
             <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-200">

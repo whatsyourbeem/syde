@@ -2,13 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Suspense } from "react";
 import NotificationBell from "@/components/notification/notification-bell";
-import { AuthButton } from "@/components/auth/auth-button";
+import { ClientAuthButton } from "@/components/auth/client-auth-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
-import { createClient } from "@/lib/supabase/server";
-import { getProfileByIdCached } from "@/lib/queries/profile-queries";
-import { getUnreadNotificationsCount } from "@/lib/queries/notification-queries";
 
 // Using local fonts loaded from layout.tsx
 // Since we can't easily import the localFont instance instantiated in layout.tsx,
@@ -17,36 +13,10 @@ import { getUnreadNotificationsCount } from "@/lib/queries/notification-queries"
 // we can just use the global CSS fallback or pass it as prop if needed.
 // Actually, it's safer to extract the Header completely.
 
-export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName: string }) {
-    const supabase = await createClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    let avatarUrl = null;
-    let usernameForAuthButton = null;
-    let fullNameForAuthButton = null;
-    let unreadNotifCount = 0;
-
-    if (user) {
-        const [unreadNotifCountResult, profile] = await Promise.all([
-            getUnreadNotificationsCount(supabase, user.id),
-            getProfileByIdCached(supabase, user.id),
-        ]);
-        unreadNotifCount = unreadNotifCountResult;
-
-        if (profile) {
-            avatarUrl = profile.avatar_url
-                ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ""
-                }`
-                : null;
-            usernameForAuthButton =
-                profile.username || user.email?.split("@")[0] || null;
-            fullNameForAuthButton = profile.full_name || usernameForAuthButton;
-        }
-    }
-
+// No cookies/auth are read here — the whole header renders the same markup for
+// everyone (see context/AuthContext.tsx), so this route stays eligible for the
+// Full Route Cache instead of forcing every page under it to render dynamically.
+export function HeaderServer({ paperlogyClassName }: { paperlogyClassName: string }) {
     return (
         <header>
             <div className="w-full bg-background">
@@ -78,23 +48,10 @@ export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName:
                             >
                                 <Search size={20} />
                             </Link>
-                            <Suspense
-                                fallback={<div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />}
-                            >
-                                <NotificationBell
-                                    initialUnreadCount={unreadNotifCount}
-                                    userId={user?.id || null}
-                                />
-                            </Suspense>
+                            <NotificationBell />
                             <MobileMenu
-                                user={user}
                                 authButton={
-                                    <AuthButton
-                                        avatarUrl={avatarUrl}
-                                        username={usernameForAuthButton}
-                                        fullName={fullNameForAuthButton}
-                                        sheetHeader={true}
-                                    />
+                                    <ClientAuthButton sheetHeader={true} />
                                 }
                             />
                         </div>
@@ -149,74 +106,8 @@ export async function HeaderServer({ paperlogyClassName }: { paperlogyClassName:
                             >
                                 <Search size={20} />
                             </Link>
-                            <Suspense
-                                fallback={<div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />}
-                            >
-                                <NotificationBell
-                                    initialUnreadCount={unreadNotifCount}
-                                    userId={user?.id || null}
-                                />
-                            </Suspense>
-                            <AuthButton
-                                avatarUrl={avatarUrl}
-                                username={usernameForAuthButton}
-                                fullName={fullNameForAuthButton}
-                                sheetHeader={false}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-    );
-}
-
-export function HeaderSkeleton({ paperlogyClassName }: { paperlogyClassName: string }) {
-    return (
-        <header>
-            <div className="w-full bg-background">
-                <div className="w-full max-w-6xl mx-auto flex justify-between items-center px-5 pt-3 pb-2 text-sm">
-                    {/* Mobile specific layout Skeleton */}
-                    <div className="flex md:hidden w-full justify-between items-center">
-                        <div className="flex items-center">
-                            <div className="flex items-center gap-1">
-                                <Image src="/logo_no_bg.png" alt="SYDE" width={36} height={36} priority />
-                                <span className={`text-2xl font-extrabold text-sydeblue ${paperlogyClassName}`}>
-                                    <span style={{ letterSpacing: "0.01em" }}>S</span>
-                                    <span style={{ letterSpacing: "0.01em" }}>Y</span>
-                                    <span style={{ letterSpacing: "0em" }}>DE</span>
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex justify-end items-center gap-4">
-                            <div className="p-2 rounded-full"><Search size={20} className="text-gray-300" /></div>
-                            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-                            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-                        </div>
-                    </div>
-
-                    {/* Desktop specific layout Skeleton */}
-                    <div className="hidden md:flex w-full justify-between items-center">
-                        <div className="w-1/3">
-                            <Button variant="ghost" className="flex items-center gap-2 px-2 md:px-4 opacity-50">
-                                <Image src="/kakao-talk-bw.png" alt="Kakao" width={24} height={24} />
-                                <span className="hidden md:inline text-[#4B4737]">SYDE 오픈채팅</span>
-                            </Button>
-                        </div>
-                        <div className="w-1/3 flex justify-center items-center font-semibold">
-                            <div className="flex items-center gap-1">
-                                <Image src="/logo_no_bg.png" alt="SYDE" width={52} height={52} priority />
-                                <span className={`text-4xl font-extrabold text-sydeblue ${paperlogyClassName}`}>
-                                    <span style={{ letterSpacing: "0.01em" }}>S</span>
-                                    <span style={{ letterSpacing: "0.01em" }}>Y</span>
-                                    <span style={{ letterSpacing: "0em" }}>DE</span>
-                                </span>
-                            </div>
-                        </div>
-                        <div className="w-1/3 flex justify-end items-center gap-4">
-                            <div className="p-2 rounded-full"><Search size={20} className="text-gray-300" /></div>
-                            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
-                            <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+                            <NotificationBell />
+                            <ClientAuthButton sheetHeader={false} />
                         </div>
                     </div>
                 </div>

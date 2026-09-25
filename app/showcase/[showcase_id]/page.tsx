@@ -1,5 +1,5 @@
 import { Metadata, ResolvingMetadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createStaticClient } from "@/lib/supabase/static";
 import { notFound, redirect } from "next/navigation";
 import { ShowcaseDetail } from "@/components/showcase/showcase-detail";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
@@ -19,7 +19,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const resolvedParams = await params;
   const showcase_id = decodeURIComponent(resolvedParams.showcase_id);
-  const supabase = await createClient();
+  const supabase = createStaticClient();
 
   const showcase = await getShowcaseDetailCached(supabase, showcase_id);
 
@@ -102,17 +102,24 @@ export async function generateMetadata(
   };
 }
 
+// Matches the 1h TTL already used by getShowcaseDetailCached, so this
+// doesn't introduce staleness beyond what that cache already allows.
+export const revalidate = 3600;
+
+// Required for ISR on a dynamic segment with no known params at build time —
+// without this, `revalidate` alone doesn't make the route eligible for caching.
+export async function generateStaticParams() {
+  return [];
+}
+
 export default async function ShowcaseDetailPage({
   params,
 }: ShowcaseDetailPageProps) {
   const resolvedParams = await params;
   const showcase_id = decodeURIComponent(resolvedParams.showcase_id);
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  // Cookie-free client: keeps this page eligible for the Full Route Cache/ISR.
+  // Per-viewer state (upvote status, edit menu) is resolved client-side instead.
+  const supabase = createStaticClient();
 
   const showcase = await getShowcaseDetailCached(supabase, showcase_id);
 
@@ -157,9 +164,9 @@ export default async function ShowcaseDetailPage({
     ...showcase,
     profiles: Array.isArray(showcase.profiles) ? showcase.profiles[0] : showcase.profiles,
     upvotesCount: showcase.upvotes_count?.[0]?.count || 0,
-    hasUpvoted: user
-      ? (showcase.showcase_upvotes ?? []).some((u) => u.user_id === user.id)
-      : false,
+    // Resolved client-side (ShowcaseDetail already filters showcase_upvotes,
+    // which is public data, against the viewer's id once it's known).
+    hasUpvoted: false,
     showcase_awards: showcase.showcase_awards || [],
     showcase_upvotes: showcase.showcase_upvotes || [],
     showcase_comments: showcase.showcase_comments || [],
@@ -175,7 +182,7 @@ export default async function ShowcaseDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ShowcaseDetail showcase={processedShowcase} user={user} initialHtml={initialHtml} />
+      <ShowcaseDetail showcase={processedShowcase} initialHtml={initialHtml} />
     </>
   );
 }

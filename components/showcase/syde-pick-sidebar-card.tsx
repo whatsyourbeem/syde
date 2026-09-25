@@ -13,6 +13,7 @@ export async function SydePickSidebarCard() {
     <div className="w-full overflow-hidden rounded-lg">
       <Link
         href={`/showcase/${showcase.slug || showcase.id}`}
+        prefetch={false}
         className="relative block w-full aspect-[2/1] overflow-hidden bg-[#0F172A] transition-opacity hover:opacity-90"
       >
         {showcase.thumbnail_url && (

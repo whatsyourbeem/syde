@@ -26,7 +26,7 @@ interface AuthorCardProps {
 export function AuthorCard({ author, recentPosts }: AuthorCardProps) {
   return (
     <section className="w-full max-w-3xl mx-auto flex flex-col gap-5 rounded-[12px] border border-[#E5E5E5] p-5 md:p-6 mt-6 mb-10">
-      <Link href={`/@${author.username || author.id}`} className="flex items-center gap-3 w-fit">
+      <Link href={`/@${author.username || author.id}`} prefetch={false} className="flex items-center gap-3 w-fit">
         <Avatar className="size-12">
           <AvatarImage src={author.avatarUrl ?? undefined} alt="" />
           <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || "U"}</AvatarFallback>
@@ -45,6 +45,7 @@ export function AuthorCard({ author, recentPosts }: AuthorCardProps) {
               <li key={post.id}>
                 <Link
                   href={`/blog/${post.slug || post.id}`}
+                  prefetch={false}
                   className="flex items-baseline justify-between gap-4 py-3 hover:text-sydeblue"
                 >
                   <span className="min-w-0 truncate text-[15px] font-medium">{post.title}</span>

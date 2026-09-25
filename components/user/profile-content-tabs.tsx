@@ -12,6 +12,7 @@ import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-lis
 import { ProfileFeedEmptyState } from "@/components/feed/profile-feed-empty-state";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/app/auth/auth-actions";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
@@ -92,6 +93,15 @@ export function ProfileContentTabs({
     setIsMounted(true);
   }, []);
 
+  const handleLogout = async () => {
+    // Fire SIGNED_OUT locally first so AuthContext updates immediately — logout()
+    // below redirects server-side, which is a client-side navigation with no
+    // reload, so onAuthStateChange would otherwise never see the session change.
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    await logout();
+  };
+
   if (!isMounted) {
     return null;
   }
@@ -137,11 +147,9 @@ export function ProfileContentTabs({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>취소</AlertDialogCancel>
-                    <form action={logout}>
-                      <AlertDialogAction asChild>
-                        <Button type="submit">로그아웃</Button>
-                      </AlertDialogAction>
-                    </form>
+                    <AlertDialogAction asChild>
+                      <Button type="button" onClick={handleLogout}>로그아웃</Button>
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

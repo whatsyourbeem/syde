@@ -40,7 +40,7 @@ export default function ClubPostList({
       <ul>
         {posts.map((post) => (
           <li key={post.id} className="py-4 px-4 hover:bg-gray-50 border-b">
-            <Link href={`/club/${clubId}/post/${post.id}`} className="block">
+            <Link href={`/club/${clubId}/post/${post.id}`} prefetch={false} className="block">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold truncate">{post.title}</h3>
               </div>
