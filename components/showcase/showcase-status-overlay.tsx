@@ -14,8 +14,8 @@ interface ShowcaseStatusOverlayProps {
   className?: string;
 }
 
-/** 상태별 점 색. */
-const DOT_COLORS: Record<ShowcaseStatus, string> = {
+/** 상태별 점 색. 다른 화면(프로필 타임라인 등)에서 같은 상태 색을 재사용할 때도 이 값을 가져다 쓴다. */
+export const DOT_COLORS: Record<ShowcaseStatus, string> = {
   DEVELOPING: "#FBBF24",
   IN_SERVICE: "#2FBF71",
   ENDED: "#EF4444",

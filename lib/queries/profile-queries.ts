@@ -25,7 +25,7 @@ export async function getProfileById(
 ): Promise<ProfileRow | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified")
+    .select("id, username, full_name, avatar_url, tagline, bio, link, tags, contact_email, github_username, twitter_username, instagram_username, updated_at, certified")
     .eq("id", userId)
     .single();
 
@@ -48,7 +48,7 @@ export async function getProfilesList(
 
   let query = supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, tagline, bio, link, updated_at, certified", { count: "exact" });
+    .select("id, username, full_name, avatar_url, tagline, bio, link, tags, contact_email, github_username, twitter_username, instagram_username, updated_at, certified", { count: "exact" });
 
   if (searchQuery) {
     const escaped = searchQuery.replace(/"/g, '\\"');
@@ -77,7 +77,7 @@ export async function getProfileByUsername(
 ): Promise<ProfileRow | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, bio, link, tagline, updated_at, certified")
+    .select("id, username, full_name, avatar_url, bio, link, tagline, tags, contact_email, github_username, twitter_username, instagram_username, updated_at, certified")
     .eq("username", username)
     .single();
 

@@ -6,6 +6,13 @@ import { redirect } from "next/navigation";
 import { Json } from "@/types/database.types";
 import { revalidateTagSafe } from "@/lib/server-utils";
 
+/** URL로 붙여넣어도 계정명만 뽑아내고, 앞의 @는 제거한다. */
+function extractHandle(value: string, hostPattern: RegExp): string {
+  const trimmed = value.trim().replace(/^@/, "");
+  const urlMatch = trimmed.match(hostPattern);
+  return (urlMatch ? urlMatch[1] : trimmed).replace(/\/$/, "");
+}
+
 export async function checkUsername(
   username: string,
   userId: string
@@ -43,6 +50,39 @@ export async function updateProfile(formData: FormData) {
   const tagline = formData.get("tagline") as string;
   const link = formData.get("link") as string;
   const avatar_url = formData.get("avatar_url") as string | null;
+  const tagsString = formData.get("tags") as string | null;
+  const contact_email = ((formData.get("contact_email") as string) || "").trim();
+  const githubInput = ((formData.get("github_username") as string) || "").trim();
+  const twitterInput = ((formData.get("twitter_username") as string) || "").trim();
+  const instagramInput = ((formData.get("instagram_username") as string) || "").trim();
+
+  const github_username = githubInput
+    ? extractHandle(githubInput, /github\.com\/([^/?#]+)/i)
+    : null;
+  const twitter_username = twitterInput
+    ? extractHandle(twitterInput, /(?:twitter|x)\.com\/([^/?#]+)/i)
+    : null;
+  const instagram_username = instagramInput
+    ? extractHandle(instagramInput, /instagram\.com\/([^/?#]+)/i)
+    : null;
+
+  let tags: string[] = [];
+  if (tagsString) {
+    try {
+      const parsed = JSON.parse(tagsString);
+      if (Array.isArray(parsed)) {
+        tags = Array.from(
+          new Set(
+            parsed
+              .map((tag) => String(tag).replace(/^#/, "").trim())
+              .filter((tag) => tag.length > 0 && tag.length <= 12)
+          )
+        ).slice(0, 3);
+      }
+    } catch (e) {
+      console.error("Failed to parse tags JSON string:", e);
+    }
+  }
 
   const { error } = await supabase
     .from("profiles")
@@ -52,6 +92,11 @@ export async function updateProfile(formData: FormData) {
       tagline,
       link,
       avatar_url,
+      tags,
+      contact_email: contact_email || null,
+      github_username,
+      twitter_username,
+      instagram_username,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);

@@ -57,7 +57,8 @@ export async function getMeetupsList(
  */
 export async function getUserJoinedMeetups(
   supabase: SupabaseClient<Database>,
-  userId: string
+  userId: string,
+  statuses: Database["public"]["Enums"]["meetup_participant_status_enum"][] = ["APPROVED"]
 ): Promise<MeetupRow[]> {
   const { data, error } = await supabase
     .from("meetup_participants")
@@ -65,7 +66,8 @@ export async function getUserJoinedMeetups(
       meetup_id,
       meetups (*)
     `)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .in("status", statuses);
 
   if (error) {
     throw error;

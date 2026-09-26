@@ -76,6 +76,20 @@ export function MobileMenu({ authButton }: MobileMenuProps) {
           <div className="flex items-center gap-2 pb-2 border-b w-full">
             {authButton}
           </div>
+          {user && (
+            <div className="flex flex-col gap-1 pb-2 border-b w-full">
+              <SheetClose asChild>
+                <Link href="/profile" className="p-2 hover:bg-secondary rounded-md transition-all">
+                  프로필 관리
+                </Link>
+              </SheetClose>
+              <SheetClose asChild>
+                <Link href="/profile/activity" className="p-2 hover:bg-secondary rounded-md transition-all">
+                  내 기록
+                </Link>
+              </SheetClose>
+            </div>
+          )}
           <SheetClose asChild>
             <Link
               href="/"

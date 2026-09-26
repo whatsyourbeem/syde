@@ -71,7 +71,7 @@ export async function updateClubMemberRole(
      .from("club_members")
      .select(`
        *,
-       profiles(id, username, full_name, avatar_url, tagline, certified, bio, link, updated_at)
+       profiles(id, username, full_name, avatar_url, tagline, certified, bio, link, tags, contact_email, github_username, twitter_username, instagram_username, updated_at)
      `)
      .eq("club_id", clubId);
  
