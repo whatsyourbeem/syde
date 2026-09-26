@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Settings } from "lucide-react";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { ShareButton } from "@/components/common/share-button";
-import { ProfileUrlChip } from "@/components/user/profile-url-chip";
 import { ProfileDevelopingBadge } from "@/components/user/profile-developing-badge";
 import { PublicProfile } from "@/types/profile";
 import { ProfileStats } from "@/lib/queries/profile-stats-queries";
@@ -64,8 +63,6 @@ export function ProfileIdentityHeader({
             </Link>
           )}
         </div>
-
-        {profile.username && <ProfileUrlChip username={profile.username} />}
 
         {profile.tagline && (
           <p className="text-sm text-sydeblue">{profile.tagline}</p>
