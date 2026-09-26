@@ -24,7 +24,7 @@ export function ProfileEvidenceBar({ stats }: ProfileEvidenceBarProps) {
     <div className="grid grid-cols-3 md:grid-cols-5 gap-3 px-5 py-4 md:px-8 md:py-6 border-b-[0.5px] border-[#B7B7B7]">
       {items.map((item) => (
         <div key={item.label} className="flex flex-col items-center gap-0.5 text-center">
-          <span className="text-xl font-bold text-sydeblue">{formatCount(item.value)}</span>
+          <span className="text-[20px] md:text-[22px] font-bold text-sydeblue">{formatCount(item.value)}</span>
           <span className="text-[11px] text-[#777777]">{item.label}</span>
         </div>
       ))}

@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowUpCircle, Eye } from "lucide-react";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { PinnedShowcasesEditor } from "@/components/user/pinned-showcases-editor";
+import { SectionHeader } from "@/components/user/section-header";
 
 interface PinnedShowcasesSectionProps {
   userId: string;
@@ -22,11 +24,7 @@ export function PinnedShowcasesSection({
 
   return (
     <div className="px-5 py-4 md:px-8 md:py-6">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span>📌</span>
-          <span className="font-bold text-base text-black">대표 프로젝트</span>
-        </div>
+      <SectionHeader title="대표 프로젝트">
         {isOwnProfile && (
           <button
             onClick={() => setIsEditorOpen(true)}
@@ -35,7 +33,7 @@ export function PinnedShowcasesSection({
             편집
           </button>
         )}
-      </div>
+      </SectionHeader>
 
       {showcases.length === 0 ? (
         <div className="flex items-center justify-center h-[81px] text-center px-4 bg-[#FAFAFA] rounded-xl">
@@ -69,8 +67,15 @@ export function PinnedShowcasesSection({
                 <span className="text-[11px] text-[#777777] line-clamp-1">
                   {showcase.short_description}
                 </span>
-                <span className="text-[11px] text-[#777777]">
-                  ▲ {showcase.upvotesCount} · 조회 {showcase.views_count || 0}
+                <span className="flex items-center gap-2 text-[11px] text-[#777777]">
+                  <span className="inline-flex items-center gap-0.5">
+                    <ArrowUpCircle size={13} strokeWidth={1.5} />
+                    {showcase.upvotesCount}
+                  </span>
+                  <span className="inline-flex items-center gap-0.5">
+                    <Eye size={13} strokeWidth={1.5} />
+                    {showcase.views_count || 0}
+                  </span>
                 </span>
               </div>
             </Link>

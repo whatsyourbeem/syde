@@ -7,6 +7,7 @@ import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-lis
 import { UserBlogMiniList } from "@/components/user/user-blog-mini-list";
 import { PinnedShowcasesSection } from "@/components/user/pinned-showcases-section";
 import { ProfileJourneyTimeline } from "@/components/user/profile-journey-timeline";
+import { SectionHeader } from "@/components/user/section-header";
 import { PublicProfile } from "@/types/profile";
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 
@@ -16,16 +17,6 @@ interface ProfileCardBodyProps {
   initialHtml?: string;
   featuredShowcases: OptimizedShowcase[];
 }
-
-const SectionHeader = ({ title, children }: { title: string; children?: React.ReactNode }) => (
-  <div className="flex items-center justify-between mb-2">
-    <div className="flex items-center gap-2">
-      <span className="text-sydeorange font-bold">—</span>
-      <span className="font-bold text-base text-black">{title}</span>
-    </div>
-    {children}
-  </div>
-);
 
 export function ProfileCardBody({
   profile,
@@ -94,11 +85,7 @@ export function ProfileCardBody({
       <div className="px-5 py-4 md:px-8 md:py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         <UserBlogMiniList userId={profile.id} />
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span>🤝</span>
-              <span className="font-bold text-base text-black">함께한 모임</span>
-            </div>
+          <SectionHeader title="함께한 모임">
             <button
               onClick={() => setIsViewingAllMeetups(true)}
               className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
@@ -106,7 +93,7 @@ export function ProfileCardBody({
               전체보기
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
-          </div>
+          </SectionHeader>
           <UserJoinedMeetupsList userId={profile.id} />
         </div>
       </div>

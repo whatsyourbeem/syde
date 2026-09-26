@@ -1,3 +1,5 @@
+import { Link2 } from "lucide-react";
+
 interface ProfileFooterProps {
   displayName: string;
   link: string | null;
@@ -14,9 +16,10 @@ export function ProfileFooter({ displayName, link }: ProfileFooterProps) {
           href={link.startsWith("http") ? link : `https://${link}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center px-3 py-1 bg-white border border-[#B7B7B7] rounded-full text-[11px] font-bold text-sydeblue hover:bg-gray-50 transition-colors self-start md:self-auto"
+          className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#B7B7B7] rounded-full text-[11px] font-bold text-sydeblue hover:bg-gray-50 transition-colors self-start md:self-auto"
         >
-          🔗 {link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
+          <Link2 className="w-3 h-3" />
+          {link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
         </a>
       )}
     </div>

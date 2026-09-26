@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ChevronRight, Eye, HeartIcon } from "lucide-react";
 import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
+import { SectionHeader } from "@/components/user/section-header";
 
 interface UserBlogMiniListProps {
   userId: string;
@@ -25,11 +26,7 @@ export function UserBlogMiniList({ userId }: UserBlogMiniListProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <span>✍️</span>
-          <span className="font-bold text-base text-black">쓴 글</span>
-        </div>
+      <SectionHeader title="쓴 글">
         <Link
           href={`/blog?user=${userId}`}
           className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
@@ -37,7 +34,7 @@ export function UserBlogMiniList({ userId }: UserBlogMiniListProps) {
           전체보기
           <ChevronRight className="w-3.5 h-3.5" />
         </Link>
-      </div>
+      </SectionHeader>
 
       {isLoading && (
         <p className="text-sm text-[#777777] py-4 text-center">불러오는 중...</p>
