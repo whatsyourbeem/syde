@@ -999,12 +999,16 @@ export type Database = {
           avatar_url: string | null
           bio: Json | null
           certified: boolean | null
+          contact_email: string | null
           email: string | null
           full_name: string | null
+          github_username: string | null
           id: string
+          instagram_username: string | null
           link: string | null
           tagline: string | null
           tags: string[]
+          twitter_username: string | null
           updated_at: string | null
           username: string | null
         }
@@ -1012,12 +1016,16 @@ export type Database = {
           avatar_url?: string | null
           bio?: Json | null
           certified?: boolean | null
+          contact_email?: string | null
           email?: string | null
           full_name?: string | null
+          github_username?: string | null
           id: string
+          instagram_username?: string | null
           link?: string | null
           tagline?: string | null
           tags?: string[]
+          twitter_username?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -1025,12 +1033,16 @@ export type Database = {
           avatar_url?: string | null
           bio?: Json | null
           certified?: boolean | null
+          contact_email?: string | null
           email?: string | null
           full_name?: string | null
+          github_username?: string | null
           id?: string
+          instagram_username?: string | null
           link?: string | null
           tagline?: string | null
           tags?: string[]
+          twitter_username?: string | null
           updated_at?: string | null
           username?: string | null
         }

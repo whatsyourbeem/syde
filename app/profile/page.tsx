@@ -22,10 +22,14 @@ export default async function ProfilePage() {
   let link = null;
   let tagline = null;
   let tags: string[] | null = null;
+  let contactEmail: string | null = null;
+  let githubUsername: string | null = null;
+  let twitterUsername: string | null = null;
+  let instagramUsername: string | null = null;
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('username, full_name, avatar_url, link, tagline, tags, updated_at')
+    .select('username, full_name, avatar_url, link, tagline, tags, contact_email, github_username, twitter_username, instagram_username, updated_at')
     .eq('id', user.id)
     .single();
 
@@ -37,6 +41,10 @@ export default async function ProfilePage() {
     link = profile.link;
     tagline = profile.tagline;
     tags = profile.tags;
+    contactEmail = profile.contact_email;
+    githubUsername = profile.github_username;
+    twitterUsername = profile.twitter_username;
+    instagramUsername = profile.instagram_username;
     avatarUrl = profile.avatar_url
       ? `${profile.avatar_url}?t=${profile.updated_at ? new Date(profile.updated_at).getTime() : ''}`
       : null;
@@ -92,6 +100,10 @@ export default async function ProfilePage() {
                   link={link}
                   tagline={tagline}
                   tags={tags}
+                  contactEmail={contactEmail}
+                  githubUsername={githubUsername}
+                  twitterUsername={twitterUsername}
+                  instagramUsername={instagramUsername}
                 />
                 <div className="flex justify-center">
                   <LogoutButton />

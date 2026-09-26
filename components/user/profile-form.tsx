@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import { Plus } from "lucide-react";
+import { Plus, Mail, Github, Twitter, Instagram, Globe } from "lucide-react";
 import { updateProfile, checkUsername } from "@/app/[username]/actions"; // Import the server action
 import { useFormStatus } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
@@ -35,6 +35,10 @@ interface ProfileFormProps {
   link: string | null;
   tagline: string | null;
   tags: string[] | null;
+  contactEmail: string | null;
+  githubUsername: string | null;
+  twitterUsername: string | null;
+  instagramUsername: string | null;
   className?: string;
 }
 
@@ -81,6 +85,10 @@ export default function ProfileForm({
   link,
   tagline,
   tags,
+  contactEmail,
+  githubUsername,
+  twitterUsername,
+  instagramUsername,
   className,
 }: ProfileFormProps) {
   const router = useRouter();
@@ -98,6 +106,10 @@ export default function ProfileForm({
   const [currentTagline, setCurrentTagline] = useState<string | null>(tagline);
   const [currentTags, setCurrentTags] = useState<string[]>(tags || []);
   const [tagInput, setTagInput] = useState("");
+  const [currentContactEmail, setCurrentContactEmail] = useState<string | null>(contactEmail);
+  const [currentGithubUsername, setCurrentGithubUsername] = useState<string | null>(githubUsername);
+  const [currentTwitterUsername, setCurrentTwitterUsername] = useState<string | null>(twitterUsername);
+  const [currentInstagramUsername, setCurrentInstagramUsername] = useState<string | null>(instagramUsername);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(
     avatarUrl
@@ -118,12 +130,16 @@ export default function ProfileForm({
     setCurrentLink(link);
     setCurrentTagline(tagline);
     setCurrentTags(tags || []);
+    setCurrentContactEmail(contactEmail);
+    setCurrentGithubUsername(githubUsername);
+    setCurrentTwitterUsername(twitterUsername);
+    setCurrentInstagramUsername(instagramUsername);
     setCurrentAvatarUrl(avatarUrl);
     setAvatarPreviewUrl(avatarUrl);
     if (link) {
       setIsLinkValid(isValidUrl(link));
     }
-  }, [username, fullName, avatarUrl, link, tagline, tags]);
+  }, [username, fullName, avatarUrl, link, tagline, tags, contactEmail, githubUsername, twitterUsername, instagramUsername]);
 
   const isValidUrl = (url: string): boolean => {
     try {
@@ -317,6 +333,10 @@ export default function ProfileForm({
     formData.append("link", currentLink || "");
     formData.append("username", currentUsername || "");
     formData.append("tags", JSON.stringify(currentTags));
+    formData.append("contact_email", currentContactEmail || "");
+    formData.append("github_username", currentGithubUsername || "");
+    formData.append("twitter_username", currentTwitterUsername || "");
+    formData.append("instagram_username", currentInstagramUsername || "");
 
     await updateProfile(formData);
   };
@@ -498,24 +518,83 @@ export default function ProfileForm({
           </div>
         </div>
 
-        {/* Link */}
-        <div className="space-y-1">
-          <Label htmlFor="link" className={labelClass}>
-            Link
-          </Label>
-          <Input
-            id="link"
-            name="link"
-            type="text"
-            value={currentLink || ""}
-            onChange={handleLinkChange}
-            className={cn(inputClass, !isLinkValid && "border-red-500")}
-          />
+        {/* Social Links */}
+        <div className="space-y-3">
+          <Label className={labelClass}>소셜 정보</Label>
+
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="contactEmail"
+              name="contact_email"
+              type="email"
+              placeholder="이메일을 입력하세요."
+              value={currentContactEmail || ""}
+              onChange={(e) => setCurrentContactEmail(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
+
+          <div className="relative">
+            <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="githubUsername"
+              name="github_username"
+              type="text"
+              placeholder="Github 계정을 입력하세요."
+              value={currentGithubUsername || ""}
+              onChange={(e) => setCurrentGithubUsername(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
+
+          <div className="relative">
+            <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="twitterUsername"
+              name="twitter_username"
+              type="text"
+              placeholder="Twitter 계정을 입력하세요."
+              value={currentTwitterUsername || ""}
+              onChange={(e) => setCurrentTwitterUsername(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
+
+          <div className="relative">
+            <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="instagramUsername"
+              name="instagram_username"
+              type="text"
+              placeholder="Instagram 계정을 입력하세요."
+              value={currentInstagramUsername || ""}
+              onChange={(e) => setCurrentInstagramUsername(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
+
+          <div className="relative">
+            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="link"
+              name="link"
+              type="text"
+              placeholder="홈페이지 주소를 입력하세요."
+              value={currentLink || ""}
+              onChange={handleLinkChange}
+              className={cn(inputClass, "pl-9", !isLinkValid && "border-red-500")}
+            />
+          </div>
           {!isLinkValid && (
-            <p className="text-red-500 text-[11px] mt-1">
+            <p className="text-red-500 text-[11px]">
               유효한 URL을 입력해주세요.
             </p>
           )}
+
+          <p className="text-[11px] text-[#777777]">
+            프로필 명함에 공개되는 소셜 정보입니다.
+          </p>
         </div>
 
         {/* Action Buttons */}

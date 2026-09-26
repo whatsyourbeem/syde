@@ -117,6 +117,10 @@ export default async function UserProfilePage({
         <ProfileFooter
           displayName={profile.full_name || profile.username || "Anonymous"}
           link={profile.link}
+          contactEmail={profile.contact_email}
+          githubUsername={profile.github_username}
+          twitterUsername={profile.twitter_username}
+          instagramUsername={profile.instagram_username}
         />
       </div>
     </div>

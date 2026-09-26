@@ -1,27 +1,86 @@
-import { Link2 } from "lucide-react";
+import { Mail, Github, Twitter, Instagram, Globe } from "lucide-react";
 
 interface ProfileFooterProps {
   displayName: string;
   link: string | null;
+  contactEmail: string | null;
+  githubUsername: string | null;
+  twitterUsername: string | null;
+  instagramUsername: string | null;
 }
 
-export function ProfileFooter({ displayName, link }: ProfileFooterProps) {
+const ICON_LINK_CLASS =
+  "flex items-center justify-center w-8 h-8 rounded-full text-[#777777] hover:text-sydeblue hover:bg-[#FAFAFA] transition-colors";
+
+export function ProfileFooter({
+  displayName,
+  link,
+  contactEmail,
+  githubUsername,
+  twitterUsername,
+  instagramUsername,
+}: ProfileFooterProps) {
+  const hasSocialLinks =
+    contactEmail || githubUsername || twitterUsername || instagramUsername || link;
+
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-6 md:px-8 border-t-[0.5px] border-[#B7B7B7]">
+    <div className="flex flex-col gap-3 px-5 py-6 md:px-8 border-t-[0.5px] border-[#B7B7B7]">
+      {hasSocialLinks && (
+        <div className="flex items-center gap-1 -ml-1.5">
+          {contactEmail && (
+            <a href={`mailto:${contactEmail}`} className={ICON_LINK_CLASS} aria-label="이메일">
+              <Mail className="w-4 h-4" />
+            </a>
+          )}
+          {githubUsername && (
+            <a
+              href={`https://github.com/${githubUsername}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={ICON_LINK_CLASS}
+              aria-label="Github"
+            >
+              <Github className="w-4 h-4" />
+            </a>
+          )}
+          {twitterUsername && (
+            <a
+              href={`https://x.com/${twitterUsername}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={ICON_LINK_CLASS}
+              aria-label="Twitter"
+            >
+              <Twitter className="w-4 h-4" />
+            </a>
+          )}
+          {instagramUsername && (
+            <a
+              href={`https://instagram.com/${instagramUsername}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={ICON_LINK_CLASS}
+              aria-label="Instagram"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
+          )}
+          {link && (
+            <a
+              href={link.startsWith("http") ? link : `https://${link}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={ICON_LINK_CLASS}
+              aria-label="홈페이지"
+            >
+              <Globe className="w-4 h-4" />
+            </a>
+          )}
+        </div>
+      )}
       <p className="text-[11px] text-[#B7B7B7]">
         이 페이지는 {displayName}님의 SYDE 명함입니다.
       </p>
-      {link && (
-        <a
-          href={link.startsWith("http") ? link : `https://${link}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#B7B7B7] rounded-full text-[11px] font-bold text-sydeblue hover:bg-gray-50 transition-colors self-start md:self-auto"
-        >
-          <Link2 className="w-3 h-3" />
-          {link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
-        </a>
-      )}
     </div>
   );
 }
