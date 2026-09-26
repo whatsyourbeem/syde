@@ -1,6 +1,10 @@
-import { Mail, Github, Twitter, Instagram, Globe } from "lucide-react";
+import { Mail, Github, Instagram, Globe } from "lucide-react";
+import { XLogoIcon } from "@/components/icons/x-logo-icon";
+import { ShareButton } from "@/components/common/share-button";
 
 interface ProfileSocialLinksProps {
+  username: string;
+  displayName: string;
   link: string | null;
   contactEmail: string | null;
   githubUsername: string | null;
@@ -11,21 +15,25 @@ interface ProfileSocialLinksProps {
 const ICON_LINK_CLASS =
   "flex items-center justify-center w-11 h-11 rounded-full text-[#777777] hover:text-sydeblue hover:bg-[#FAFAFA] transition-colors";
 
-/** 벨로그처럼 프로필 카드 바로 아래에 노출하는 소셜 링크 아이콘 줄. 값이 없으면 아무것도 렌더링하지 않는다. */
+/** 벨로그처럼 프로필 카드 바로 아래에 노출하는 소셜 링크 아이콘 줄. 프로필 공유하기도 같은 줄의 맨 앞 아이콘으로 둔다. */
 export function ProfileSocialLinks({
+  username,
+  displayName,
   link,
   contactEmail,
   githubUsername,
   twitterUsername,
   instagramUsername,
 }: ProfileSocialLinksProps) {
-  const hasSocialLinks =
-    contactEmail || githubUsername || twitterUsername || instagramUsername || link;
-
-  if (!hasSocialLinks) return null;
-
   return (
     <div className="flex items-center gap-1 px-5 py-2 md:px-8 -ml-2.5">
+      <ShareButton
+        url={`/@${username}`}
+        title={displayName}
+        variant="auto"
+        iconSize={24}
+        className={ICON_LINK_CLASS}
+      />
       {contactEmail && (
         <a href={`mailto:${contactEmail}`} className={ICON_LINK_CLASS} aria-label="이메일">
           <Mail className="w-6 h-6" />
@@ -48,9 +56,9 @@ export function ProfileSocialLinks({
           target="_blank"
           rel="noopener noreferrer"
           className={ICON_LINK_CLASS}
-          aria-label="Twitter"
+          aria-label="X"
         >
-          <Twitter className="w-6 h-6" />
+          <XLogoIcon className="w-5 h-5" />
         </a>
       )}
       {instagramUsername && (

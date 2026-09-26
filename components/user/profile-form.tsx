@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { Plus, Mail, Github, Twitter, Instagram, Globe } from "lucide-react";
+import { Plus, Mail, Github, Instagram, Globe } from "lucide-react";
+import { XLogoIcon } from "@/components/icons/x-logo-icon";
 import { updateProfile, checkUsername } from "@/app/[username]/actions"; // Import the server action
 import { useFormStatus } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
@@ -301,6 +303,12 @@ export default function ProfileForm({
     }
   };
 
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreviewUrl(null);
+    setCurrentAvatarUrl(null);
+  };
+
   const clientAction = async (formData: FormData) => {
     if (currentUsername !== username) {
       setIsCheckingUsername(true);
@@ -342,30 +350,96 @@ export default function ProfileForm({
   };
 
   const inputClass = "h-9 border-[0.5px] border-[#B7B7B7] rounded-[10px] text-sm focus:border-sydeblue transition-colors";
-  const labelClass = "text-sm font-medium text-sydeblue";
+  const labelClass = "text-base font-semibold text-sydeblue";
 
   return (
     <Card className={`w-full border-0 shadow-none bg-transparent ${className || ""}`}>
-      <form action={clientAction} className="space-y-5">
-        {/* Nickname */}
-        <div className="space-y-1">
-          <Label htmlFor="fullName" className={labelClass}>
-            닉네임 <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="fullName"
-            name="full_name"
-            type="text"
-            placeholder="커뮤니티에서 사용할 이름이에요."
-            value={currentFullName || ""}
-            onChange={handleFullNameChange}
-            className={cn(inputClass, !isFullNameValid && "border-red-500")}
-          />
-          {!isFullNameValid && (
-            <p className="text-red-500 text-[11px] mt-1">
-              닉네임의 최대 길이는 20자입니다.
-            </p>
-          )}
+      <form action={clientAction} className="space-y-9">
+        {/* Profile Image + Nickname/Username/Tagline (stacked on mobile, horizontal from md) */}
+        <div className="flex flex-col md:flex-row items-center md:items-stretch gap-6">
+          {/* Profile Image Section */}
+          <div className="flex flex-col items-center gap-3 flex-shrink-0">
+            <div
+              className="relative w-[100px] h-[100px] rounded-full overflow-hidden bg-sydeblue flex items-center justify-center cursor-pointer group"
+              onClick={() => document.getElementById("avatar")?.click()}
+            >
+              <Image
+                src={avatarPreviewUrl || "/default_avatar.png"}
+                alt="Avatar"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Plus className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <Input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="default"
+              className="w-24 bg-sydeblue hover:bg-sydeblue/90 text-white text-xs h-8 rounded-xl font-normal"
+              onClick={() => document.getElementById("avatar")?.click()}
+            >
+              이미지 업로드
+            </Button>
+            {avatarPreviewUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                className="text-xs text-[#777777] hover:text-red-500 hover:underline transition-colors"
+              >
+                이미지 제거
+              </button>
+            )}
+          </div>
+
+          {/* Divider (desktop only; mobile stacks vertically without one) */}
+          <Separator orientation="vertical" className="hidden md:block !h-auto self-stretch" />
+
+          {/* Nickname / Username / Tagline */}
+          <div className="w-full md:flex-1 min-w-0 flex flex-col gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="fullName" className={labelClass}>
+                닉네임 <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="fullName"
+                name="full_name"
+                type="text"
+                placeholder="커뮤니티에서 사용할 이름이에요."
+                value={currentFullName || ""}
+                onChange={handleFullNameChange}
+                className={cn(inputClass, !isFullNameValid && "border-red-500")}
+              />
+              {!isFullNameValid && (
+                <p className="text-red-500 text-[11px] mt-1">
+                  닉네임의 최대 길이는 20자입니다.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="tagline" className={labelClass}>
+                한 줄 소개
+              </Label>
+              <Input
+                id="tagline"
+                name="tagline"
+                type="text"
+                placeholder="나를 표현하는 한 줄!"
+                value={currentTagline || ""}
+                onChange={(e) => setCurrentTagline(e.target.value)}
+                className={inputClass}
+                maxLength={30}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Username */}
@@ -373,6 +447,9 @@ export default function ProfileForm({
           <Label htmlFor="username" className={labelClass}>
             프로필 네임 <span className="text-red-500">*</span>
           </Label>
+          <p className="text-xs text-[#777777]">
+            내 프로필 페이지의 주소로 사용돼요. (예: https://syde.kr/@{currentUsername || "username"})
+          </p>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#777777] text-sm">@</span>
             <Input
@@ -395,76 +472,6 @@ export default function ProfileForm({
               이미 사용 중인 프로필 네임입니다.
             </p>
           )}
-        </div>
-
-        {/* Profile Image Section */}
-        <div className="flex items-center gap-10 py-2">
-          <div 
-            className="relative w-[180px] h-[180px] rounded-full overflow-hidden bg-sydeblue flex items-center justify-center cursor-pointer group"
-            onClick={() => document.getElementById("avatar")?.click()}
-          >
-            {avatarPreviewUrl ? (
-              <Image
-                src={avatarPreviewUrl}
-                alt="Avatar"
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="relative w-20 h-20">
-                <Image
-                  src="/logo_no_bg_light.png"
-                  alt="SYDE Logo"
-                  fill
-                  className="object-contain opacity-80"
-                />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Plus className="w-10 h-10 text-white" />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="space-y-1">
-              <Label className={labelClass}>프로필 이미지</Label>
-              <p className="text-xs text-[#777777] leading-tight font-normal">
-                프로필 대표 <br /> 이미지를 설정해주세요.
-              </p>
-            </div>
-            <Input
-              id="avatar"
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="default"
-              className="w-20 bg-sydeblue hover:bg-sydeblue/90 text-white text-xs h-8 rounded-xl font-normal"
-              onClick={() => document.getElementById("avatar")?.click()}
-            >
-              사진 선택
-            </Button>
-          </div>
-        </div>
-
-        {/* Tagline */}
-        <div className="space-y-1">
-          <Label htmlFor="tagline" className={labelClass}>
-            한 줄 소개
-          </Label>
-          <Input
-            id="tagline"
-            name="tagline"
-            type="text"
-            placeholder="나를 표현하는 한 줄!"
-            value={currentTagline || ""}
-            onChange={(e) => setCurrentTagline(e.target.value)}
-            className={inputClass}
-            maxLength={30}
-          />
         </div>
 
         {/* Tags */}
@@ -536,45 +543,6 @@ export default function ProfileForm({
           </div>
 
           <div className="relative">
-            <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
-            <Input
-              id="githubUsername"
-              name="github_username"
-              type="text"
-              placeholder="Github 계정을 입력하세요."
-              value={currentGithubUsername || ""}
-              onChange={(e) => setCurrentGithubUsername(e.target.value)}
-              className={cn(inputClass, "pl-9")}
-            />
-          </div>
-
-          <div className="relative">
-            <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
-            <Input
-              id="twitterUsername"
-              name="twitter_username"
-              type="text"
-              placeholder="Twitter 계정을 입력하세요."
-              value={currentTwitterUsername || ""}
-              onChange={(e) => setCurrentTwitterUsername(e.target.value)}
-              className={cn(inputClass, "pl-9")}
-            />
-          </div>
-
-          <div className="relative">
-            <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
-            <Input
-              id="instagramUsername"
-              name="instagram_username"
-              type="text"
-              placeholder="Instagram 계정을 입력하세요."
-              value={currentInstagramUsername || ""}
-              onChange={(e) => setCurrentInstagramUsername(e.target.value)}
-              className={cn(inputClass, "pl-9")}
-            />
-          </div>
-
-          <div className="relative">
             <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
             <Input
               id="link"
@@ -591,6 +559,45 @@ export default function ProfileForm({
               유효한 URL을 입력해주세요.
             </p>
           )}
+
+          <div className="relative">
+            <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="instagramUsername"
+              name="instagram_username"
+              type="text"
+              placeholder="Instagram 계정을 입력하세요."
+              value={currentInstagramUsername || ""}
+              onChange={(e) => setCurrentInstagramUsername(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
+
+          <div className="relative">
+            <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777]" />
+            <Input
+              id="githubUsername"
+              name="github_username"
+              type="text"
+              placeholder="Github 계정을 입력하세요."
+              value={currentGithubUsername || ""}
+              onChange={(e) => setCurrentGithubUsername(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
+
+          <div className="relative">
+            <XLogoIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#777777]" />
+            <Input
+              id="twitterUsername"
+              name="twitter_username"
+              type="text"
+              placeholder="X 계정을 입력하세요."
+              value={currentTwitterUsername || ""}
+              onChange={(e) => setCurrentTwitterUsername(e.target.value)}
+              className={cn(inputClass, "pl-9")}
+            />
+          </div>
 
           <p className="text-[11px] text-[#777777]">
             프로필 명함에 공개되는 소셜 정보입니다.
@@ -616,13 +623,20 @@ export default function ProfileForm({
           />
         </div>
 
-        {/* Delete Account (Optional, small link at bottom) */}
-        <div className="flex justify-center pt-8">
+        {/* Delete Account */}
+        <div className="flex flex-col items-center gap-2 pt-8">
+          <p className="text-xs text-[#777777] text-center">
+            탈퇴 시 작성하신 모든 글이 삭제되며 복구되지 않습니다.
+          </p>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button type="button" className="text-[11px] text-[#B7B7B7] hover:underline">
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full h-10 rounded-xl"
+              >
                 회원 탈퇴
-              </button>
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="rounded-2xl border-none">
               <AlertDialogHeader>

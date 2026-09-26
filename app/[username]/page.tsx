@@ -107,8 +107,10 @@ export default async function UserProfilePage({
   return (
     <div className="flex-1 w-full flex flex-col h-full">
       <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col">
-        <ProfileIdentityHeader profile={profile} isOwnProfile={isOwnProfile} stats={stats} />
+        <ProfileIdentityHeader profile={profile} stats={stats} />
         <ProfileSocialLinks
+          username={profile.username || ""}
+          displayName={profile.full_name || profile.username || "Anonymous"}
           link={profile.link}
           contactEmail={profile.contact_email}
           githubUsername={profile.github_username}
