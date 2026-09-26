@@ -3,6 +3,7 @@ import { redirect, permanentRedirect } from "next/navigation";
 import { ProfileIdentityHeader } from "@/components/user/profile-identity-header";
 import { ProfileEvidenceBar } from "@/components/user/profile-evidence-bar";
 import { ProfileCardBody } from "@/components/user/profile-card-body";
+import { ProfileSocialLinks } from "@/components/user/profile-social-links";
 import { ProfileFooter } from "@/components/user/profile-footer";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { getProfileByUsernameCached } from "@/lib/queries/profile-queries";
@@ -108,6 +109,13 @@ export default async function UserProfilePage({
       <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col">
         <ProfileIdentityHeader profile={profile} isOwnProfile={isOwnProfile} stats={stats} />
         <ProfileEvidenceBar stats={stats} />
+        <ProfileSocialLinks
+          link={profile.link}
+          contactEmail={profile.contact_email}
+          githubUsername={profile.github_username}
+          twitterUsername={profile.twitter_username}
+          instagramUsername={profile.instagram_username}
+        />
         <ProfileCardBody
           profile={profile}
           isOwnProfile={isOwnProfile}
@@ -116,11 +124,6 @@ export default async function UserProfilePage({
         />
         <ProfileFooter
           displayName={profile.full_name || profile.username || "Anonymous"}
-          link={profile.link}
-          contactEmail={profile.contact_email}
-          githubUsername={profile.github_username}
-          twitterUsername={profile.twitter_username}
-          instagramUsername={profile.instagram_username}
         />
       </div>
     </div>
