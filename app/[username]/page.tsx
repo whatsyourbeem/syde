@@ -108,7 +108,6 @@ export default async function UserProfilePage({
     <div className="flex-1 w-full flex flex-col h-full">
       <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col">
         <ProfileIdentityHeader profile={profile} isOwnProfile={isOwnProfile} stats={stats} />
-        <ProfileEvidenceBar stats={stats} />
         <ProfileSocialLinks
           link={profile.link}
           contactEmail={profile.contact_email}
@@ -116,6 +115,7 @@ export default async function UserProfilePage({
           twitterUsername={profile.twitter_username}
           instagramUsername={profile.instagram_username}
         />
+        <ProfileEvidenceBar stats={stats} />
         <ProfileCardBody
           profile={profile}
           isOwnProfile={isOwnProfile}
