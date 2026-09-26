@@ -955,6 +955,45 @@ export type Database = {
           },
         ]
       }
+      profile_pinned_showcases: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          showcase_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          showcase_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          showcase_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_pinned_showcases_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "showcases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_pinned_showcases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -965,6 +1004,7 @@ export type Database = {
           id: string
           link: string | null
           tagline: string | null
+          tags: string[]
           updated_at: string | null
           username: string | null
         }
@@ -977,6 +1017,7 @@ export type Database = {
           id: string
           link?: string | null
           tagline?: string | null
+          tags?: string[]
           updated_at?: string | null
           username?: string | null
         }
@@ -989,6 +1030,7 @@ export type Database = {
           id?: string
           link?: string | null
           tagline?: string | null
+          tags?: string[]
           updated_at?: string | null
           username?: string | null
         }
@@ -1270,6 +1312,19 @@ export type Database = {
         Returns: Database["public"]["Enums"]["club_member_role_enum"]
       }
       get_club_owner: { Args: { club_id_text: string }; Returns: string }
+      get_profile_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          active_developing_id: string
+          active_developing_name: string
+          active_developing_slug: string
+          meetups_attended_count: number
+          showcases_count: number
+          syde_pick_count: number
+          total_upvotes: number
+          total_views: number
+        }[]
+      }
       get_trending_showcases: {
         Args: never
         Returns: {
@@ -1290,6 +1345,22 @@ export type Database = {
       increment_showcase_view: {
         Args: { p_showcase_id: string }
         Returns: undefined
+      }
+      set_pinned_showcases: {
+        Args: { p_showcase_ids: string[] }
+        Returns: {
+          created_at: string
+          display_order: number
+          id: string
+          showcase_id: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profile_pinned_showcases"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
     }
     Enums: {
@@ -1447,4 +1518,3 @@ export const Constants = {
     },
   },
 } as const
-

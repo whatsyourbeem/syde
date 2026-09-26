@@ -34,8 +34,12 @@ interface ProfileFormProps {
   avatarUrl: string | null;
   link: string | null;
   tagline: string | null;
+  tags: string[] | null;
   className?: string;
 }
+
+const MAX_TAGS = 3;
+const MAX_TAG_LENGTH = 12;
 
 function SubmitButton({
   isLinkValid,
@@ -76,6 +80,7 @@ export default function ProfileForm({
   avatarUrl,
   link,
   tagline,
+  tags,
   className,
 }: ProfileFormProps) {
   const router = useRouter();
@@ -91,6 +96,8 @@ export default function ProfileForm({
   );
   const [currentLink, setCurrentLink] = useState<string | null>(link);
   const [currentTagline, setCurrentTagline] = useState<string | null>(tagline);
+  const [currentTags, setCurrentTags] = useState<string[]>(tags || []);
+  const [tagInput, setTagInput] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(
     avatarUrl
@@ -110,12 +117,13 @@ export default function ProfileForm({
     setCurrentFullName(fullName);
     setCurrentLink(link);
     setCurrentTagline(tagline);
+    setCurrentTags(tags || []);
     setCurrentAvatarUrl(avatarUrl);
     setAvatarPreviewUrl(avatarUrl);
     if (link) {
       setIsLinkValid(isValidUrl(link));
     }
-  }, [username, fullName, avatarUrl, link, tagline]);
+  }, [username, fullName, avatarUrl, link, tagline, tags]);
 
   const isValidUrl = (url: string): boolean => {
     try {
@@ -162,6 +170,29 @@ export default function ProfileForm({
 
   const handleCancel = () => {
     router.back();
+  };
+
+  const handleAddTag = () => {
+    const value = tagInput.replace(/^#/, "").trim();
+    if (!value) return;
+    if (value.length > MAX_TAG_LENGTH) {
+      toast.error(`태그는 ${MAX_TAG_LENGTH}자 이내로 입력해주세요.`);
+      return;
+    }
+    if (currentTags.includes(value)) {
+      setTagInput("");
+      return;
+    }
+    if (currentTags.length >= MAX_TAGS) {
+      toast.error(`태그는 최대 ${MAX_TAGS}개까지 추가할 수 있어요.`);
+      return;
+    }
+    setCurrentTags((prev) => [...prev, value]);
+    setTagInput("");
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setCurrentTags((prev) => prev.filter((t) => t !== tag));
   };
 
   const resizeImage = useCallback(
@@ -285,6 +316,7 @@ export default function ProfileForm({
     formData.append("tagline", currentTagline || "");
     formData.append("link", currentLink || "");
     formData.append("username", currentUsername || "");
+    formData.append("tags", JSON.stringify(currentTags));
 
     await updateProfile(formData);
   };
@@ -413,6 +445,57 @@ export default function ProfileForm({
             className={inputClass}
             maxLength={30}
           />
+        </div>
+
+        {/* Tags */}
+        <div className="space-y-1">
+          <Label htmlFor="tagInput" className={labelClass}>
+            관심사/역할 태그 ({currentTags.length}/{MAX_TAGS})
+          </Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {currentTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FAFAFA] border border-[#B7B7B7] rounded-full text-xs font-medium text-[#777777]"
+              >
+                #{tag}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag)}
+                  className="text-[#B7B7B7] hover:text-red-500"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              id="tagInput"
+              type="text"
+              placeholder="예: 백엔드, Next.js, N잡러"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddTag();
+                }
+              }}
+              className={inputClass}
+              disabled={currentTags.length >= MAX_TAGS}
+              maxLength={MAX_TAG_LENGTH}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 border-[#B7B7B7] text-sydeblue rounded-xl h-9"
+              onClick={handleAddTag}
+              disabled={currentTags.length >= MAX_TAGS}
+            >
+              추가
+            </Button>
+          </div>
         </div>
 
         {/* Link */}

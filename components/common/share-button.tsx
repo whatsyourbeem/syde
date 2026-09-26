@@ -20,31 +20,40 @@ interface ShareButtonProps {
     title?: string;
     className?: string;
     iconSize?: number;
+    /** 있으면 아이콘 옆에 라벨 텍스트를 표시하는 버튼으로 렌더링한다. */
+    label?: string;
+    /**
+     * "icon-menu"(기본, 기존 동작): 드롭다운으로 "링크 복사"/"모두 보기" 선택.
+     * "auto": 클릭 즉시 navigator.share 시도, 미지원이면 바로 클립보드 복사로 폴백.
+     */
+    variant?: "icon-menu" | "auto";
 }
 
-export function ShareButton({ url, title = "SYDE", className = "", iconSize = 18 }: ShareButtonProps) {
+export function ShareButton({ url, title = "SYDE", className = "", iconSize = 18, label, variant = "icon-menu" }: ShareButtonProps) {
     const [showCopyDialog, setShowCopyDialog] = useState(false);
     const [copyUrl, setCopyUrl] = useState("");
+
+    const copyLink = useCallback(async (fullUrl: string) => {
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(fullUrl);
+                toast.success("링크를 복사했어요!");
+                return;
+            } catch {
+                // fall through to manual dialog
+            }
+        }
+        setCopyUrl(fullUrl);
+        setShowCopyDialog(true);
+    }, []);
 
     const handleCopyLink = useCallback(async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
-
-        if (navigator.clipboard && window.isSecureContext) {
-            try {
-                await navigator.clipboard.writeText(fullUrl);
-                toast.success("링크를 복사했어요!");
-            } catch {
-                setCopyUrl(fullUrl);
-                setShowCopyDialog(true);
-            }
-        } else {
-            setCopyUrl(fullUrl);
-            setShowCopyDialog(true);
-        }
-    }, [url]);
+        await copyLink(fullUrl);
+    }, [url, copyLink]);
 
     const handleShareAll = useCallback(async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -69,6 +78,78 @@ export function ShareButton({ url, title = "SYDE", className = "", iconSize = 18
             toast.info("이 브라우저에서는 공유 기능을 지원하지 않습니다.");
         }
     }, [url, title]);
+
+    const handleAutoShare = useCallback(async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+        const text = `Check out this ${title} on SYDE!`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({ title, text, url: fullUrl });
+            } catch (error) {
+                if ((error as Error).name !== 'AbortError') {
+                    console.error("Error sharing:", error);
+                }
+            }
+        } else {
+            await copyLink(fullUrl);
+        }
+    }, [url, title, copyLink]);
+
+    if (variant === "auto") {
+        return (
+            <>
+                <button
+                    onClick={handleAutoShare}
+                    className={className}
+                >
+                    <Share2 size={iconSize} />
+                    {label && <span>{label}</span>}
+                </button>
+
+                <AlertDialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
+                    <AlertDialogContent className="w-[350px] rounded-lg" onClick={(e) => e.stopPropagation()}>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>링크 복사</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                자동 복사를 지원하지 않는 환경입니다. 수동으로 복사해주세요.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="py-2 flex items-center gap-2">
+                            <input
+                                type="text"
+                                readOnly
+                                value={copyUrl}
+                                className="w-full p-2 border rounded bg-muted text-muted-foreground flex-grow"
+                                onFocus={(e) => e.target.select()}
+                            />
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await copyLink(copyUrl);
+                                }}
+                                className="p-2 rounded-md hover:bg-secondary"
+                                aria-label="Copy link"
+                            >
+                                <Copy size={18} />
+                            </button>
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogAction onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCopyDialog(false);
+                            }}>
+                                닫기
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </>
+        );
+    }
 
     return (
         <>

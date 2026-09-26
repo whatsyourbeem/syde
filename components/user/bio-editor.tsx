@@ -29,7 +29,6 @@ interface BioEditorProps {
   initialBio: Json | null;
   initialHtml?: string;
   isOwnProfile: boolean;
-  link?: string | null;
   isEditing: boolean;
   onEditingChange: (isEditing: boolean) => void;
 }
@@ -43,7 +42,6 @@ export default function BioEditor({
   initialBio,
   initialHtml,
   isOwnProfile,
-  link,
   isEditing,
   onEditingChange,
 }: BioEditorProps) {
@@ -160,20 +158,6 @@ export default function BioEditor({
           ) : (
             <div className="w-full">
               <RichContent html={initialHtml ?? ""} />
-            </div>
-          )}
-
-          {/* Profile Link Badge */}
-          {link && !isTiptapJsonEmpty(initialBio) && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              <a
-                href={link.startsWith('http') ? link : `https://${link}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-3 py-1 bg-white border border-[#B7B7B7] rounded-full text-[11px] font-bold text-sydeblue hover:bg-gray-50 transition-colors"
-              >
-                🔗 {link.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
-              </a>
             </div>
           )}
 

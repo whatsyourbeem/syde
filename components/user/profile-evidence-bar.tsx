@@ -1,0 +1,33 @@
+import { ProfileStats } from "@/lib/queries/profile-stats-queries";
+
+interface ProfileEvidenceBarProps {
+  stats: ProfileStats;
+}
+
+function formatCount(value: number): string {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+  return `${value}`;
+}
+
+export function ProfileEvidenceBar({ stats }: ProfileEvidenceBarProps) {
+  const items = [
+    { label: "만든 프로젝트", value: stats.showcasesCount },
+    { label: "누적 업보트", value: stats.totalUpvotes },
+    { label: "누적 조회수", value: stats.totalViews },
+    { label: "SYDE Pick", value: stats.sydePickCount },
+    { label: "참석 모임", value: stats.meetupsAttendedCount },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 md:grid-cols-5 gap-3 px-5 py-4 md:px-8 md:py-6 border-b-[0.5px] border-[#B7B7B7]">
+      {items.map((item) => (
+        <div key={item.label} className="flex flex-col items-center gap-0.5 text-center">
+          <span className="text-xl font-bold text-sydeblue">{formatCount(item.value)}</span>
+          <span className="text-[11px] text-[#777777]">{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}

@@ -42,6 +42,8 @@ export interface ShowcaseQueryOptions {
   filterByParticipantUserId?: string;
   filterByCommentedUserId?: string;
   filterByUpvotedUserId?: string;
+  /** 지정된 순서 그대로 반환한다 (대표 프로젝트 핀 순서 표시용). */
+  filterByShowcaseIds?: string[];
   searchQuery?: string;
 }
 

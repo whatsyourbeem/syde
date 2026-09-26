@@ -43,6 +43,25 @@ export async function updateProfile(formData: FormData) {
   const tagline = formData.get("tagline") as string;
   const link = formData.get("link") as string;
   const avatar_url = formData.get("avatar_url") as string | null;
+  const tagsString = formData.get("tags") as string | null;
+
+  let tags: string[] = [];
+  if (tagsString) {
+    try {
+      const parsed = JSON.parse(tagsString);
+      if (Array.isArray(parsed)) {
+        tags = Array.from(
+          new Set(
+            parsed
+              .map((tag) => String(tag).replace(/^#/, "").trim())
+              .filter((tag) => tag.length > 0 && tag.length <= 12)
+          )
+        ).slice(0, 3);
+      }
+    } catch (e) {
+      console.error("Failed to parse tags JSON string:", e);
+    }
+  }
 
   const { error } = await supabase
     .from("profiles")
@@ -52,6 +71,7 @@ export async function updateProfile(formData: FormData) {
       tagline,
       link,
       avatar_url,
+      tags,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
