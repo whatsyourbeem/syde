@@ -51,7 +51,7 @@ export function ClientAuthButton({ sheetHeader }: ClientAuthButtonProps) {
           {user ? (
             // Logged-in mobile sheet: profile image + nickname
             <SheetClose asChild>
-              <Link href={profileLink} className="justify-start w-full">
+              <Link href={profileLink} prefetch={false} className="justify-start w-full">
                 <Button
                   variant="ghost"
                   className="justify-start p-2 h-auto w-full"
@@ -121,7 +121,7 @@ export function ClientAuthButton({ sheetHeader }: ClientAuthButtonProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuItem asChild>
-                  <Link href={profileLink} className="cursor-pointer">
+                  <Link href={profileLink} prefetch={false} className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     마이페이지
                   </Link>

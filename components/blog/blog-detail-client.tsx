@@ -291,7 +291,7 @@ export default function BlogDetailClient({
 
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <ProfileHoverCard userId={blogPost.user_id}>
-                                <Link href={`/@${blogPost.profiles?.username || blogPost.user_id}`} className="flex items-center gap-[5px] w-fit">
+                                <Link href={`/@${blogPost.profiles?.username || blogPost.user_id}`} prefetch={false} className="flex items-center gap-[5px] w-fit">
                                     <Avatar className="w-5 h-5">
                                         <AvatarImage src={blogPost.profiles?.avatar_url} />
                                         <AvatarFallback className="bg-[#D9D9D9]">{blogPost.profiles?.username?.[0] || 'U'}</AvatarFallback>
