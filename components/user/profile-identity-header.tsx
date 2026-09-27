@@ -15,7 +15,7 @@ export function ProfileIdentityHeader({
     : null;
 
   return (
-    <div className="flex flex-row items-center gap-5 px-5 py-8 md:px-8 md:py-6">
+    <div className="flex flex-col md:flex-row items-center gap-5 px-5 py-8 md:px-8 md:py-6">
       <div className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
         {avatarUrlWithCacheBuster ? (
           <Image
@@ -32,12 +32,14 @@ export function ProfileIdentityHeader({
         )}
       </div>
 
-      <div className="flex-grow min-w-0 flex flex-col items-start gap-2">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <h1 className="text-2xl font-bold leading-tight text-sydeblue">
-            {displayName}
-          </h1>
-          {profile.certified && <CertifiedBadge size="lg" />}
+      <div className="flex-grow min-w-0 flex flex-col items-center md:items-start gap-2 text-center md:text-left">
+        <div className="flex flex-col md:flex-row items-center md:items-center gap-1 md:gap-2.5">
+          <span className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold leading-tight text-sydeblue">
+              {displayName}
+            </h1>
+            {profile.certified && <CertifiedBadge size="lg" />}
+          </span>
           {profile.full_name && profile.username && (
             <span className="text-sm text-[#777777]">@{profile.username}</span>
           )}
@@ -48,7 +50,7 @@ export function ProfileIdentityHeader({
         )}
 
         {profile.tags && profile.tags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5">
             {profile.tags.map((tag) => (
               <span
                 key={tag}
