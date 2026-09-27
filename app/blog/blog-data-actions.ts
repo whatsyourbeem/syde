@@ -7,6 +7,8 @@ export interface BlogPostQueryOptions {
   currentPage: number;
   itemsPerPage: number;
   currentUserId?: string | null;
+  /** 특정 작성자의 글만 필터링 (프로필 페이지 "전체보기" 등) */
+  userId?: string;
 }
 
 export interface BlogPostQueryResult {
@@ -20,12 +22,13 @@ export async function fetchBlogPostsAction({
   currentPage,
   itemsPerPage,
   currentUserId,
+  userId,
 }: BlogPostQueryOptions): Promise<BlogPostQueryResult> {
   const supabase = await createClient();
   const from = (currentPage - 1) * itemsPerPage;
   const to = from + itemsPerPage - 1;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("blog_posts")
     .select(`
         id,
@@ -45,7 +48,13 @@ export async function fetchBlogPostsAction({
         blog_post_comments (id),
         blog_post_likes (id, user_id),
         blog_post_bookmarks (blog_post_id, user_id)
-    `, { count: "exact" })
+    `, { count: "exact" });
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error, count } = await query
     .order("created_at", { ascending: false })
     .range(from, to);
 

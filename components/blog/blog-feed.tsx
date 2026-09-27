@@ -16,9 +16,10 @@ interface BlogFeedProps {
   initialPosts: BlogPostQueryResult;
   currentUserId: string | null;
   currentUser: { name: string; avatarUrl: string | null } | null;
+  filterByUserId?: string;
 }
 
-export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedProps) {
+export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUserId }: BlogFeedProps) {
   const router = useRouter();
   const { openLoginDialog } = useLoginDialog();
 
@@ -33,12 +34,13 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser }: BlogFeedP
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["blog-posts", "feed"],
+    queryKey: ["blog-posts", "feed", filterByUserId],
     queryFn: ({ pageParam = 1 }) =>
       fetchBlogPostsAction({
         currentPage: pageParam,
         itemsPerPage: ITEMS_PER_PAGE,
         currentUserId,
+        userId: filterByUserId,
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

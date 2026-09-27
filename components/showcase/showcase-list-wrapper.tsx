@@ -16,6 +16,7 @@ interface ShowcaseListWrapperProps {
   user: Database["public"]["Tables"]["profiles"]["Row"] | null;
   avatarUrl: string | null;
   filterByUserId?: string;
+  filterByParticipantUserId?: string;
   filterByCommentedUserId?: string;
   filterByUpvotedUserId?: string;
   searchQuery?: string;
@@ -27,6 +28,7 @@ export function ShowcaseListWrapper({
   user,
   avatarUrl,
   filterByUserId,
+  filterByParticipantUserId,
   filterByCommentedUserId,
   filterByUpvotedUserId,
   initialShowcases,
@@ -51,7 +53,7 @@ export function ShowcaseListWrapper({
 
   // Determine if we should show the latest award card
   // Show only on main list without active filters/search
-  const showLatestAward = latestAwardedShowcase && !searchQuery && !filterByUserId && !filterByCommentedUserId && !filterByUpvotedUserId;
+  const showLatestAward = latestAwardedShowcase && !searchQuery && !filterByUserId && !filterByParticipantUserId && !filterByCommentedUserId && !filterByUpvotedUserId;
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
@@ -96,6 +98,7 @@ export function ShowcaseListWrapper({
         <ShowcaseList
           currentUserId={user?.id || null}
           filterByUserId={filterByUserId}
+          filterByParticipantUserId={filterByParticipantUserId}
           filterByCommentedUserId={filterByCommentedUserId}
           filterByUpvotedUserId={filterByUpvotedUserId}
           searchQuery={searchQuery}

@@ -11,6 +11,7 @@ import { ko } from "date-fns/locale";
 
 import { Eye, HeartIcon } from "lucide-react";
 import { BlogThumbnail } from "./blog-thumbnail";
+import { cn } from "@/lib/utils";
 
 export interface BlogCardProps {
     id: string;
@@ -39,6 +40,8 @@ export interface BlogCardProps {
     };
     currentUserId: string | null;
     showInteractions?: boolean;
+    /** "compact"는 프로필 페이지의 미니 리스트처럼 좁은 공간에 쓰는 축소판. */
+    size?: "default" | "compact";
 }
 
 import { toggleBlogPostLike } from "@/app/blog/blog-actions";
@@ -56,7 +59,9 @@ export function BlogCard({
     initialStatus,
     currentUserId,
     showInteractions = true,
+    size = "default",
 }: BlogCardProps) {
+    const isCompact = size === "compact";
     const { openLoginDialog } = useLoginDialog();
     const queryClient = useQueryClient();
     const [stats, setStats] = useState(initialStats);
@@ -96,25 +101,34 @@ export function BlogCard({
     const href = `/blog/${slug || id}`;
 
     return (
-        <article className="flex w-full items-stretch gap-4 py-6 md:gap-6 md:py-8">
+        <article className={cn(
+            "flex w-full items-stretch",
+            isCompact ? "gap-3 py-3" : "gap-4 py-6 md:gap-6 md:py-8"
+        )}>
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <Link href={href} prefetch={false} className="flex flex-col gap-1 focus:outline-none">
-                    <h3 className="text-[17px] md:text-[19px] leading-[1.4] font-bold text-black line-clamp-2">{title}</h3>
+                    <h3 className={cn(
+                        "leading-[1.4] font-bold text-black line-clamp-2",
+                        isCompact ? "text-[13px]" : "text-[17px] md:text-[19px]"
+                    )}>{title}</h3>
                     {summary && (
-                        <p className="text-[14px] md:text-[15px] leading-[1.5] text-[#777777] line-clamp-2">{summary}</p>
+                        <p className={cn(
+                            "leading-[1.5] text-[#777777]",
+                            isCompact ? "text-[12px] line-clamp-1" : "text-[14px] md:text-[15px] line-clamp-2"
+                        )}>{summary}</p>
                     )}
                 </Link>
 
                 <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
                     <ProfileHoverCard userId={author.id}>
                         <Link href={`/@${author.username || author.id}`} className="flex items-center gap-[5px] w-fit">
-                            <Avatar className="w-5 h-5">
+                            <Avatar className={isCompact ? "w-4 h-4" : "w-5 h-5"}>
                                 <AvatarImage src={author.avatarUrl} />
                                 <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
                             </Avatar>
-                            <span className="text-[12px] font-semibold text-sydeblue">{author.name}</span>
+                            <span className={cn("font-semibold text-sydeblue", isCompact ? "text-[11px]" : "text-[12px]")}>{author.name}</span>
                             {createdAt && (
-                                <span className="text-[11px] text-[#777777]">
+                                <span className={cn("text-[#777777]", isCompact ? "text-[10px]" : "text-[11px]")}>
                                     · {formatDistanceToNow(new Date(createdAt), { addSuffix: true, locale: ko }).replace("약 ", "")}
                                 </span>
                             )}
@@ -123,10 +137,10 @@ export function BlogCard({
 
                     {/* Only views and likes; a zero count stays quiet so a first post isn't stamped with 0s. */}
                     {showInteractions && (
-                        <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
+                        <div className={cn("flex items-center gap-3 text-muted-foreground", isCompact ? "text-[11px]" : "text-[12px]")}>
                             {(stats.views ?? 0) > 0 && (
                                 <span className="flex items-center gap-0.5 select-none">
-                                    <Eye size={16} />
+                                    <Eye size={isCompact ? 13 : 16} />
                                     {stats.views}
                                 </span>
                             )}
@@ -139,7 +153,7 @@ export function BlogCard({
                                 className="group -m-2 flex items-center gap-0.5 rounded-md p-2 hover:bg-red-100 disabled:opacity-50"
                             >
                                 <HeartIcon
-                                    size={16}
+                                    size={isCompact ? 13 : 16}
                                     className={status.hasLiked ? "fill-red-500 text-red-500" : "group-hover:text-red-500"}
                                 />
                                 {stats.likes > 0 && (
@@ -156,7 +170,7 @@ export function BlogCard({
                     <BlogThumbnail
                         src={imageUrl}
                         alt={title}
-                        containerClassName="size-[88px] md:size-[120px] rounded-[10px]"
+                        containerClassName={isCompact ? "size-[56px] rounded-[8px]" : "size-[88px] md:size-[120px] rounded-[10px]"}
                     />
                 </Link>
             )}
