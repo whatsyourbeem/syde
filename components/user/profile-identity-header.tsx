@@ -1,17 +1,13 @@
 import Image from "next/image";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
-import { ProfileDevelopingBadge } from "@/components/user/profile-developing-badge";
 import { PublicProfile } from "@/types/profile";
-import { ProfileStats } from "@/lib/queries/profile-stats-queries";
 
 interface ProfileIdentityHeaderProps {
   profile: PublicProfile;
-  stats: ProfileStats;
 }
 
 export function ProfileIdentityHeader({
   profile,
-  stats,
 }: ProfileIdentityHeaderProps) {
   const displayName = profile.full_name || profile.username || "Anonymous";
   const avatarUrlWithCacheBuster = profile.avatar_url
@@ -19,7 +15,7 @@ export function ProfileIdentityHeader({
     : null;
 
   return (
-    <div className="flex flex-row items-start gap-5 px-5 py-8 md:px-8 md:py-6">
+    <div className="flex flex-row items-center gap-5 px-5 py-8 md:px-8 md:py-6">
       <div className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
         {avatarUrlWithCacheBuster ? (
           <Image
@@ -51,12 +47,9 @@ export function ProfileIdentityHeader({
           <p className="text-sm text-sydeblue">{profile.tagline}</p>
         )}
 
-        {(stats.activeDeveloping || (profile.tags && profile.tags.length > 0)) && (
+        {profile.tags && profile.tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
-            {stats.activeDeveloping && (
-              <ProfileDevelopingBadge showcase={stats.activeDeveloping} />
-            )}
-            {profile.tags?.map((tag) => (
+            {profile.tags.map((tag) => (
               <span
                 key={tag}
                 className="px-2.5 py-1 bg-[#FAFAFA] border border-[#B7B7B7] rounded-full text-[11px] font-medium text-[#777777]"

@@ -8,11 +8,6 @@ export interface ProfileStats {
   totalViews: number;
   sydePickCount: number;
   meetupsAttendedCount: number;
-  activeDeveloping: {
-    id: string;
-    name: string | null;
-    slug: string | null;
-  } | null;
 }
 
 const EMPTY_STATS: ProfileStats = {
@@ -21,7 +16,6 @@ const EMPTY_STATS: ProfileStats = {
   totalViews: 0,
   sydePickCount: 0,
   meetupsAttendedCount: 0,
-  activeDeveloping: null,
 };
 
 export async function getProfileStats(
@@ -43,13 +37,6 @@ export async function getProfileStats(
     totalViews: data.total_views ?? 0,
     sydePickCount: data.syde_pick_count ?? 0,
     meetupsAttendedCount: data.meetups_attended_count ?? 0,
-    activeDeveloping: data.active_developing_id
-      ? {
-          id: data.active_developing_id,
-          name: data.active_developing_name,
-          slug: data.active_developing_slug,
-        }
-      : null,
   };
 }
 
