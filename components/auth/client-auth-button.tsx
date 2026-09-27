@@ -3,10 +3,19 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { UserRound } from "lucide-react";
+import { UserRound, User, Settings, BookmarkCheck, LogOut } from "lucide-react";
 import { SheetClose } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { useAuth } from "@/context/AuthContext";
+import { logout } from "@/app/auth/auth-actions";
+import { createClient } from "@/lib/supabase/client";
 
 interface ClientAuthButtonProps {
   sheetHeader?: boolean;
@@ -18,6 +27,15 @@ export function ClientAuthButton({ sheetHeader }: ClientAuthButtonProps) {
   const username = profile?.username ?? null;
   const fullName = profile?.full_name ?? username;
   const profileLink = username ? `/@${username}` : "/profile";
+
+  const handleLogout = async () => {
+    // Fire SIGNED_OUT locally first so AuthContext updates immediately — logout()
+    // below redirects server-side, which is a client-side navigation with no
+    // reload, so onAuthStateChange would otherwise never see the session change.
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    await logout();
+  };
 
   // While the client session resolves, show the same "no avatar yet" placeholder
   // used below instead of flashing the logged-out login button at a logged-in visitor.
@@ -84,20 +102,49 @@ export function ClientAuthButton({ sheetHeader }: ClientAuthButtonProps) {
         // Desktop Mode (sheetHeader is false)
         <>
           {user ? (
-            // Logged-in desktop: profile image only
-            <Link href={profileLink} className="flex-none m-0.5">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt="User Avatar"
-                  width={36}
-                  height={36}
-                  className="rounded-full object-cover aspect-square"
-                />
-              ) : (
-                <div className="w-9 h-9 bg-gray-200 rounded-full" />
-              )}
-            </Link>
+            // Logged-in desktop: avatar opens a dropdown menu
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex-none m-0.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  {avatarUrl ? (
+                    <Image
+                      src={avatarUrl}
+                      alt="User Avatar"
+                      width={36}
+                      height={36}
+                      className="rounded-full object-cover aspect-square"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 bg-gray-200 rounded-full" />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem asChild>
+                  <Link href={profileLink} className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    마이페이지
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    프로필 관리
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile/activity" className="cursor-pointer">
+                    <BookmarkCheck className="mr-2 h-4 w-4" />
+                    내 기록
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  로그아웃
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             // Logged-out desktop: Login Button
             <Button

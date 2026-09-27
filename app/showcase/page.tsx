@@ -2,7 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { ShowcaseListWrapper } from "@/components/showcase/showcase-list-wrapper";
 import { fetchLatestAwardedShowcase, fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
 
-export default async function ShowcasePage() {
+interface ShowcasePageProps {
+  searchParams: Promise<{ participant?: string }>;
+}
+
+export default async function ShowcasePage({ searchParams }: ShowcasePageProps) {
+  const { participant } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,6 +29,7 @@ export default async function ShowcasePage() {
       currentUserId: user?.id || null,
       currentPage: 1,
       showcasesPerPage: 20,
+      filterByParticipantUserId: participant,
     }),
   ]);
 
@@ -31,6 +37,7 @@ export default async function ShowcasePage() {
     <ShowcaseListWrapper
       user={profile}
       avatarUrl={avatarUrl}
+      filterByParticipantUserId={participant}
       latestAwardedShowcase={latestAwardedShowcase}
       initialShowcases={initialShowcases}
     />

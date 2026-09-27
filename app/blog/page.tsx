@@ -4,7 +4,12 @@ import { BlogFeed } from "@/components/blog/blog-feed";
 import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
 const ITEMS_PER_PAGE = 18;
 
-export default async function BlogPage() {
+interface BlogPageProps {
+  searchParams: Promise<{ user?: string }>;
+}
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const { user: filterByUserId } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -16,6 +21,7 @@ export default async function BlogPage() {
     currentPage: 1,
     itemsPerPage: ITEMS_PER_PAGE,
     currentUserId: user?.id || null,
+    userId: filterByUserId,
   });
 
   return (
@@ -25,6 +31,7 @@ export default async function BlogPage() {
         initialPosts={initialPosts}
         currentUserId={user?.id || null}
         currentUser={profile ? { name: profile.full_name || profile.username || "", avatarUrl: profile.avatar_url } : null}
+        filterByUserId={filterByUserId}
       />
     </>
   );

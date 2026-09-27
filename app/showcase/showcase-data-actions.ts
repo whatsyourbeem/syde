@@ -17,6 +17,7 @@ export async function fetchShowcasesAction({
   filterByParticipantUserId,
   filterByCommentedUserId,
   filterByUpvotedUserId,
+  filterByShowcaseIds,
   searchQuery,
 }: ShowcaseQueryOptions): Promise<ShowcaseQueryResult> {
   const supabase = await createClient(); // Use server client
@@ -78,7 +79,12 @@ export async function fetchShowcasesAction({
   }
 
   // Apply filters
-  if (filterByUserId) {
+  if (filterByShowcaseIds) {
+    if (filterByShowcaseIds.length === 0) {
+      return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
+    }
+    query = query.in("id", filterByShowcaseIds);
+  } else if (filterByUserId) {
     query = query.eq("user_id", filterByUserId);
   } else if (filterByParticipantUserId) {
     const memberShowcaseIds = await getMemberShowcaseIds(supabase, filterByParticipantUserId);
@@ -127,6 +133,17 @@ export async function fetchShowcasesAction({
     })).sort((a: any, b: any) => a.display_order - b.display_order),
     showcase_awards: showcase.showcase_awards || [],
   }));
+
+  // 핀 고정 등 지정된 순서가 있으면 정렬 결과 대신 그 순서를 따른다.
+  if (filterByShowcaseIds) {
+    const byId = new Map(processedShowcases.map((s) => [s.id, s]));
+    return {
+      showcases: filterByShowcaseIds.map((id) => byId.get(id)).filter((s): s is OptimizedShowcase => !!s),
+      count: count || 0,
+      mentionedProfiles,
+      currentPage,
+    };
+  }
 
   return {
     showcases: processedShowcases,
