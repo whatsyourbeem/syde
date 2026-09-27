@@ -50,7 +50,7 @@ export function ProfileCardBody({
   }
 
   return (
-    <div className="flex flex-col gap-0">
+    <div className="flex flex-col gap-3 md:gap-4">
       {/* 스토리 */}
       <div className="px-5 py-4 md:px-8 md:py-6">
         <SectionHeader title="스토리">

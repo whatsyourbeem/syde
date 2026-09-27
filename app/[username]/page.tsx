@@ -105,18 +105,20 @@ export default async function UserProfilePage({
 
   return (
     <div className="flex-1 w-full flex flex-col h-full">
-      <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col">
-        <ProfileIdentityHeader profile={profile} />
-        <ProfileSocialLinks
-          username={profile.username || ""}
-          displayName={profile.full_name || profile.username || "Anonymous"}
-          link={profile.link}
-          contactEmail={profile.contact_email}
-          githubUsername={profile.github_username}
-          twitterUsername={profile.twitter_username}
-          instagramUsername={profile.instagram_username}
-        />
-        <ProfileEvidenceBar stats={stats} />
+      <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col gap-3 md:gap-4">
+        <div className="flex flex-col">
+          <ProfileIdentityHeader profile={profile} />
+          <ProfileSocialLinks
+            username={profile.username || ""}
+            displayName={profile.full_name || profile.username || "Anonymous"}
+            link={profile.link}
+            contactEmail={profile.contact_email}
+            githubUsername={profile.github_username}
+            twitterUsername={profile.twitter_username}
+            instagramUsername={profile.instagram_username}
+          />
+          <ProfileEvidenceBar stats={stats} />
+        </div>
         <ProfileCardBody
           profile={profile}
           isOwnProfile={isOwnProfile}

@@ -64,13 +64,13 @@ export function PinnedShowcasesSection({
               <ShowcaseThumbnail
                 src={showcase.thumbnail_url}
                 alt={showcase.name || ""}
-                containerClassName="w-20 shrink-0 sm:w-full sm:h-auto sm:aspect-[3/2]"
+                containerClassName="w-20 shrink-0 sm:w-full sm:h-auto sm:aspect-[16/9]"
                 className="group-hover:scale-105 transition-transform duration-300"
                 status={showcase.status}
                 statusSize="sm"
               />
               <div className="flex flex-col gap-0.5 min-w-0 justify-center p-3 sm:px-2 sm:py-1.5">
-                <span className="text-sm sm:text-[13px] font-bold text-black line-clamp-1">
+                <span className="text-base sm:text-sm font-bold text-black line-clamp-1">
                   {showcase.name}
                 </span>
                 <span className="text-[11px] text-[#777777] line-clamp-1">
