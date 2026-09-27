@@ -10,7 +10,9 @@ interface LatestAwardCardProps {
 }
 
 export function LatestAwardCard({ showcase, currentUserId }: LatestAwardCardProps) {
-  const pickAward = showcase.showcase_awards.find(a => a.type === 'SYDE_PICK');
+  const pickAward = showcase.showcase_awards
+    .filter(a => a.type === 'SYDE_PICK')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
   const formattedDate = pickAward ? formatSydePickDateKR(pickAward.date) : '';
 
   return (
