@@ -23,7 +23,7 @@ export default function Footer() {
         <div className="w-full max-w-6xl mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
           {/* Left Section: Logo & Copyright */}
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" prefetch={false} className="flex items-center gap-2">
               <Image src="/logo_no_bg.png" alt="SYDE" width={28} height={28} />
               <span
                 className={`text-2xl font-extrabold text-sydeblue ${paperlogy.className}`}

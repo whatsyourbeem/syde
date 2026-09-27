@@ -24,7 +24,7 @@ export function HeaderServer({ paperlogyClassName }: { paperlogyClassName: strin
                     {/* Mobile specific layout */}
                     <div className="flex md:hidden w-full justify-between items-center">
                         <div className="flex items-center">
-                            <Link href={"/"} className="flex items-center gap-1">
+                            <Link href={"/"} prefetch={false} className="flex items-center gap-1">
                                 <Image
                                     src="/logo_no_bg.png"
                                     alt="SYDE"
@@ -82,7 +82,7 @@ export function HeaderServer({ paperlogyClassName }: { paperlogyClassName: strin
                             </Link>
                         </div>
                         <div className="w-1/3 flex justify-center items-center font-semibold">
-                            <Link href={"/"} className="flex items-center gap-1">
+                            <Link href={"/"} prefetch={false} className="flex items-center gap-1">
                                 <Image
                                     src="/logo_no_bg.png"
                                     alt="SYDE"

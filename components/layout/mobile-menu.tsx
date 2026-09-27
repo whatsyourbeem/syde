@@ -93,6 +93,7 @@ export function MobileMenu({ authButton }: MobileMenuProps) {
           <SheetClose asChild>
             <Link
               href="/"
+              prefetch={false}
               className={`mt-2 p-2 hover:bg-secondary rounded-md transition-all ${
                 pathname === "/" || pathname.startsWith("/feed")
                   ? "font-bold text-primary"
