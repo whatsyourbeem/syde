@@ -2,23 +2,20 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { ChevronRight, Eye, HeartIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
+import { BlogCard } from "@/components/blog/blog-card";
 import { SectionHeader } from "@/components/user/section-header";
 
 interface UserBlogMiniListProps {
   userId: string;
+  currentUserId: string | null;
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-}
-
-export function UserBlogMiniList({ userId }: UserBlogMiniListProps) {
+export function UserBlogMiniList({ userId, currentUserId }: UserBlogMiniListProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ["user-blog-mini-list", userId],
-    queryFn: () => fetchBlogPostsAction({ currentPage: 1, itemsPerPage: 5, userId }),
+    queryKey: ["user-blog-mini-list", userId, currentUserId],
+    queryFn: () => fetchBlogPostsAction({ currentPage: 1, itemsPerPage: 5, userId, currentUserId }),
     staleTime: 30000,
   });
 
@@ -26,7 +23,7 @@ export function UserBlogMiniList({ userId }: UserBlogMiniListProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <SectionHeader title="쓴 글">
+      <SectionHeader title="작성한 블로그">
         <Link
           href={`/blog?user=${userId}`}
           className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
@@ -43,30 +40,18 @@ export function UserBlogMiniList({ userId }: UserBlogMiniListProps) {
       {!isLoading && posts.length === 0 && (
         <div className="flex items-center justify-center h-[81px] text-center px-4 bg-[#FAFAFA] rounded-xl">
           <p className="text-[#777777] text-sm font-light leading-[150%]">
-            아직 쓴 글이 없어요.
+            아직 작성한 블로그가 없어요.
           </p>
         </div>
       )}
 
-      {posts.map((post) => (
-        <Link
-          key={post.id}
-          href={`/blog/${post.slug || post.id}`}
-          prefetch={false}
-          className="flex flex-col gap-0.5 p-2 rounded-lg hover:bg-[#FAFAFA] transition-colors"
-        >
-          <span className="text-sm font-bold text-black line-clamp-1">{post.title}</span>
-          <div className="flex items-center gap-2 text-[11px] text-[#777777]">
-            <span>{formatDate(post.createdAt)}</span>
-            <span className="inline-flex items-center gap-0.5">
-              <HeartIcon className="w-3 h-3" /> {post.stats.likes}
-            </span>
-            <span className="inline-flex items-center gap-0.5">
-              <Eye className="w-3 h-3" /> {post.stats.views || 0}
-            </span>
-          </div>
-        </Link>
-      ))}
+      {posts.length > 0 && (
+        <div className="flex flex-col divide-y divide-[#F0F0F0]">
+          {posts.map((post) => (
+            <BlogCard key={post.id} {...post} size="compact" />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

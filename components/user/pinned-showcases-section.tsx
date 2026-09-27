@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpCircle, Eye } from "lucide-react";
+import { ArrowUpCircle, ChevronRight, Eye } from "lucide-react";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { PinnedShowcasesEditor } from "@/components/user/pinned-showcases-editor";
@@ -25,14 +25,23 @@ export function PinnedShowcasesSection({
   return (
     <div className="px-5 py-4 md:px-8 md:py-6">
       <SectionHeader title="대표 프로젝트">
-        {isOwnProfile && (
-          <button
-            onClick={() => setIsEditorOpen(true)}
-            className="text-sydeorange text-[13px] font-bold hover:opacity-80 transition-opacity"
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/showcase?participant=${userId}`}
+            className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
           >
-            편집
-          </button>
-        )}
+            전체보기
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+          {isOwnProfile && (
+            <button
+              onClick={() => setIsEditorOpen(true)}
+              className="text-sydeorange text-[13px] font-bold hover:opacity-80 transition-opacity"
+            >
+              편집
+            </button>
+          )}
+        </div>
       </SectionHeader>
 
       {showcases.length === 0 ? (
@@ -44,24 +53,24 @@ export function PinnedShowcasesSection({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {showcases.map((showcase) => (
             <Link
               key={showcase.id}
               href={`/showcase/${showcase.slug || showcase.id}`}
               prefetch={false}
-              className="flex flex-col gap-2 group"
+              className="group flex flex-row sm:flex-col items-stretch gap-0 sm:gap-0 rounded-xl border border-[#F1F1F1] hover:border-[#B7B7B7] hover:shadow-sm transition-all overflow-hidden"
             >
               <ShowcaseThumbnail
                 src={showcase.thumbnail_url}
                 alt={showcase.name || ""}
-                containerClassName="w-full aspect-square rounded-xl"
+                containerClassName="w-20 shrink-0 sm:w-full sm:h-auto sm:aspect-[3/2]"
                 className="group-hover:scale-105 transition-transform duration-300"
                 status={showcase.status}
                 statusSize="sm"
               />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-bold text-black line-clamp-1">
+              <div className="flex flex-col gap-0.5 min-w-0 justify-center p-3 sm:px-2 sm:py-1.5">
+                <span className="text-sm sm:text-[13px] font-bold text-black line-clamp-1">
                   {showcase.name}
                 </span>
                 <span className="text-[11px] text-[#777777] line-clamp-1">
@@ -69,12 +78,12 @@ export function PinnedShowcasesSection({
                 </span>
                 <span className="flex items-center gap-2 text-[11px] text-[#777777]">
                   <span className="inline-flex items-center gap-0.5">
-                    <ArrowUpCircle size={13} strokeWidth={1.5} />
-                    {showcase.upvotesCount}
-                  </span>
-                  <span className="inline-flex items-center gap-0.5">
                     <Eye size={13} strokeWidth={1.5} />
                     {showcase.views_count || 0}
+                  </span>
+                  <span className="inline-flex items-center gap-0.5">
+                    <ArrowUpCircle size={13} strokeWidth={1.5} />
+                    {showcase.upvotesCount}
                   </span>
                 </span>
               </div>

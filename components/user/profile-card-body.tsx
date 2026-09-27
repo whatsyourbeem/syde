@@ -6,7 +6,6 @@ import BioEditor from "@/components/user/bio-editor";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
 import { UserBlogMiniList } from "@/components/user/user-blog-mini-list";
 import { PinnedShowcasesSection } from "@/components/user/pinned-showcases-section";
-import { ProfileJourneyTimeline } from "@/components/user/profile-journey-timeline";
 import { SectionHeader } from "@/components/user/section-header";
 import { PublicProfile } from "@/types/profile";
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
@@ -14,6 +13,7 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 interface ProfileCardBodyProps {
   profile: PublicProfile;
   isOwnProfile: boolean;
+  currentUserId: string | null;
   initialHtml?: string;
   featuredShowcases: OptimizedShowcase[];
 }
@@ -21,6 +21,7 @@ interface ProfileCardBodyProps {
 export function ProfileCardBody({
   profile,
   isOwnProfile,
+  currentUserId,
   initialHtml,
   featuredShowcases,
 }: ProfileCardBodyProps) {
@@ -81,25 +82,24 @@ export function ProfileCardBody({
         initialShowcases={featuredShowcases}
       />
 
-      {/* 쓴 글 / 함께한 모임 */}
-      <div className="px-5 py-4 md:px-8 md:py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <UserBlogMiniList userId={profile.id} />
-        <div className="flex flex-col gap-2">
-          <SectionHeader title="함께한 모임">
-            <button
-              onClick={() => setIsViewingAllMeetups(true)}
-              className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
-            >
-              전체보기
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </SectionHeader>
-          <UserJoinedMeetupsList userId={profile.id} />
-        </div>
+      {/* 쓴 글 */}
+      <div className="px-5 py-4 md:px-8 md:py-6">
+        <UserBlogMiniList userId={profile.id} currentUserId={currentUserId} />
       </div>
 
-      {/* 만들어온 여정 */}
-      <ProfileJourneyTimeline userId={profile.id} />
+      {/* 함께한 모임 */}
+      <div className="px-5 py-4 md:px-8 md:py-6">
+        <SectionHeader title="함께한 모임">
+          <button
+            onClick={() => setIsViewingAllMeetups(true)}
+            className="flex items-center gap-0.5 text-[#777777] text-xs font-bold hover:text-sydeblue transition-colors"
+          >
+            전체보기
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </SectionHeader>
+        <UserJoinedMeetupsList userId={profile.id} />
+      </div>
     </div>
   );
 }

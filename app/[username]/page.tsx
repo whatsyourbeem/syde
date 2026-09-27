@@ -4,7 +4,6 @@ import { ProfileIdentityHeader } from "@/components/user/profile-identity-header
 import { ProfileEvidenceBar } from "@/components/user/profile-evidence-bar";
 import { ProfileCardBody } from "@/components/user/profile-card-body";
 import { ProfileSocialLinks } from "@/components/user/profile-social-links";
-import { ProfileFooter } from "@/components/user/profile-footer";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { getProfileByUsernameCached } from "@/lib/queries/profile-queries";
 import { getProfileStatsCached } from "@/lib/queries/profile-stats-queries";
@@ -121,11 +120,9 @@ export default async function UserProfilePage({
         <ProfileCardBody
           profile={profile}
           isOwnProfile={isOwnProfile}
+          currentUserId={user?.id || null}
           initialHtml={initialHtml}
           featuredShowcases={featuredShowcases}
-        />
-        <ProfileFooter
-          displayName={profile.full_name || profile.username || "Anonymous"}
         />
       </div>
     </div>
