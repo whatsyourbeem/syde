@@ -365,6 +365,7 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
                     <div>
                       <Link
                         href={`/@${showcase.profiles?.username || showcase.user_id}`}
+                        prefetch={false}
                         className="flex items-center gap-[5px] cursor-pointer"
                       >
                         <div className="relative w-6 h-6 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">
@@ -489,6 +490,7 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
                   <div>
                     <Link
                       href={`/@${showcase.profiles?.username || showcase.user_id}`}
+                      prefetch={false}
                       className="flex flex-row items-center gap-[5px] h-5 cursor-pointer"
                     >
                       <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full">

@@ -121,7 +121,7 @@ export function BlogCard({
 
                 <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
                     <ProfileHoverCard userId={author.id}>
-                        <Link href={`/@${author.username || author.id}`} className="flex items-center gap-[5px] w-fit">
+                        <Link href={`/@${author.username || author.id}`} prefetch={false} className="flex items-center gap-[5px] w-fit">
                             <Avatar className={isCompact ? "w-4 h-4" : "w-5 h-5"}>
                                 <AvatarImage src={author.avatarUrl} />
                                 <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
