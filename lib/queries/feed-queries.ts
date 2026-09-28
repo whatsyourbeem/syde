@@ -12,6 +12,7 @@ type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 
 export type ActivityType =
   | "SHOWCASE_CREATED"
+  | "SHOWCASE_BUMPED"
   | "BLOG_POST_CREATED"
   | "MEETUP_CREATED";
 
@@ -83,6 +84,8 @@ export function getActivityMessage(
   switch (activity.activity_type) {
     case "SHOWCASE_CREATED":
       return `${displayName}님이 쇼케이스를 등록했어요`;
+    case "SHOWCASE_BUMPED":
+      return `${displayName}님이 쇼케이스를 끌어올렸어요`;
     case "BLOG_POST_CREATED":
       return `${displayName}님이 블로그 글을 발행했어요`;
     case "MEETUP_CREATED":
@@ -97,6 +100,7 @@ export function getActivityMessage(
 export function getActivityLink(activity: ActivityFeedItem): string | null {
   switch (activity.activity_type) {
     case "SHOWCASE_CREATED":
+    case "SHOWCASE_BUMPED":
       return activity.target_id ? `/showcase/${activity.target_id}` : null;
     case "BLOG_POST_CREATED":
       return activity.target_id ? `/blog/${activity.target_id}` : null;
@@ -111,6 +115,8 @@ export function getActivityEmoji(activityType: ActivityType): string {
   switch (activityType) {
     case "SHOWCASE_CREATED":
       return "🚀";
+    case "SHOWCASE_BUMPED":
+      return "⬆️";
     case "BLOG_POST_CREATED":
       return "💡";
     case "MEETUP_CREATED":
@@ -363,7 +369,7 @@ async function fetchActivityDetails(
   activities: ActivityFeedItem[]
 ) {
   const showcaseIds = activities
-    .filter(a => a.activity_type === "SHOWCASE_CREATED" && a.target_id)
+    .filter(a => (a.activity_type === "SHOWCASE_CREATED" || a.activity_type === "SHOWCASE_BUMPED") && a.target_id)
     .map(a => a.target_id as string);
   
   const postIds = activities
@@ -398,7 +404,7 @@ async function fetchActivityDetails(
 
   // Map details back to activities
   activities.forEach(activity => {
-    if (activity.activity_type === "SHOWCASE_CREATED") {
+    if (activity.activity_type === "SHOWCASE_CREATED" || activity.activity_type === "SHOWCASE_BUMPED") {
       const detail = showcases.data?.find(s => s.id === activity.target_id);
       if (detail) {
         activity.details = {
