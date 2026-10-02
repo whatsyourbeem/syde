@@ -133,7 +133,8 @@ export async function getBlogPostDetail(
           username,
           full_name,
           avatar_url,
-          tagline
+          tagline,
+          certified
         )
       `);
 

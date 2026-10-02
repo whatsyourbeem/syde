@@ -45,7 +45,8 @@ export function BlogList({ currentUserId, userId, showInteractions = true }: Blo
           username: item.author?.username,
           name: item.author?.full_name || item.author?.username || "알 수 없는 사용자",
           role: item.author?.tagline || "멤버",
-          avatarUrl: item.author?.avatar_url
+          avatarUrl: item.author?.avatar_url,
+          certified: item.author?.certified ?? false
         },
         stats: {
           likes: item.blog_post_likes?.length || 0,

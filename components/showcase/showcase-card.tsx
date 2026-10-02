@@ -15,6 +15,7 @@ import ProfileHoverCard from "@/components/common/profile-hover-card";
 import { SydePickBadge } from "./syde-pick-badge";
 import { SydePickInfoDialog } from "./syde-pick-info-dialog";
 import { cn } from "@/lib/utils";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface ShowcaseCardProps {
   showcase: Database["public"]["Tables"]["showcases"]["Row"] & {
@@ -213,6 +214,7 @@ function ShowcaseCardBase({
                     {showcase.profiles?.full_name ||
                       showcase.profiles?.username}
                   </span>
+                  {showcase.profiles?.certified && <CertifiedBadge size="sm" />}
                   <span className={cn(
                     "text-[11px] md:text-[12px] font-normal leading-tight truncate flex-grow",
                     isFeatured ? "text-white/40" : "text-[#777777]"

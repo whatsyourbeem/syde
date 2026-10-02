@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 export interface AuthorRecentBlogPost {
   id: string;
@@ -18,6 +19,7 @@ interface AuthorCardProps {
     name: string;
     tagline: string | null;
     avatarUrl: string | null;
+    certified?: boolean;
   };
   recentPosts: AuthorRecentBlogPost[];
 }
@@ -32,7 +34,10 @@ export function AuthorCard({ author, recentPosts }: AuthorCardProps) {
           <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || "U"}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
-          <span className="text-[16px] font-semibold text-sydeblue">{author.name}</span>
+          <span className="flex items-center gap-1.5 text-[16px] font-semibold text-sydeblue">
+            {author.name}
+            {author.certified && <CertifiedBadge size="md" />}
+          </span>
           {author.tagline && <span className="text-[13px] text-[#777]">{author.tagline}</span>}
         </div>
       </Link>
