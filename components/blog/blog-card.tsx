@@ -12,6 +12,7 @@ import { ko } from "date-fns/locale";
 import { Eye, HeartIcon } from "lucide-react";
 import { BlogThumbnail } from "./blog-thumbnail";
 import { cn } from "@/lib/utils";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 export interface BlogCardProps {
     id: string;
@@ -27,6 +28,7 @@ export interface BlogCardProps {
         name: string;
         role: string;
         avatarUrl?: string;
+        certified?: boolean;
     };
     stats: {
         likes: number;
@@ -127,6 +129,7 @@ export function BlogCard({
                                 <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
                             </Avatar>
                             <span className={cn("font-semibold text-sydeblue", isCompact ? "text-[11px]" : "text-[12px]")}>{author.name}</span>
+                            {author.certified && <CertifiedBadge size="sm" />}
                             {createdAt && (
                                 <span className={cn("text-[#777777]", isCompact ? "text-[10px]" : "text-[11px]")}>
                                     · {formatDistanceToNow(new Date(createdAt), { addSuffix: true, locale: ko }).replace("약 ", "")}

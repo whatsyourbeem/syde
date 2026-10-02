@@ -63,6 +63,7 @@ import { DeleteSuccessDialog } from "@/components/showcase/delete-success-dialog
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import RichContent from "@/components/common/rich-content";
 import { SydePickBadge } from "./syde-pick-badge";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 import { ShowcaseBumpBar } from "./showcase-bump-bar";
 
 type ShowcaseWithRelations = OptimizedShowcase; // Use defined type
@@ -274,6 +275,7 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
     tagline: showcase.profiles?.tagline,
     username: showcase.profiles?.username,
     avatar: showcase.profiles?.avatar_url,
+    certified: showcase.profiles?.certified ?? false,
   };
 
   const otherMembers = (showcase.members || []).map((m) => ({
@@ -285,6 +287,7 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
     tagline: m.profile?.tagline,
     username: m.profile?.username,
     avatar: m.profile?.avatar_url,
+    certified: m.profile?.certified ?? false,
   }));
 
   const teamMembers = [authorMember, ...otherMembers];
@@ -380,6 +383,7 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
                           {showcase.profiles?.full_name ||
                             showcase.profiles?.username}
                         </span>
+                        {showcase.profiles?.certified && <CertifiedBadge size="sm" />}
                         <span className="font-['Pretendard'] text-[12px] font-normal text-[#777777] leading-[17px] truncate flex-grow">
                           {showcase.profiles?.tagline}
                         </span>
@@ -505,6 +509,7 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
                         {showcase.profiles?.full_name ||
                           showcase.profiles?.username}
                       </span>
+                      {showcase.profiles?.certified && <CertifiedBadge size="sm" />}
                       <span className="font-['Pretendard'] font-normal text-[12px] text-[#777777] line-clamp-1">
                         {showcase.profiles?.tagline}
                       </span>
@@ -850,9 +855,12 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
                         </Avatar>
                       </div>
                       <div className="flex flex-col items-center gap-0 w-full">
-                        <span className="font-['Pretendard'] font-bold text-[12px] md:text-[14px] text-sydeblue w-full text-center truncate px-1">
-                          {member.name}
-                        </span>
+                        <div className="flex items-center justify-center gap-1 w-full min-w-0 px-1">
+                          <span className="font-['Pretendard'] font-bold text-[12px] md:text-[14px] text-sydeblue text-center truncate">
+                            {member.name}
+                          </span>
+                          {member.certified && <CertifiedBadge size="sm" />}
+                        </div>
                         <span className="font-['Pretendard'] text-[12px] text-[#777777] w-full text-center truncate px-1">
                           @{member.username}
                         </span>

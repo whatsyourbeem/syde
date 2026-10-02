@@ -37,6 +37,7 @@ import {
 import { BlogThumbnail } from "./blog-thumbnail";
 import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews, deleteBlogPostAction } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface BlogDetailClientProps {
     id: string;
@@ -297,6 +298,7 @@ export default function BlogDetailClient({
                                         <AvatarFallback className="bg-[#D9D9D9]">{blogPost.profiles?.username?.[0] || 'U'}</AvatarFallback>
                                     </Avatar>
                                     <span className="text-[13px] font-semibold text-sydeblue">{blogPost.profiles?.full_name || blogPost.profiles?.username || '알 수 없는 사용자'}</span>
+                                    {blogPost.profiles?.certified && <CertifiedBadge size="sm" />}
                                 </Link>
                             </ProfileHoverCard>
                             {blogPost.created_at && (
@@ -357,6 +359,7 @@ export default function BlogDetailClient({
                         name: blogPost.profiles?.full_name || blogPost.profiles?.username || "알 수 없는 사용자",
                         tagline: blogPost.profiles?.tagline ?? null,
                         avatarUrl: blogPost.profiles?.avatar_url ?? null,
+                        certified: blogPost.profiles?.certified ?? false,
                     }}
                     recentPosts={authorRecentPosts}
                 />

@@ -43,7 +43,8 @@ export async function fetchBlogPostsAction({
             username,
             full_name,
             avatar_url,
-            tagline
+            tagline,
+            certified
         ),
         blog_post_comments (id),
         blog_post_likes (id, user_id),
@@ -75,7 +76,8 @@ export async function fetchBlogPostsAction({
       username: item.profiles?.username,
       name: item.profiles?.full_name || item.profiles?.username || "알 수 없는 사용자",
       role: item.profiles?.tagline || "멤버",
-      avatarUrl: item.profiles?.avatar_url
+      avatarUrl: item.profiles?.avatar_url,
+      certified: item.profiles?.certified ?? false
     },
     stats: {
       likes: item.blog_post_likes?.length || 0,

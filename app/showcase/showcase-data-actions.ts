@@ -61,7 +61,7 @@ export async function fetchShowcasesAction({
       id,
       user_id,
       display_order,
-      profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
+      profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline, certified)
     )
   `;
 
@@ -208,7 +208,7 @@ export async function fetchLatestAwardedShowcase(currentUserId?: string | null):
       id,
       user_id,
       display_order,
-      profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline)
+      profile:profiles!showcases_members_user_id_fkey(id, username, full_name, avatar_url, tagline, certified)
     )
   `;
 
