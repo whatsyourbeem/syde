@@ -35,6 +35,7 @@ import {
 import { deleteActivity } from "@/app/feed/activity-actions";
 import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
 import { BlogThumbnail } from "@/components/blog/blog-thumbnail";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface ActivityCardProps {
   activity: ActivityFeedItem;
@@ -212,6 +213,7 @@ function ActivityCardBase({ activity, currentUserId }: ActivityCardProps) {
           {/* Message & Timestamp */}
           <p className="text-sm md:text-log-content text-foreground/90 leading-normal flex-1">
             <span className="font-bold">{displayName}</span>
+            {profile?.certified && <CertifiedBadge size="sm" className="inline-block align-[-2px] ml-1" />}
             <span>{message}</span>
             <span className="ml-1.5 text-[11px] md:text-xs text-muted-foreground/70 whitespace-nowrap inline-block">
               · {formatTimeAgo(activity.created_at)}

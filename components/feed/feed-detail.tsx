@@ -52,6 +52,7 @@ import { PublicProfile } from "@/types/profile";
 import { deleteLog, toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
+import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 type FeedWithRelations = Database["public"]["Tables"]["logs"]["Row"] & {
   profiles: PublicProfile | null;
@@ -340,12 +341,13 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
                     </Avatar>
                   </Link>
                   <div className="flex flex-col md:flex-row md:gap-2 items-baseline">
-                    <Link href={`/@${log.profiles?.username || log.user_id}`} prefetch={false}>
+                    <Link href={`/@${log.profiles?.username || log.user_id}`} prefetch={false} className="flex items-center gap-1">
                       <p className="font-semibold hover:underline truncate max-w-48 md:max-w-72">
                         {log.profiles?.full_name ||
                           log.profiles?.username ||
                           "Anonymous"}
                       </p>
+                      {log.profiles?.certified && <CertifiedBadge size="sm" />}
                     </Link>
                     {log.profiles?.tagline && (
                       <p className="text-xs text-muted-foreground truncate max-w-48 md:max-w-48">
