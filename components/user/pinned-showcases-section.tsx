@@ -69,14 +69,14 @@ export function PinnedShowcasesSection({
                 status={showcase.status}
                 statusSize="sm"
               />
-              <div className="flex flex-col gap-0.5 min-w-0 justify-center p-3 sm:px-2 sm:py-1.5">
-                <span className="text-base sm:text-sm font-bold text-black line-clamp-1">
+              <div className="flex flex-col gap-0.5 min-w-0 justify-center p-3 sm:gap-1 sm:px-4 sm:py-3.5">
+                <span className="text-base font-bold text-black line-clamp-1">
                   {showcase.name}
                 </span>
-                <span className="text-[11px] text-[#777777] line-clamp-1">
+                <span className="text-[11px] md:text-[13px] text-[#777777] line-clamp-1">
                   {showcase.short_description}
                 </span>
-                <span className="flex items-center gap-2 text-[11px] text-[#777777]">
+                <span className="flex items-center gap-2 text-[11px] md:text-[12px] text-[#777777]">
                   <span className="inline-flex items-center gap-0.5">
                     <Eye size={13} strokeWidth={1.5} />
                     {showcase.views_count || 0}

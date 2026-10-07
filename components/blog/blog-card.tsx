@@ -113,18 +113,18 @@ export function BlogCard({
     return (
         <article className={cn(
             "flex w-full items-stretch",
-            isCompact ? "gap-3 py-3" : "gap-4 py-6 md:gap-6 md:py-8"
+            isCompact ? "gap-3 py-3 md:gap-4" : "gap-4 py-6 md:gap-6 md:py-8"
         )}>
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <Link href={href} prefetch={false} className="flex flex-col gap-1 focus:outline-none">
                     <h3 className={cn(
                         "leading-[1.4] font-bold text-black line-clamp-2",
-                        isCompact ? "text-[13px]" : "text-[17px] md:text-[19px]"
+                        isCompact ? "text-[13px] md:text-[16px]" : "text-[17px] md:text-[19px]"
                     )}>{title}</h3>
                     {summary && (
                         <p className={cn(
                             "leading-[1.5] text-[#777777]",
-                            isCompact ? "text-[12px] line-clamp-1" : "text-[14px] md:text-[15px] line-clamp-2"
+                            isCompact ? "text-[12px] md:text-[14px] line-clamp-1 md:line-clamp-2" : "text-[14px] md:text-[15px] line-clamp-2"
                         )}>{summary}</p>
                     )}
                 </Link>
@@ -136,10 +136,10 @@ export function BlogCard({
                                 <AvatarImage src={author.avatarUrl} />
                                 <AvatarFallback className="bg-[#D9D9D9]">{author.name?.[0] || 'U'}</AvatarFallback>
                             </Avatar>
-                            <span className={cn("font-semibold text-sydeblue", isCompact ? "text-[11px]" : "text-[12px]")}>{author.name}</span>
+                            <span className={cn("font-semibold text-sydeblue", isCompact ? "text-[11px] md:text-[12px]" : "text-[12px]")}>{author.name}</span>
                             {author.certified && <CertifiedBadge size="sm" />}
                             {createdAt && (
-                                <span className={cn("text-[#777777]", isCompact ? "text-[10px]" : "text-[11px]")}>
+                                <span className={cn("text-[#777777]", isCompact ? "text-[10px] md:text-[11px]" : "text-[11px]")}>
                                     · {formatDistanceToNow(new Date(createdAt), { addSuffix: true, locale: ko }).replace("약 ", "")}
                                 </span>
                             )}
@@ -148,7 +148,7 @@ export function BlogCard({
 
                     {/* Only views and likes; a zero count stays quiet so a first post isn't stamped with 0s. */}
                     {showInteractions && (
-                        <div className={cn("flex items-center gap-3 text-muted-foreground", isCompact ? "text-[11px]" : "text-[12px]")}>
+                        <div className={cn("flex items-center gap-3 text-muted-foreground", isCompact ? "text-[11px] md:text-[12px]" : "text-[12px]")}>
                             {(stats.views ?? 0) > 0 && (
                                 <span className="flex items-center gap-0.5 select-none">
                                     <Eye size={isCompact ? 13 : 16} />
@@ -181,7 +181,7 @@ export function BlogCard({
                     <BlogThumbnail
                         src={imageUrl}
                         alt={title}
-                        containerClassName={isCompact ? "size-[56px] rounded-[8px]" : "size-[88px] md:size-[120px] rounded-[10px]"}
+                        containerClassName={isCompact ? "size-[56px] md:size-[96px] rounded-[8px]" : "size-[88px] md:size-[120px] rounded-[10px]"}
                     />
                 </Link>
             )}
