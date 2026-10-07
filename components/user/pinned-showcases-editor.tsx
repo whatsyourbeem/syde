@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ArrowUpCircle, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
 import { updatePinnedShowcases } from "@/app/[username]/pinned-showcases-actions";
+import { ShowcaseThumbnail } from "@/components/showcase/showcase-thumbnail";
+import { cn } from "@/lib/utils";
 import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 
 const MAX_PINNED = 3;
@@ -91,7 +94,7 @@ export function PinnedShowcasesEditor({
           <DialogTitle>대표 프로젝트 편집 ({selectedIds.length}/{MAX_PINNED})</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[400px] overflow-y-auto flex flex-col gap-2">
+        <div className="max-h-[400px] overflow-y-auto flex flex-col gap-2 my-4 px-0.5 py-0.5">
           {isLoading && (
             <p className="text-sm text-[#777777] py-4 text-center">불러오는 중...</p>
           )}
@@ -100,18 +103,55 @@ export function PinnedShowcasesEditor({
               등록된 쇼케이스가 없어요.
             </p>
           )}
-          {ownShowcases.map((showcase) => (
-            <label
-              key={showcase.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#FAFAFA] cursor-pointer"
-            >
-              <Checkbox
-                checked={selectedIds.includes(showcase.id)}
-                onCheckedChange={() => toggle(showcase.id)}
-              />
-              <span className="text-sm text-black line-clamp-1">{showcase.name}</span>
-            </label>
-          ))}
+          {ownShowcases.map((showcase) => {
+            const isSelected = selectedIds.includes(showcase.id);
+            return (
+              <label
+                key={showcase.id}
+                className="flex items-center gap-3 cursor-pointer"
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggle(showcase.id)}
+                />
+                {/* 프로필 "대표 프로젝트" 섹션의 모바일 카드와 동일한 디자인 */}
+                <div
+                  className={cn(
+                    "flex flex-1 min-w-0 flex-row items-stretch rounded-xl border overflow-hidden transition-all",
+                    isSelected
+                      ? "border-sydeblue"
+                      : "border-[#F1F1F1] hover:border-[#B7B7B7] hover:shadow-sm"
+                  )}
+                >
+                  <ShowcaseThumbnail
+                    src={showcase.thumbnail_url}
+                    alt={showcase.name || ""}
+                    containerClassName="w-20 shrink-0"
+                    status={showcase.status}
+                    statusSize="sm"
+                  />
+                  <div className="flex flex-col gap-0.5 min-w-0 justify-center p-3">
+                    <span className="text-base font-bold text-black line-clamp-1">
+                      {showcase.name}
+                    </span>
+                    <span className="text-[11px] text-[#777777] line-clamp-1">
+                      {showcase.short_description}
+                    </span>
+                    <span className="flex items-center gap-2 text-[11px] text-[#777777]">
+                      <span className="inline-flex items-center gap-0.5">
+                        <Eye size={13} strokeWidth={1.5} />
+                        {showcase.views_count || 0}
+                      </span>
+                      <span className="inline-flex items-center gap-0.5">
+                        <ArrowUpCircle size={13} strokeWidth={1.5} />
+                        {showcase.upvotesCount}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </label>
+            );
+          })}
         </div>
 
         <DialogFooter>
