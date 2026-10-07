@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
 import { BlogCard, BlogCardProps } from "@/components/blog/blog-card";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
+import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
 
 interface ProfileBlogTabProps {
   userId: string;
@@ -22,22 +24,27 @@ export function ProfileBlogTab({
   initialPosts,
   initialCursor,
 }: ProfileBlogTabProps) {
-  const [posts, setPosts] = useState(initialPosts);
-  const [cursor, setCursor] = useState(initialCursor);
-  const [isPending, startTransition] = useTransition();
-
-  const loadMore = () => {
-    startTransition(async () => {
-      const result = await fetchBlogPostsAction({
-        itemsPerPage: PAGE_SIZE,
-        cursor,
-        userId,
-        currentUserId,
-      });
-      setPosts((prev) => [...prev, ...result.blogPosts]);
-      setCursor(result.nextCursor);
+  // 키가 ["blog-posts", ...]로 시작하면 좋아요·북마크 등 캐시 패치가 이 목록에도 반영된다.
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } =
+    useInfiniteQuery({
+      queryKey: ["blog-posts", "profile", userId],
+      queryFn: ({ pageParam }) =>
+        fetchBlogPostsAction({
+          cursor: pageParam,
+          itemsPerPage: PAGE_SIZE,
+          userId,
+          currentUserId,
+        }),
+      initialPageParam: null as string | null,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      initialData: {
+        pages: [{ blogPosts: initialPosts, nextCursor: initialCursor }],
+        pageParams: [null],
+      },
+      staleTime: LIST_STALE_TIME,
     });
-  };
+
+  const posts = data?.pages.flatMap((page) => page.blogPosts) ?? [];
 
   if (posts.length === 0) {
     return (
@@ -68,16 +75,12 @@ export function ProfileBlogTab({
           <BlogCard key={post.id} {...post} size="compact" />
         ))}
       </div>
-      {cursor && (
-        <button
-          type="button"
-          onClick={loadMore}
-          disabled={isPending}
-          className="mt-4 mx-auto px-5 py-2 rounded-full border border-[#E5E5E5] text-[13px] font-bold text-[#555555] hover:border-sydeblue hover:text-sydeblue transition-colors disabled:opacity-50"
-        >
-          {isPending ? "불러오는 중..." : "더보기"}
-        </button>
-      )}
+      <InfiniteScrollTrigger
+        onLoadMore={fetchNextPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        isError={isFetchNextPageError}
+      />
     </div>
   );
 }
