@@ -3,6 +3,7 @@ import { Database } from "@/types/database.types";
 import { unstable_cache } from "next/cache";
 
 export interface ProfileStats {
+  blogPostsCount: number;
   showcasesCount: number;
   totalUpvotes: number;
   totalViews: number;
@@ -11,6 +12,7 @@ export interface ProfileStats {
 }
 
 const EMPTY_STATS: ProfileStats = {
+  blogPostsCount: 0,
   showcasesCount: 0,
   totalUpvotes: 0,
   totalViews: 0,
@@ -32,6 +34,7 @@ export async function getProfileStats(
   }
 
   return {
+    blogPostsCount: data.blog_posts_count ?? 0,
     showcasesCount: data.showcases_count ?? 0,
     totalUpvotes: data.total_upvotes ?? 0,
     totalViews: data.total_views ?? 0,

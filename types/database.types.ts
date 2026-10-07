@@ -1330,6 +1330,7 @@ export type Database = {
           active_developing_id: string
           active_developing_name: string
           active_developing_slug: string
+          blog_posts_count: number
           meetups_attended_count: number
           showcases_count: number
           syde_pick_count: number
