@@ -5,7 +5,7 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { FeedCard } from "@/components/feed/feed-card";
 import { ActivityCard } from "@/components/feed/activity-card";
-import { Button } from "@/components/ui/button";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { getUnifiedFeed, FeedQueryResult, FeedItem, LogFeedItem, ActivityFeedEntry } from "@/lib/queries/feed-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
@@ -208,19 +208,11 @@ export function FeedList({
             ))}
           </div>
 
-          {/* Load More Button - Blog Style */}
-          {hasNextPage && (
-            <div className="flex justify-center mt-12 mb-12">
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                variant="outline"
-                className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
-              >
-                {isFetchingNextPage ? "불러오는 중..." : "더보기"}
-              </Button>
-            </div>
-          )}
+          <InfiniteScrollTrigger
+            onLoadMore={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+          />
         </div>
       )}
     </div>

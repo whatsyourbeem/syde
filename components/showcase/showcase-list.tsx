@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { ShowcaseCard } from "@/components/showcase/showcase-card";
-import { Button } from "@/components/ui/button";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { Database } from "@/types/database.types";
 import { fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
 import {
@@ -257,19 +257,11 @@ export function ShowcaseList({
             ))}
           </div>
 
-          {/* Load More Button - Blog Style */}
-          {hasNextPage && (
-            <div className="flex justify-center mt-12 mb-12">
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                variant="outline"
-                className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
-              >
-                {isFetchingNextPage ? "불러오는 중..." : "더보기"}
-              </Button>
-            </div>
-          )}
+          <InfiniteScrollTrigger
+            onLoadMore={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+          />
         </div>
       )}
     </div>

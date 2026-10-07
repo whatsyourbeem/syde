@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import MeetupCard from "@/components/meetup/meetup-card";
 import { fetchMeetupsAction } from "@/app/meetup/meetup-data-actions";
 
@@ -58,18 +58,11 @@ export function MeetupList({ initialMeetups, status }: MeetupListProps) {
           <MeetupCard key={meetup.id} meetup={meetup} priority={index < 4} />
         ))}
       </div>
-      {hasNextPage && (
-        <div className="flex justify-center mt-12 mb-12">
-          <Button
-            onClick={() => fetchNextPage()}
-            disabled={isFetchingNextPage}
-            variant="outline"
-            className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
-          >
-            {isFetchingNextPage ? "불러오는 중..." : "더보기"}
-          </Button>
-        </div>
-      )}
+      <InfiniteScrollTrigger
+        onLoadMore={fetchNextPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+      />
     </div>
   );
 }
