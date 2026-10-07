@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { BlogCardProps } from "@/components/blog/blog-card";
 
 export interface BlogPostQueryOptions {
-  currentPage: number;
+  /** 이전 페이지 마지막 글의 created_at. 없으면 첫 페이지. */
+  cursor?: string | null;
   itemsPerPage: number;
   currentUserId?: string | null;
   /** 특정 작성자의 글만 필터링 (프로필 페이지 "전체보기" 등) */
@@ -13,20 +14,17 @@ export interface BlogPostQueryOptions {
 
 export interface BlogPostQueryResult {
   blogPosts: BlogCardProps[];
-  count: number;
-  hasMore: boolean;
-  currentPage: number;
+  /** 다음 페이지를 불러올 때 쓸 커서. 더 없으면 null. */
+  nextCursor: string | null;
 }
 
 export async function fetchBlogPostsAction({
-  currentPage,
+  cursor,
   itemsPerPage,
   currentUserId,
   userId,
 }: BlogPostQueryOptions): Promise<BlogPostQueryResult> {
   const supabase = await createClient();
-  const from = (currentPage - 1) * itemsPerPage;
-  const to = from + itemsPerPage - 1;
 
   let query = supabase
     .from("blog_posts")
@@ -49,22 +47,30 @@ export async function fetchBlogPostsAction({
         blog_post_comments (id),
         blog_post_likes (id, user_id),
         blog_post_bookmarks (blog_post_id, user_id)
-    `, { count: "exact" });
+    `);
 
   if (userId) {
     query = query.eq("user_id", userId);
   }
 
-  const { data, error, count } = await query
+  if (cursor) {
+    query = query.lt("created_at", cursor);
+  }
+
+  // 한 건 더 가져와 다음 페이지가 있는지 판단한다.
+  const { data: fetched, error } = await query
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .limit(itemsPerPage + 1);
 
   if (error) {
     console.error("Error fetching blog posts:", error);
     throw new Error(error.message);
   }
 
-  const mappedData: BlogCardProps[] = (data || []).map((item: any) => ({
+  const hasMore = (fetched?.length ?? 0) > itemsPerPage;
+  const data = (fetched || []).slice(0, itemsPerPage);
+
+  const mappedData: BlogCardProps[] = data.map((item: any) => ({
     id: item.id,
     slug: item.slug,
     title: item.title,
@@ -94,8 +100,6 @@ export async function fetchBlogPostsAction({
 
   return {
     blogPosts: mappedData,
-    count: count || 0,
-    hasMore: data?.length === itemsPerPage,
-    currentPage
+    nextCursor: hasMore ? data[data.length - 1]?.created_at ?? null : null,
   };
 }

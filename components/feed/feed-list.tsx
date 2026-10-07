@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { FeedCard } from "@/components/feed/feed-card";
 import { ActivityCard } from "@/components/feed/activity-card";
-import { Button } from "@/components/ui/button";
+import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { getUnifiedFeed, FeedQueryResult, FeedItem, LogFeedItem, ActivityFeedEntry } from "@/lib/queries/feed-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
@@ -59,11 +60,12 @@ export function FeedList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery({
     queryKey: queryKey,
-    queryFn: ({ pageParam = 1 }) => getUnifiedFeed(supabase, {
+    queryFn: ({ pageParam }) => getUnifiedFeed(supabase, {
       currentUserId: propCurrentUserId,
-      currentPage: pageParam,
+      cursor: pageParam,
       logsPerPage: ITEMS_PER_PAGE,
       filterByUserId,
       filterByCommentedUserId,
@@ -71,19 +73,13 @@ export function FeedList({
       filterByBookmarkedUserId,
       searchQuery,
     }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const currentLoadedCount = lastPage.currentPage * ITEMS_PER_PAGE;
-      if (currentLoadedCount < lastPage.totalCount) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
-    staleTime: 0,
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: LIST_STALE_TIME,
     initialData: !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && initialFeed 
       ? {
           pages: [initialFeed],
-          pageParams: [1],
+          pageParams: [null],
         }
       : undefined,
   });
@@ -97,51 +93,6 @@ export function FeedList({
     [data?.pages]
   );
 
-  useEffect(() => {
-    const channel = supabase
-      .channel("syde-log-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "logs" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "log_likes" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "log_bookmarks" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "log_comments" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "activity_feed" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, queryClient]);
-
   if (isLoading) {
     return (
       <div className="w-full pb-4">
@@ -152,7 +103,7 @@ export function FeedList({
     );
   }
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div className="w-full pb-4">
         <div className="px-4">
@@ -187,11 +138,11 @@ export function FeedList({
                     <FeedCard
                       log={item.data}
                       currentUserId={propCurrentUserId}
-                      initialLikesCount={item.data.likesCount}
-                      initialHasLiked={item.data.hasLiked}
-                      initialBookmarksCount={item.data.bookmarksCount}
-                      initialHasBookmarked={item.data.hasBookmarked}
-                      initialCommentsCount={item.data.log_comments.length}
+                      likesCount={item.data.likesCount}
+                      hasLiked={item.data.hasLiked}
+                      bookmarksCount={item.data.bookmarksCount}
+                      hasBookmarked={item.data.hasBookmarked}
+                      commentsCount={item.data.log_comments.length}
                       mentionedProfiles={mentionedProfiles}
                       searchQuery={searchQuery}
                       isDetailPage={false}
@@ -208,19 +159,12 @@ export function FeedList({
             ))}
           </div>
 
-          {/* Load More Button - Blog Style */}
-          {hasNextPage && (
-            <div className="flex justify-center mt-12 mb-12">
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                variant="outline"
-                className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
-              >
-                {isFetchingNextPage ? "불러오는 중..." : "더보기"}
-              </Button>
-            </div>
-          )}
+          <InfiniteScrollTrigger
+            onLoadMore={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            isError={isFetchNextPageError}
+          />
         </div>
       )}
     </div>

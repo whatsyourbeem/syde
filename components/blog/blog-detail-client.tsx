@@ -37,6 +37,7 @@ import {
 import { BlogThumbnail } from "./blog-thumbnail";
 import { toggleBlogPostLike, toggleBlogPostBookmark, incrementBlogPostViews, deleteBlogPostAction } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
+import { patchBlogPost } from "@/lib/queries/cache-patches";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
 
 interface BlogDetailClientProps {
@@ -192,7 +193,11 @@ export default function BlogDetailClient({
 
         try {
             await toggleBlogPostLike(id, isLiked);
-            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            patchBlogPost(queryClient, id, (post) => ({
+                ...post,
+                stats: { ...post.stats, likes: Math.max(0, post.stats.likes + (isLiked ? -1 : 1)) },
+                initialStatus: { hasBookmarked: false, ...post.initialStatus, hasLiked: !isLiked },
+            }));
         } catch (error) {
             setIsLiked(prevLiked);
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : Math.max(0, prev.likes - 1) }));
@@ -218,7 +223,11 @@ export default function BlogDetailClient({
 
         try {
             await toggleBlogPostBookmark(id, isBookmarked);
-            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            patchBlogPost(queryClient, id, (post) => ({
+                ...post,
+                stats: { ...post.stats, bookmarks: Math.max(0, post.stats.bookmarks + (isBookmarked ? -1 : 1)) },
+                initialStatus: { hasLiked: false, ...post.initialStatus, hasBookmarked: !isBookmarked },
+            }));
         } catch (error) {
             setIsBookmarked(prevBookmarked);
             setStats(prev => ({ ...prev, bookmarks: isBookmarked ? prev.bookmarks + 1 : Math.max(0, prev.bookmarks - 1) }));

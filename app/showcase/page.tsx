@@ -27,7 +27,6 @@ export default async function ShowcasePage({ searchParams }: ShowcasePageProps) 
     fetchLatestAwardedShowcase(user?.id),
     fetchShowcasesAction({
       currentUserId: user?.id || null,
-      currentPage: 1,
       showcasesPerPage: 20,
       filterByParticipantUserId: participant,
     }),

@@ -26,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { meetupKeys } from "@/lib/queries/query-keys";
 import Image from "next/image";
 import { createMeetup, updateMeetup } from "@/app/meetup/meetup-actions";
 import { toast } from "sonner";
@@ -91,6 +93,7 @@ export default function MeetupEditForm({
 
 
   const router = useRouter();
+  const queryClient = useQueryClient();
   const formRef = React.useRef<HTMLFormElement>(null);
   const isEditMode = !!meetup;
 
@@ -232,6 +235,7 @@ export default function MeetupEditForm({
       } else {
         toast.success("모임이 성공적으로 업데이트되었습니다.");
         clearDraft();
+        queryClient.invalidateQueries({ queryKey: meetupKeys.all });
         router.push(`/meetup/${result.data.meetupId}`);
       }
       setIsSubmitting(false);
@@ -242,6 +246,7 @@ export default function MeetupEditForm({
       } else {
         toast.success("모임이 성공적으로 생성되었습니다.");
         clearDraft();
+        queryClient.invalidateQueries({ queryKey: meetupKeys.all });
         router.push(`/meetup/${result.data.meetupId}`);
       }
       setIsSubmitting(false);

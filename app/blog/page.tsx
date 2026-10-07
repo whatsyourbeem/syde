@@ -18,7 +18,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     : { data: null };
 
   const initialPosts = await fetchBlogPostsAction({
-    currentPage: 1,
     itemsPerPage: ITEMS_PER_PAGE,
     currentUserId: user?.id || null,
     userId: filterByUserId,

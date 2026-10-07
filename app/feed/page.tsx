@@ -13,7 +13,6 @@ export default async function FeedPage() {
     user ? getProfileByIdCached(supabase, user.id) : Promise.resolve(null),
     getUnifiedFeed(supabase, {
       currentUserId: user?.id || null,
-      currentPage: 1,
       logsPerPage: 20,
     }),
   ]);

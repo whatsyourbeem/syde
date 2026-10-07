@@ -15,7 +15,7 @@ interface UserBlogMiniListProps {
 export function UserBlogMiniList({ userId, currentUserId }: UserBlogMiniListProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["user-blog-mini-list", userId, currentUserId],
-    queryFn: () => fetchBlogPostsAction({ currentPage: 1, itemsPerPage: 5, userId, currentUserId }),
+    queryFn: () => fetchBlogPostsAction({ itemsPerPage: 5, userId, currentUserId }),
     staleTime: 30000,
   });
 

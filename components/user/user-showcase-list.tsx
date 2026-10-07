@@ -28,7 +28,6 @@ export function UserShowcaseList({
     queryFn: () =>
       fetchShowcasesAction({
         currentUserId,
-        currentPage: 1,
         showcasesPerPage: variant === "compact" ? 10 : 20,
         filterByParticipantUserId: userId,
       }),

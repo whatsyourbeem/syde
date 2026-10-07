@@ -7,6 +7,8 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BlogCard } from "@/components/blog/blog-card";
+import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { fetchBlogPostsAction, BlogPostQueryResult } from "@/app/blog/blog-data-actions";
 
@@ -33,27 +35,23 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery({
     queryKey: ["blog-posts", "feed", filterByUserId],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       fetchBlogPostsAction({
-        currentPage: pageParam,
+        cursor: pageParam,
         itemsPerPage: ITEMS_PER_PAGE,
         currentUserId,
         userId: filterByUserId,
       }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.hasMore) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData: {
       pages: [initialPosts],
-      pageParams: [1],
+      pageParams: [null],
     },
-    staleTime: 0,
+    staleTime: LIST_STALE_TIME,
   });
 
   const allPosts = data?.pages.flatMap((page) => page.blogPosts) || [];
@@ -80,16 +78,12 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
               <BlogCard key={blogPost.id} {...blogPost} />
             ))}
           </div>
-          {hasNextPage && (
-            <Button
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              variant="outline"
-              className="mt-12 rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
-            >
-              {isFetchingNextPage ? "불러오는 중..." : "더보기"}
-            </Button>
-          )}
+          <InfiniteScrollTrigger
+            onLoadMore={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            isError={isFetchNextPageError}
+          />
         </div>
       ) : (
         <div className="text-center py-20 text-gray-400 flex flex-col gap-2">

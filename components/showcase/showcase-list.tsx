@@ -4,8 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { ShowcaseCard } from "@/components/showcase/showcase-card";
-import { Button } from "@/components/ui/button";
-import { Database } from "@/types/database.types";
+import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
 import {
   OptimizedShowcase,
@@ -14,7 +13,7 @@ import {
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
-import { showcaseKeys } from "@/lib/queries/query-keys";
+import { showcaseKeys, LIST_STALE_TIME } from "@/lib/queries/query-keys";
 
 const SHOWCASES_PER_PAGE = 20; // Define showcases per page
 
@@ -73,12 +72,13 @@ export function ShowcaseList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery({
     queryKey: queryKey,
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       fetchShowcasesAction({
         currentUserId,
-        currentPage: pageParam,
+        cursor: pageParam,
         showcasesPerPage: SHOWCASES_PER_PAGE,
         filterByUserId,
         filterByParticipantUserId,
@@ -86,15 +86,9 @@ export function ShowcaseList({
         filterByUpvotedUserId,
         searchQuery,
       }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const currentLoadedCount = lastPage.currentPage * SHOWCASES_PER_PAGE;
-      if (currentLoadedCount < lastPage.count) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
-    staleTime: 0,
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    staleTime: LIST_STALE_TIME,
     initialData:
       initialShowcases &&
       !filterByUserId &&
@@ -103,7 +97,7 @@ export function ShowcaseList({
       !searchQuery
         ? {
             pages: [initialShowcases],
-            pageParams: [1],
+            pageParams: [null],
           }
         : undefined,
   });
@@ -117,72 +111,6 @@ export function ShowcaseList({
     () => data?.pages.flatMap((page) => page.mentionedProfiles) || [],
     [data?.pages]
   );
-
-  useEffect(() => {
-    const showcaseIdsForFilter: string[] = showcases
-      .map((showcase) => showcase.id)
-      .filter((id): id is string => id !== null);
-
-    if (showcaseIdsForFilter.length === 0) return;
-
-    const channel = supabase
-      .channel("syde-showcase-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "showcases" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "showcase_upvotes",
-          filter: `showcase_id=in.(${showcaseIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedShowcaseId =
-            (
-              payload.new as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
-            ).showcase_id ||
-            (
-              payload.old as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
-            ).showcase_id;
-          if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-          }
-        },
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "showcase_comments",
-          filter: `showcase_id=in.(${showcaseIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedShowcaseId =
-            (
-              payload.new as Database["public"]["Tables"]["showcase_comments"]["Row"]
-            ).showcase_id ||
-            (
-              payload.old as Database["public"]["Tables"]["showcase_comments"]["Row"]
-            ).showcase_id;
-          if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, queryClient, showcases]);
 
   if (isLoading) {
     return (
@@ -212,7 +140,7 @@ export function ShowcaseList({
     );
   }
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div className="w-full max-w-3xl mx-auto pb-4">
         <div className="px-4">
@@ -257,19 +185,12 @@ export function ShowcaseList({
             ))}
           </div>
 
-          {/* Load More Button - Blog Style */}
-          {hasNextPage && (
-            <div className="flex justify-center mt-12 mb-12">
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                variant="outline"
-                className="rounded-full px-6 py-2 text-[0.875rem] font-[700] text-[#777777] border-[#E2E8F0] hover:bg-slate-50"
-              >
-                {isFetchingNextPage ? "불러오는 중..." : "더보기"}
-              </Button>
-            </div>
-          )}
+          <InfiniteScrollTrigger
+            onLoadMore={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            isError={isFetchNextPageError}
+          />
         </div>
       )}
     </div>

@@ -11,7 +11,7 @@ import { Database } from "@/types/database.types";
  */
 export async function fetchShowcasesAction({
   currentUserId,
-  currentPage,
+  cursor,
   showcasesPerPage,
   filterByUserId,
   filterByParticipantUserId,
@@ -21,8 +21,6 @@ export async function fetchShowcasesAction({
   searchQuery,
 }: ShowcaseQueryOptions): Promise<ShowcaseQueryResult> {
   const supabase = await createClient(); // Use server client
-  const from = (currentPage - 1) * showcasesPerPage;
-  const to = from + showcasesPerPage - 1;
 
   // 1. Fetch upvoted showcase IDs for the current user in a separate query.
   // Note: On server side, we can parallelize these requests better or just await them.
@@ -65,7 +63,7 @@ export async function fetchShowcasesAction({
     )
   `;
 
-  let query = supabase.from("showcases").select(selectQuery, { count: "exact" });
+  let query = supabase.from("showcases").select(selectQuery);
 
   // Handle search query optimization
   if (searchQuery) {
@@ -74,14 +72,14 @@ export async function fetchShowcasesAction({
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(","));
     } else {
-      return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
+      return { showcases: [], mentionedProfiles: [], nextCursor: null };
     }
   }
 
   // Apply filters
   if (filterByShowcaseIds) {
     if (filterByShowcaseIds.length === 0) {
-      return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
+      return { showcases: [], mentionedProfiles: [], nextCursor: null };
     }
     query = query.in("id", filterByShowcaseIds);
   } else if (filterByUserId) {
@@ -96,23 +94,30 @@ export async function fetchShowcasesAction({
     }
   } else if (filterByCommentedUserId) {
     const commentedShowcaseIds = await getCommentedShowcaseIds(supabase, filterByCommentedUserId);
-    if (commentedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
+    if (commentedShowcaseIds.length === 0) return { showcases: [], mentionedProfiles: [], nextCursor: null };
     query = query.in("id", commentedShowcaseIds);
   } else if (filterByUpvotedUserId) {
     const upvotedShowcaseIds = await getUpvotedShowcaseIds(supabase, filterByUpvotedUserId);
-    if (upvotedShowcaseIds.length === 0) return { showcases: [], count: 0, mentionedProfiles: [], currentPage };
+    if (upvotedShowcaseIds.length === 0) return { showcases: [], mentionedProfiles: [], nextCursor: null };
     query = query.in("id", upvotedShowcaseIds);
   }
 
-  // Execute the main query
-  const { data: showcasesData, error: showcasesError, count } = await query
+  if (cursor && !filterByShowcaseIds) {
+    query = query.lt("bumped_at", cursor);
+  }
+
+  // 한 건 더 가져와 다음 페이지가 있는지 판단한다.
+  const { data: fetched, error: showcasesError } = await query
     .order("bumped_at", { ascending: false })
-    .range(from, to);
+    .limit(showcasesPerPage + 1);
 
   if (showcasesError) {
     console.error("Error fetching showcases:", showcasesError);
     throw new Error(showcasesError.message);
   }
+
+  const hasMore = (fetched?.length ?? 0) > showcasesPerPage;
+  const showcasesData = (fetched || []).slice(0, showcasesPerPage);
 
   // Batch fetch mentioned profiles
   // We can reuse the logic, but need to pass the supabase client or reimplement
@@ -139,17 +144,15 @@ export async function fetchShowcasesAction({
     const byId = new Map(processedShowcases.map((s) => [s.id, s]));
     return {
       showcases: filterByShowcaseIds.map((id) => byId.get(id)).filter((s): s is OptimizedShowcase => !!s),
-      count: count || 0,
       mentionedProfiles,
-      currentPage,
+      nextCursor: null,
     };
   }
 
   return {
     showcases: processedShowcases,
-    count: count || 0,
     mentionedProfiles,
-    currentPage,
+    nextCursor: hasMore ? processedShowcases[processedShowcases.length - 1]?.bumped_at ?? null : null,
   };
 }
 
