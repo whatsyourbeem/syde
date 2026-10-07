@@ -47,28 +47,30 @@ export function PinnedShowcasesSection({
         </div>
       </SectionHeader>
 
-      {showcases.length === 0 && compactEmpty ? (
-        <p className="text-[#777777] text-sm font-light leading-[150%]">
-          등록된 프로젝트가 없어요.
-          {isOwnProfile && (
-            <>
-              {" "}
-              <Link
-                href="/showcase/create"
-                className="text-sydeorange font-bold hover:opacity-80 transition-opacity"
-              >
-                쇼케이스에 첫 프로젝트를 등록해보세요.
-              </Link>
-            </>
+      {showcases.length === 0 ? (
+        <div className="bg-[#FAFAFA] rounded-xl min-h-[81px] flex items-center justify-center text-center px-4 py-3">
+          {compactEmpty ? (
+            <p className="text-[#777777] text-sm font-light leading-[150%]">
+              아직 등록한 프로젝트가 없어요. 🧐
+              {isOwnProfile && (
+                <>
+                  <br />
+                  <Link
+                    href="/showcase/create"
+                    className="text-sydeorange font-bold hover:opacity-80 transition-opacity"
+                  >
+                    쇼케이스에 첫 프로젝트를 등록해보세요.
+                  </Link>
+                </>
+              )}
+            </p>
+          ) : (
+            <p className="text-[#777777] text-sm font-light leading-[150%]">
+              아직 등록된 쇼케이스가 없어요.
+              <br />
+              당신의 멋진 프로덕트를 이곳에 보여주세요.
+            </p>
           )}
-        </p>
-      ) : showcases.length === 0 ? (
-        <div className="flex items-center justify-center h-[81px] text-center px-4 bg-[#FAFAFA] rounded-xl">
-          <p className="text-[#777777] text-sm font-light leading-[150%]">
-            아직 등록된 쇼케이스가 없어요.
-            <br />
-            당신의 멋진 프로덕트를 이곳에 보여주세요.
-          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
