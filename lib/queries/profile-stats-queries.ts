@@ -47,9 +47,11 @@ export const getProfileStatsCached = async (
   supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<ProfileStats> => {
+  // 캐시 키의 버전은 ProfileStats 모양이 바뀔 때 올린다. 배포 전에 저장된 옛 형태의 캐시
+  // (예: blogPostsCount 없음)가 재배포 후에도 남아 undefined로 노출되는 것을 막는다.
   const cached = unstable_cache(
     async () => getProfileStats(supabase, userId),
-    ["profile-stats", userId],
+    ["profile-stats-v2", userId],
     {
       revalidate: 300,
       tags: ["profile-all", `profile-stats-${userId}`],
