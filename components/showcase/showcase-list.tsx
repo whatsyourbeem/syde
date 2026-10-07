@@ -5,7 +5,6 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { ShowcaseCard } from "@/components/showcase/showcase-card";
 import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
-import { Database } from "@/types/database.types";
 import { fetchShowcasesAction } from "@/app/showcase/showcase-data-actions";
 import {
   OptimizedShowcase,
@@ -117,72 +116,6 @@ export function ShowcaseList({
     () => data?.pages.flatMap((page) => page.mentionedProfiles) || [],
     [data?.pages]
   );
-
-  useEffect(() => {
-    const showcaseIdsForFilter: string[] = showcases
-      .map((showcase) => showcase.id)
-      .filter((id): id is string => id !== null);
-
-    if (showcaseIdsForFilter.length === 0) return;
-
-    const channel = supabase
-      .channel("syde-showcase-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "showcases" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "showcase_upvotes",
-          filter: `showcase_id=in.(${showcaseIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedShowcaseId =
-            (
-              payload.new as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
-            ).showcase_id ||
-            (
-              payload.old as Database["public"]["Tables"]["showcase_upvotes"]["Row"]
-            ).showcase_id;
-          if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-          }
-        },
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "showcase_comments",
-          filter: `showcase_id=in.(${showcaseIdsForFilter.join(",")})`,
-        },
-        (payload) => {
-          const changedShowcaseId =
-            (
-              payload.new as Database["public"]["Tables"]["showcase_comments"]["Row"]
-            ).showcase_id ||
-            (
-              payload.old as Database["public"]["Tables"]["showcase_comments"]["Row"]
-            ).showcase_id;
-          if (showcases.some((showcase) => showcase.id === changedShowcaseId)) {
-            queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, queryClient, showcases]);
 
   if (isLoading) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { FeedCard } from "@/components/feed/feed-card";
@@ -97,51 +97,6 @@ export function FeedList({
     () => data?.pages.flatMap((page) => page.mentionedProfiles) || [],
     [data?.pages]
   );
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("syde-log-feed")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "logs" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "log_likes" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "log_bookmarks" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "log_comments" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "activity_feed" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, queryClient]);
 
   if (isLoading) {
     return (
