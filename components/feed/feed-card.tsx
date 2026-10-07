@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo, useCallback } from "react";
+import { useState, memo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -23,11 +23,11 @@ interface FeedCardProps {
     log_comments: Array<{ id: string }>;
   };
   currentUserId: string | null;
-  initialLikesCount: number;
-  initialHasLiked: boolean;
-  initialBookmarksCount: number;
-  initialHasBookmarked: boolean;
-  initialCommentsCount: number;
+  likesCount: number;
+  hasLiked: boolean;
+  bookmarksCount: number;
+  hasBookmarked: boolean;
+  commentsCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
   searchQuery?: string;
   isDetailPage?: boolean;
@@ -37,11 +37,11 @@ interface FeedCardProps {
 function FeedCardBase({
   log,
   currentUserId,
-  initialLikesCount,
-  initialHasLiked,
-  initialBookmarksCount,
-  initialHasBookmarked,
-  initialCommentsCount,
+  likesCount,
+  hasLiked,
+  bookmarksCount,
+  hasBookmarked,
+  commentsCount,
   mentionedProfiles,
   searchQuery,
   isDetailPage = false,
@@ -49,11 +49,6 @@ function FeedCardBase({
 }: FeedCardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [likesCount, setLikesCount] = useState(initialLikesCount);
-  const [hasLiked, setHasLiked] = useState(initialHasLiked);
-  const [bookmarksCount, setBookmarksCount] = useState(initialBookmarksCount);
-  const [hasBookmarked, setHasBookmarked] = useState(initialHasBookmarked);
-  const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
   const [loading, setLoading] = useState(false);
 
   // Intersection observer for performance optimization
@@ -62,36 +57,6 @@ function FeedCardBase({
     rootMargin: "100px",
     enabled: !isDetailPage, // Disable on detail pages
   });
-
-  useEffect(() => {
-    setLikesCount(initialLikesCount);
-    setHasLiked(initialHasLiked);
-    setCommentsCount(initialCommentsCount);
-    setBookmarksCount(initialBookmarksCount);
-    setHasBookmarked(initialHasBookmarked);
-  }, [
-    initialLikesCount,
-    initialHasLiked,
-    initialCommentsCount,
-    initialBookmarksCount,
-    initialHasBookmarked,
-  ]);
-
-  const handleLikeStatusChange = useCallback(
-    (newLikesCount: number, newHasLiked: boolean) => {
-      setLikesCount(newLikesCount);
-      setHasLiked(newHasLiked);
-    },
-    []
-  );
-
-  const handleBookmarkStatusChange = useCallback(
-    (newBookmarksCount: number, newHasBookmarked: boolean) => {
-      setBookmarksCount(newBookmarksCount);
-      setHasBookmarked(newHasBookmarked);
-    },
-    []
-  );
 
   const handleDelete = async () => {
     if (currentUserId !== log.user_id) return;
@@ -150,8 +115,6 @@ function FeedCardBase({
             bookmarksCount={bookmarksCount}
             hasBookmarked={hasBookmarked}
             commentsCount={commentsCount}
-            onLikeStatusChange={handleLikeStatusChange}
-            onBookmarkStatusChange={handleBookmarkStatusChange}
           />
         </>
       ) : (
@@ -169,11 +132,11 @@ const MemoizedFeedCardBase = memo(FeedCardBase, (prevProps, nextProps) => {
   return (
     prevProps.log.id === nextProps.log.id &&
     prevProps.currentUserId === nextProps.currentUserId &&
-    prevProps.initialLikesCount === nextProps.initialLikesCount &&
-    prevProps.initialHasLiked === nextProps.initialHasLiked &&
-    prevProps.initialBookmarksCount === nextProps.initialBookmarksCount &&
-    prevProps.initialHasBookmarked === nextProps.initialHasBookmarked &&
-    prevProps.initialCommentsCount === nextProps.initialCommentsCount &&
+    prevProps.likesCount === nextProps.likesCount &&
+    prevProps.hasLiked === nextProps.hasLiked &&
+    prevProps.bookmarksCount === nextProps.bookmarksCount &&
+    prevProps.hasBookmarked === nextProps.hasBookmarked &&
+    prevProps.commentsCount === nextProps.commentsCount &&
     prevProps.searchQuery === nextProps.searchQuery &&
     prevProps.isDetailPage === nextProps.isDetailPage &&
     prevProps.log.profiles?.id === nextProps.log.profiles?.id &&

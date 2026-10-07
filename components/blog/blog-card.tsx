@@ -48,6 +48,7 @@ export interface BlogCardProps {
 
 import { toggleBlogPostLike } from "@/app/blog/blog-actions";
 import { useQueryClient } from "@tanstack/react-query";
+import { patchBlogPost, restoreSnapshot } from "@/lib/queries/cache-patches";
 
 export function BlogCard({
     id,
@@ -88,10 +89,17 @@ export function BlogCard({
         setStats(prev => ({ ...prev, likes: isLiked ? prev.likes - 1 : prev.likes + 1 }));
         setStatus(prev => ({ ...prev, hasLiked: !isLiked }));
 
+        // 목록 캐시도 같이 고쳐 두고, 실패하면 되돌린다.
+        const snapshot = await patchBlogPost(queryClient, id, (post) => ({
+            ...post,
+            stats: { ...post.stats, likes: Math.max(0, post.stats.likes + (isLiked ? -1 : 1)) },
+            initialStatus: { hasBookmarked: false, ...post.initialStatus, hasLiked: !isLiked },
+        }));
+
         try {
             await toggleBlogPostLike(id, isLiked);
-            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
         } catch (error) {
+            restoreSnapshot(queryClient, snapshot);
             toast.error("좋아요 처리 중 오류가 발생했습니다.");
             setStats(prev => ({ ...prev, likes: isLiked ? prev.likes + 1 : prev.likes - 1 }));
             setStatus(prev => ({ ...prev, hasLiked: isLiked }));

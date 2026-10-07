@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { formatRelativeTime, linkifyMentions } from "@/lib/utils";
 import { Database } from "@/types/database.types";
 import { showcaseKeys } from "@/lib/queries/query-keys";
+import { patchShowcase } from "@/lib/queries/cache-patches";
 import { motion, AnimatePresence } from "motion/react";
 
 import {
@@ -210,7 +211,11 @@ export function ShowcaseDetail({ showcase, initialHtml }: ShowcaseDetailProps) {
 
     const result = await toggleShowcaseUpvote(showcase.id, previousUpvoted);
     if (result.success) {
-      queryClient.invalidateQueries({ queryKey: showcaseKeys.all });
+      patchShowcase(queryClient, showcase.id, (s) => ({
+        ...s,
+        hasUpvoted: !previousUpvoted,
+        upvotesCount: Math.max(0, s.upvotesCount + (previousUpvoted ? -1 : 1)),
+      }));
     } else {
       toast.error(result.error.message);
       setHasUpvoted(previousUpvoted);

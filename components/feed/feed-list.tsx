@@ -188,11 +188,11 @@ export function FeedList({
                     <FeedCard
                       log={item.data}
                       currentUserId={propCurrentUserId}
-                      initialLikesCount={item.data.likesCount}
-                      initialHasLiked={item.data.hasLiked}
-                      initialBookmarksCount={item.data.bookmarksCount}
-                      initialHasBookmarked={item.data.hasBookmarked}
-                      initialCommentsCount={item.data.log_comments.length}
+                      likesCount={item.data.likesCount}
+                      hasLiked={item.data.hasLiked}
+                      bookmarksCount={item.data.bookmarksCount}
+                      hasBookmarked={item.data.hasBookmarked}
+                      commentsCount={item.data.log_comments.length}
                       mentionedProfiles={mentionedProfiles}
                       searchQuery={searchQuery}
                       isDetailPage={false}

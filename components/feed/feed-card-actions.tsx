@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { deleteLogLike, insertLogLike } from "@/lib/queries/log-queries";
+import { patchFeedLog, restoreSnapshot } from "@/lib/queries/cache-patches";
 
 interface FeedCardActionsProps {
   logId: string;
@@ -18,8 +19,6 @@ interface FeedCardActionsProps {
   bookmarksCount: number;
   hasBookmarked: boolean;
   commentsCount: number;
-  onLikeStatusChange: (newLikesCount: number, newHasLiked: boolean) => void;
-  onBookmarkStatusChange: (newBookmarksCount: number, newHasBookmarked: boolean) => void;
 }
 
 function FeedCardActionsBase({
@@ -30,8 +29,6 @@ function FeedCardActionsBase({
   bookmarksCount,
   hasBookmarked,
   commentsCount,
-  onLikeStatusChange,
-  onBookmarkStatusChange,
 }: FeedCardActionsProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -51,24 +48,27 @@ function FeedCardActionsBase({
     if (likeLoading) return;
 
     setLikeLoading(true);
-    const newLikesCount = hasLiked ? likesCount - 1 : likesCount + 1;
-    const newHasLiked = !hasLiked;
-    onLikeStatusChange(newLikesCount, newHasLiked);
+    const wasLiked = hasLiked;
+    // 캐시를 먼저 고쳐 화면에 바로 반영한다. 실패하면 스냅샷으로 되돌린다.
+    const snapshot = await patchFeedLog(queryClient, logId, (log) => ({
+      ...log,
+      hasLiked: !wasLiked,
+      likesCount: log.likesCount + (wasLiked ? -1 : 1),
+    }));
 
     const supabase = createClient();
     try {
-      if (hasLiked) {
+      if (wasLiked) {
         await deleteLogLike(supabase, logId, currentUserId);
       } else {
         await insertLogLike(supabase, logId, currentUserId);
       }
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
-    } catch (error) {
-      toast.error(hasLiked ? "좋아요 취소 실패" : "좋아요 실패");
-      onLikeStatusChange(likesCount, hasLiked); // Revert on error
+    } catch {
+      toast.error(wasLiked ? "좋아요 취소 실패" : "좋아요 실패");
+      restoreSnapshot(queryClient, snapshot);
     }
     setLikeLoading(false);
-  }, [currentUserId, logId, hasLiked, likesCount, likeLoading, openLoginDialog, onLikeStatusChange, queryClient]);
+  }, [currentUserId, logId, hasLiked, likeLoading, openLoginDialog, queryClient]);
 
   const handleBookmark = useCallback(async () => {
     if (!currentUserId) {
@@ -78,19 +78,20 @@ function FeedCardActionsBase({
     if (bookmarkLoading) return;
 
     setBookmarkLoading(true);
-    const newBookmarksCount = hasBookmarked ? bookmarksCount - 1 : bookmarksCount + 1;
-    const newHasBookmarked = !hasBookmarked;
-    onBookmarkStatusChange(newBookmarksCount, newHasBookmarked);
+    const wasBookmarked = hasBookmarked;
+    const snapshot = await patchFeedLog(queryClient, logId, (log) => ({
+      ...log,
+      hasBookmarked: !wasBookmarked,
+      bookmarksCount: log.bookmarksCount + (wasBookmarked ? -1 : 1),
+    }));
 
-    const result = await toggleLogBookmark(logId, hasBookmarked);
+    const result = await toggleLogBookmark(logId, wasBookmarked);
     if (!result.success) {
       toast.error(result.error.message);
-      onBookmarkStatusChange(bookmarksCount, hasBookmarked); // Revert on error
-    } else {
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      restoreSnapshot(queryClient, snapshot);
     }
     setBookmarkLoading(false);
-  }, [currentUserId, logId, hasBookmarked, bookmarksCount, bookmarkLoading, openLoginDialog, onBookmarkStatusChange, queryClient]);
+  }, [currentUserId, logId, hasBookmarked, bookmarkLoading, openLoginDialog, queryClient]);
 
   return (
     <InteractionActions

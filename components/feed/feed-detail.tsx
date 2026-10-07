@@ -50,6 +50,7 @@ import { CommentList } from "@/components/comment/comment-list";
 import { Database } from "@/types/database.types";
 import { PublicProfile } from "@/types/profile";
 import { deleteLog, toggleLogBookmark } from "@/app/feed/feed-actions";
+import { patchFeedLog } from "@/lib/queries/cache-patches";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { OgPreviewCard } from "@/components/common/og-preview-card";
 import { CertifiedBadge } from "@/components/ui/certified-badge";
@@ -214,7 +215,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
         if (!error) {
           setCurrentLikesCount((prev) => prev - 1);
           setCurrentHasLiked(false);
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
+          patchFeedLog(queryClient, log.id, (l) => ({ ...l, hasLiked: false, likesCount: Math.max(0, l.likesCount - 1) }));
         } else {
           console.error("Error unliking log:", error);
           toast.error("좋아요 취소에 실패했습니다.");
@@ -227,7 +228,7 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
         if (!error) {
           setCurrentLikesCount((prev) => prev + 1);
           setCurrentHasLiked(true);
-          queryClient.invalidateQueries({ queryKey: ["feed"] });
+          patchFeedLog(queryClient, log.id, (l) => ({ ...l, hasLiked: true, likesCount: l.likesCount + 1 }));
         } else {
           console.error("Error liking log:", error);
           toast.error("좋아요에 실패했습니다.");
@@ -261,7 +262,11 @@ export function FeedDetail({ log, user }: FeedDetailProps) {
       setCurrentHasBookmarked(!newHasBookmarked);
       setCurrentBookmarksCount(currentBookmarksCount);
     } else {
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      patchFeedLog(queryClient, log.id, (l) => ({
+        ...l,
+        hasBookmarked: newHasBookmarked,
+        bookmarksCount: newBookmarksCount,
+      }));
     }
     setBookmarkLoading(false);
   };
