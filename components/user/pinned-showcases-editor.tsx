@@ -48,7 +48,7 @@ export function PinnedShowcasesEditor({
       fetchShowcasesAction({
         currentUserId: userId,
         showcasesPerPage: 50,
-        filterByUserId: userId,
+        filterByParticipantUserId: userId,
       }),
     enabled: open,
   });
