@@ -66,9 +66,9 @@ export type FeedItem = LogFeedItem | ActivityFeedEntry;
 
 export interface FeedQueryResult {
   items: FeedItem[];
-  totalCount: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
-  currentPage: number;
+  /** 다음 페이지를 불러올 때 쓸 커서(마지막 항목의 created_at). 더 없으면 null. */
+  nextCursor: string | null;
 }
 
 // ===== Activity Message Helpers =====
@@ -147,7 +147,7 @@ export async function getUnifiedFeed(
 ): Promise<FeedQueryResult> {
   const {
     currentUserId,
-    currentPage,
+    cursor,
     logsPerPage,
     filterByUserId,
     filterByCommentedUserId,
@@ -174,9 +174,8 @@ export async function getUnifiedFeed(
         created_at: log.created_at || new Date().toISOString(),
         data: log,
       })),
-      totalCount: logResult.count,
       mentionedProfiles: logResult.mentionedProfiles,
-      currentPage: logResult.currentPage,
+      nextCursor: logResult.nextCursor,
     };
   }
 
@@ -186,31 +185,9 @@ export async function getUnifiedFeed(
   // Strategy: Use a DB function or fetch both with generous limits and merge client-side.
   // Here we use the client-side merge approach for simplicity.
 
-  // Step 1: Get total counts for both tables
-  let logCountQuery = supabase.from("logs").select("id", { count: "exact", head: true });
-  let activityCountQuery = supabase.from("activity_feed").select("id", { count: "exact", head: true });
-
-  if (filterByUserId) {
-    logCountQuery = logCountQuery.eq("user_id", filterByUserId);
-    activityCountQuery = activityCountQuery.eq("user_id", filterByUserId) as typeof activityCountQuery;
-  }
-
-  const [logCountResult, activityCountResult] = await Promise.all([
-    logCountQuery,
-    activityCountQuery,
-  ]);
-
-  const totalLogCount = logCountResult.count || 0;
-  const totalActivityCount = activityCountResult.count || 0;
-  const totalCount = totalLogCount + totalActivityCount;
-
-  // Step 2: Determine the range for this page
-  const from = (currentPage - 1) * logsPerPage;
-  const to = from + logsPerPage - 1;
-
-  // Step 3: Fetch logs and activities with enough range to cover the page
-  // We fetch from both tables ordered by created_at DESC and take enough items
-  // to fill the page. Since we need to merge, we fetch `logsPerPage` from each.
+  // Step 1: 두 테이블에서 커서 이전 항목을 created_at DESC로 가져온다.
+  // 합친 결과의 상위 N개는 각 테이블의 상위 N개 안에 반드시 있으므로,
+  // 테이블마다 N+1개(다음 페이지 존재 여부 확인용)만 가져오면 된다.
   const logSelectQuery = `
     id,
     content,
@@ -246,6 +223,11 @@ export async function getUnifiedFeed(
     activitiesQuery = activitiesQuery.eq("user_id", filterByUserId) as typeof activitiesQuery;
   }
 
+  if (cursor) {
+    logsQuery = logsQuery.lt("created_at", cursor);
+    activitiesQuery = activitiesQuery.lt("created_at", cursor) as typeof activitiesQuery;
+  }
+
   // Fetch liked log IDs for "hasLiked" computation
   let likedLogIdsSet = new Set<string>();
   if (currentUserId) {
@@ -260,10 +242,7 @@ export async function getUnifiedFeed(
     }
   }
 
-  // For efficient pagination, we use a cursor-like approach:
-  // Fetch `to + 1` items from each source ordered by created_at DESC,
-  // merge, sort, and take the slice [from, to].
-  const fetchLimit = to + 1; // enough to cover any page
+  const fetchLimit = logsPerPage + 1;
 
   const [logsResult, activitiesResult] = await Promise.all([
     logsQuery.limit(fetchLimit),
@@ -342,7 +321,8 @@ export async function getUnifiedFeed(
   );
 
   // Paginate
-  const pageItems = allItems.slice(from, to + 1);
+  const hasMore = allItems.length > logsPerPage;
+  const pageItems = allItems.slice(0, logsPerPage);
 
   // Extract mentioned profiles from logs on this page
   const logItems = pageItems.filter(
@@ -355,9 +335,8 @@ export async function getUnifiedFeed(
 
   return {
     items: pageItems,
-    totalCount,
     mentionedProfiles,
-    currentPage,
+    nextCursor: hasMore ? pageItems[pageItems.length - 1]?.created_at ?? null : null,
   };
 }
 

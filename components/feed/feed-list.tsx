@@ -62,9 +62,9 @@ export function FeedList({
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: queryKey,
-    queryFn: ({ pageParam = 1 }) => getUnifiedFeed(supabase, {
+    queryFn: ({ pageParam }) => getUnifiedFeed(supabase, {
       currentUserId: propCurrentUserId,
-      currentPage: pageParam,
+      cursor: pageParam,
       logsPerPage: ITEMS_PER_PAGE,
       filterByUserId,
       filterByCommentedUserId,
@@ -72,19 +72,13 @@ export function FeedList({
       filterByBookmarkedUserId,
       searchQuery,
     }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const currentLoadedCount = lastPage.currentPage * ITEMS_PER_PAGE;
-      if (currentLoadedCount < lastPage.totalCount) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: LIST_STALE_TIME,
     initialData: !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && initialFeed 
       ? {
           pages: [initialFeed],
-          pageParams: [1],
+          pageParams: [null],
         }
       : undefined,
   });

@@ -74,10 +74,10 @@ export function ShowcaseList({
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: queryKey,
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       fetchShowcasesAction({
         currentUserId,
-        currentPage: pageParam,
+        cursor: pageParam,
         showcasesPerPage: SHOWCASES_PER_PAGE,
         filterByUserId,
         filterByParticipantUserId,
@@ -85,14 +85,8 @@ export function ShowcaseList({
         filterByUpvotedUserId,
         searchQuery,
       }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const currentLoadedCount = lastPage.currentPage * SHOWCASES_PER_PAGE;
-      if (currentLoadedCount < lastPage.count) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: LIST_STALE_TIME,
     initialData:
       initialShowcases &&
@@ -102,7 +96,7 @@ export function ShowcaseList({
       !searchQuery
         ? {
             pages: [initialShowcases],
-            pageParams: [1],
+            pageParams: [null],
           }
         : undefined,
   });

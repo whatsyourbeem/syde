@@ -42,7 +42,6 @@ export async function getFeaturedShowcases(
   if (pinnedIds.length > 0) {
     const result = await fetchShowcasesAction({
       currentUserId,
-      currentPage: 1,
       showcasesPerPage: pinnedIds.length,
       filterByShowcaseIds: pinnedIds,
     });
@@ -63,7 +62,6 @@ export async function getFeaturedShowcases(
 
   const result = await fetchShowcasesAction({
     currentUserId,
-    currentPage: 1,
     showcasesPerPage: data.length,
     filterByShowcaseIds: data.map((row) => row.id),
   });

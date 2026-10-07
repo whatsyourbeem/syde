@@ -37,23 +37,18 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["blog-posts", "feed", filterByUserId],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam }) =>
       fetchBlogPostsAction({
-        currentPage: pageParam,
+        cursor: pageParam,
         itemsPerPage: ITEMS_PER_PAGE,
         currentUserId,
         userId: filterByUserId,
       }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.hasMore) {
-        return lastPage.currentPage + 1;
-      }
-      return undefined;
-    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData: {
       pages: [initialPosts],
-      pageParams: [1],
+      pageParams: [null],
     },
     staleTime: LIST_STALE_TIME,
   });

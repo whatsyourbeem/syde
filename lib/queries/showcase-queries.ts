@@ -36,7 +36,8 @@ export interface OptimizedShowcase extends ShowcaseRow {
 
 export interface ShowcaseQueryOptions {
   currentUserId: string | null;
-  currentPage: number;
+  /** 이전 페이지 마지막 항목의 bumped_at. 없으면 첫 페이지. */
+  cursor?: string | null;
   showcasesPerPage: number;
   filterByUserId?: string;
   filterByParticipantUserId?: string;
@@ -49,9 +50,9 @@ export interface ShowcaseQueryOptions {
 
 export interface ShowcaseQueryResult {
   showcases: OptimizedShowcase[];
-  count: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
-  currentPage: number;
+  /** 다음 페이지를 불러올 때 쓸 커서. 더 없으면 null. */
+  nextCursor: string | null;
 }
 
 /**

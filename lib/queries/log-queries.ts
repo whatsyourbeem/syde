@@ -18,7 +18,8 @@ export interface OptimizedLog extends LogRow {
 
 export interface LogQueryOptions {
   currentUserId: string | null;
-  currentPage: number;
+  /** 이전 페이지의 마지막 항목 created_at. 없으면 첫 페이지. */
+  cursor?: string | null;
   logsPerPage: number;
   filterByUserId?: string;
   filterByCommentedUserId?: string;
@@ -29,9 +30,9 @@ export interface LogQueryOptions {
 
 export interface LogQueryResult {
   logs: OptimizedLog[];
-  count: number;
   mentionedProfiles: Array<{ id: string; username: string | null }>;
-  currentPage: number;
+  /** 다음 페이지를 불러올 때 쓸 커서. 더 없으면 null. */
+  nextCursor: string | null;
 }
 
 /**
@@ -41,7 +42,7 @@ export async function getOptimizedLogs(
   supabase: SupabaseClient<Database>,
   {
     currentUserId,
-    currentPage,
+    cursor,
     logsPerPage,
     filterByUserId,
     filterByCommentedUserId,
@@ -50,9 +51,6 @@ export async function getOptimizedLogs(
     searchQuery,
   }: LogQueryOptions
 ): Promise<LogQueryResult> {
-  const from = (currentPage - 1) * logsPerPage;
-  const to = from + logsPerPage - 1;
-
   // 1. Fetch liked log IDs for the current user in a separate query.
   let likedLogIdsSet = new Set<string>();
   if (currentUserId) {
@@ -80,7 +78,7 @@ export async function getOptimizedLogs(
     likes_count:log_likes(count)
   `;
 
-  let query = supabase.from("logs").select(selectQuery, { count: "exact" });
+  let query = supabase.from("logs").select(selectQuery);
 
   // Handle search query optimization
   if (searchQuery) {
@@ -88,7 +86,7 @@ export async function getOptimizedLogs(
     if (searchConditions.length > 0) {
       query = query.or(searchConditions.join(","));
     } else {
-      return { logs: [], count: 0, mentionedProfiles: [], currentPage };
+      return { logs: [], mentionedProfiles: [], nextCursor: null };
     }
   }
 
@@ -97,26 +95,33 @@ export async function getOptimizedLogs(
     query = query.eq("user_id", filterByUserId);
   } else if (filterByCommentedUserId) {
     const commentedLogIds = await getCommentedLogIds(supabase, filterByCommentedUserId);
-    if (commentedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [], currentPage };
+    if (commentedLogIds.length === 0) return { logs: [], mentionedProfiles: [], nextCursor: null };
     query = query.in("id", commentedLogIds);
   } else if (filterByLikedUserId) {
     const likedLogIds = await getLikedLogIds(supabase, filterByLikedUserId);
-    if (likedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [], currentPage };
+    if (likedLogIds.length === 0) return { logs: [], mentionedProfiles: [], nextCursor: null };
     query = query.in("id", likedLogIds);
   } else if (filterByBookmarkedUserId) {
     const bookmarkedLogIds = await getBookmarkedLogIds(supabase, filterByBookmarkedUserId);
-    if (bookmarkedLogIds.length === 0) return { logs: [], count: 0, mentionedProfiles: [], currentPage };
+    if (bookmarkedLogIds.length === 0) return { logs: [], mentionedProfiles: [], nextCursor: null };
     query = query.in("id", bookmarkedLogIds);
   }
 
-  // Execute the main query
-  const { data: logsData, error: logsError, count } = await query
+  if (cursor) {
+    query = query.lt("created_at", cursor);
+  }
+
+  // 한 건 더 가져와 다음 페이지가 있는지 판단한다.
+  const { data: fetched, error: logsError } = await query
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .limit(logsPerPage + 1);
 
   if (logsError) {
     throw logsError;
   }
+
+  const hasMore = (fetched?.length ?? 0) > logsPerPage;
+  const logsData = (fetched || []).slice(0, logsPerPage);
 
   // Batch fetch mentioned profiles
   const mentionedProfiles = await getMentionedProfiles(supabase, logsData || []);
@@ -137,9 +142,8 @@ export async function getOptimizedLogs(
 
   return {
     logs: processedLogs,
-    count: count || 0,
     mentionedProfiles,
-    currentPage,
+    nextCursor: hasMore ? processedLogs[processedLogs.length - 1]?.created_at ?? null : null,
   };
 }
 

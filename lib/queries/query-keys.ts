@@ -6,7 +6,8 @@ import type { ProfilesListOptions } from "./profile-queries";
 export const showcaseKeys = {
   all: ["showcases"] as const,
   lists: () => [...showcaseKeys.all, "list"] as const,
-  list: (filters: Partial<ShowcaseQueryOptions>) => [...showcaseKeys.lists(), filters] as const,
+  // currentPage는 페이지 번호 방식을 쓰는 검색 목록용
+  list: (filters: Partial<ShowcaseQueryOptions> & { currentPage?: number }) => [...showcaseKeys.lists(), filters] as const,
   details: () => [...showcaseKeys.all, "detail"] as const,
   detail: (id: string) => [...showcaseKeys.details(), id] as const,
 };

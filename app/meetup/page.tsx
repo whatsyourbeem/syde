@@ -26,7 +26,6 @@ export default async function MeetupPage({
   const selectedStatus = awaitedSearchParams.status;
 
   const initialMeetups = await fetchMeetupsAction({
-    currentPage: 1,
     status: selectedStatus,
   });
 

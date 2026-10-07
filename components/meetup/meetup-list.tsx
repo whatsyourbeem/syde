@@ -11,9 +11,7 @@ const MEETUPS_PER_PAGE = 12;
 interface MeetupListProps {
   initialMeetups: {
     meetups: any[];
-    count: number;
-    hasMore: boolean;
-    currentPage: number;
+    nextCursor: string | null;
   };
   status?: string;
 }
@@ -22,22 +20,17 @@ export function MeetupList({ initialMeetups, status }: MeetupListProps) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       queryKey: ["meetups", "list", status ?? "전체"],
-      queryFn: ({ pageParam = 1 }) =>
+      queryFn: ({ pageParam }) =>
         fetchMeetupsAction({
-          currentPage: pageParam,
+          cursor: pageParam,
           meetupsPerPage: MEETUPS_PER_PAGE,
           status,
         }),
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) => {
-        if (lastPage.hasMore) {
-          return lastPage.currentPage + 1;
-        }
-        return undefined;
-      },
+      initialPageParam: null as string | null,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       initialData: {
         pages: [initialMeetups],
-        pageParams: [1],
+        pageParams: [null],
       },
       staleTime: LIST_STALE_TIME,
     });
