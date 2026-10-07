@@ -34,7 +34,8 @@ interface MobileMenuProps {
 
 export function MobileMenu({ authButton }: MobileMenuProps) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const profileLink = profile?.username ? `/@${profile.username}` : "/profile";
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -78,6 +79,11 @@ export function MobileMenu({ authButton }: MobileMenuProps) {
           </div>
           {user && (
             <div className="flex flex-col gap-1 pb-2 border-b w-full">
+              <SheetClose asChild>
+                <Link href={profileLink} prefetch={false} className="p-2 hover:bg-secondary rounded-md transition-all">
+                  마이페이지
+                </Link>
+              </SheetClose>
               <SheetClose asChild>
                 <Link href="/profile" className="p-2 hover:bg-secondary rounded-md transition-all">
                   프로필 관리
