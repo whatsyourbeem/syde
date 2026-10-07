@@ -144,14 +144,14 @@ export default function BioEditor({
           {isTiptapJsonEmpty(initialBio) ? (
             <div className="flex flex-col items-center justify-center py-6 gap-3">
               <p className="text-[#777777] text-sm font-light">
-                아직 이야기가 시작되지 않았어요.
+                아직 소개글이 작성되지 않았어요.
               </p>
               {isOwnProfile && (
                 <Button
                   onClick={() => onEditingChange(true)}
                   className="bg-sydeorange hover:bg-sydeorange/90 text-white text-sm font-bold h-[37px] px-3 rounded-xl gap-2 transition-colors"
                 >
-                  스토리 작성하기 ✍️
+                  소개 작성하기 ✍️
                 </Button>
               )}
             </div>

@@ -51,15 +51,15 @@ export function ProfileCardBody({
 
   return (
     <div className="flex flex-col gap-3 md:gap-4">
-      {/* 스토리 */}
+      {/* 소개 */}
       <div className="px-5 py-4 md:px-8 md:py-6">
-        <SectionHeader title="스토리">
+        <SectionHeader title="소개">
           {isOwnProfile && !isEditingStory && (
             <button
               onClick={() => setIsEditingStory(true)}
               className="text-sydeorange text-[13px] font-bold hover:opacity-80 transition-opacity"
             >
-              스토리 수정 ✍️
+              편집
             </button>
           )}
         </SectionHeader>

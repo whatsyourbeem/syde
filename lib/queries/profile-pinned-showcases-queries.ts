@@ -48,10 +48,22 @@ export async function getFeaturedShowcases(
     return result.showcases;
   }
 
+  // 직접 만든 쇼케이스 + 팀원으로 참여한 쇼케이스를 함께 후보로 삼는다.
+  const { data: memberRows, error: memberError } = await supabase
+    .from("showcases_members")
+    .select("showcase_id")
+    .eq("user_id", userId);
+
+  if (memberError) {
+    console.error("Error fetching member showcases:", memberError);
+  }
+
+  const memberIds = (memberRows || []).map((row) => row.showcase_id);
+  const ownedFilter = `user_id.eq.${userId}`;
   const { data, error } = await supabase
     .from("showcases")
     .select("id")
-    .eq("user_id", userId)
+    .or(memberIds.length > 0 ? `${ownedFilter},id.in.(${memberIds.join(",")})` : ownedFilter)
     .in("status", FALLBACK_STATUSES)
     .order("created_at", { ascending: false })
     .limit(3);
