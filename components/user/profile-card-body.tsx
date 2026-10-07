@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import BioEditor from "@/components/user/bio-editor";
 import { UserJoinedMeetupsList } from "@/components/user/user-joined-meetups-list";
-import { UserBlogMiniList } from "@/components/user/user-blog-mini-list";
 import { PinnedShowcasesSection } from "@/components/user/pinned-showcases-section";
 import { SectionHeader } from "@/components/user/section-header";
 import { PublicProfile } from "@/types/profile";
@@ -13,7 +12,7 @@ import { OptimizedShowcase } from "@/lib/queries/showcase-queries";
 interface ProfileCardBodyProps {
   profile: PublicProfile;
   isOwnProfile: boolean;
-  currentUserId: string | null;
+  hasBlogPosts: boolean;
   initialHtml?: string;
   featuredShowcases: OptimizedShowcase[];
 }
@@ -21,7 +20,7 @@ interface ProfileCardBodyProps {
 export function ProfileCardBody({
   profile,
   isOwnProfile,
-  currentUserId,
+  hasBlogPosts,
   initialHtml,
   featuredShowcases,
 }: ProfileCardBodyProps) {
@@ -80,12 +79,8 @@ export function ProfileCardBody({
         userId={profile.id}
         isOwnProfile={isOwnProfile}
         initialShowcases={featuredShowcases}
+        compactEmpty={hasBlogPosts}
       />
-
-      {/* 쓴 글 */}
-      <div className="px-5 py-4 md:px-8 md:py-6">
-        <UserBlogMiniList userId={profile.id} currentUserId={currentUserId} />
-      </div>
 
       {/* 함께한 모임 */}
       <div className="px-5 py-4 md:px-8 md:py-6">

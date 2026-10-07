@@ -7,12 +7,53 @@ import { ProfileSocialLinks } from "@/components/user/profile-social-links";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { getProfileByUsernameCached } from "@/lib/queries/profile-queries";
 import { getProfileStatsCached } from "@/lib/queries/profile-stats-queries";
+import { ProfileTabs, ProfileTab } from "@/components/user/profile-tabs";
+import { ProfileBlogTab } from "@/components/user/profile-blog-tab";
+import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
 import { getFeaturedShowcases } from "@/lib/queries/profile-pinned-showcases-queries";
 
 import { Metadata, ResolvingMetadata } from "next";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
+  searchParams: Promise<{ tab?: string | string[] }>;
+}
+
+const BLOG_PAGE_SIZE = 10;
+const SITE_DEFAULT_OG_IMAGE = "/we-are-syders.png";
+const DESCRIPTION_MAX_LENGTH = 120;
+
+/** ?tab= 값을 검증하고, 없거나 잘못되면 소개 탭으로 폴백한다. */
+function resolveTab(rawTab: string | string[] | undefined): ProfileTab {
+  const tab = Array.isArray(rawTab) ? rawTab[0] : rawTab;
+  return tab === "blog" ? "blog" : "about";
+}
+
+function truncate(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+}
+
+const HTML_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&nbsp;": " ",
+};
+
+/** 스토리 HTML에서 내용이 있는 첫 문단의 텍스트만 뽑는다. */
+function extractFirstParagraph(html: string): string {
+  for (const match of html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)) {
+    const text = match[1]
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&(amp|lt|gt|quot|#39|nbsp);/g, (entity) => HTML_ENTITIES[entity] ?? entity)
+      .replace(/\s+/g, " ")
+      .trim();
+    if (text) return text;
+  }
+  return "";
 }
 
 /**
@@ -35,11 +76,12 @@ function normalizeUsernameParam(rawParam: string): {
 }
 
 export async function generateMetadata(
-  { params }: UserProfilePageProps,
+  { params, searchParams }: UserProfilePageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { username: rawParam } = await params;
   const { username } = normalizeUsernameParam(rawParam);
+  const { tab: rawTab } = await searchParams;
   const supabase = await createClient();
 
   const profile = await getProfileByUsernameCached(supabase, username);
@@ -52,29 +94,38 @@ export async function generateMetadata(
 
   const displayName = profile.full_name || profile.username;
   const title = `${displayName} (@${profile.username}) - SYDE`;
-  const description = profile.tagline || `${displayName}님의 프로필입니다.`;
-  const images = profile.avatar_url ? [profile.avatar_url] : [];
+  const firstParagraph = extractFirstParagraph(getInitialHtmlFromTiptap(profile.bio));
+  const descriptionSource = firstParagraph || profile.tagline?.trim() || "";
+  const description = descriptionSource
+    ? truncate(descriptionSource, DESCRIPTION_MAX_LENGTH)
+    : `${displayName}님의 SYDE 프로필`;
+  const images = [profile.avatar_url || SITE_DEFAULT_OG_IMAGE];
+
+  const tab = resolveTab(rawTab);
+  const canonical = `/@${profile.username}?tab=${tab}`;
 
   return {
     title,
     description,
     alternates: {
-      canonical: `/@${profile.username}`,
+      canonical,
     },
     openGraph: {
       title,
       description,
       images,
       type: "profile",
-      url: `/@${profile.username}`,
+      url: canonical,
     },
   };
 }
 
 export default async function UserProfilePage({
   params,
+  searchParams,
 }: UserProfilePageProps) {
   const { username: rawParam } = await params;
+  const { tab: rawTab } = await searchParams;
   const { hasAt, username } = normalizeUsernameParam(rawParam);
   const supabase = await createClient();
 
@@ -98,9 +149,21 @@ export default async function UserProfilePage({
 
   const initialHtml = getInitialHtmlFromTiptap(profile.bio);
 
-  const [stats, featuredShowcases] = await Promise.all([
-    getProfileStatsCached(supabase, profile.id),
-    getFeaturedShowcases(supabase, profile.id, user?.id || null),
+  const stats = await getProfileStatsCached(supabase, profile.id);
+  const activeTab = resolveTab(rawTab);
+
+  // 선택된 탭의 내용만 서버에서 가져와 공유 링크로 들어와도 첫 화면에 보이게 한다.
+  const [featuredShowcases, blogPage] = await Promise.all([
+    activeTab === "about"
+      ? getFeaturedShowcases(supabase, profile.id, user?.id || null)
+      : Promise.resolve([]),
+    activeTab === "blog"
+      ? fetchBlogPostsAction({
+          itemsPerPage: BLOG_PAGE_SIZE,
+          userId: profile.id,
+          currentUserId: user?.id || null,
+        })
+      : Promise.resolve(null),
   ]);
 
   return (
@@ -119,13 +182,26 @@ export default async function UserProfilePage({
           />
           <ProfileEvidenceBar stats={stats} />
         </div>
-        <ProfileCardBody
-          profile={profile}
-          isOwnProfile={isOwnProfile}
-          currentUserId={user?.id || null}
-          initialHtml={initialHtml}
-          featuredShowcases={featuredShowcases}
-        />
+        <ProfileTabs activeTab={activeTab} blogPostsCount={stats.blogPostsCount} />
+        <div id="profile-tabpanel" role="tabpanel" aria-labelledby={`profile-tab-${activeTab}`}>
+          {activeTab === "blog" && blogPage ? (
+            <ProfileBlogTab
+              userId={profile.id}
+              currentUserId={user?.id || null}
+              isOwnProfile={isOwnProfile}
+              initialPosts={blogPage.blogPosts}
+              initialCursor={blogPage.nextCursor}
+            />
+          ) : (
+            <ProfileCardBody
+              profile={profile}
+              isOwnProfile={isOwnProfile}
+              hasBlogPosts={stats.blogPostsCount > 0}
+              initialHtml={initialHtml}
+              featuredShowcases={featuredShowcases}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
