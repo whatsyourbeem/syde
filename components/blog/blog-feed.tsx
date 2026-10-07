@@ -35,6 +35,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery({
     queryKey: ["blog-posts", "feed", filterByUserId],
     queryFn: ({ pageParam }) =>
@@ -81,6 +82,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
             onLoadMore={fetchNextPage}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
+            isError={isFetchNextPageError}
           />
         </div>
       ) : (

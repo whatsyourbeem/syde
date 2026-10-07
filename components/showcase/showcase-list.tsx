@@ -72,6 +72,7 @@ export function ShowcaseList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery({
     queryKey: queryKey,
     queryFn: ({ pageParam }) =>
@@ -139,7 +140,7 @@ export function ShowcaseList({
     );
   }
 
-  if (isError) {
+  if (isError && !isFetchNextPageError) {
     return (
       <div className="w-full max-w-3xl mx-auto pb-4">
         <div className="px-4">
@@ -188,6 +189,7 @@ export function ShowcaseList({
             onLoadMore={fetchNextPage}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
+            isError={isFetchNextPageError}
           />
         </div>
       )}

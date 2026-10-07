@@ -17,7 +17,7 @@ interface MeetupListProps {
 }
 
 export function MeetupList({ initialMeetups, status }: MeetupListProps) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } =
     useInfiniteQuery({
       queryKey: ["meetups", "list", status ?? "전체"],
       queryFn: ({ pageParam }) =>
@@ -56,6 +56,7 @@ export function MeetupList({ initialMeetups, status }: MeetupListProps) {
         onLoadMore={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
+        isError={isFetchNextPageError}
       />
     </div>
   );

@@ -60,6 +60,7 @@ export function FeedList({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery({
     queryKey: queryKey,
     queryFn: ({ pageParam }) => getUnifiedFeed(supabase, {
@@ -102,7 +103,7 @@ export function FeedList({
     );
   }
 
-  if (isError) {
+  if (isError && !isFetchNextPageError) {
     return (
       <div className="w-full pb-4">
         <div className="px-4">
@@ -162,6 +163,7 @@ export function FeedList({
             onLoadMore={fetchNextPage}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
+            isError={isFetchNextPageError}
           />
         </div>
       )}

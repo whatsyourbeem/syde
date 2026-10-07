@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toggleLogBookmark } from "@/app/feed/feed-actions";
 import { InteractionActions } from "@/components/common/interaction-actions";
 import { deleteLogLike, insertLogLike } from "@/lib/queries/log-queries";
-import { patchFeedLog, restoreSnapshot } from "@/lib/queries/cache-patches";
+import { patchFeedLog } from "@/lib/queries/cache-patches";
 
 interface FeedCardActionsProps {
   logId: string;
@@ -50,7 +50,7 @@ function FeedCardActionsBase({
     setLikeLoading(true);
     const wasLiked = hasLiked;
     // 캐시를 먼저 고쳐 화면에 바로 반영한다. 실패하면 스냅샷으로 되돌린다.
-    const snapshot = await patchFeedLog(queryClient, logId, (log) => ({
+    const rollback = patchFeedLog(queryClient, logId, (log) => ({
       ...log,
       hasLiked: !wasLiked,
       likesCount: log.likesCount + (wasLiked ? -1 : 1),
@@ -65,7 +65,7 @@ function FeedCardActionsBase({
       }
     } catch {
       toast.error(wasLiked ? "좋아요 취소 실패" : "좋아요 실패");
-      restoreSnapshot(queryClient, snapshot);
+      rollback();
     }
     setLikeLoading(false);
   }, [currentUserId, logId, hasLiked, likeLoading, openLoginDialog, queryClient]);
@@ -79,7 +79,7 @@ function FeedCardActionsBase({
 
     setBookmarkLoading(true);
     const wasBookmarked = hasBookmarked;
-    const snapshot = await patchFeedLog(queryClient, logId, (log) => ({
+    const rollback = patchFeedLog(queryClient, logId, (log) => ({
       ...log,
       hasBookmarked: !wasBookmarked,
       bookmarksCount: log.bookmarksCount + (wasBookmarked ? -1 : 1),
@@ -88,7 +88,7 @@ function FeedCardActionsBase({
     const result = await toggleLogBookmark(logId, wasBookmarked);
     if (!result.success) {
       toast.error(result.error.message);
-      restoreSnapshot(queryClient, snapshot);
+      rollback();
     }
     setBookmarkLoading(false);
   }, [currentUserId, logId, hasBookmarked, bookmarkLoading, openLoginDialog, queryClient]);

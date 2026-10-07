@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { patchShowcase, restoreSnapshot } from "@/lib/queries/cache-patches";
+import { patchShowcase } from "@/lib/queries/cache-patches";
 import { toggleShowcaseUpvote } from "@/app/showcase/showcase-actions";
 
 interface ShowcaseCardActionsProps {
@@ -86,7 +86,7 @@ function ShowcaseCardActionsBase({
     onUpvoteStatusChange(newUpvotesCount, newHasUpvoted);
 
     // 카드 상태와 목록 캐시를 함께 고쳐 두고, 실패하면 둘 다 되돌린다.
-    const snapshot = await patchShowcase(queryClient, showcaseId, (s) => ({
+    const rollback = patchShowcase(queryClient, showcaseId, (s) => ({
       ...s,
       hasUpvoted: newHasUpvoted,
       upvotesCount: Math.max(0, s.upvotesCount + (hasUpvoted ? -1 : 1)),
@@ -96,7 +96,7 @@ function ShowcaseCardActionsBase({
     if (!result.success) {
       toast.error(result.error.message || (hasUpvoted ? "업보트 취소 실패" : "업보트 실패"));
       onUpvoteStatusChange(upvotesCount, hasUpvoted); // Revert on error
-      restoreSnapshot(queryClient, snapshot);
+      rollback();
     }
     setUpvoteLoading(false);
   }, [
