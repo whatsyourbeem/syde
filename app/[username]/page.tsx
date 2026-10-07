@@ -152,18 +152,14 @@ export default async function UserProfilePage({
   const stats = await getProfileStatsCached(supabase, profile.id);
   const activeTab = resolveTab(rawTab);
 
-  // 선택된 탭의 내용만 서버에서 가져와 공유 링크로 들어와도 첫 화면에 보이게 한다.
+  // 탭 전환은 클라이언트에서만 일어나므로(서버 재렌더링 시 loading.tsx가 전체를 덮는다) 두 탭의 내용을 함께 렌더링한다.
   const [featuredShowcases, blogPage] = await Promise.all([
-    activeTab === "about"
-      ? getFeaturedShowcases(supabase, profile.id, user?.id || null)
-      : Promise.resolve([]),
-    activeTab === "blog"
-      ? fetchBlogPostsAction({
-          itemsPerPage: BLOG_PAGE_SIZE,
-          userId: profile.id,
-          currentUserId: user?.id || null,
-        })
-      : Promise.resolve(null),
+    getFeaturedShowcases(supabase, profile.id, user?.id || null),
+    fetchBlogPostsAction({
+      itemsPerPage: BLOG_PAGE_SIZE,
+      userId: profile.id,
+      currentUserId: user?.id || null,
+    }),
   ]);
 
   return (
@@ -182,17 +178,10 @@ export default async function UserProfilePage({
           />
           <ProfileEvidenceBar stats={stats} />
         </div>
-        <ProfileTabs activeTab={activeTab} blogPostsCount={stats.blogPostsCount} />
-        <div id="profile-tabpanel" role="tabpanel" aria-labelledby={`profile-tab-${activeTab}`}>
-          {activeTab === "blog" && blogPage ? (
-            <ProfileBlogTab
-              userId={profile.id}
-              currentUserId={user?.id || null}
-              isOwnProfile={isOwnProfile}
-              initialPosts={blogPage.blogPosts}
-              initialCursor={blogPage.nextCursor}
-            />
-          ) : (
+        <ProfileTabs
+          initialTab={activeTab}
+          blogPostsCount={stats.blogPostsCount}
+          aboutPanel={
             <ProfileCardBody
               profile={profile}
               isOwnProfile={isOwnProfile}
@@ -200,8 +189,17 @@ export default async function UserProfilePage({
               initialHtml={initialHtml}
               featuredShowcases={featuredShowcases}
             />
-          )}
-        </div>
+          }
+          blogPanel={
+            <ProfileBlogTab
+              userId={profile.id}
+              currentUserId={user?.id || null}
+              isOwnProfile={isOwnProfile}
+              initialPosts={blogPage.blogPosts}
+              initialCursor={blogPage.nextCursor}
+            />
+          }
+        />
       </div>
     </div>
   );
