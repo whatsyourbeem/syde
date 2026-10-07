@@ -51,6 +51,13 @@ export function ProfileCardBody({
 
   return (
     <div className="flex flex-col gap-3 md:gap-4">
+      {/* 대표 프로젝트 */}
+      <PinnedShowcasesSection
+        userId={profile.id}
+        isOwnProfile={isOwnProfile}
+        initialShowcases={featuredShowcases}
+      />
+
       {/* 스토리 */}
       <div className="px-5 py-4 md:px-8 md:py-6">
         <SectionHeader title="스토리">
@@ -74,13 +81,6 @@ export function ProfileCardBody({
           />
         </div>
       </div>
-
-      {/* 대표 프로젝트 */}
-      <PinnedShowcasesSection
-        userId={profile.id}
-        isOwnProfile={isOwnProfile}
-        initialShowcases={featuredShowcases}
-      />
 
       {/* 쓴 글 */}
       <div className="px-5 py-4 md:px-8 md:py-6">
