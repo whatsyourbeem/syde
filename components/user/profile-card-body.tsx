@@ -59,7 +59,7 @@ export function ProfileCardBody({
               onClick={() => setIsEditingStory(true)}
               className="text-sydeorange text-[13px] font-bold hover:opacity-80 transition-opacity"
             >
-              스토리 수정 ✍️
+              편집
             </button>
           )}
         </SectionHeader>
