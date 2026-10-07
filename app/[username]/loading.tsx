@@ -1,37 +1,68 @@
+/**
+ * 프로필 페이지(page.tsx)와 같은 래퍼·여백·크기를 쓰는 스켈레톤.
+ * 레이아웃을 바꾸면 이 파일도 함께 맞춰야 로딩 → 실제 화면 전환 때 튀지 않는다.
+ */
+function Bar({ className }: { className: string }) {
+  return <div className={`bg-muted rounded-md animate-pulse ${className}`} />;
+}
+
 export default function UserProfileLoading() {
   return (
-    <div className="flex-1 w-full flex flex-col p-5 h-full">
-      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col">
-        {/* Profile Header Skeleton */}
-        <div className="flex flex-row-reverse items-center gap-6 p-6 rounded-lg bg-card mb-8">
-          <div className="relative w-24 h-24 flex-shrink-0">
-            <div className="w-full h-full rounded-full bg-muted animate-pulse" />
+    <div className="flex-1 w-full flex flex-col h-full" aria-busy="true">
+      <div className="w-full max-w-[850px] mx-auto flex-1 flex flex-col gap-3 md:gap-4">
+        <div className="flex flex-col">
+          {/* ProfileIdentityHeader */}
+          <div className="flex flex-col md:flex-row items-center gap-5 px-5 py-8 md:px-8 md:py-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-full bg-muted animate-pulse" />
+            <div className="flex-grow min-w-0 flex flex-col items-center md:items-start gap-2">
+              <Bar className="h-8 w-44" />
+              <Bar className="h-5 w-56 max-w-full" />
+            </div>
           </div>
-          <div className="flex-grow space-y-2">
-            <div className="h-7 bg-muted rounded-md w-48 animate-pulse" />
-            <div className="h-4 bg-muted rounded-md w-32 animate-pulse" />
-            <div className="h-4 bg-muted rounded-md w-64 animate-pulse" />
+
+          {/* ProfileSocialLinks */}
+          <div className="flex items-center gap-1 px-5 py-2 md:px-8 -ml-2.5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="w-11 h-11 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-muted animate-pulse" />
+              </div>
+            ))}
+          </div>
+
+          {/* ProfileEvidenceBar */}
+          <div className="grid grid-cols-4 gap-1.5 md:gap-3 mx-5 md:mx-8 mt-4 mb-2 px-2 py-4 md:p-5 bg-[#FAFAFA] rounded-xl">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                <Bar className="h-6 md:h-[26px] w-9" />
+                <Bar className="h-3 w-12" />
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Tabs Skeleton */}
-        <div className="w-full md:flex-row md:gap-8 h-full flex">
-            {/* Left Sidebar Skeleton */}
-            <div className="w-full md:w-1/4 md:border-r border-b md:border-b-0 md:pr-8">
-                <div className="flex w-full justify-center p-1 rounded-lg space-x-2 md:flex-col md:items-stretch md:justify-start bg-transparent md:p-0 md:rounded-none md:space-y-1 md:space-x-0">
-                    <div className="h-9 bg-muted rounded-md w-full animate-pulse mb-1" />
-                    <div className="h-9 bg-muted rounded-md w-full animate-pulse mb-1" />
-                    <div className="h-9 bg-muted rounded-md w-full animate-pulse" />
-                </div>
+        {/* ProfileTabs */}
+        <div className="flex items-center gap-1 mx-5 md:mx-8 border-b border-[#EEEEEE]">
+          {[0, 1].map((i) => (
+            <div key={i} className="min-w-[88px] px-5 py-3 flex justify-center border-b-2 border-transparent">
+              <Bar className="h-5 w-10" />
             </div>
-            {/* Right Content Skeleton */}
-            <div className="w-full md:w-3/4 md:pl-8 mt-4 md:mt-0">
-                <div className="space-y-4">
-                    <div className="h-20 bg-muted rounded-md w-full animate-pulse" />
-                    <div className="h-20 bg-muted rounded-md w-full animate-pulse" />
-                    <div className="h-20 bg-muted rounded-md w-full animate-pulse" />
-                </div>
+          ))}
+        </div>
+
+        {/* 소개 탭: 소개 / 대표 프로젝트 */}
+        <div className="flex flex-col gap-3 md:gap-4">
+          <div className="px-5 py-4 md:px-8 md:py-6">
+            <Bar className="h-6 w-16 mb-2" />
+            <div className="rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-3">
+              <Bar className="h-4 w-1/2" />
+              <Bar className="h-4 w-full" />
+              <Bar className="h-4 w-5/6" />
             </div>
+          </div>
+          <div className="px-5 py-4 md:px-8 md:py-6">
+            <Bar className="h-6 w-24 mb-2" />
+            <div className="bg-[#FAFAFA] rounded-xl h-[81px]" />
+          </div>
         </div>
       </div>
     </div>
