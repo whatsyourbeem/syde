@@ -5,6 +5,7 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { FeedCard } from "@/components/feed/feed-card";
 import { ActivityCard } from "@/components/feed/activity-card";
+import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
 import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { getUnifiedFeed, FeedQueryResult, FeedItem, LogFeedItem, ActivityFeedEntry } from "@/lib/queries/feed-queries";
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
@@ -79,7 +80,7 @@ export function FeedList({
       }
       return undefined;
     },
-    staleTime: 0,
+    staleTime: LIST_STALE_TIME,
     initialData: !filterByUserId && !filterByCommentedUserId && !filterByLikedUserId && !filterByBookmarkedUserId && !searchQuery && initialFeed 
       ? {
           pages: [initialFeed],

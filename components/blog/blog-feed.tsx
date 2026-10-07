@@ -7,6 +7,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BlogCard } from "@/components/blog/blog-card";
+import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
 import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import { useLoginDialog } from "@/context/LoginDialogContext";
 import { fetchBlogPostsAction, BlogPostQueryResult } from "@/app/blog/blog-data-actions";
@@ -54,7 +55,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
       pages: [initialPosts],
       pageParams: [1],
     },
-    staleTime: 0,
+    staleTime: LIST_STALE_TIME,
   });
 
   const allPosts = data?.pages.flatMap((page) => page.blogPosts) || [];

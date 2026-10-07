@@ -1,6 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
 import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
 import MeetupCard from "@/components/meetup/meetup-card";
 import { fetchMeetupsAction } from "@/app/meetup/meetup-data-actions";
@@ -38,7 +39,7 @@ export function MeetupList({ initialMeetups, status }: MeetupListProps) {
         pages: [initialMeetups],
         pageParams: [1],
       },
-      staleTime: 0,
+      staleTime: LIST_STALE_TIME,
     });
 
   const allMeetups = data?.pages.flatMap((page) => page.meetups) ?? [];

@@ -14,7 +14,7 @@ import {
 import { LoadingList, CenteredLoading } from "@/components/ui/loading-states";
 import { InlineError } from "@/components/error/error-boundary";
 
-import { showcaseKeys } from "@/lib/queries/query-keys";
+import { showcaseKeys, LIST_STALE_TIME } from "@/lib/queries/query-keys";
 
 const SHOWCASES_PER_PAGE = 20; // Define showcases per page
 
@@ -94,7 +94,7 @@ export function ShowcaseList({
       }
       return undefined;
     },
-    staleTime: 0,
+    staleTime: LIST_STALE_TIME,
     initialData:
       initialShowcases &&
       !filterByUserId &&
