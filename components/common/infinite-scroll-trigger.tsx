@@ -49,7 +49,9 @@ export function InfiniteScrollTrigger({
       className="flex justify-center py-8 text-[0.875rem] text-[#777777]"
       aria-live="polite"
     >
-      {isError ? (
+      {isFetchingNextPage ? (
+        "불러오는 중..."
+      ) : isError ? (
         <button
           type="button"
           onClick={() => onLoadMoreRef.current()}
@@ -57,8 +59,6 @@ export function InfiniteScrollTrigger({
         >
           불러오지 못했어요. 다시 시도
         </button>
-      ) : isFetchingNextPage ? (
-        "불러오는 중..."
       ) : null}
     </div>
   );

@@ -35,18 +35,49 @@ function patchMatching<TPage, TItem>(
     });
 
   let original: TItem | undefined;
+  let patched: TItem | undefined;
   let found = false;
   apply((item) => {
+    const next = patch(item);
     if (!found) {
       original = item;
+      patched = next;
       found = true;
     }
-    return patch(item);
+    return next;
   });
 
+  // 패치가 바꾼 필드만 되돌린다. 그 사이 같은 항목의 다른 필드(예: 좋아요 중 성공한 북마크)가
+  // 바뀌었다면 그대로 둔다.
   return () => {
-    if (found) apply(() => original as TItem);
+    if (found) apply((item) => revertChanges(item, original, patched));
   };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/**
+ * current에서 original→patched로 바뀐 값만 original로 되돌린다.
+ * 현재 값이 patched와 다르면 그 뒤에 다른 변경이 덮어쓴 것이므로 건드리지 않는다.
+ */
+function revertChanges<T>(current: T, original: unknown, patched: unknown): T {
+  if (Object.is(current, patched)) return original as T;
+  if (!isPlainObject(current) || !isPlainObject(original) || !isPlainObject(patched)) return current;
+
+  let result = current as Record<string, unknown>;
+  for (const key of new Set([...Object.keys(original), ...Object.keys(patched)])) {
+    if (Object.is(original[key], patched[key])) continue;
+    const reverted = revertChanges(result[key], original[key], patched[key]);
+    if (!Object.is(reverted, result[key])) {
+      if (result === current) result = { ...result };
+      result[key] = reverted;
+    }
+  }
+  return result as T;
 }
 
 /** 피드 캐시에서 id가 일치하는 로그 하나를 고친다. */

@@ -103,7 +103,7 @@ export function FeedList({
     );
   }
 
-  if (isError && !isFetchNextPageError) {
+  if (isError && !data) {
     return (
       <div className="w-full pb-4">
         <div className="px-4">

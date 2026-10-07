@@ -140,7 +140,7 @@ export function ShowcaseList({
     );
   }
 
-  if (isError && !isFetchNextPageError) {
+  if (isError && !data) {
     return (
       <div className="w-full max-w-3xl mx-auto pb-4">
         <div className="px-4">
