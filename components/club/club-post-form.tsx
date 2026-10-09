@@ -210,7 +210,6 @@ export default function ClubPostForm({ clubId, forums, userRole, isOwner, initia
           <TiptapEditorWrapper
             initialContent={content}
             onContentChange={setContent}
-            placeholder="클럽 멤버들과 나눌 이야기를 작성해보세요..."
             onImageUpload={handleEditorImageUpload}
           />
         </div>

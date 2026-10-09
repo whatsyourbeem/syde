@@ -753,7 +753,6 @@ export function ProjectRegistrationForm({
               onContentChange={(json: any) => {
                 setDescription(JSON.stringify(json));
               }}
-              placeholder="프로젝트에 대한 자세한 설명을 적어주세요..."
               editable={true}
               onImageUpload={(file: File) => uploadImage(file, "showcases", "editor", "detail")}
             />

@@ -34,7 +34,6 @@ import { cn, upgradeToHttps } from "@/lib/utils";
 interface TiptapEditorWrapperProps {
   initialContent: JSONContent | null;
   onContentChange: (json: JSONContent) => void;
-  placeholder?: string;
   editable?: boolean;
   /** Resolve null when the upload failed and the writer was already told why; throw only for errors worth a toast. */
   onImageUpload?: (file: File) => Promise<string | null>;
@@ -46,15 +45,15 @@ interface TiptapEditorWrapperProps {
   onBackspaceAtStart?: () => void;
 }
 
+// Shown on every empty line (the empty editor included) so writers discover the "/" menu.
+const SLASH_HINT = "'/'를 입력해 블록 추가";
+
 const OWN_STORAGE_PREFIX = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/`
   : null;
 
 // Same shape the resize extension writes when a user centers an image; blog images read better centered.
 const CENTERED_IMAGE_STYLE = "position: relative; margin: 0px auto;";
-
-// Touch keyboards make "/" awkward to reach, so the per-line "/" hint is desktop-only.
-const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 function getImageFiles(files: FileList | undefined | null): File[] {
   return Array.from(files ?? []).filter((file) => file.type.startsWith("image/"));
@@ -83,7 +82,6 @@ function pasteUrl(view: EditorView, url: string) {
 export default function TiptapEditorWrapper({
   initialContent,
   onContentChange,
-  placeholder = "내용을 입력해주세요.",
   editable = true,
   onImageUpload,
   variant = "boxed",
@@ -217,11 +215,10 @@ export default function TiptapEditorWrapper({
           return extension.configure({
             // Placeholder only decorates the empty top-level textblock under the caret, so lists,
             // table cells and callouts never get a hint.
-            placeholder: ({ editor, node }: { editor: { isEmpty: boolean }; node: PMNode }) => {
+            placeholder: ({ node }: { node: PMNode }) => {
               if (node.type.name === "imageCaption") return "이미지 설명을 입력하세요 (선택)";
               if (node.type.name === "heading") return `제목 ${node.attrs.level}`;
-              if (editor.isEmpty) return placeholder;
-              return isTouch ? "" : "'/'를 입력해 블록 추가";
+              return SLASH_HINT;
             },
           });
         }

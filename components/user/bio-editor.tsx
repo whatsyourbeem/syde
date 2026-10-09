@@ -114,7 +114,6 @@ export default function BioEditor({
             <TiptapEditorWrapper
               initialContent={currentBioContent}
               onContentChange={handleContentChange}
-              placeholder="당신의 SYDE를 자유롭게 표현해보세요."
               editable={true}
               onImageUpload={(file) => uploadImage(file, "profiles", "bio", "detail")}
             />
