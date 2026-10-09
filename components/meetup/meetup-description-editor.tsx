@@ -28,7 +28,6 @@ export default function MeetupDescriptionEditor({
       <TiptapEditorWrapper
         initialContent={initialDescription}
         onContentChange={onDescriptionChange}
-        placeholder="모임 상세 설명을 작성해주세요."
         editable={true}
         onImageUpload={onImageUpload}
       />

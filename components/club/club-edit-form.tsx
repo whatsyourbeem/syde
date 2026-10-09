@@ -202,7 +202,6 @@ export default function ClubEditForm({ club }: ClubFormProps) {
           <TiptapEditorWrapper
             initialContent={description}
             onContentChange={(json) => setDescription(json)}
-            placeholder="클럽 설명을 입력하세요..."
             onImageUpload={handleEditorImageUpload}
           />
         </div>

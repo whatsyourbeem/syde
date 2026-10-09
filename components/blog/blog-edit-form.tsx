@@ -335,7 +335,6 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
                                 setContent(json);
                                 clearError("body");
                             }}
-                            placeholder="오늘 어떤 일이 있었나요? 편하게 적어보세요."
                             onImageUpload={handleTiptapImageUpload}
                             onStatsChange={setStats}
                             onBackspaceAtStart={() => {
