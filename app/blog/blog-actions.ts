@@ -51,6 +51,8 @@ export const createBlogPost = withAuth(
 
     revalidatePath("/blog");
     revalidateTagSafe("blog-post-all");
+    // 프로필 통계의 블로그 수가 5분 캐시를 기다리지 않고 바로 갱신되게 한다.
+    revalidateTagSafe(`profile-stats-${user.id}`);
     return createSuccessResponse({ id: data.id, slug: data.slug });
   }
 );
@@ -248,6 +250,7 @@ export const deleteBlogPostAction = withAuth(
     revalidatePath("/blog");
     revalidateTagSafe("blog-post-all");
     revalidateTagSafe(`blog-post-${blogPostId}`);
+    revalidateTagSafe(`profile-stats-${user.id}`);
 
     return createSuccessResponse(null);
   }
