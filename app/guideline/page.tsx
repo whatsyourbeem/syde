@@ -131,7 +131,7 @@ export default function GuidelinePage() {
           조치에 이의가 있다면{" "}
           <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
           으로 문의해주세요. 자세한 내용은 <a href="/term">이용약관</a> 제9조,
-          제13조를 참고해주세요.
+          제12조를 참고해주세요.
         </p>
         <h3>📂 메뉴별 이용 가이드</h3>
         <h4>📝 피드 (Feed)</h4>
