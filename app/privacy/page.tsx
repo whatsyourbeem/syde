@@ -258,7 +258,7 @@ export default function PrivacyPage() {
           개인정보 보호책임자를 지정하고 있습니다.
         </p>
         <ul>
-          <li>개인정보 보호책임자: 안재현</li>
+          <li>개인정보 보호책임자: SYDE 운영자</li>
           <li>연락처: whatsyourbeem@gmail.com</li>
         </ul>
 
