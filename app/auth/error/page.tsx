@@ -4,6 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const CONTACT_EMAIL = "whatsyourbeem@gmail.com";
+
+// handle_new_user raises USER_BANNED for blacklisted users. Depending on the auth flow, Supabase
+// surfaces it either verbatim or as a generic "Database error saving new user".
+function isBannedError(error: { message: string; description: string }) {
+  const text = `${error.message} ${error.description}`;
+  return text.includes("USER_BANNED") || text.includes("Database error saving new user");
+}
+
 export default function ErrorPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState({
@@ -23,6 +32,30 @@ export default function ErrorPage() {
     });
 
   }, [searchParams]);
+
+  if (isBannedError(error)) {
+    return (
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">이용이 제한된 계정입니다</CardTitle>
+              <CardDescription>
+                해당 계정으로는 SYDE에 가입하거나 로그인할 수 없습니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              문의사항은{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-sydeblue underline">
+                {CONTACT_EMAIL}
+              </a>
+              으로 보내주세요.
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
