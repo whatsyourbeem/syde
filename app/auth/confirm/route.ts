@@ -8,6 +8,18 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
 
+  // Supabase redirects here with error params (and no code) when sign-up is rejected,
+  // e.g. the handle_new_user trigger blocks a banned user.
+  const authError = searchParams.get("error");
+  if (!code && authError) {
+    const params = new URLSearchParams({ message: authError });
+    const errorCode = searchParams.get("error_code");
+    const errorDescription = searchParams.get("error_description");
+    if (errorCode) params.set("code", errorCode);
+    if (errorDescription) params.set("description", errorDescription);
+    return redirect(`/auth/error?${params.toString()}`);
+  }
+
   if (code) {
     const supabase = await createClient();
     const { error, data } = await supabase.auth.exchangeCodeForSession(code); // Get data as well
