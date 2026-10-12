@@ -40,7 +40,7 @@ export default function ErrorPage() {
   if (failureKind) {
     const isBanned = failureKind === "banned";
     return (
-      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="flex min-h-[calc(100svh-8rem)] w-full items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-md">
           <Card>
             <CardHeader>
@@ -67,7 +67,7 @@ export default function ErrorPage() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="flex min-h-[calc(100svh-8rem)] w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader>
