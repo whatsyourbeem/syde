@@ -192,7 +192,7 @@ export default function PrivacyPage() {
         </ul>
         <p>
           권리 행사는 서비스 내 프로필 설정에서 직접 열람·수정·탈퇴하거나, 당
-          사이트에 전자우편(whatsyourbeem@gmail.com)으로 요청하는 방법으로 하실
+          사이트에 전자우편(by.sydestudio@gmail.com)으로 요청하는 방법으로 하실
           수 있으며 당 사이트는 이에 대해 지체 없이 조치하겠습니다.
         </p>
         <p>
@@ -259,7 +259,7 @@ export default function PrivacyPage() {
         </p>
         <ul>
           <li>개인정보 보호책임자: SYDE 운영자</li>
-          <li>연락처: whatsyourbeem@gmail.com</li>
+          <li>연락처: by.sydestudio@gmail.com</li>
         </ul>
 
         <h3>11. 권익침해 구제방법</h3>

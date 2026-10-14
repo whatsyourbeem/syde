@@ -17,7 +17,7 @@ export default function TermPage() {
         <ol>
           <li>
             당 사이트는 이 약관의 내용과 운영자 연락처(전자우편 주소:
-            whatsyourbeem@gmail.com)를 이용자가 알 수 있도록 서비스 화면에
+            by.sydestudio@gmail.com)를 이용자가 알 수 있도록 서비스 화면에
             게시합니다.
           </li>
           <li>
@@ -574,7 +574,7 @@ export default function TermPage() {
           <li>
             누구든지 서비스의 게시물이 사생활 침해, 명예훼손 등 타인의 권리를
             침해하거나 이 약관을 위반(광고성 도배, 부정 이용을 포함합니다)한다고
-            판단하는 경우 운영자 전자우편(whatsyourbeem@gmail.com)으로 신고할 수
+            판단하는 경우 운영자 전자우편(by.sydestudio@gmail.com)으로 신고할 수
             있습니다. 권리침해 신고 시에는 해당 게시물의 위치(URL), 침해된
             권리의 내용과 사유, 신고자의 연락처를 함께 알려야 합니다.
           </li>
@@ -793,7 +793,7 @@ export default function TermPage() {
           </li>
           <li>
             &quot;당 사이트&quot;의 해지 및 이용제한에 대하여
-            &quot;이용자&quot;는 운영자 전자우편(whatsyourbeem@gmail.com)으로
+            &quot;이용자&quot;는 운영자 전자우편(by.sydestudio@gmail.com)으로
             이의신청을 할 수 있습니다. 이 때 이의가 정당하다고 &quot;당
             사이트&quot;가 인정하는 경우, &quot;당 사이트&quot;는 즉시 서비스의
             이용을 재개합니다.
