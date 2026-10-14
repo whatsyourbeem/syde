@@ -46,7 +46,7 @@ export default function Footer() {
                 SYDE 소개
               </Link>
               <Link
-                href="mailto:whatsyourbeem@gmail.com"
+                href="mailto:by.sydestudio@gmail.com"
                 className="hover:opacity-80"
               >
                 문의하기
@@ -115,7 +115,7 @@ export default function Footer() {
                   커뮤니티 가이드라인
                 </Link>
                 <Link
-                  href="mailto:whatsyourbeem@gmail.com"
+                  href="mailto:by.sydestudio@gmail.com"
                   className="hover:text-gray-600"
                 >
                   협업문의
@@ -144,7 +144,7 @@ export default function Footer() {
             커뮤니티 가이드라인
           </Link>
           <Link
-            href="mailto:whatsyourbeem@gmail.com"
+            href="mailto:by.sydestudio@gmail.com"
             className="font-pretendard font-normal text-[14px] leading-[150%] text-sydeblue whitespace-nowrap"
           >
             협업문의

@@ -42,7 +42,7 @@ export default function GuidelinePage() {
         <ul>
           <li>
             반드시 운영진에게 사전 허가 받기 (
-            <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+            <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
             )
           </li>
           <li>허가 없는 상업성 광고 → 강제탈퇴 가능</li>
@@ -137,7 +137,7 @@ export default function GuidelinePage() {
         <p>
           가이드라인·약관을 위반하거나 권리를 침해하는 게시물, 의심되는 부정
           이용을 발견하면{" "}
-          <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+          <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
           으로 신고해주세요. 게시물 주소(URL)와 사유를 함께 알려주시면 빠르게
           확인합니다. 권리 침해 신고는 임시조치(최대 30일) 등 처리 절차를
           거치며, 자세한 내용은 <a href="/term">이용약관</a> 제16조를
@@ -166,7 +166,7 @@ export default function GuidelinePage() {
         </ul>
         <p>
           조치에 이의가 있다면{" "}
-          <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+          <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
           으로 문의해주세요. 자세한 내용은 <a href="/term">이용약관</a> 제9조,
           제12조를 참고해주세요.
         </p>
@@ -254,7 +254,7 @@ export default function GuidelinePage() {
           </li>
           <li>
             의심되는 활동은{" "}
-            <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+            <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
             으로 제보해주세요.
           </li>
         </ul>
@@ -276,7 +276,7 @@ export default function GuidelinePage() {
         <ul>
           <li>
             반드시 <strong>운영진에게 사전 문의</strong> 필수 (
-            <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+            <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
             )
           </li>
           <li>모임 목적과 계획서 제출</li>
@@ -326,7 +326,7 @@ export default function GuidelinePage() {
         <ul>
           <li>
             반드시 <strong>운영진에게 사전 문의</strong> 필수 (
-            <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+            <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
             )
           </li>
           <li>클럽 주제와 운영 계획 제출</li>
@@ -345,7 +345,7 @@ export default function GuidelinePage() {
         <h3>공식 채널</h3>
         <ul>
           <li>
-            <a href="mailto:whatsyourbeem@gmail.com">whatsyourbeem@gmail.com</a>
+            <a href="mailto:by.sydestudio@gmail.com">by.sydestudio@gmail.com</a>
           </li>
         </ul>
         <hr />

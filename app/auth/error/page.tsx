@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const CONTACT_EMAIL = "whatsyourbeem@gmail.com";
+const CONTACT_EMAIL = "by.sydestudio@gmail.com";
 
 // handle_new_user raises USER_BANNED for blacklisted users, but in the OAuth flow Supabase only
 // reports a generic "Database error saving new user" (verified locally), so a banned user cannot
