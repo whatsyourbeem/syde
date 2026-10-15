@@ -1,4 +1,5 @@
 
+import { ListEmptyState } from "@/components/common/list-empty-state";
 import ClubCard from './club-card';
 import { Database } from '@/types/database.types';
 import { PublicProfile } from '@/types/profile';
@@ -17,9 +18,7 @@ export default function ClubList({ clubs }: ClubListProps) {
   return (
     <div>
       {clubs.length === 0 ? (
-        <div className="text-center text-gray-500 mt-10">
-          <p>해당 클럽이 없습니다.</p>
-        </div>
+        <ListEmptyState>아직 등록된 클럽이 없어요.</ListEmptyState>
       ) : (
         <div className="flex flex-col">
           {clubs.map((club) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { ListEmptyState } from "@/components/common/list-empty-state";
 import { useEffect, useState, useMemo } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -160,11 +161,11 @@ export function ShowcaseList({
   return (
     <div className="w-full">
       {showcases.length === 0 && !isLoading ? (
-        <div className="px-4">
-          <p className="text-center text-muted-foreground py-10">
-            아직 기록된 글이 없습니다. 첫 글을 작성해보세요!
-          </p>
-        </div>
+        <ListEmptyState>
+          {filterByUserId || filterByParticipantUserId || filterByCommentedUserId || filterByUpvotedUserId
+            ? "아직 등록된 프로젝트가 없어요."
+            : "아직 등록된 프로젝트가 없어요. 첫 프로젝트를 올려보세요"}
+        </ListEmptyState>
       ) : (
         <div className="flex flex-col items-center">
           <div className="w-full">
