@@ -12,9 +12,11 @@ export default function robots(): MetadataRoute.Robots {
                 "/auth/",
                 "/settings/",
                 "/profile",
-                "/*/edit",
-                "/*/create",
-                "/blog/write",
+                // robots.txt 패턴은 접두사 매칭이라 $로 끝을 고정한다. 안 그러면 /showcase/creator-hub, /blog/write-better 같은 slug까지 막힌다.
+                "/*/edit$",
+                "/showcase/edit/",
+                "/*/create$",
+                "/blog/write$",
                 "/password-protect"
             ],
         },

@@ -43,12 +43,11 @@ export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   // 하위 페이지가 openGraph를 지정하면 이 객체는 통째로 교체되므로, 여기 값은 지정하지 않은 페이지의 기본값이다.
+  // title/description은 일부러 넣지 않는다. 넣으면 자체 openGraph가 없는 페이지의 og:title이 전부 사이트 대표 제목으로 덮어써진다.
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     locale: "ko_KR",
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
