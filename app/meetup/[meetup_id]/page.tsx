@@ -14,6 +14,9 @@ type Meetup = Database["public"]["Tables"]["meetups"]["Row"] & {
 
 import { Metadata, ResolvingMetadata } from "next";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+import type { JSONContent } from "@tiptap/react";
+import { extractPlainText } from "@/lib/tiptap-plain-text";
+import { SITE_URL, absoluteUrl } from "@/lib/site";
 
 // 타입 명시
 interface PageProps {
@@ -148,13 +151,14 @@ export default async function MeetupDetailPage({ params }: PageProps) {
       "address": meetup.address || ""
     },
     "image": [
-      meetup.thumbnail_url || `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/default_meetup_thumbnail.png`
+      meetup.thumbnail_url || absoluteUrl("/default_meetup_thumbnail.png")
     ],
-    "description": (typeof meetup.description === "string" ? meetup.description.slice(0, 160) : "") || "SYDE 커뮤니티 모임",
+    // 위에서 description을 JSON으로 파싱해 두었으므로 문자열 비교가 아니라 본문 텍스트를 뽑아야 한다.
+    "description": extractPlainText(meetup.description as JSONContent | null, 160) || "SYDE 커뮤니티 모임",
     "organizer": {
       "@type": "Person",
       "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER",
-      "url": meetup.organizer_profile?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${meetup.organizer_profile.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
+      "url": meetup.organizer_profile?.username ? absoluteUrl(`/@${meetup.organizer_profile.username}`) : SITE_URL
     }
   };
 

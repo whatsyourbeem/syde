@@ -1,4 +1,13 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "SYDE 커뮤니티 가이드라인 | SYDE",
+  description: "SYDE 커뮤니티를 함께 만들어가기 위한 오픈채팅방·모임 가이드라인과 광고 규칙을 안내합니다.",
+  alternates: {
+    canonical: "/guideline",
+  },
+};
 
 export default function GuidelinePage() {
   return (

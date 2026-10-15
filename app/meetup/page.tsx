@@ -35,9 +35,9 @@ export default async function MeetupPage({
         <div className="w-full max-w-6xl mx-auto px-4 py-8">
           <div className="text-center text-muted-foreground">
             <h1 className="text-2xl font-bold mb-2 text-foreground py-2">
-              Meetups
+              사이드프로젝트 모임
             </h1>
-            <h2>사이드프로젝트 커뮤니티 네트워킹 모임</h2>
+            <h2>1인개발자·솔로프리너와 함께하는 네트워킹 모임</h2>
           </div>
         </div>
       </div>

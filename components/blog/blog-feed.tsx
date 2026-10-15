@@ -1,5 +1,6 @@
 "use client";
 
+import { ListEmptyState } from "@/components/common/list-empty-state";
 import React, { useState } from "react";
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -65,7 +66,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
         className="mb-6 flex w-full items-center gap-3 md:hidden rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
       >
         <Avatar className="size-9">
-          <AvatarImage src={currentUser?.avatarUrl ?? undefined} alt="" />
+          <AvatarImage src={currentUser?.avatarUrl || "/default_avatar.png"} alt="" />
           <AvatarFallback className="text-[13px]">{currentUser?.name?.slice(0, 1) || "S"}</AvatarFallback>
         </Avatar>
         <span className="text-[14px] md:text-[15px] text-[#777777]">오늘 만들면서 있었던 일, 편하게 적어보세요</span>
@@ -86,10 +87,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
           />
         </div>
       ) : (
-        <div className="text-center py-20 text-gray-400 flex flex-col gap-2">
-          <div className="text-4xl">💭</div>
-          <p>아직 글이 없어요. 첫 글을 남겨보세요</p>
-        </div>
+        <ListEmptyState>아직 글이 없어요. 첫 글을 남겨보세요</ListEmptyState>
       )}
 
       {/* Floating Create Button: labeled so it reads as "write", and kept low on mobile so it clears card stats. */}

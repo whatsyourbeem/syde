@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function FeedLayout({ children }: { children: React.ReactNode }) {
 
   return (
-    <main className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
+    <div className="flex justify-center gap-x-5 pb-3 md:px-5 md:pb-5 max-w-6xl mx-auto">
       <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
         <Suspense fallback={<FeedSidebarSkeleton />}>
           <FeedSidebarServer />
@@ -79,6 +79,6 @@ export default function FeedLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

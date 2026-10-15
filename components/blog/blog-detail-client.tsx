@@ -251,7 +251,7 @@ export default function BlogDetailClient({
 
     return (
         <div className="flex flex-col bg-white w-full max-w-6xl mx-auto relative font-[Pretendard] pb-10 px-4 md:px-6 border-x border-gray-50">
-            <main className="flex flex-col pt-4">
+            <div className="flex flex-col pt-4">
                 <section className="w-full flex flex-col gap-2 pb-8 md:pb-10">
                     {/* Same 768px column as the body, so the header and the writing line up. */}
                     <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
@@ -408,7 +408,7 @@ export default function BlogDetailClient({
                         />
                     </div>
                 </section>
-            </main>
+            </div>
 
             <BlogDeleteDialog
                 isOpen={isDeleteDialogOpen}

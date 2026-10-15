@@ -11,8 +11,15 @@ import { BlogSearchList } from "@/components/blog/blog-search-list";
 import { ShowcaseSearchList } from "@/components/showcase/showcase-search-list";
 import { AllSearchResults } from "@/components/search/all-search-results";
 import { normalizeSearchTab } from "@/lib/search-tab";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+// ?q= 조합마다 URL이 무한히 생기는 얇은 페이지라 색인에서 제외한다. 링크는 따라가도록 follow는 유지한다.
+export const metadata: Metadata = {
+  title: "검색 | SYDE",
+  robots: { index: false, follow: true },
+};
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string; tab?: string }>;
@@ -80,7 +87,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   };
 
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center bg-white">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center bg-white">
       {/* Search Title + Input */}
       <div className="w-full max-w-[720px] mx-auto pt-4 pb-4">
         <SearchForm />
@@ -95,6 +102,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <div className="w-full max-w-[720px] mx-auto py-6 px-4">
         {renderContent()}
       </div>
-    </main>
+    </div>
   );
 }

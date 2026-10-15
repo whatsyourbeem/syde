@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { ShowcaseDetail } from "@/components/showcase/showcase-detail";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { getShowcaseDetailCached, OptimizedShowcase } from "@/lib/queries/showcase-queries";
+import { SITE_URL, absoluteUrl, DEFAULT_OG_IMAGE } from "@/lib/site";
 
 type ShowcaseDetailPageProps = {
   params: Promise<{
@@ -142,21 +143,21 @@ export default async function ShowcaseDetailPage({
     "description": showcase.short_description || "SYDE showcase project",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web, iOS, Android",
-    "image": showcase.thumbnail_url || `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/we-are-syders.png`,
+    "image": showcase.thumbnail_url || absoluteUrl(DEFAULT_OG_IMAGE),
     "author": {
       "@type": "Person",
       "name": showcase.profiles?.full_name || showcase.profiles?.username || "SYDER",
-      "url": showcase.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${showcase.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr")
+      "url": showcase.profiles?.username ? absoluteUrl(`/@${showcase.profiles.username}`) : SITE_URL
     },
     "publisher": {
       "@type": "Organization",
       "name": "SYDE (사이드프로젝트 커뮤니티)",
       "logo": {
         "@type": "ImageObject",
-        "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/icon.png`
+        "url": absoluteUrl("/icon.png")
       }
     },
-    "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/showcase/${showcase.slug || showcase.id}`,
+    "url": absoluteUrl(`/showcase/${showcase.slug || showcase.id}`),
   };
 
   // Normalize showcase data for consistency

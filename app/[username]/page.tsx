@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect, permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ProfileIdentityHeader } from "@/components/user/profile-identity-header";
 import { ProfileEvidenceBar } from "@/components/user/profile-evidence-bar";
 import { ProfileCardBody } from "@/components/user/profile-card-body";
@@ -101,8 +101,9 @@ export async function generateMetadata(
     : `${displayName}님의 SYDE 프로필`;
   const images = [profile.avatar_url || SITE_DEFAULT_OG_IMAGE];
 
+  // 소개 탭이 기본 화면이므로 쿼리 없는 /@username이 정규 URL이다. 같은 내용이 URL 두 개로 나뉘지 않게 한다.
   const tab = resolveTab(rawTab);
-  const canonical = `/@${profile.username}?tab=${tab}`;
+  const canonical = tab === "about" ? `/@${profile.username}` : `/@${profile.username}?tab=${tab}`;
 
   return {
     title,
@@ -137,8 +138,9 @@ export default async function UserProfilePage({
   // Fetch the profile data for the given username
   const profile = await getProfileByUsernameCached(supabase, username);
 
+  // 없는 프로필을 홈으로 보내면 soft 404가 되므로 404를 내려준다.
   if (!profile) {
-    redirect("/");
+    notFound();
   }
 
   // Check if the current user is viewing their own profile

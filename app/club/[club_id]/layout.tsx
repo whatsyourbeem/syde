@@ -56,7 +56,7 @@ export default async function ClubDetailLayout({
   }
 
   return (
-    <main className="flex justify-center items-start gap-x-4 pb-3 md:pb-5 min-h-screen max-w-screen-xl mx-auto">
+    <div className="flex justify-center items-start gap-x-4 pb-3 md:pb-5 min-h-screen max-w-screen-xl mx-auto">
       <div className="hidden md:block pl-4 w-60 sticky top-[70px] self-start">
         <ClubSidebarInfo
           clubName={club.name}
@@ -76,6 +76,6 @@ export default async function ClubDetailLayout({
       <div className="hidden lg:block w-[160px] sticky top-[70px] self-start">
         <ClubMembersList members={members || []} clubId={club_id} currentUserId={currentUserId} clubOwnerId={club.owner_id} />
       </div>
-    </main>
+    </div>
   );
 }
