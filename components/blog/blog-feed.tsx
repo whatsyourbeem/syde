@@ -66,7 +66,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
         className="mb-6 flex w-full items-center gap-3 md:hidden rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
       >
         <Avatar className="size-9">
-          <AvatarImage src={currentUser?.avatarUrl ?? undefined} alt="" />
+          <AvatarImage src={currentUser?.avatarUrl || "/default_avatar.png"} alt="" />
           <AvatarFallback className="text-[13px]">{currentUser?.name?.slice(0, 1) || "S"}</AvatarFallback>
         </Avatar>
         <span className="text-[14px] md:text-[15px] text-[#777777]">오늘 만들면서 있었던 일, 편하게 적어보세요</span>
