@@ -49,7 +49,7 @@ function PaperTexture({ tone }: { tone: "dark" | "light" }) {
       aria-hidden
       className={cn(
         "absolute inset-0 pointer-events-none",
-        tone === "dark" ? "opacity-[0.22]" : "opacity-[0.16]"
+        tone === "dark" ? "opacity-[0.18]" : "opacity-[0.16]"
       )}
       style={{
         backgroundImage: paperNoise(tone === "dark" ? "0 0 0" : "255 255 255"),
@@ -73,7 +73,7 @@ function SydeLogo({
     <div
       className={cn(
         "flex items-center",
-        stacked ? "flex-col gap-2" : "gap-1",
+        stacked ? "flex-col gap-0" : "gap-1",
         className
       )}
     >
