@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:px-5 md:pb-5">
+    <div className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:px-5 md:pb-5">
       <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
         <div className="w-full h-32 bg-gray-200 animate-pulse rounded-lg"></div>
       </div>
@@ -61,6 +61,6 @@ export default function Loading() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

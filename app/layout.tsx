@@ -9,17 +9,50 @@ import { LoginDialog } from "@/components/auth/login-dialog";
 
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
+import { SITE_URL, SITE_NAME, absoluteUrl } from "@/lib/site";
 
 
-const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : "http://localhost:3000");
+const SITE_TITLE = "사이드프로젝트 커뮤니티 · 1인개발자·솔로프리너 | SYDE";
+const SITE_DESCRIPTION = "1인개발자·솔로프리너를 위한 사이드프로젝트 커뮤니티 SYDE. 쇼케이스, 블로그, 모임이 한 곳에 있어요.";
+
+// 사이트 전체에 한 번만 심는 구조화 데이터: 브랜드(Organization)와 사이트(WebSite).
+const siteJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "SYDE",
+    alternateName: "사이드",
+    url: SITE_URL,
+    logo: absoluteUrl("/icon.png"),
+    sameAs: [
+      "https://www.instagram.com/syde.kr",
+      "https://www.threads.com/@syde.kr",
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "SYDE",
+    url: SITE_URL,
+    inLanguage: "ko-KR",
+  },
+];
 
 export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: "사이드프로젝트 커뮤니티 · 1인개발자·솔로프리너 | SYDE",
-  description: "1인개발자·솔로프리너를 위한 사이드프로젝트 커뮤니티 SYDE. 쇼케이스, 블로그, 모임이 한 곳에 있어요.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  // 하위 페이지가 openGraph를 지정하면 이 객체는 통째로 교체되므로, 여기 값은 지정하지 않은 페이지의 기본값이다.
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
   keywords: [
     "사이드 프로젝트",
     "직장인 부업",
@@ -94,6 +127,10 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${pretendard.className} antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
         <Providers>
           <AuthProvider>
             <LoginDialogProvider>

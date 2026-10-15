@@ -98,13 +98,13 @@ export default async function ClubPage() {
         <div className="w-full max-w-6xl mx-auto px-4 py-8">
           <div className="text-center text-muted-foreground">
             <h1 className="text-2xl font-bold mb-2 text-foreground py-2">
-              Clubs
+              사이드프로젝트 클럽
             </h1>
             <h2>관심사가 맞는 메이커들과의 모임</h2>
           </div>
         </div>
       </div>
-      <main className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:pb-5 max-w-6xl mx-auto">
+      <div className="flex min-h-[calc(100vh-4rem)] justify-center gap-x-5 pb-3 md:pb-5 max-w-6xl mx-auto">
         <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
           {user && profile ? (
             <div className="bg-white rounded-lg">
@@ -169,7 +169,7 @@ export default async function ClubPage() {
             </Link>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

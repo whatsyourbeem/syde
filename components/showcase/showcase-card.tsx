@@ -124,7 +124,7 @@ function ShowcaseCardBase({
         <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
           <Image
             src="/spotlight.png"
-            alt="Spotlight Background"
+            alt=""
             fill
             priority
             className="object-cover"
@@ -202,7 +202,7 @@ function ShowcaseCardBase({
                   <div className="relative w-5 h-5 overflow-hidden shrink-0 bg-[#D9D9D9] rounded-full border border-white/5">
                     <Image
                       src={showcase.profiles?.avatar_url || "/default_avatar.png"}
-                      alt="author"
+                      alt={showcase.profiles?.full_name || showcase.profiles?.username || "작성자"}
                       fill
                       className="object-cover"
                     />

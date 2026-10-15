@@ -290,7 +290,7 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
             )}
 
             {/* Main Inputs Area */}
-            <main className="flex-grow flex flex-col gap-5 pb-10">
+            <div className="flex-grow flex flex-col gap-5 pb-10">
                 {/* Title: a writing surface, not a form field */}
                 <div className="flex flex-col gap-1 w-full">
                     <label htmlFor="blog-title" className="sr-only">제목 (필수)</label>
@@ -347,7 +347,7 @@ export default function BlogEditForm({ initialData }: BlogEditFormProps) {
                     </div>
                     {errors.body && <p className="text-[12px] text-red-500">{errors.body}</p>}
                 </div>
-            </main>
+            </div>
         </div>
     );
 }
