@@ -1,8 +1,11 @@
 import { Mail, Github, Instagram, Globe } from "lucide-react";
 import { XLogoIcon } from "@/components/icons/x-logo-icon";
 import { ShareButton } from "@/components/common/share-button";
+import { BusinessCardDialog } from "@/components/user/business-card-dialog";
+import { PublicProfile } from "@/types/profile";
 
 interface ProfileSocialLinksProps {
+  profile: PublicProfile;
   username: string;
   displayName: string;
   link: string | null;
@@ -17,6 +20,7 @@ const ICON_LINK_CLASS =
 
 /** 벨로그처럼 프로필 카드 바로 아래에 노출하는 소셜 링크 아이콘 줄. 프로필 공유하기도 같은 줄의 맨 앞 아이콘으로 둔다. */
 export function ProfileSocialLinks({
+  profile,
   username,
   displayName,
   link,
@@ -83,6 +87,7 @@ export function ProfileSocialLinks({
           <Globe className="w-6 h-6" />
         </a>
       )}
+      <BusinessCardDialog profile={profile} className="ml-auto" />
     </div>
   );
 }
