@@ -1,6 +1,6 @@
 export default function SearchLoading() {
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5 animate-pulse">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-5 animate-pulse">
       <div className="w-full max-w-2xl mx-auto mb-8">
         {/* SearchForm Skeleton */}
         <div className="h-10 bg-muted rounded-md w-full"></div>
@@ -44,6 +44,6 @@ export default function SearchLoading() {
             </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

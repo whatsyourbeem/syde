@@ -96,7 +96,7 @@ function ShowcaseCardContentBase({
         >
           <Image
             src={showcase.thumbnail_url}
-            alt="Showcase image"
+            alt={`${showcase.name || "프로젝트"} 대표 이미지`}
             fill
             style={{ objectFit: "contain" }}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

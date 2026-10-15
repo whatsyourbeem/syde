@@ -1,5 +1,6 @@
 "use client";
 
+import { ListEmptyState } from "@/components/common/list-empty-state";
 import React, { useState } from "react";
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -86,10 +87,7 @@ export function BlogFeed({ initialPosts, currentUserId, currentUser, filterByUse
           />
         </div>
       ) : (
-        <div className="text-center py-20 text-gray-400 flex flex-col gap-2">
-          <div className="text-4xl">💭</div>
-          <p>아직 글이 없어요. 첫 글을 남겨보세요</p>
-        </div>
+        <ListEmptyState>아직 글이 없어요. 첫 글을 남겨보세요</ListEmptyState>
       )}
 
       {/* Floating Create Button: labeled so it reads as "write", and kept low on mobile so it clears card stats. */}

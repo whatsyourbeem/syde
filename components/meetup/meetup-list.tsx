@@ -1,5 +1,6 @@
 "use client";
 
+import { ListEmptyState } from "@/components/common/list-empty-state";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { LIST_STALE_TIME } from "@/lib/queries/query-keys";
 import { InfiniteScrollTrigger } from "@/components/common/infinite-scroll-trigger";
@@ -39,9 +40,9 @@ export function MeetupList({ initialMeetups, status }: MeetupListProps) {
 
   if (allMeetups.length === 0) {
     return (
-      <div className="text-center text-gray-500 mt-10 px-4">
-        <p>해당 모임이 없습니다.</p>
-      </div>
+      <ListEmptyState>
+        {status ? `‘${status}’ 상태의 모임이 없어요.` : "아직 등록된 모임이 없어요."}
+      </ListEmptyState>
     );
   }
 

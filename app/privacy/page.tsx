@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "개인정보처리방침 | SYDE",
+  description: "SYDE가 수집하는 개인정보의 항목, 이용 목적, 보관 기간과 이용자의 권리를 안내하는 개인정보처리방침입니다.",
+  alternates: {
+    canonical: "/privacy",
+  },
+};
+
 export default function PrivacyPage() {
   return (
     <div className="container mx-auto px-8 py-8 max-w-3xl">

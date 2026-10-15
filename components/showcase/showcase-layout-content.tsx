@@ -27,7 +27,7 @@ export function ShowcaseLayoutContent({
       {/* Header: 메인 페이지에서만 별도의 전체 너비 영역으로 표시 */}
       {isMainPage && <ShowcaseHeader />}
 
-      <main className="flex justify-center gap-x-5 md:px-5 max-w-6xl mx-auto">
+      <div className="flex justify-center gap-x-5 md:px-5 max-w-6xl mx-auto">
         {/* Left Sidebar: 메인 페이지에서만 표시 */}
         {isMainPage && (
           <div className="hidden md:block w-1/5 sticky top-[70px] self-start h-screen">
@@ -59,7 +59,7 @@ export function ShowcaseLayoutContent({
 
         {/* Right Sidebar: 메인 페이지에서만 표시 */}
         {isMainPage && <ShowcaseRightSidebar sydePick={sydePick} banner={banner} />}
-      </main>
+      </div>
     </div>
   );
 }

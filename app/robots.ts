@@ -1,16 +1,8 @@
 import { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
-    let baseUrl =
-        process.env.NEXT_PUBLIC_SITE_URL ??
-        (process.env.NEXT_PUBLIC_VERCEL_URL
-            ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-            : "http://localhost:3000");
-
-    if (baseUrl.endsWith("/")) {
-        baseUrl = baseUrl.slice(0, -1);
-    }
-
+    // /search는 일부러 막지 않는다. 막으면 크롤러가 noindex 메타를 읽지 못해 URL만 색인에 남을 수 있다.
     return {
         rules: {
             userAgent: "*",
@@ -20,10 +12,14 @@ export default function robots(): MetadataRoute.Robots {
                 "/auth/",
                 "/settings/",
                 "/profile",
-                "/*/edit",
+                // robots.txt 패턴은 접두사 매칭이라 $로 끝을 고정한다. 안 그러면 /showcase/creator-hub, /blog/write-better 같은 slug까지 막힌다.
+                "/*/edit$",
+                "/showcase/edit/",
+                "/*/create$",
+                "/blog/write$",
                 "/password-protect"
             ],
         },
-        sitemap: `${baseUrl}/sitemap.xml`,
+        sitemap: `${SITE_URL}/sitemap.xml`,
     };
 }

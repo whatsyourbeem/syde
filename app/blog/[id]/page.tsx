@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import BlogDetailClient from "@/components/blog/blog-detail-client";
 import { getAuthorRecentBlogPosts, getBlogPostDetailCached } from "@/lib/queries/blog-queries";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
+import { SITE_URL, absoluteUrl, DEFAULT_OG_IMAGE } from "@/lib/site";
 
 const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
@@ -89,13 +90,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     // Fetch blog post
     const blogPost = await getBlogPostDetailCached(supabase, id);
 
+    // 200으로 "없음" 화면을 내리면 삭제된 글이 색인에 남는다. 404를 내려야 한다.
     if (!blogPost) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 text-center px-4">
-                <p className="text-gray-500 font-medium text-lg">글을 찾을 수 없습니다.</p>
-                <a href="/blog" className="px-4 py-2 bg-sydeblue text-white rounded-md">목록으로 돌아가기</a>
-            </div>
-        );
+        notFound();
     }
 
     if (isUUID(id) && blogPost.slug) {
@@ -151,11 +148,11 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         "@type": "BlogPosting",
         "headline": blogPost.title,
         "description": blogPost.summary || plainText.slice(0, 160) || "SYDE blog post",
-        "image": blogPost.image_url || `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/we-are-syders.png`,
+        "image": blogPost.image_url || absoluteUrl(DEFAULT_OG_IMAGE),
         "author": {
             "@type": "Person",
             "name": blogPost.profiles?.full_name || blogPost.profiles?.username || "SYDER",
-            "url": blogPost.profiles?.username ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/@${blogPost.profiles.username}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"),
+            "url": blogPost.profiles?.username ? absoluteUrl(`/@${blogPost.profiles.username}`) : SITE_URL,
             "jobTitle": blogPost.profiles?.tagline || "메이커"
         },
         "publisher": {
@@ -163,10 +160,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             "name": "SYDE (사이드프로젝트 커뮤니티)",
             "logo": {
                 "@type": "ImageObject",
-                "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/icon.png`
+                "url": absoluteUrl("/icon.png")
             }
         },
-        "url": `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://syde.kr"}/blog/${blogPost.slug || blogPost.id}`,
+        "url": absoluteUrl(`/blog/${blogPost.slug || blogPost.id}`),
         "datePublished": blogPost.created_at,
         "dateModified": blogPost.updated_at || blogPost.created_at,
     };

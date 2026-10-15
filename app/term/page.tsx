@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "이용약관 | SYDE",
+  description: "SYDE 서비스 이용과 관련한 이용자와 운영자의 권리, 의무 및 책임사항을 규정한 이용약관입니다.",
+  alternates: {
+    canonical: "/term",
+  },
+};
+
 export default function TermPage() {
   return (
     <div className="container mx-auto px-8 py-8 max-w-3xl">
