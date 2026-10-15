@@ -170,6 +170,7 @@ export default async function UserProfilePage({
         <div className="flex flex-col">
           <ProfileIdentityHeader profile={profile} />
           <ProfileSocialLinks
+            profile={profile}
             username={profile.username || ""}
             displayName={profile.full_name || profile.username || "Anonymous"}
             link={profile.link}
