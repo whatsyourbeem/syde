@@ -66,6 +66,36 @@ export type Database = {
           },
         ]
       }
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          icon: string | null
+          id: string
+          is_visible: boolean
+          link_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_visible?: boolean
+          link_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_visible?: boolean
+          link_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           created_at: string | null
