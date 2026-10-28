@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { HeaderServer } from "@/components/layout/header-server";
+import { AnnouncementBanner } from "@/components/layout/announcement-banner";
 import { Providers } from "@/components/layout/providers";
 import { AuthProvider } from "@/context/AuthContext";
 import { LoginDialogProvider } from "@/context/LoginDialogContext";
@@ -135,6 +136,7 @@ export default function RootLayout({
             <LoginDialogProvider>
               <div className="flex flex-col min-h-dvh">
                 <div className="contents">
+                  <AnnouncementBanner />
                   <HeaderServer paperlogyClassName={paperlogy.className} />
                   <HeaderNavigationWrapper>
                     <HeaderNavigation />
