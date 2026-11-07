@@ -6,6 +6,7 @@ import ClubPostDetailClient from "@/components/club/club-post-detail-client"; //
 
 import { Metadata, ResolvingMetadata } from "next";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
+import { truncateText } from "@/lib/truncate-text";
 
 interface ClubPostDetailPageProps {
   params: Promise<{
@@ -65,7 +66,7 @@ export async function generateMetadata(
   }
 
   const description = isPublic ?
-    (plainText.length > 160 ? plainText.slice(0, 160) + "..." : (plainText || "SYDE 클럽 게시글"))
+    (plainText.length > 160 ? truncateText(plainText, 160) + "..." : (plainText || "SYDE 클럽 게시글"))
     : "SYDE 클럽 멤버들을 위한 게시글입니다.";
 
   return {

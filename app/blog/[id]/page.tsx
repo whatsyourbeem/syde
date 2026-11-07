@@ -33,7 +33,7 @@ export async function generateMetadata(
     const plainText = blogPost.summary || extractPlainText(blogPost.content);
 
     const description =
-        plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText || "SYDE 블로그 글을 확인해보세요.";
+        plainText.length > 160 ? truncateText(plainText, 160) + "..." : plainText || "SYDE 블로그 글을 확인해보세요.";
     const images = blogPost.image_url ? [blogPost.image_url] : ["/we-are-syders.png"];
 
     const keywords = ["SYDE", "사이드프로젝트", "블로그", "인사이트", "IT 커뮤니티"];
@@ -69,6 +69,7 @@ export async function generateMetadata(
 }
 
 import { getRenderedArticle } from "@/components/common/tiptap-server-extensions";
+import { truncateText } from "@/lib/truncate-text";
 
 // Matches the 1h TTL already used by getBlogPostDetailCached/getAuthorRecentBlogPosts,
 // so this doesn't introduce staleness beyond what those caches already allow.
@@ -147,7 +148,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": blogPost.title,
-        "description": blogPost.summary || plainText.slice(0, 160) || "SYDE blog post",
+        "description": blogPost.summary || truncateText(plainText, 160) || "SYDE blog post",
         "image": blogPost.image_url || absoluteUrl(DEFAULT_OG_IMAGE),
         "author": {
             "@type": "Person",

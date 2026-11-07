@@ -5,6 +5,7 @@ import { ShowcaseDetail } from "@/components/showcase/showcase-detail";
 import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-extensions";
 import { getShowcaseDetailCached, OptimizedShowcase } from "@/lib/queries/showcase-queries";
 import { SITE_URL, absoluteUrl, DEFAULT_OG_IMAGE } from "@/lib/site";
+import { truncateText } from "@/lib/truncate-text";
 
 type ShowcaseDetailPageProps = {
   params: Promise<{
@@ -51,12 +52,12 @@ export async function generateMetadata(
       
       if (typeof parsed === "object" && parsed !== null) {
         const plainText = extractText(parsed).trim();
-        description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText;
+        description = plainText.length > 160 ? truncateText(plainText, 160) + "..." : plainText;
       } else {
-        description = String(showcase.description).slice(0, 160);
+        description = truncateText(String(showcase.description), 160);
       }
     } catch (e) {
-      description = String(showcase.description).slice(0, 160);
+      description = truncateText(String(showcase.description), 160);
     }
   }
 

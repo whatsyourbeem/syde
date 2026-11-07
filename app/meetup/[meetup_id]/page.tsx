@@ -17,6 +17,7 @@ import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-exte
 import type { JSONContent } from "@tiptap/react";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
 import { SITE_URL, absoluteUrl } from "@/lib/site";
+import { truncateText } from "@/lib/truncate-text";
 
 // 타입 명시
 interface PageProps {
@@ -67,7 +68,7 @@ export async function generateMetadata(
     plainText = descObj;
   }
 
-  const description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : (plainText || "SYDE 모임에 참여해보세요.");
+  const description = plainText.length > 160 ? truncateText(plainText, 160) + "..." : (plainText || "SYDE 모임에 참여해보세요.");
   const images = meetup.thumbnail_url ? [meetup.thumbnail_url] : ["/default_meetup_thumbnail.png"];
 
   return {

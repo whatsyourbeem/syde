@@ -13,6 +13,7 @@ import { fetchBlogPostsAction } from "@/app/blog/blog-data-actions";
 import { getFeaturedShowcases } from "@/lib/queries/profile-pinned-showcases-queries";
 
 import { Metadata, ResolvingMetadata } from "next";
+import { truncateText } from "@/lib/truncate-text";
 
 interface UserProfilePageProps {
   params: Promise<{ username: string }>;
@@ -30,7 +31,7 @@ function resolveTab(rawTab: string | string[] | undefined): ProfileTab {
 }
 
 function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+  return text.length > max ? `${truncateText(text, max - 1).trimEnd()}…` : text;
 }
 
 const HTML_ENTITIES: Record<string, string> = {
