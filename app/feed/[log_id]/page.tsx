@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FeedDetail } from "@/components/feed/feed-detail";
 
 import { Metadata, ResolvingMetadata } from "next";
+import { truncateText } from "@/lib/truncate-text";
 
 type FeedDetailPageProps = {
   params: Promise<{
@@ -48,7 +49,7 @@ export async function generateMetadata(
     plainText = log.content || "";
   }
 
-  const description = plainText.length > 160 ? plainText.slice(0, 160) + "..." : plainText;
+  const description = plainText.length > 160 ? truncateText(plainText, 160) + "..." : plainText;
   const images = log.image_url ? [log.image_url] : ["/we-are-syders.png"];
 
   return {

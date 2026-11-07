@@ -1,4 +1,5 @@
 import type { JSONContent } from "@tiptap/react";
+import { truncateText } from "@/lib/truncate-text";
 
 /**
  * Flattens a Tiptap document (or its JSON string) into plain text, one space between blocks,
@@ -32,5 +33,5 @@ export function extractPlainText(
 
   const text = collect(doc).replace(/\s+/g, " ").trim();
   if (maxLength === undefined || text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength).trimEnd()}…`;
+  return `${truncateText(text, maxLength).trimEnd()}…`;
 }
