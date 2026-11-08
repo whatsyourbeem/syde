@@ -17,6 +17,7 @@ import { getInitialHtmlFromTiptap } from "@/components/common/tiptap-server-exte
 import type { JSONContent } from "@tiptap/react";
 import { extractPlainText } from "@/lib/tiptap-plain-text";
 import { SITE_URL, absoluteUrl } from "@/lib/site";
+import { MEETUP_STATUSES } from "@/lib/constants";
 import { truncateText } from "@/lib/truncate-text";
 
 // 타입 명시
@@ -138,6 +139,29 @@ export default async function MeetupDetailPage({ params }: PageProps) {
     }
   }
 
+  // 화면의 "정원 마감" 판단(meetup-detail-client)과 같은 기준: 대기 중인 신청자도 자리를 차지한다.
+  const isMeetupFull = meetup.max_participants
+    ? (meetup.meetup_participants?.length ?? 0) >= meetup.max_participants
+    : false;
+
+  const offerAvailability = (() => {
+    switch (meetup.status) {
+      case MEETUP_STATUSES.UPCOMING:
+        return "https://schema.org/PreOrder";
+      case MEETUP_STATUSES.APPLY_AVAILABLE:
+        return isMeetupFull ? "https://schema.org/SoldOut" : "https://schema.org/InStock";
+      default:
+        // 신청 마감(APPLY_CLOSED)과 종료(ENDED)
+        return "https://schema.org/SoldOut";
+    }
+  })();
+
+  const organizerJsonLd = {
+    "@type": "Person",
+    "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER",
+    "url": meetup.organizer_profile?.username ? absoluteUrl(`/@${meetup.organizer_profile.username}`) : SITE_URL
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -156,10 +180,16 @@ export default async function MeetupDetailPage({ params }: PageProps) {
     ],
     // 위에서 description을 JSON으로 파싱해 두었으므로 문자열 비교가 아니라 본문 텍스트를 뽑아야 한다.
     "description": extractPlainText(meetup.description as JSONContent | null, 160) || "SYDE 커뮤니티 모임",
-    "organizer": {
-      "@type": "Person",
-      "name": meetup.organizer_profile?.full_name || meetup.organizer_profile?.username || "SYDER",
-      "url": meetup.organizer_profile?.username ? absoluteUrl(`/@${meetup.organizer_profile.username}`) : SITE_URL
+    "organizer": organizerJsonLd,
+    // 모임에는 별도의 출연자 정보가 없어 모임을 여는 주최자를 진행자로 표기한다.
+    "performer": organizerJsonLd,
+    "offers": {
+      "@type": "Offer",
+      "url": absoluteUrl(`/meetup/${meetup_id}`),
+      // fee 가 비어 있거나 0이면 무료 모임이다(화면의 formatFee 와 같은 기준).
+      "price": meetup.fee ?? 0,
+      "priceCurrency": "KRW",
+      "availability": offerAvailability
     }
   };
 
